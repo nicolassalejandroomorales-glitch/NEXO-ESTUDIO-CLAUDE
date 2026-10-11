@@ -38,9 +38,6 @@
     errorSearch: '',
     examSubject: 'all',
     statsRange: '30',
-    shopTab: 'all',
-    previewId: null,
-    shopBusy: false,
     homeSubject: 'analitica',
     gradeSubject: 'analitica',
     gradeGroup: 'theory',
@@ -52,12 +49,6 @@
     calendarMonth: '',
     editEventId: ''
   };
-  const SCENES = [
-    { id: 'scene-ruins', name: 'Refugio de Nexo', price: 0, tone: 'ruins' },
-    { id: 'scene-forest', name: 'Bosque de musgo', price: 90, tone: 'forest' },
-    { id: 'scene-lab', name: 'Laboratorio lunar', price: 130, tone: 'lab' },
-    { id: 'scene-sunset', name: 'Atardecer ámbar', price: 170, tone: 'sunset' }
-  ];
 
   const deepClone = value => JSON.parse(JSON.stringify(value));
   const uid = prefix => `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -125,7 +116,7 @@
   function defaultState() {
     return {
       version: SCHEMA_VERSION,
-      coins: 120,
+      coins: 0,
       xp: 0,
       sessions: [],
       timer: { status: 'idle', subject: 'organica', startedAt: null, elapsedBeforeMs: 0 },
@@ -144,10 +135,8 @@
       grades: defaultGrades(),
       absences: [],
       weeklyGoal: 300,
-      inventory: ['species-pig', 'scene-ruins'],
-      mascot: { species: 'pig', name: 'Nexo', look: null, hat: null, bag: null, tail: null, shirt: null, scene: 'scene-ruins',
-        slots: {head:null,face:null,shirt:null,back:null,tail:null,aura:null,background:'scene-ruins',main_hand:null,off_hand:null},
-        animation:'idle',appearance:{},renderer:'auto' },
+      inventory: [],
+      mascot: { name: 'Nexo' },
       boosts: { streakShields: 0, protectedDates: [] },
       settings: { background: 'studio', sound: false, volume: 0.4, sfxVolume: 0.4,
         music: false, musicVolume: 0.15, ambient: false, ambientVolume: 0.12,
@@ -335,22 +324,13 @@
     if (Array.isArray(raw.practiceCompleted)) {
       raw.practiceCompleted.forEach(id => { if (!next.practice[id]) next.practice[id] = { attempts: 1, checked: true, correct: true, lastAttempt: todayKey() }; });
     }
-    // Migra el antiguo look único hacia ranuras independientes sin perder compras.
-    const legacyLook = reward(next.mascot.look);
-    if (legacyLook && ['hat', 'bag', 'tail', 'shirt'].includes(legacyLook.kind) && !next.mascot[legacyLook.kind]) {
-      next.mascot[legacyLook.kind] = legacyLook.id;
-    }
-    ['hat', 'bag', 'tail', 'shirt'].forEach(slot => {
-      const item = reward(next.mascot[slot]);
-      if (!item || item.kind !== slot || !next.inventory.includes(item.id)) next.mascot[slot] = null;
-    });
-    next.mascot.look = null;
-    if (!next.inventory.includes(`species-${next.mascot.species}`)) next.mascot.species = 'pig';
-    if (!SCENES.some(scene => scene.id === next.mascot.scene && next.inventory.includes(scene.id))) next.mascot.scene = 'scene-ruins';
-    next.mascot=window.NexoAvatar.normalize(next.mascot,next.inventory);
+    // Mascota nueva en preparación (docs/mascota/SPEC.md): sin especies ni cosméticos; solo se conserva el nombre.
+    next.mascot = { name: String(next.mascot?.name || '').trim().slice(0, 24) || 'Nexo' };
     if (!DATA.backgrounds.some(item => item.id === next.settings.background)) next.settings.background = base.settings.background;
     next.lessonSession = null; // las clases se están rehaciendo: no hay avance de clase que conservar
     next.meta = { ...base.meta, ...next.meta };
+    // Borrón y cuenta nueva de la tienda (4 oct 2026): una sola vez, átomos a cero y sin artículos.
+    if (!next.meta.shopReset202610) { next.coins = 0; next.inventory = []; next.settings.focusMode = false; next.meta.shopReset202610 = true; }
     next.completedLessons.forEach(id => {
       if (LESSONS[id] && !next.mastery[id]) next.mastery[id] = { status: 'inestable', bestScore: 0, attempts: 0, understoodAt: todayKey(), dueAt: todayKey(addDays(new Date(), 2)) };
     });
@@ -481,56 +461,12 @@
       .sort((a, b) => a[1].dueAt.localeCompare(b[1].dueAt));
   }
 
-  function companion() { return DATA.companions.find(c => c.species === state.mascot.species) || DATA.companions[0]; }
   function reward(id) { return DATA.rewards.find(item => item.id === id); }
-  function avatarMarkup({ large = false, mini = false, species, label, model, look = null, hat, bag, tail, shirt } = {}) {
-    const source=model||state.mascot;
-    species=species||source.species;
-    label=label||source.name;
-    const single = reward(look);
-    const slots={...source.slots};
-    const mascotContext=window.NexoMascotController.plan({currentMascot:source,currentEquipment:slots,
-      currentRoom:window.NexoRooms.resolve(parseRoute()),ambientEvent:window.NexoAmbientEvents?.current});
-    const config = {
-      species: species === 'dragon' ? 'pig' : species,
-      intent: mascotContext.intent,
-      mini,
-      head:hat || (single?.kind==='hat'?single.id:slots.head||source.hat),
-      back:bag || (single?.kind==='bag'?single.id:slots.back||source.bag),
-      tail:tail || (single?.kind==='tail'?single.id:slots.tail||source.tail),
-      shirt:shirt || (single?.kind==='shirt'?single.id:slots.shirt||source.shirt),
-      face:slots.face||null,aura:slots.aura||null
-    };
-    const size = mini ? 192 : large ? 512 : 320;
-    const hasEquipment=['head','back','tail','shirt','face','aura'].some(slot=>config[slot]);
-    const pose=mascotContext.intent==='read'||mascotContext.intent==='think'?'read':mascotContext.intent==='ready'?'ready':'idle';
-    const placeholder=config.species==='pig'&&!hasEquipment?`./assets/avatar/poses/pig-${pose}.png`:`./assets/avatar/base/${config.species}.webp`;
-    return `<figure class="avatar avatar-shell-v10 ${large ? 'large' : ''} ${mini ? 'mini' : ''}" data-companion-intent="${esc(mascotContext.intent)}" data-companion-room="${esc(mascotContext.room)}"><canvas class="avatar-canvas-v10" width="${size}" height="${size}" style="background-image:url('${placeholder}')" data-mascot-config="${esc(JSON.stringify(config))}" role="img" aria-label="${esc(label)}, mascota personalizada"></canvas><span class="avatar-shadow-v10" aria-hidden="true"></span><figcaption>${esc(label)}</figcaption></figure>`;
-  }
-  function hydrateAvatars(root = document) {
-    root.querySelectorAll('canvas[data-mascot-config]').forEach(canvas => {
-      if (canvas.dataset.rendered === '1') return;
-      let config = { species: 'pig' };
-      try { config = JSON.parse(canvas.dataset.mascotConfig || '{}'); } catch (_) { /* usa cerdito base */ }
-      window.NexoAvatarRenderer?.mount(canvas, config);
-    });
-  }
-  function renderCompanionPresence(route) {
+  // La mascota se está rehaciendo (docs/mascota/SPEC.md): por ahora no se dibuja en ninguna pantalla.
+  function avatarMarkup() { return ''; }
+  function renderCompanionPresence() {
     const dock=document.getElementById('companionPresence');
-    if(!dock)return;
-    if(route[0]==='home') {
-      window.NexoAvatarRenderer?.cleanup(dock);
-      dock.hidden=true;dock.replaceChildren();dock.dataset.signature='';return;
-    }
-    const context=window.NexoMascotController.plan({currentMascot:state.mascot,
-      currentRoom:window.NexoRooms.resolve(route),ambientEvent:window.NexoAmbientEvents?.current});
-    const signature=JSON.stringify([state.mascot.species,state.mascot.slots,context.intent]);
-    dock.hidden=false;
-    if(dock.dataset.signature===signature)return;
-    window.NexoAvatarRenderer?.cleanup(dock);
-    dock.innerHTML=avatarMarkup({label:state.mascot.name});
-    dock.dataset.signature=signature;
-    requestAnimationFrame(()=>hydrateAvatars(dock));
+    if(dock){dock.hidden=true;dock.replaceChildren();}
   }
 
   function statusChip(status) {
@@ -584,7 +520,6 @@
     window.NexoWillowView?.cleanup();
     window.NexoAcademicTraining?.cleanup();
     window.NexoMascotController?.cleanup();
-    window.NexoAvatarRenderer?.cleanup(app);
     const route = parseRoute();
     const routeChanged=previousRoute!==route.join('/');
     const roomFamily=parts=>['subject','lesson','subjects','library','knowledge','inspector'].includes(parts[0])?'learn':
@@ -636,7 +571,7 @@
       'ui-lab': () => renderWorkbench('ui-lab'),
       review: () => renderWorkbench('review'),
       performance: () => renderWorkbench('performance'),
-      shop: () => { if (route[1]) ui.shopTab = route[1]; renderShop(); },
+      shop: renderShop,
       mascot: renderMascot,
       torre: () => renderTower(route[1] || 'organica'),
       settings: renderSettings
@@ -651,7 +586,6 @@
     updateChrome();
     renderCompanionPresence(route);
     document.documentElement.classList.add('nexo-ready');
-    requestAnimationFrame(() => hydrateAvatars(app));
     if(routeChanged)window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     if (moveFocus) requestAnimationFrame(() => {
       const detail=route[0]==='learn'&&route[3]==='evaluation'&&route[5]?app.querySelector('.preparation-detail'):null;
@@ -695,7 +629,7 @@
     const continuingSubject = saved ? subjectFor(saved.subject) : subject;
     const pepIndex = Math.max(0, continuingSubject.peps.findIndex(pep => pep.lessons.includes(saved?.id || allLessons(continuingSubject.id).find(id => !understood(id)))));
     const pep = continuingSubject.peps[pepIndex];
-    const scene=window.NexoRooms.homeScene,seat=scene.currentSeat;
+    const scene=window.NexoRooms.homeScene;
     const profile=window.NexoHomeScene.getProfile(),composition=window.NexoHomeScene.render(profile);
     const sceneBackground=new URL(composition.backgroundAsset,document.baseURI).href;
     const zones=Object.values(scene.anchors).map(anchor=>`<span class="home-scene-zone" data-scene-zone="${anchor.zone}" style="left:${anchor.bounds[0]*100}%;top:${anchor.bounds[1]*100}%;width:${anchor.bounds[2]*100}%;height:${anchor.bounds[3]*100}%" aria-hidden="true"></span>`).join('');
@@ -707,7 +641,6 @@
           <div class="home-art-plane ${composition.debug?'scene-debug':''}" data-scene-id="${profile.sceneId}" style="--room-art:url('${sceneBackground}');--scene-aspect:${profile.referenceWidth}/${profile.referenceHeight};--mascot-depth:${profile.layers.mascot}">
             ${composition.markup}
             ${zones}
-            <section class="rpg-stage refuge-perch" data-scene-anchor="desk-area" style="--seat-x:${seat.x*100}%;--seat-y:${seat.y*100}%;--seat-width:${seat.width*100}%;--seat-foot:${seat.foot*100}%" aria-label="Tu compañero sobre el escritorio"><div class="stage-companion">${avatarMarkup({large:true})}</div></section>
           </div>
           </div>
           <span class="home-pan-hint" aria-hidden="true">Desliza para explorar ⟷</span>
@@ -1157,7 +1090,7 @@
     const page = app.querySelector('.page');
     page.classList.add('rpg-inner', 'profile-page');
     page.insertAdjacentHTML('afterbegin', `<div class="profile-room-header" role="img" aria-label="Habitación de Nexo"></div><nav class="rpg-tabs" role="tablist" aria-label="Perfil">
-      ${[['mascot','Mascota y fondos'],['grades','Notas'],['absences','Inasistencias'],['stats','Estadísticas'],['settings','Ajustes']].map(([id,label]) => `<button role="tab" aria-selected="${active === id}" class="${active === id ? 'active' : ''}" data-profile-tab="${id}">${label}</button>`).join('')}
+      ${[['mascot','Mascota'],['grades','Notas'],['absences','Inasistencias'],['stats','Estadísticas'],['settings','Ajustes']].map(([id,label]) => `<button role="tab" aria-selected="${active === id}" class="${active === id ? 'active' : ''}" data-profile-tab="${id}">${label}</button>`).join('')}
     </nav>`);
   }
 
@@ -1353,20 +1286,18 @@
     return `<div class="challenge-grid">${challengeDefinitions().map(item => { const claimed = state.claimedChallenges.includes(challengeKey(item)), complete = item.value >= item.target; return `<article class="challenge-card ${complete ? 'complete' : ''}"><div><span>DESAFÍO ${item.id === 'balance3' ? 'SEMANAL' : 'DIARIO'}</span><b>${cloud.authenticated ? 'En seguimiento' : `+${item.reward} átomos`}</b></div><h2>${esc(item.title)}</h2><p>${esc(item.detail)}</p>${progressBar(item.value / item.target * 100, `${Math.min(item.value, item.target)} de ${item.target}`)}<button class="primary-btn" data-claim-challenge="${item.id}" ${cloud.authenticated || !complete || claimed ? 'disabled' : ''}>${cloud.authenticated ? 'Sin recompensa cloud' : claimed ? 'Cobrado' : complete ? 'Cobrar recompensa' : 'Aún no cumplido'}</button></article>`; }).join('')}</div>`;
   }
 
-  // La tienda y el vestuario usan un modelo común en avatar/; la ruta solo entrega estado.
-  function avatarView() { return {state,cloud,filter:ui.shopTab,previewId:ui.previewId,
-    busy:ui.shopBusy,avatarMarkup}; }
+  // La tienda y la mascota se están rehaciendo desde cero (docs/mascota/SPEC.md).
+  function comingSoon(eyebrow,id,title,text) {
+    return `<section class="empty-state" aria-labelledby="${id}"><span class="empty-state-mark" aria-hidden="true">✧</span><p class="eyebrow">${eyebrow}</p><h2 id="${id}">${title}</h2><p>${text}</p></section>`;
+  }
   function renderShop() {
-    if (ui.shopTab==='looks') ui.shopTab='all';
-    if (ui.shopTab==='scenes') ui.shopTab='background';
-    app.innerHTML=window.NexoAvatarExperience.renderShop(avatarView())+
-      `<details class="forge-challenges"><summary>Herramientas de estudio</summary><div class="panel">Modo sin distracciones: ${state.inventory.includes('focus-mode')?'disponible en Ajustes':
-        '<button class="secondary-btn" data-buy-utility="focus-mode">Desbloquear · 220 átomos</button>'}</div></details>`+
+    app.innerHTML=`<section class="page forge-page">${comingSoon('MERCADO ARCANO','shopSoon','Tienda · Disponible próximamente',
+      'Estamos rehaciendo la tienda junto con tu nuevo compañero. Tus átomos se siguen ganando al estudiar.')}</section>`+
       `<details class="forge-challenges"><summary>Desafíos de estudio</summary>${renderChallenges()}</details>`;
   }
   function renderMascot() {
-    if (ui.shopTab==='all'||ui.shopTab==='looks') ui.shopTab='head';
-    app.innerHTML=window.NexoAvatarExperience.renderEditor(avatarView());
+    app.innerHTML=`<section class="page">${comingSoon('TU COMPAÑERO','mascotSoon','Mascota · Disponible próximamente',
+      'Estamos diseñando un compañero nuevo, propio de Nexo, que vivirá en tu refugio.')}</section>`;
   }
 
   function renderSettings() {
@@ -1441,35 +1372,6 @@
     window.NexoAudio?.playFeedback(state.settings);
   }
 
-  async function buyAvatarItem(id) {
-    const item=window.NexoAvatarExperience.catalogFor(avatarView()).find(entry=>entry.id===id);
-    if(!item||state.inventory.includes(id)||ui.shopBusy)return;
-    if(!cloud.authenticated&&state.coins<item.price)return showToast('No tienes átomos suficientes.');
-    ui.shopBusy=true;renderRoute(false);
-    try {
-      if(cloud.authenticated) {
-        await cloud.purchase(id);
-        state.coins=cloud.balance;state.inventory=[...cloud.inventory];
-      } else {
-        state.coins-=item.price;state.inventory.push(id);saveState();
-      }
-      ui.previewId=id;renderRoute(false);
-      window.NexoAnimation.run(document.querySelector('[data-forge-stage]'),'rewardPop');
-      window.NexoAudio?.play?.('purchase',state.settings);
-      cloud.track('cosmetic_purchased',{cosmetic_id:id});
-      showToast(`${item.name} se añadió a tu inventario.`);
-    } catch(error) {showToast(window.NexoCloudSafeError(error));}
-    finally {ui.shopBusy=false;renderRoute(false);}
-  }
-  function equipAvatarItem(id,slot) {
-    try {
-      state.mascot=window.NexoAvatar.equip(state.mascot,state.inventory,id,slot);
-      ui.previewId=null;saveState();renderRoute(false);
-      window.NexoAnimation.run(document.querySelector('[data-forge-stage]'),'equipPulse');
-      window.NexoAudio?.play?.('equip',state.settings);
-      if(id)cloud.track('cosmetic_equipped',{cosmetic_id:id});
-    } catch(_) {showToast('Este accesorio no está disponible en tu inventario.');}
-  }
 
   function timerStart() {
     if (state.timer.status === 'idle') { state.timer.subject = document.querySelector('#timerSubject')?.value || state.timer.subject; state.timer.elapsedBeforeMs = 0; }
@@ -1672,7 +1574,6 @@
     if (button.dataset.homeSubject) {
       ui.homeSubject = button.dataset.homeSubject;
       renderHomeRpg();
-      requestAnimationFrame(() => hydrateAvatars(app));
       app.querySelector(`[data-home-subject="${ui.homeSubject}"]`)?.focus({ preventScroll: true });
       return;
     }
@@ -1739,15 +1640,6 @@
     if (button.dataset.action === 'export-ics') return exportIcs();
     if (button.dataset.action === 'enable-notifications') return enableNotifications();
     if (button.dataset.statsRange) { ui.statsRange = button.dataset.statsRange; return renderRoute(false); }
-    if (button.dataset.v13Filter!==undefined) {ui.shopTab=button.dataset.v13Filter;ui.previewId=null;return renderRoute(false);}
-    if (button.dataset.v13ClearPreview!==undefined) {ui.previewId=null;return renderRoute(false);}
-    if (button.dataset.v13Preview) {ui.previewId=button.dataset.v13Preview;
-      cloud.track('cosmetic_previewed',{cosmetic_id:ui.previewId});renderRoute(false);
-      return window.NexoAnimation.run(document.querySelector('[data-forge-stage]'),'fadeIn');}
-    if (button.dataset.v13Buy) return buyAvatarItem(button.dataset.v13Buy).catch(()=>showToast('No pudimos completar la compra.'));
-    if (button.dataset.v13Equip) {const item=window.NexoAvatar.byId.get(button.dataset.v13Equip);
-      return item&&equipAvatarItem(item.id,item.slot);}
-    if (button.dataset.v13Unequip) return equipAvatarItem(null,button.dataset.v13Unequip);
     if (button.dataset.buyUtility) return buyUtility(button.dataset.buyUtility);
     if (button.dataset.background) { state.settings.background = button.dataset.background; saveState(); return renderRoute(false); }
     if (button.dataset.claimChallenge) return claimChallenge(button.dataset.claimChallenge);

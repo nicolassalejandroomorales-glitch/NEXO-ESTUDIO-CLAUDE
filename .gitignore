@@ -9,6 +9,7 @@ node_modules/
 rive/cli/
 rive/companion-v2/build/
 Claude outputs/
+rive/mascotas/build/
 
 # PDFs de cátedra (material del curso; se convierten con tools/classroom-art/slides.py)
 art-source/pdfs/

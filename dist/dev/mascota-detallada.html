@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mascota alquímica · con profundidad</title>
+<style>
+  :root { --bg:#1f1a15; --card:#2b241d; --ink:#f4e8d2; --muted:#c3b291; --gold:#e8b65a; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 Georgia, serif; padding:20px 16px 48px; }
+  h1 { margin:0 0 4px; font-size:26px; } .sub { color:var(--muted); margin:0 0 16px; max-width:900px; }
+  .room { position:relative; max-width:1100px; aspect-ratio:1672/941; background:url('../assets/home-scenes/refugio-012.png') center/cover; border-radius:12px; overflow:hidden; margin-bottom:8px; }
+  .room .pet { position:absolute; left:20.5%; top:55%; width:11.5%; transform:translate(-50%,-88%); animation:bob 2.6s ease-in-out infinite; }
+  @keyframes bob { 50% { transform:translate(-50%,-91%); } }
+  @media (prefers-reduced-motion: reduce) { .room .pet { animation:none; } }
+  .room-label { color:var(--muted); margin:0 0 22px; font-size:14px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; max-width:1300px; }
+  .card { background:var(--card); border:2px solid #4a3d2e; border-radius:14px; padding:12px; cursor:pointer; }
+  .card[aria-pressed="true"] { border-color:var(--gold); }
+  .card .art { background:radial-gradient(circle at 50% 35%, #f6ead2, #e6d3ad); border-radius:10px; }
+  .card svg { width:100%; height:auto; display:block; }
+  .card h2 { margin:10px 0 2px; font-size:19px; color:var(--gold); } .card p { margin:0; color:var(--muted); font-size:14px; }
+</style>
+</head>
+<body>
+<h1>Mascota alquímica · con profundidad</h1>
+<p class="sub">Las mismas ideas, ahora con luz, sombra, materiales (vidrio, líquido, madera, cera) y detalles. Toca una para verla en el refugio.</p>
+<div class="room"><div class="pet" id="pet"></div></div>
+<p class="room-label" id="roomLabel"></p>
+<div class="grid" id="grid"></div>
+<script>
+const INK = '#3b2418';
+let n = 0;
+const S = (w, c = INK) => `stroke="${c}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
+
+// Filtros y piezas comunes (cada SVG usa su propio prefijo de ids).
+function common(id) {
+  return `<filter id="${id}blur4" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4"/></filter>` +
+    `<filter id="${id}blur10" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="10"/></filter>` +
+    `<filter id="${id}blur2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.6"/></filter>` +
+    // Grano suave tipo pintura (se multiplica encima de los materiales).
+    `<filter id="${id}grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="4" result="t"/>` +
+    `<feColorMatrix in="t" type="matrix" values="0 0 0 0 .35  0 0 0 0 .25  0 0 0 0 .15  0 0 0 .22 0"/><feComposite in2="SourceGraphic" operator="in"/></filter>` +
+    `<radialGradient id="${id}iris" cx=".45" cy=".35" r=".7"><stop offset="0" stop-color="#5a3c28"/><stop offset=".6" stop-color="#22140c"/><stop offset="1" stop-color="#0d0805"/></radialGradient>` +
+    `<radialGradient id="${id}bub" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="#ffffff" stop-opacity=".95"/><stop offset=".35" stop-color="#ffffff" stop-opacity=".25"/><stop offset="1" stop-color="#ffffff" stop-opacity=".05"/></radialGradient>`;
+}
+// Cara con ojos de varias capas (iris con degradado, brillos, párpado) y mejillas difuminadas.
+function face(id, x, y, gap, r, mouth = 'smile', blush = '#f48f86') {
+  const eye = ex => `<ellipse cx="${ex}" cy="${y}" rx="${r * .82}" ry="${r}" fill="url(#${id}iris)" ${S(1.6, '#1a0f08')}/>` +
+    `<ellipse cx="${ex}" cy="${y + r * .55}" rx="${r * .5}" ry="${r * .28}" fill="#7a5638" opacity=".55"/>` +
+    `<circle cx="${ex + r * .3}" cy="${y - r * .38}" r="${r * .34}" fill="#fff"/><circle cx="${ex - r * .28}" cy="${y + r * .36}" r="${r * .14}" fill="#fff" opacity=".9"/>` +
+    `<path d="M${ex - r * .85} ${y - r * .55} C${ex - r * .4} ${y - r * 1.15} ${ex + r * .4} ${y - r * 1.15} ${ex + r * .85} ${y - r * .55}" fill="none" ${S(2)}/>`;
+  const m = mouth === 'open'
+    ? `<path d="M${x - r * .6} ${y + r * .95} C${x - r * .45} ${y + r * 1.85} ${x + r * .45} ${y + r * 1.85} ${x + r * .6} ${y + r * .95} Z" fill="#7a2620" ${S(2.2)}/><ellipse cx="${x}" cy="${y + r * 1.5}" rx="${r * .32}" ry="${r * .16}" fill="#e0675c"/>`
+    : `<path d="M${x - r * .55} ${y + r * 1.0} C${x - r * .25} ${y + r * 1.5} ${x + r * .25} ${y + r * 1.5} ${x + r * .55} ${y + r * 1.0}" fill="none" ${S(2.6)}/>`;
+  return `<g filter="url(#${id}blur2)"><ellipse cx="${x - gap - r * .95}" cy="${y + r * 1.3}" rx="${r * .75}" ry="${r * .42}" fill="${blush}" opacity=".7"/>` +
+    `<ellipse cx="${x + gap + r * .95}" cy="${y + r * 1.3}" rx="${r * .75}" ry="${r * .42}" fill="${blush}" opacity=".7"/></g>` + eye(x - gap) + eye(x + gap) + m;
+}
+const bubbles = (id, list) => list.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="url(#${id}bub)" stroke="#ffffff" stroke-opacity=".55" stroke-width="1.2"/>`).join('');
+const sparkle = (x, y, s, col = '#fff2c4', op = 1) => `<path d="M${x} ${y - s} Q${x + s * .16} ${y - s * .16} ${x + s} ${y} Q${x + s * .16} ${y + s * .16} ${x} ${y + s} Q${x - s * .16} ${y + s * .16} ${x - s} ${y} Q${x - s * .16} ${y - s * .16} ${x} ${y - s} Z" fill="${col}" opacity="${op}"/>`;
+// Corcho cilíndrico con veta, cordel y etiqueta de papel con símbolo alquímico.
+function cork(id, cx, top, w, h) {
+  const x = cx - w / 2;
+  return `<linearGradient id="${id}cork" x1="0" x2="1"><stop offset="0" stop-color="#8a5a36"/><stop offset=".35" stop-color="#c99566"/><stop offset=".7" stop-color="#b07b4e"/><stop offset="1" stop-color="#6e4428"/></linearGradient>` +
+    `<path d="M${x} ${top + 6} L${x + 3} ${top + h} C${x + 3} ${top + h + 5} ${x + w - 3} ${top + h + 5} ${x + w - 3} ${top + h} L${x + w} ${top + 6} Z" fill="url(#${id}cork)" ${S(3)}/>` +
+    `<ellipse cx="${cx}" cy="${top + 6}" rx="${w / 2}" ry="6" fill="#ddb07f" ${S(3)}/><ellipse cx="${cx - 4}" cy="${top + 5}" rx="${w / 2 - 8}" ry="2.6" fill="none" stroke="#b98a5c" stroke-width="1.4"/>` +
+    `<path d="M${x + 8} ${top + 14} L${x + 9} ${top + h - 4} M${x + w * .55} ${top + 13} L${x + w * .56} ${top + h - 2}" stroke="#7b4e2e" stroke-width="1.3" opacity=".7"/>`;
+}
+function tag(id, x, y, rot, symbol) {
+  return `<g transform="rotate(${rot} ${x} ${y})"><path d="M${x} ${y} L${x + 30} ${y} L${x + 36} ${y + 10} L${x + 30} ${y + 20} L${x} ${y + 20} Z" fill="#f2e2bd" ${S(2)}/>` +
+    `<circle cx="${x + 30}" cy="${y + 10}" r="2.2" fill="#8a6a3a"/><g transform="translate(${x + 13} ${y + 10})" fill="none" stroke="#7a3b22" stroke-width="1.6" stroke-linecap="round">${symbol}</g>` +
+    `<path d="M${x} ${y + 20} L${x + 30} ${y + 20}" stroke="#d4bf94" stroke-width="2"/></g>`;
+}
+const MERCURY = '<circle r="4"/><path d="M0 4 L0 9 M-3 7 L3 7 M-4 -7 C-3 -4 3 -4 4 -7"/>'; // ☿
+const FIRE = '<path d="M0 -7 L7 6 L-7 6 Z"/>';                                         // △ fuego
+const SALT = '<circle r="6"/><path d="M-6 0 L6 0"/>';                                  // ⊖ sal
+
+const DESIGNS = [
+  { key: 'A', name: 'Matraz', text: 'Vidrio con grosor y reflejos de la ventana, poción con superficie y burbujas, corcho con veta, cordel y etiqueta de mercurio (☿).', svg: () => {
+    const id = 'a' + (++n) + '_';
+    const glass = 'M128 74 L172 74 L172 114 C200 152 232 210 236 238 C240 262 226 274 204 274 L96 274 C74 274 60 262 64 238 C68 210 100 152 128 114 Z';
+    return `<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg"><defs>${common(id)}<clipPath id="${id}c"><path d="${glass}"/></clipPath>` +
+      `<linearGradient id="${id}glass" x1="0" x2="1"><stop offset="0" stop-color="#8fb6b4" stop-opacity=".75"/><stop offset=".18" stop-color="#e9f6f4" stop-opacity=".55"/><stop offset=".55" stop-color="#ffffff" stop-opacity=".25"/><stop offset=".85" stop-color="#b9d6d4" stop-opacity=".55"/><stop offset="1" stop-color="#7fa6a6" stop-opacity=".8"/></linearGradient>` +
+      `<linearGradient id="${id}liq" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fe0b6"/><stop offset=".35" stop-color="#43b386"/><stop offset="1" stop-color="#1f6a52"/></linearGradient>` +
+      `<radialGradient id="${id}glow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#d4ffe9" stop-opacity=".85"/><stop offset="1" stop-color="#d4ffe9" stop-opacity="0"/></radialGradient>` +
+      cork(id, 150, 44, 58, 30) + `</defs>` +
+      // sombra de contacto + luz verde de la poción sobre la mesa
+      `<ellipse cx="150" cy="286" rx="86" ry="10" fill="#6fe0b0" opacity=".35" filter="url(#${id}blur4)"/><ellipse cx="150" cy="284" rx="64" ry="6" fill="#1a0f08" opacity=".45" filter="url(#${id}blur2)"/>` +
+      // patitas de madera
+      `<ellipse cx="116" cy="277" rx="15" ry="8" fill="#7a4f30" ${S(3)}/><ellipse cx="112" cy="274" rx="7" ry="3" fill="#a87a52"/><ellipse cx="184" cy="277" rx="15" ry="8" fill="#7a4f30" ${S(3)}/><ellipse cx="180" cy="274" rx="7" ry="3" fill="#a87a52"/>` +
+      `<path d="${glass}" fill="url(#${id}glass)"/>` +
+      `<g clip-path="url(#${id}c)"><rect x="40" y="196" width="220" height="90" fill="url(#${id}liq)"/><ellipse cx="150" cy="246" rx="70" ry="34" fill="url(#${id}glow)"/>` +
+      `<ellipse cx="150" cy="196" rx="66" ry="9" fill="#b6f2d6" stroke="#3a9a73" stroke-width="2"/><ellipse cx="128" cy="194" rx="26" ry="3" fill="#ffffff" opacity=".55"/>` +
+      bubbles(id, [[118, 238, 7], [176, 252, 5], [150, 222, 3.5], [196, 230, 3], [104, 258, 2.5], [164, 214, 2]]) +
+      sparkle(132, 254, 3.5, '#eafff4', .9) + sparkle(186, 216, 2.5, '#eafff4', .8) +
+      // grosor del vidrio: borde interior claro y base gruesa
+      `<path d="${glass}" fill="none" stroke="#ffffff" stroke-width="9" opacity=".22"/><ellipse cx="150" cy="270" rx="78" ry="9" fill="#ffffff" opacity=".22"/>` +
+      // reflejo cálido de la ventana (borde derecho) y brillo especular (izquierda)
+      `<path d="M206 196 C218 214 226 232 228 250" stroke="#ffd28a" stroke-width="6" stroke-linecap="round" opacity=".55" filter="url(#${id}blur2)"/>` +
+      `<rect width="300" height="300" filter="url(#${id}grain)" opacity=".5"/></g>` +
+      `<path d="M98 160 C86 182 80 206 82 228" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" opacity=".85"/><path d="M104 182 C100 192 98 200 98 208" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".8"/>` +
+      `<path d="M136 82 L136 108" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".7"/>` +
+      `<path d="${glass}" fill="none" ${S(3.8)}/><rect x="124" y="70" width="52" height="9" rx="4.5" fill="#e3f1f0" fill-opacity=".8" ${S(3)}/>` +
+      // corcho, cordel y etiqueta
+      `<use href="#none"/>` + cork(id, 150, 44, 58, 30).split('</linearGradient>')[1] +
+      `<path d="M127 100 C140 106 160 106 173 100" fill="none" stroke="#d9c08a" stroke-width="4"/><path d="M127 100 C140 106 160 106 173 100" fill="none" stroke="#9a7a46" stroke-width="4" stroke-dasharray="2 4"/>` +
+      `<path d="M171 101 C180 108 184 118 186 126" fill="none" stroke="#c9ad74" stroke-width="2"/>` + tag(id, 178, 124, 14, MERCURY) +
+      face(id, 150, 152, 20, 11) + sparkle(226, 74, 9, '#fff2c4') + sparkle(76, 104, 5, '#fff2c4', .8) + `</svg>`;
+  } },
+  { key: 'B', name: 'Balón de poción', text: 'Poción morada con estrellitas adentro y aura mágica, corcho sellado con cera roja que gotea y etiqueta de fuego (△).', svg: () => {
+    const id = 'b' + (++n) + '_';
+    const glass = 'M134 60 L166 60 L166 120 C206 130 232 164 232 204 C232 250 196 280 150 280 C104 280 68 250 68 204 C68 164 94 130 134 120 Z';
+    return `<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg"><defs>${common(id)}<clipPath id="${id}c"><path d="${glass}"/></clipPath>` +
+      `<radialGradient id="${id}glass" cx=".4" cy=".4" r=".7"><stop offset="0" stop-color="#ffffff" stop-opacity=".2"/><stop offset=".75" stop-color="#e2e6f2" stop-opacity=".45"/><stop offset="1" stop-color="#9aa3c4" stop-opacity=".85"/></radialGradient>` +
+      `<radialGradient id="${id}liq" cx=".45" cy=".35" r=".8"><stop offset="0" stop-color="#d7a8ff"/><stop offset=".45" stop-color="#8a52d6"/><stop offset="1" stop-color="#3f1d7a"/></radialGradient>` +
+      `<radialGradient id="${id}aura" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#c79bff" stop-opacity=".55"/><stop offset="1" stop-color="#c79bff" stop-opacity="0"/></radialGradient>` +
+      cork(id, 150, 32, 44, 28) + `</defs>` +
+      `<circle cx="150" cy="200" r="118" fill="url(#${id}aura)"/>` +
+      `<ellipse cx="150" cy="288" rx="80" ry="9" fill="#b07aff" opacity=".35" filter="url(#${id}blur4)"/><ellipse cx="150" cy="284" rx="56" ry="5.5" fill="#1a0f08" opacity=".45" filter="url(#${id}blur2)"/>` +
+      `<path d="${glass}" fill="url(#${id}glass)"/>` +
+      `<g clip-path="url(#${id}c)"><rect x="40" y="176" width="220" height="110" fill="url(#${id}liq)"/>` +
+      `<ellipse cx="150" cy="176" rx="74" ry="9" fill="#cfa6ff" stroke="#6b3bb0" stroke-width="2"/><ellipse cx="128" cy="174" rx="28" ry="3" fill="#fff" opacity=".5"/>` +
+      sparkle(108, 214, 4, '#fff6c9') + sparkle(196, 236, 5, '#fff6c9') + sparkle(170, 262, 3, '#fff6c9') + sparkle(128, 254, 2.5, '#ffffff') + sparkle(206, 202, 2.5, '#ffffff') +
+      `<circle cx="96" cy="236" r="1.6" fill="#fff"/><circle cx="182" cy="212" r="1.4" fill="#fff"/><circle cx="148" cy="270" r="1.5" fill="#fff"/>` +
+      bubbles(id, [[118, 228, 6], [184, 252, 4.5], [160, 200, 3]]) +
+      `<path d="${glass}" fill="none" stroke="#ffffff" stroke-width="9" opacity=".2"/>` +
+      `<path d="M214 186 C224 204 226 224 220 244" stroke="#ffd28a" stroke-width="6" stroke-linecap="round" opacity=".5" filter="url(#${id}blur2)"/>` +
+      `<rect width="300" height="300" filter="url(#${id}grain)" opacity=".5"/></g>` +
+      `<path d="M92 176 C82 196 82 220 92 238" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" opacity=".85"/><circle cx="104" cy="168" r="4" fill="#fff" opacity=".85"/>` +
+      `<path d="M140 68 L140 112" stroke="#fff" stroke-width="4.5" stroke-linecap="round" opacity=".7"/>` +
+      `<path d="${glass}" fill="none" ${S(3.8)}/>` + cork(id, 150, 32, 44, 28).split('</linearGradient>')[1] +
+      // sello de cera roja que gotea
+      `<path d="M126 44 C128 32 172 32 174 44 C176 54 170 60 168 70 C166 76 160 76 160 68 C160 62 154 62 152 70 C150 80 142 80 142 70 C142 62 136 60 134 66 C132 72 124 70 126 60 Z" fill="#b8322c" ${S(2.6)}/>` +
+      `<ellipse cx="150" cy="44" rx="10" ry="5" fill="#d9483f"/><path d="M146 44 L154 44 M150 40 L150 48" stroke="#8a221d" stroke-width="1.6"/><path d="M134 50 C136 46 140 44 144 44" stroke="#f08a80" stroke-width="2" fill="none" stroke-linecap="round"/>` +
+      `<path d="M165 92 C178 100 182 110 184 118" fill="none" stroke="#c9ad74" stroke-width="2"/>` + tag(id, 176, 116, 10, FIRE) +
+      face(id, 150, 216, 22, 12, 'open', '#f7a0bf') + sparkle(222, 112, 10, '#efd9ff') + sparkle(80, 134, 6, '#efd9ff') + sparkle(244, 164, 5, '#efd9ff') + `</svg>`;
+  } },
+  { key: 'C', name: 'Espíritu de vela', text: 'Llama de tres capas (núcleo blanco, amarillo y naranjo) con chispas y resplandor; vela de cera con gotas y portavelas de bronce.', svg: () => {
+    const id = 'c' + (++n) + '_';
+    const flame = 'M150 22 C178 58 204 82 204 122 C204 156 180 178 150 178 C120 178 96 156 96 122 C96 88 120 74 131 48 C135 63 140 70 146 72 C146 57 146 40 150 22 Z';
+    return `<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg"><defs>${common(id)}` +
+      `<radialGradient id="${id}glow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffcf6a" stop-opacity=".75"/><stop offset=".5" stop-color="#ffb04a" stop-opacity=".25"/><stop offset="1" stop-color="#ffb04a" stop-opacity="0"/></radialGradient>` +
+      `<radialGradient id="${id}fl" cx=".5" cy=".72" r=".75"><stop offset="0" stop-color="#ffd36a"/><stop offset=".6" stop-color="#ff9a3c"/><stop offset="1" stop-color="#e2582a"/></radialGradient>` +
+      `<radialGradient id="${id}in" cx=".5" cy=".7" r=".7"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#fff6c2"/><stop offset="1" stop-color="#ffe17a"/></radialGradient>` +
+      `<linearGradient id="${id}wax" x1="0" x2="1"><stop offset="0" stop-color="#d9c5a2"/><stop offset=".3" stop-color="#f6ead4"/><stop offset=".65" stop-color="#fffaf0"/><stop offset="1" stop-color="#c9b38e"/></linearGradient>` +
+      `<linearGradient id="${id}brass" x1="0" x2="1"><stop offset="0" stop-color="#8a5f22"/><stop offset=".4" stop-color="#e2b45a"/><stop offset=".7" stop-color="#c38f3a"/><stop offset="1" stop-color="#6e4a1a"/></linearGradient></defs>` +
+      `<circle cx="150" cy="118" r="130" fill="url(#${id}glow)"/>` +
+      `<ellipse cx="150" cy="288" rx="78" ry="8" fill="#1a0f08" opacity=".4" filter="url(#${id}blur2)"/>` +
+      // portavelas de bronce con asa
+      `<path d="M226 262 C252 256 258 236 240 230" fill="none" ${S(9)}/><path d="M226 262 C252 256 258 236 240 230" fill="none" stroke="#d6a44c" stroke-width="4" stroke-linecap="round"/>` +
+      `<ellipse cx="150" cy="270" rx="82" ry="16" fill="url(#${id}brass)" ${S(3.5)}/><ellipse cx="150" cy="266" rx="62" ry="10" fill="#a87a30" ${S(2)}/><ellipse cx="124" cy="262" rx="18" ry="3" fill="#ffe2a0" opacity=".7"/>` +
+      // vela
+      `<path d="M108 184 L192 184 L192 262 C192 268 172 272 150 272 C128 272 108 268 108 262 Z" fill="url(#${id}wax)" ${S(3.5)}/>` +
+      `<ellipse cx="150" cy="184" rx="42" ry="9" fill="#fff3d6" ${S(3)}/><ellipse cx="150" cy="185" rx="28" ry="5" fill="#ffd98a" opacity=".55"/>` +
+      `<path d="M110 186 C110 200 114 214 120 214 C126 214 126 198 124 190 Z M168 190 C168 206 172 224 178 224 C184 224 184 204 182 192 Z M138 192 C138 200 140 206 144 206 C148 206 148 198 146 192 Z" fill="#fffaf0" ${S(2.4)}/>` +
+      `<path d="M114 192 L116 208 M172 196 L174 216" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity=".9"/>` +
+      `<rect x="108" y="184" width="84" height="88" filter="url(#${id}grain)" opacity=".45"/>` +
+      `<path d="M150 176 L150 186" ${S(3.5)}/>` +
+      // llama en capas + chispas
+      `<path d="${flame}" fill="url(#${id}fl)" ${S(3.6)}/>` +
+      `<path d="M150 70 C166 92 182 108 182 132 C182 152 168 166 150 166 C132 166 118 152 118 132 C118 112 134 98 150 70 Z" fill="url(#${id}in)" opacity=".9"/>` +
+      `<path d="M112 108 C108 120 110 134 116 144" fill="none" stroke="#fff6c2" stroke-width="4" stroke-linecap="round" opacity=".8"/>` +
+      sparkle(206, 62, 5, '#ffe9a8') + sparkle(92, 70, 3.5, '#ffe9a8') + `<circle cx="214" cy="94" r="2.2" fill="#ffd36a"/><circle cx="84" cy="96" r="1.8" fill="#ffd36a"/><circle cx="196" cy="40" r="1.6" fill="#ffd36a"/>` +
+      face(id, 150, 128, 18, 10.5, 'smile', '#ff8a6a') + `</svg>`;
+  } }
+];
+
+const grid = document.getElementById('grid'), pet = document.getElementById('pet'), label = document.getElementById('roomLabel');
+grid.innerHTML = DESIGNS.map(x => `<article class="card" data-key="${x.key}" aria-pressed="false" role="button" tabindex="0"><div class="art">${x.svg()}</div><h2>${x.key} · ${x.name}</h2><p>${x.text}</p></article>`).join('');
+function pick(key) {
+  const x = DESIGNS.find(d => d.key === key);
+  pet.innerHTML = x.svg();
+  label.textContent = `En el refugio: ${x.key} · ${x.name} (sobre el escritorio, tamaño real).`;
+  grid.querySelectorAll('.card').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.key === key)));
+}
+grid.addEventListener('click', ev => { const c = ev.target.closest('.card'); if (c) pick(c.dataset.key); });
+pick(new URLSearchParams(location.search).get('ver') || 'A');
+</script>
+</body>
+</html>

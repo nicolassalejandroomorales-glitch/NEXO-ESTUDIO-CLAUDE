@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Velociraptor · opciones de diseño</title>
+<style>
+  :root { --bg:#1f1a15; --card:#2b241d; --ink:#f4e8d2; --muted:#c3b291; --gold:#e8b65a; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 Georgia, serif; padding:20px 16px 48px; }
+  h1 { margin:0 0 4px; font-size:26px; } .sub { color:var(--muted); margin:0 0 16px; max-width:900px; }
+  .room { position:relative; max-width:1100px; aspect-ratio:1672/941; background:url('../assets/home-scenes/refugio-012.png') center/cover; border-radius:12px; overflow:hidden; margin-bottom:8px; }
+  .room .pet { position:absolute; left:20.5%; top:55%; width:13%; transform:translate(-50%,-86%); filter:drop-shadow(0 5px 3px #1e221660); }
+  .room-label { color:var(--muted); margin:0 0 22px; font-size:14px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:16px; max-width:1400px; }
+  .card { background:var(--card); border:2px solid #4a3d2e; border-radius:14px; padding:12px; cursor:pointer; }
+  .card[aria-pressed="true"] { border-color:var(--gold); }
+  .card .art { background:#f3e6cc; border-radius:10px; }
+  .card svg { width:100%; height:auto; display:block; }
+  .card h2 { margin:10px 0 2px; font-size:19px; color:var(--gold); } .card p { margin:0; color:var(--muted); font-size:14px; }
+  .tag { display:inline-block; font-size:12px; color:#1f1a15; background:var(--gold); border-radius:6px; padding:0 6px; margin-right:4px; }
+</style>
+</head>
+<body>
+<h1>Velociraptor · opciones de diseño</h1>
+<p class="sub">Solo diseño (todavía sin animación). Toca una opción para verla sobre el escritorio del refugio, a tamaño real.
+Dime cuál te gusta, o qué mezclar (por ejemplo, "la cabeza de la C con el cuerpo de la B").</p>
+<div class="room" id="room"><div class="pet" id="pet"></div></div>
+<p class="room-label" id="roomLabel"></p>
+<div class="grid" id="grid"></div>
+<script>
+// Cada diseño se arma con formas básicas en 3 capas (atrás · cuerpo · adelante). Cada capa recibe UN contorno de tinta
+// sobre su silueta unida (filtro feMorphology): así las piezas se funden en un solo dibujo, sin costuras.
+const INK = '#2b1d14', CREAM = '#fff8ea';
+let uid = 0;
+const e = (cx, cy, rx, ry, fill, rot = 0) => `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${fill}"${rot ? ` transform="rotate(${rot} ${cx} ${cy})"` : ''}/>`;
+const p = (d, fill) => `<path d="${d}" fill="${fill}"/>`;
+const line = (d, color, w) => `<path d="${d}" fill="none" stroke="${color}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+// Ojos
+const eyes = {
+  glossy: (x, y, r, iris) => e(x, y, r * .82, r, INK) + (iris ? `<ellipse cx="${x}" cy="${y + r * .25}" rx="${r * .62}" ry="${r * .55}" fill="${iris}" opacity=".55"/>` : '') +
+    `<circle cx="${x + r * .28}" cy="${y - r * .4}" r="${r * .34}" fill="#fff"/><circle cx="${x - r * .28}" cy="${y + r * .38}" r="${r * .15}" fill="#fff"/>`,
+  sparkle: (x, y, r) => eyes.glossy(x, y, r) + `<circle cx="${x + r * .38}" cy="${y + r * .2}" r="${r * .1}" fill="#fff"/>`,
+  pie: (x, y, r) => `<ellipse cx="${x}" cy="${y}" rx="${r * .74}" ry="${r}" fill="${CREAM}" stroke="${INK}" stroke-width="2.6"/>` +
+    e(x + r * .18, y + r * .16, r * .44, r * .66, INK) + `<path d="M${x + r * .18} ${y + r * .05} L${x + r * .26} ${y - r * .55} L${x + r * .62} ${y - r * .22} Z" fill="${CREAM}"/>`,
+  sleepy: (x, y, r, lidColor) => eyes.glossy(x, y, r) + `<path d="M${x - r * 1.05} ${y + r * .05} C${x - r} ${y - r * 1.35} ${x + r} ${y - r * 1.35} ${x + r * 1.05} ${y + r * .05} Z" fill="${lidColor}" stroke="${INK}" stroke-width="2.6" stroke-linejoin="round"/>`,
+  dot: (x, y, r) => e(x, y, r * .5, r * .62, INK) + `<circle cx="${x + r * .14}" cy="${y - r * .2}" r="${r * .16}" fill="#fff"/>`
+};
+function svg(d) {
+  const id = 'ink' + (++uid);
+  const layer = (content, w = 3) => content ? `<g filter="url(#${id}-${w})">${content}</g>` : '';
+  const f = w => `<filter id="${id}-${w}" x="-10%" y="-10%" width="120%" height="120%"><feMorphology in="SourceAlpha" operator="dilate" radius="${w}" result="d"/>` +
+    `<feFlood flood-color="${INK}"/><feComposite in2="d" operator="in" result="o"/><feMerge><feMergeNode in="o"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
+  return `<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg"><defs>${f(3)}${f(2.5)}</defs>` +
+    `<ellipse cx="150" cy="285" rx="${d.shadow || 70}" ry="7" fill="#1a120b" opacity=".18"/>` +
+    layer(d.back) + layer(d.main) + (d.mid || '') + layer(d.front) + (d.details || '') + '</svg>';
+}
+
+// ——— Los diseños ———
+const DESIGNS = [
+  { key: 'A', name: 'Peluche', tags: ['redondo', 'tierno'], text: 'De pie como peluche: cabeza grande, hocico corto, ojos brillantes y bracitos chicos.', d: (() => {
+    const c = { base: '#8db37a', dark: '#6c9160', belly: '#f1e2b8', acc: '#e7a05a' };
+    return {
+      back: e(122, 266, 17, 20, c.dark) + e(118, 281, 18, 7, c.dark) + e(118, 206, 6, 14, c.dark, 30),
+      main: p('M118 200 C88 206 58 224 38 246 C34 252 40 256 46 252 C68 240 100 234 128 234 Z', c.base) +
+        p('M104 102 L92 92 L106 94 Z M100 122 L86 116 L100 114 Z M102 142 L88 140 L102 134 Z', c.acc) +
+        e(150, 216, 48, 56, c.base) + e(158, 122, 62, 56, c.base) + e(208, 138, 38, 26, c.base) +
+        e(166, 228, 28, 38, c.belly) + e(212, 149, 30, 11, c.belly),
+      front: e(170, 264, 18, 22, c.base) + e(178, 281, 20, 8, c.base) + e(198, 212, 7, 16, c.base, -30),
+      details: eyes.glossy(178, 112, 15, '#6a4a2a') + eyes.glossy(212, 106, 10) +
+        line('M206 150 C214 156 228 155 236 146', INK, 2.8) + e(188, 146, 9, 5, '#e9937a') + e(237, 128, 2.2, 1.8, INK) +
+        e(150, 170, 26, 10, '#fff', 0).replace('/>', ' opacity=".18"/>')
+    };
+  })() },
+  { key: 'B', name: 'Raptor clásico', tags: ['se ve raptor', 'horizontal'], text: 'Postura de raptor de verdad (cuerpo horizontal, cola larga y tiesa), pero con cara tierna.', d: (() => {
+    const c = { base: '#c7a64a', dark: '#9b7f33', stripe: '#6e5a22', belly: '#f4e6bd' };
+    const leg = (x, col) => e(x, 212, 22, 26, col) + p(`M${x - 8} 228 L${x - 14} 266 L${x - 4} 268 L${x + 6} 232 Z`, col) + p(`M${x - 16} 262 C${x - 6} 258 ${x + 18} 262 ${x + 26} 270 C${x + 30} 276 ${x + 24} 280 ${x + 14} 279 L${x - 14} 279 C${x - 22} 278 ${x - 22} 266 ${x - 16} 262 Z`, col);
+    return {
+      back: leg(118, c.dark) + e(200, 196, 5, 13, c.dark, -40),
+      main: p('M104 182 C70 178 38 180 10 188 C4 191 6 197 12 197 C42 196 74 202 108 214 Z', c.base) +
+        e(140, 194, 60, 34, c.base, -12) + e(194, 156, 18, 36, c.base, 28) + e(220, 112, 37, 33, c.base) + e(258, 124, 40, 19, c.base, 8) +
+        p('M150 222 C176 220 196 208 206 186 C214 196 208 214 192 222 C178 230 160 230 150 222 Z', c.belly) + e(254, 136, 34, 8, c.belly, 8),
+      front: leg(148, c.base) + e(212, 200, 5.5, 14, c.base, -40),
+      details: line('M118 166 L112 182 M138 162 L134 180 M158 160 L156 177 M78 184 L76 196 M52 186 L51 195 M196 92 L190 108', c.stripe, 6) +
+        eyes.glossy(226, 104, 12, '#7a5a2a') + line('M258 136 C268 141 282 140 291 132', INK, 2.8) + e(242, 128, 8, 4.5, '#e9937a') + e(290, 118, 2.4, 1.9, INK)
+    };
+  })() },
+  { key: 'C', name: 'Bebé del huevo', tags: ['muy tierno', 'chiquito'], text: 'Recién nacido: redondito y con un pedazo de cáscara de huevo como casco.', d: (() => {
+    const c = { base: '#a6c98a', dark: '#83a96c', belly: '#f3e9c6', shell: '#fbf6ea' };
+    return {
+      back: e(130, 270, 14, 14, c.dark) + e(126, 282, 16, 6, c.dark) + e(118, 222, 6, 12, c.dark, 30),
+      main: p('M116 236 C96 240 76 250 64 262 C62 268 68 270 74 266 C90 258 108 254 124 254 Z', c.base) +
+        e(150, 230, 44, 44, c.base) + e(156, 144, 56, 52, c.base) + e(198, 156, 30, 20, c.base) +
+        e(164, 240, 26, 30, c.belly) + e(200, 166, 24, 8, c.belly) +
+        p('M100 134 C100 92 128 80 156 80 C188 80 214 94 214 128 L204 118 L196 130 L186 118 L176 130 L166 118 L156 130 L146 118 L136 130 L126 118 L116 130 L106 120 Z', c.shell),
+      front: e(168, 270, 15, 15, c.base) + e(174, 282, 17, 6, c.base) + e(190, 228, 6, 13, c.base, -30),
+      details: e(130, 100, 4, 3, '#c9b48a') + e(176, 96, 3, 2.4, '#c9b48a') + e(196, 110, 2.6, 2, '#c9b48a') +
+        eyes.sparkle(172, 146, 13) + eyes.sparkle(204, 142, 9) + line('M196 166 C202 171 212 170 218 164', INK, 2.6) + e(180, 166, 8, 4.5, '#f0a08a')
+    };
+  })() },
+  { key: 'D', name: 'Con plumas', tags: ['colorido', 'como el real'], text: 'Raptor emplumado (como el Velociraptor real): cresta, alitas y abanico de plumas en la cola.', d: (() => {
+    const c = { base: '#4f9fa0', dark: '#3c7f80', belly: '#f3e7c9', acc: '#ef8f45', acc2: '#f6c35a' };
+    const feather = (x, y, rot, col, len = 22) => e(x, y, len, 7, col, rot);
+    return {
+      back: e(124, 262, 16, 20, c.dark) + e(120, 280, 18, 7, c.dark) + feather(104, 196, 130, c.dark, 16),
+      main: p('M112 196 C84 196 58 204 38 214 C34 218 38 222 44 220 C66 214 94 214 120 222 Z', c.base) +
+        feather(30, 208, 200, c.acc) + feather(28, 222, 160, c.acc2) + feather(36, 196, 230, c.acc2, 16) +
+        e(150, 212, 46, 48, c.base) + e(166, 126, 54, 48, c.base) + e(212, 140, 34, 20, c.base, 6) +
+        feather(124, 92, 220, c.acc) + feather(116, 106, 200, c.acc2, 18) + feather(132, 82, 245, c.acc2, 16) +
+        e(166, 222, 26, 34, c.belly) + e(212, 152, 28, 8, c.belly, 6),
+      front: e(168, 262, 17, 21, c.base) + e(176, 280, 19, 7, c.base) + e(196, 206, 7, 15, c.base, -30) + feather(186, 218, 110, c.acc, 14),
+      details: eyes.glossy(184, 118, 13, '#e08a3a') + eyes.glossy(214, 114, 9) + line('M210 150 C218 155 230 154 238 146', INK, 2.6) +
+        e(192, 140, 8, 4.5, '#f0a08a') + e(240, 132, 2.2, 1.8, INK)
+    };
+  })() },
+  { key: 'E', name: 'Cartoon años 30', tags: ['rubber hose', 'Cuphead'], text: 'La versión cartoon corregida: proporciones de dibujo antiguo, ojos pie-cut, guantes y zapatos.', d: (() => {
+    const c = { base: '#7fa36a', dark: '#5d7f50', belly: '#efd9a8', acc: '#d98a4a' };
+    const glove = (x, y) => e(x, y, 10, 9, CREAM) + e(x + 8, y - 4, 5, 3.6, CREAM) + e(x + 9, y + 2, 5, 3.6, CREAM);
+    const shoe = (x, col) => p(`M${x - 8} 272 C${x - 6} 263 ${x + 12} 261 ${x + 24} 267 C${x + 35} 272 ${x + 38} 284 ${x + 30} 287 L${x - 8} 287 C${x - 15} 284 ${x - 13} 276 ${x - 8} 272 Z`, col);
+    return {
+      back: line('M136 228 C134 244 132 256 130 270', c.dark, 10) + shoe(126, '#462c1d') + line('M126 178 C112 190 108 204 110 214', c.dark, 9) + glove(110, 218),
+      main: p('M120 214 C96 222 76 236 66 252 C62 260 68 262 74 258 C88 246 106 240 126 240 Z', c.base) + p('M98 238 L90 226 L104 232 Z M80 250 L70 242 L84 246 Z', c.acc) +
+        e(150, 216, 40, 46, c.base) + e(162, 122, 60, 54, c.base) + e(214, 138, 36, 24, c.base) + p('M108 98 L96 84 L114 92 Z M104 120 L88 114 L106 112 Z', c.acc) +
+        e(164, 226, 22, 34, c.belly) + e(214, 150, 30, 10, c.belly),
+      front: line('M164 230 C166 246 168 258 170 270', c.base, 10) + shoe(168, '#5b3a26') + line('M182 180 C196 192 200 204 198 216', c.base, 9) + glove(200, 220),
+      details: eyes.pie(178, 112, 18) + eyes.pie(208, 108, 15) +
+        `<path d="M200 146 C210 160 232 160 242 144 C236 166 208 168 200 146 Z" fill="#3a1a12" stroke="${INK}" stroke-width="2.4"/>` + e(221, 158, 7, 3.5, '#c4544a') +
+        e(190, 142, 8, 5, '#e9937a') + e(240, 130, 2.3, 1.8, INK)
+    };
+  })() },
+  { key: 'F', name: 'Sticker kawaii', tags: ['cabezón', 'súper tierno'], text: 'Cabeza enorme y cuerpo mini, estilo sticker: lo más tierno posible.', d: (() => {
+    const c = { base: '#9ed6b5', dark: '#7cbb98', belly: '#fff3d6', acc: '#ffb37a' };
+    return {
+      back: e(128, 270, 12, 13, c.dark) + e(124, 282, 14, 6, c.dark),
+      main: p('M124 248 C108 252 92 262 84 272 C82 278 88 280 92 276 C104 268 118 264 130 264 Z', c.base) +
+        e(150, 244, 34, 32, c.base) + e(152, 138, 82, 70, c.base) + e(220, 158, 34, 24, c.base) +
+        p('M84 112 L68 100 L86 104 Z M80 138 L62 132 L80 128 Z M86 162 L70 162 L86 154 Z', c.acc) +
+        e(160, 252, 20, 22, c.belly) + e(222, 170, 28, 8, c.belly),
+      front: e(166, 272, 13, 13, c.base) + e(172, 283, 15, 6, c.base) + e(184, 240, 6, 11, c.base, -30),
+      details: eyes.sparkle(168, 136, 19) + eyes.sparkle(214, 132, 13) +
+        `<path d="M206 170 C210 180 222 180 226 170 Z" fill="#a8423c" stroke="${INK}" stroke-width="2.2"/>` +
+        e(176, 168, 12, 7, '#ff9a8a') + e(232, 166, 6, 4, '#ff9a8a') + e(244, 150, 2.4, 2, INK)
+    };
+  })() },
+  { key: 'G', name: 'Explorador ágil', tags: ['dinámico', 'aventurero'], text: 'Más delgado y atlético, inclinado hacia adelante, con cejas decididas y rayas naranjas.', d: (() => {
+    const c = { base: '#5f8f5a', dark: '#4a7346', belly: '#efe0b4', stripe: '#e3893f' };
+    const leg = (x, col) => e(x, 200, 16, 22, col, -10) + p(`M${x - 4} 214 L${x - 10} 266 L${x} 268 L${x + 8} 218 Z`, col) + p(`M${x - 14} 262 C${x - 4} 258 ${x + 16} 262 ${x + 24} 270 C${x + 28} 276 ${x + 22} 280 ${x + 12} 279 L${x - 14} 279 C${x - 20} 276 ${x - 20} 266 ${x - 14} 262 Z`, col);
+    return {
+      back: leg(126, c.dark) + e(198, 170, 5, 14, c.dark, -50),
+      main: p('M112 178 C80 160 50 138 26 112 C20 108 18 116 22 120 C44 150 76 178 108 200 Z', c.base) +
+        e(148, 184, 46, 30, c.base, -24) + e(190, 142, 15, 30, c.base, 30) + p('M186 108 C190 84 214 74 236 80 C258 86 280 100 290 114 C294 124 286 132 270 132 L210 134 C194 132 184 122 186 108 Z', c.base) +
+        p('M160 208 C180 204 196 190 202 172 C208 184 202 200 188 210 C178 216 166 216 160 208 Z', c.belly) + p('M220 132 C244 134 268 132 286 124 C280 134 268 140 250 141 C234 142 222 138 220 132 Z', c.belly),
+      front: leg(156, c.base) + e(208, 176, 5.5, 15, c.base, -50),
+      details: line('M126 166 L118 184 M146 160 L140 178 M98 166 L92 180 M70 146 L64 158 M46 126 L41 136 M206 92 L200 106', c.stripe, 6) +
+        eyes.pie(232, 104, 12) + line('M220 88 L244 94', INK, 4) + line('M248 128 C258 134 272 132 280 124', INK, 2.8) + e(284, 112, 2.3, 1.8, INK)
+    };
+  })() },
+  { key: 'H', name: 'Gordito dormilón', tags: ['calmado', 'abrazable'], text: 'Redondo y siempre medio dormido; un color distinto (azul polvo) para darle otra personalidad.', d: (() => {
+    const c = { base: '#7ea7c9', dark: '#6489ab', belly: '#f2e6c8', acc: '#f0b45a' };
+    return {
+      back: e(118, 268, 18, 18, c.dark) + e(114, 282, 20, 7, c.dark) + e(108, 210, 7, 13, c.dark, 30),
+      main: p('M108 224 C82 228 58 240 44 256 C40 262 46 266 52 262 C70 250 94 246 116 248 Z', c.base) +
+        e(150, 220, 62, 58, c.base) + e(160, 128, 54, 46, c.base) + e(204, 140, 30, 20, c.base) +
+        p('M118 98 L108 88 L122 92 Z M112 116 L100 110 L114 110 Z', c.acc) +
+        e(164, 232, 38, 42, c.belly) + e(206, 150, 24, 8, c.belly),
+      front: e(176, 270, 18, 18, c.base) + e(182, 282, 20, 7, c.base) + e(200, 206, 8, 14, c.base, -30),
+      details: eyes.sleepy(176, 122, 11, c.base) + eyes.sleepy(204, 118, 8, c.base) + line('M200 152 C206 156 214 156 220 151', INK, 2.6) +
+        e(186, 144, 9, 5, '#e9937a') + e(226, 134, 2.2, 1.8, INK) +
+        `<text x="236" y="98" font-family="Georgia" font-size="18" fill="${INK}" opacity=".7">z</text><text x="250" y="80" font-family="Georgia" font-size="13" fill="${INK}" opacity=".5">z</text>`
+    };
+  })() }
+];
+
+const grid = document.getElementById('grid'), pet = document.getElementById('pet'), label = document.getElementById('roomLabel');
+grid.innerHTML = DESIGNS.map(x => `<article class="card" data-key="${x.key}" aria-pressed="false" role="button" tabindex="0">
+  <div class="art">${svg(x.d)}</div><h2>${x.key} · ${x.name}</h2><p>${x.tags.map(t => `<span class="tag">${t}</span>`).join('')}</p><p>${x.text}</p></article>`).join('');
+function pick(key) {
+  const x = DESIGNS.find(d => d.key === key);
+  pet.innerHTML = svg(x.d);
+  label.textContent = `En el refugio: ${x.key} · ${x.name} (sobre el escritorio, tamaño real).`;
+  grid.querySelectorAll('.card').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.key === key)));
+}
+grid.addEventListener('click', ev => { const c = ev.target.closest('.card'); if (c) pick(c.dataset.key); });
+pick(new URLSearchParams(location.search).get('ver') || 'A');
+</script>
+</body>
+</html>

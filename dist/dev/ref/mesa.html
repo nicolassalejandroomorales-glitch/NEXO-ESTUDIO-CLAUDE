@@ -1,0 +1,12 @@
+<!doctype html><meta charset="utf-8"><title>Mesa de luz</title>
+<style>body{margin:0;background:#222}canvas{display:block}</style>
+<canvas id="c"></canvas>
+<script>
+// Mesa de luz temporal: concepto ampliado ×4 con grilla en coordenadas del artboard (×2 del original).
+const q=new URLSearchParams(location.search),img=new Image();img.src=(q.get('f')||'raptor')+'-A-vector.jpg';
+img.onload=()=>{const k=4,c=document.getElementById('c'),x=c.getContext('2d');c.width=img.width*k;c.height=img.height*k;
+x.imageSmoothingQuality='high';x.drawImage(img,0,0,c.width,c.height);x.font='11px monospace';
+for(let a=0;a<=400;a+=10){const p=a*k/2;x.strokeStyle=a%50?'rgba(0,120,255,.18)':'rgba(255,0,0,.55)';
+x.beginPath();x.moveTo(p,0);x.lineTo(p,c.height);x.stroke();x.beginPath();x.moveTo(0,p);x.lineTo(c.width,p);x.stroke();
+if(a%50===0){x.fillStyle='#c00';x.fillText(a,p+2,10);x.fillText(a,2,p-2);}}};
+</script>

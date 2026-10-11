@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mascota alquímica · opciones</title>
+<style>
+  :root { --bg:#1f1a15; --card:#2b241d; --ink:#f4e8d2; --muted:#c3b291; --gold:#e8b65a; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 Georgia, serif; padding:20px 16px 48px; }
+  h1 { margin:0 0 4px; font-size:26px; } .sub { color:var(--muted); margin:0 0 16px; max-width:900px; }
+  .room { position:relative; max-width:1100px; aspect-ratio:1672/941; background:url('../assets/home-scenes/refugio-012.png') center/cover; border-radius:12px; overflow:hidden; margin-bottom:8px; }
+  .room .pet { position:absolute; left:20.5%; top:55%; width:11%; transform:translate(-50%,-88%); filter:drop-shadow(0 5px 3px #1e221660); animation:bob 2.4s ease-in-out infinite; }
+  @keyframes bob { 50% { transform:translate(-50%,-92%); } }
+  @media (prefers-reduced-motion: reduce) { .room .pet { animation:none; } }
+  .room-label { color:var(--muted); margin:0 0 22px; font-size:14px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:16px; max-width:1400px; }
+  .card { background:var(--card); border:2px solid #4a3d2e; border-radius:14px; padding:12px; cursor:pointer; }
+  .card[aria-pressed="true"] { border-color:var(--gold); }
+  .card .art { background:#f3e6cc; border-radius:10px; }
+  .card svg { width:100%; height:auto; display:block; }
+  .card h2 { margin:10px 0 2px; font-size:19px; color:var(--gold); } .card p { margin:0; color:var(--muted); font-size:14px; }
+</style>
+</head>
+<body>
+<h1>Mascota alquímica · opciones</h1>
+<p class="sub">Criaturas de laboratorio con formas simples (solo diseño, sin animación todavía). Toca una para verla sobre el escritorio del refugio.</p>
+<div class="room"><div class="pet" id="pet"></div></div>
+<p class="room-label" id="roomLabel"></p>
+<div class="grid" id="grid"></div>
+<script>
+const INK = '#2b1d14';
+let n = 0;
+const S = w => `stroke="${INK}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
+// Ojos brillantes grandes (lo que más comunica ternura) y boquita.
+const eye = (x, y, r) => `<ellipse cx="${x}" cy="${y}" rx="${r * .8}" ry="${r}" fill="${INK}"/><circle cx="${x + r * .28}" cy="${y - r * .4}" r="${r * .34}" fill="#fff"/><circle cx="${x - r * .26}" cy="${y + r * .38}" r="${r * .14}" fill="#fff"/>`;
+const face = (x, y, gap, r, mouth = 'smile', blush = '#f2998a') =>
+  eye(x - gap, y, r) + eye(x + gap, y, r) +
+  `<ellipse cx="${x - gap - r * .9}" cy="${y + r * 1.25}" rx="${r * .7}" ry="${r * .4}" fill="${blush}" opacity=".6"/><ellipse cx="${x + gap + r * .9}" cy="${y + r * 1.25}" rx="${r * .7}" ry="${r * .4}" fill="${blush}" opacity=".6"/>` +
+  (mouth === 'open' ? `<path d="M${x - r * .55} ${y + r * .95} C${x - r * .4} ${y + r * 1.75} ${x + r * .4} ${y + r * 1.75} ${x + r * .55} ${y + r * .95} Z" fill="#8a3029" ${S(2.2)}/>`
+    : `<path d="M${x - r * .55} ${y + r * 1.0} C${x - r * .25} ${y + r * 1.45} ${x + r * .25} ${y + r * 1.45} ${x + r * .55} ${y + r * 1.0}" fill="none" ${S(2.6)}/>`);
+const feet = (x, y, gap, col) => `<ellipse cx="${x - gap}" cy="${y}" rx="13" ry="7" fill="${col}" ${S(3)}/><ellipse cx="${x + gap}" cy="${y}" rx="13" ry="7" fill="${col}" ${S(3)}/>`;
+const shadow = (rx = 60) => `<ellipse cx="150" cy="286" rx="${rx}" ry="7" fill="#1a120b" opacity=".18"/>`;
+const sparkle = (x, y, s, col = '#f6d27a') => `<path d="M${x} ${y - s} Q${x + s * .18} ${y - s * .18} ${x + s} ${y} Q${x + s * .18} ${y + s * .18} ${x} ${y + s} Q${x - s * .18} ${y + s * .18} ${x - s} ${y} Q${x - s * .18} ${y - s * .18} ${x} ${y - s} Z" fill="${col}"/>`;
+const bubbles = (list, col) => list.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${col}" stroke="#ffffff" stroke-opacity=".7" stroke-width="1.5"/>`).join('');
+const wrap = body => `<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">${body}</svg>`;
+
+const DESIGNS = [
+  { key: 'A', name: 'Matraz', text: 'Un matraz Erlenmeyer con poción adentro, corcho de sombrero y patitas. El más "química".', svg: () => {
+    const id = 'm' + (++n);
+    const glass = 'M128 70 L172 70 L172 112 C200 150 232 210 236 238 C240 262 226 274 204 274 L96 274 C74 274 60 262 64 238 C68 210 100 150 128 112 Z';
+    return wrap(shadow(70) + feet(122, 278, 30, '#7a5a3a') + `<defs><clipPath id="${id}"><path d="${glass}"/></clipPath></defs>` +
+      `<path d="${glass}" fill="#e8f3f2" fill-opacity=".85"/>` +
+      `<g clip-path="url(#${id})"><path d="M40 196 C80 186 110 204 150 196 C190 188 220 204 260 194 L260 300 L40 300 Z" fill="#5fbf9a"/>` +
+      `<path d="M40 196 C80 186 110 204 150 196 C190 188 220 204 260 194 L260 206 C220 214 190 198 150 206 C110 214 80 196 40 206 Z" fill="#8fdcbc"/>` +
+      bubbles([[120, 236, 6], [176, 250, 4.5], [150, 222, 3.5], [196, 228, 3]], '#9be6c6') + '</g>' +
+      `<path d="M96 160 C86 182 80 204 82 226" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".75"/>` +
+      `<path d="${glass}" fill="none" ${S(4)}/>` + `<rect x="120" y="44" width="60" height="30" rx="8" fill="#b9855a" ${S(4)}/><path d="M128 52 L172 52" stroke="#8d5f3b" stroke-width="3"/>` +
+      face(150, 150, 20, 11) + sparkle(222, 70, 10) + sparkle(78, 96, 6));
+  } },
+  { key: 'B', name: 'Balón de poción', text: 'Matraz redondo con una poción morada que brilla y un cuello largo con corcho.', svg: () => {
+    const id = 'b' + (++n);
+    const glass = 'M134 52 L166 52 L166 118 C206 128 232 162 232 202 C232 248 196 278 150 278 C104 278 68 248 68 202 C68 162 94 128 134 118 Z';
+    return wrap(shadow(66) + `<defs><clipPath id="${id}"><path d="${glass}"/></clipPath><radialGradient id="${id}g" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#c79bf0"/><stop offset="1" stop-color="#7b4fc2"/></radialGradient></defs>` +
+      `<path d="${glass}" fill="#eef0f6" fill-opacity=".85"/><g clip-path="url(#${id})"><path d="M40 182 C90 172 120 192 150 184 C180 176 210 192 260 180 L260 300 L40 300 Z" fill="url(#${id}g)"/>` +
+      bubbles([[118, 236, 7], [180, 248, 5], [152, 220, 4]], '#d7b8f7') + '</g>' +
+      `<path d="M92 176 C84 194 84 216 92 232" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".8"/><path d="${glass}" fill="none" ${S(4)}/>` +
+      `<rect x="128" y="30" width="44" height="26" rx="7" fill="#b9855a" ${S(4)}/>` + face(150, 214, 22, 12, 'open', '#f7a4b8') +
+      sparkle(220, 110, 11, '#e7c8ff') + sparkle(84, 132, 7, '#e7c8ff') + sparkle(240, 160, 5, '#e7c8ff'));
+  } },
+  { key: 'C', name: 'Átomo', text: 'Un núcleo con carita y electrones que orbitan a su alrededor. Flota, no camina.', svg: () => {
+    const orbit = r => `<ellipse cx="150" cy="150" rx="118" ry="40" fill="none" stroke="${INK}" stroke-width="3.5" transform="rotate(${r} 150 150)"/><ellipse cx="150" cy="150" rx="118" ry="40" fill="none" stroke="#9fd3f0" stroke-width="1.5" transform="rotate(${r} 150 150)"/>`;
+    const e = (a, r) => { const t = a * Math.PI / 180, x = 150 + 118 * Math.cos(t), y = 150 + 40 * Math.sin(t), c = Math.cos(r * Math.PI / 180), s = Math.sin(r * Math.PI / 180);
+      return `<circle cx="${150 + (x - 150) * c - (y - 150) * s}" cy="${150 + (x - 150) * s + (y - 150) * c}" r="9" fill="#5fb3e6" ${S(3)}/>`; };
+    return wrap(shadow(46) + orbit(30) + orbit(-30) + orbit(90) +
+      `<defs><radialGradient id="at${++n}" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="#ffd68a"/><stop offset="1" stop-color="#ef9a4a"/></radialGradient></defs>` +
+      `<circle cx="150" cy="150" r="56" fill="url(#at${n})" ${S(4)}/><ellipse cx="128" cy="124" rx="16" ry="10" fill="#fff" opacity=".45"/>` +
+      face(150, 146, 18, 10) + e(20, 30) + e(200, -30) + e(300, 90));
+  } },
+  { key: 'D', name: 'Slime alquímico', text: 'Una gota de reactivo viviente, gelatinosa y brillante, con un frasquito de sombrero.', svg: () => {
+    const blob = 'M150 92 C196 92 226 132 234 180 C240 214 250 238 262 256 C266 266 256 274 244 270 C234 266 228 272 222 276 L78 276 C64 276 50 268 52 254 C56 236 64 214 68 180 C76 132 104 92 150 92 Z';
+    return wrap(shadow(80) + `<defs><radialGradient id="sl${++n}" cx=".38" cy=".3" r=".8"><stop offset="0" stop-color="#b4ef8e"/><stop offset="1" stop-color="#58b14a"/></radialGradient></defs>` +
+      `<path d="${blob}" fill="url(#sl${n})" ${S(4)}/><ellipse cx="114" cy="132" rx="20" ry="13" fill="#fff" opacity=".55" transform="rotate(-25 114 132)"/><circle cx="96" cy="160" r="5" fill="#fff" opacity=".5"/>` +
+      bubbles([[196, 236, 6], [176, 254, 4]], '#9edc7c') +
+      `<path d="M138 62 L162 62 L162 76 C172 80 176 88 174 96 L126 96 C124 88 128 80 138 76 Z" fill="#e8f3f2" ${S(3.5)}/><rect x="134" y="50" width="32" height="14" rx="5" fill="#b9855a" ${S(3.5)}/>` +
+      face(150, 178, 24, 13, 'open'));
+  } },
+  { key: 'E', name: 'Espíritu de vela', text: 'Una velita con una llama que tiene cara: tranquila, cálida, ilumina el refugio de noche.', svg: () => {
+    return wrap(shadow(50) + `<defs><radialGradient id="fl${++n}" cx=".5" cy=".7" r=".7"><stop offset="0" stop-color="#fff3b0"/><stop offset=".55" stop-color="#ffc35a"/><stop offset="1" stop-color="#f07d3a"/></radialGradient>` +
+      `<radialGradient id="gl${n}" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffd27a" stop-opacity=".55"/><stop offset="1" stop-color="#ffd27a" stop-opacity="0"/></radialGradient></defs>` +
+      `<circle cx="150" cy="104" r="100" fill="url(#gl${n})"/>` +
+      `<path d="M104 176 L196 176 L196 268 C196 276 190 280 182 280 L118 280 C110 280 104 276 104 268 Z" fill="#f6ead4" ${S(4)}/>` +
+      `<path d="M104 176 L196 176 L196 192 C188 192 186 210 178 210 C170 210 170 194 162 194 L130 196 C124 210 114 214 112 200 C110 192 104 194 104 190 Z" fill="#fffaf0" ${S(3)}/>` +
+      `<path d="M150 24 C176 58 200 80 200 118 C200 150 178 172 150 172 C122 172 100 150 100 118 C100 86 122 74 132 50 C136 64 140 70 146 72 C146 58 146 40 150 24 Z" fill="url(#fl${n})" ${S(4)}/>` +
+      face(150, 122, 17, 10) + `<path d="M150 172 L150 180" ${S(3)}/>`);
+  } },
+  { key: 'F', name: 'Tubo de ensayo', text: 'Un tubo de ensayo alto con brazos de pinza y la poción del color del ramo que estudias.', svg: () => {
+    const id = 't' + (++n);
+    const tube = 'M118 60 L182 60 L182 236 C182 260 168 276 150 276 C132 276 118 260 118 236 Z';
+    return wrap(shadow(44) + `<defs><clipPath id="${id}"><path d="${tube}"/></clipPath></defs>` +
+      `<path d="M120 170 C96 172 84 160 80 146" fill="none" ${S(9)}/><path d="M120 170 C96 172 84 160 80 146" fill="none" stroke="#c9d3d8" stroke-width="4" stroke-linecap="round"/>` +
+      `<path d="M180 170 C204 172 216 160 220 146" fill="none" ${S(9)}/><path d="M180 170 C204 172 216 160 220 146" fill="none" stroke="#c9d3d8" stroke-width="4" stroke-linecap="round"/>` +
+      `<path d="${tube}" fill="#eef3f4" fill-opacity=".9"/><g clip-path="url(#${id})"><path d="M100 180 C130 172 160 188 200 178 L200 300 L100 300 Z" fill="#f08a5d"/>` +
+      bubbles([[140, 232, 5], [162, 250, 4], [150, 212, 3]], '#ffb48c') + '</g>' +
+      `<path d="M130 82 L130 220" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".75"/><path d="${tube}" fill="none" ${S(4)}/>` +
+      `<rect x="108" y="46" width="84" height="18" rx="6" fill="#b9855a" ${S(4)}/>` + face(150, 118, 15, 10));
+  } },
+  { key: 'G', name: 'Gota de mercurio', text: 'Una gotita plateada y brillante, como mercurio vivo. Elegante y muy simple.', svg: () => {
+    return wrap(shadow(52) + `<defs><radialGradient id="hg${++n}" cx=".36" cy=".34" r=".8"><stop offset="0" stop-color="#ffffff"/><stop offset=".35" stop-color="#d7dde4"/><stop offset="1" stop-color="#8794a3"/></radialGradient></defs>` +
+      `<path d="M150 40 C170 84 226 140 226 196 C226 244 192 278 150 278 C108 278 74 244 74 196 C74 140 130 84 150 40 Z" fill="url(#hg${n})" ${S(4)}/>` +
+      `<ellipse cx="118" cy="168" rx="12" ry="26" fill="#fff" opacity=".75" transform="rotate(20 118 168)"/>` + face(154, 204, 20, 12, 'smile', '#e99aa6') + sparkle(214, 84, 10, '#ffffff'));
+  } },
+  { key: 'H', name: 'Cristal', text: 'Un cristal mineral con facetas de colores, como una geoda viva. Brilla con la luz de la ventana.', svg: () => {
+    return wrap(shadow(58) + feet(122, 278, 26, '#5b4a7a') +
+      `<path d="M150 36 L214 92 L226 196 L178 270 L122 270 L74 196 L86 92 Z" fill="#8fd0e8" ${S(4)}/>` +
+      `<path d="M150 36 L214 92 L150 112 Z" fill="#c5ecf7"/><path d="M150 36 L86 92 L150 112 Z" fill="#a9def0"/><path d="M86 92 L74 196 L118 168 L150 112 Z" fill="#7cc0dc"/>` +
+      `<path d="M214 92 L226 196 L182 168 L150 112 Z" fill="#6aaed0"/><path d="M74 196 L122 270 L178 270 L226 196 L182 168 L118 168 Z" fill="#5d9ec4"/>` +
+      `<path d="M150 36 L214 92 L226 196 L178 270 L122 270 L74 196 L86 92 Z" fill="none" ${S(4)}/>` +
+      `<path d="M100 104 L92 160" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".7"/>` + face(150, 186, 22, 12) + sparkle(232, 64, 11, '#ffffff') + sparkle(66, 120, 6, '#ffffff'));
+  } }
+];
+
+const grid = document.getElementById('grid'), pet = document.getElementById('pet'), label = document.getElementById('roomLabel');
+grid.innerHTML = DESIGNS.map(x => `<article class="card" data-key="${x.key}" aria-pressed="false" role="button" tabindex="0"><div class="art">${x.svg()}</div><h2>${x.key} · ${x.name}</h2><p>${x.text}</p></article>`).join('');
+function pick(key) {
+  const x = DESIGNS.find(d => d.key === key);
+  pet.innerHTML = x.svg();
+  label.textContent = `En el refugio: ${x.key} · ${x.name} (sobre el escritorio, tamaño real).`;
+  grid.querySelectorAll('.card').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.key === key)));
+}
+grid.addEventListener('click', ev => { const c = ev.target.closest('.card'); if (c) pick(c.dataset.key); });
+pick(new URLSearchParams(location.search).get('ver') || 'A');
+</script>
+</body>
+</html>

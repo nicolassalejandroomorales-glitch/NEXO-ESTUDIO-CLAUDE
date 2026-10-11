@@ -698,3 +698,5 @@ body.reduce-motion #app>.page { animation:none!important; }
 .course-opening-number { color:#74482a; }
 .grimoire-frontispiece>.eyebrow { color:#6a4a31; }
 .folio-footer { color:#6a4a2c; }
+/* 5 oct 2026 — refugio en pixel art: el navegador agranda el arte sin difuminar (píxeles nítidos). */
+.home-art-plane[data-scene-id="refugio-pixel"] { image-rendering:crisp-edges;image-rendering:pixelated; }

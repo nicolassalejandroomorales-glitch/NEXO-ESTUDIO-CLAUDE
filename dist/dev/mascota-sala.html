@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mascota en la sala · demo</title>
+<style>
+  :root { --bg:#1f1a15; --card:#2b241d; --ink:#f4e8d2; --muted:#c3b291; --gold:#e8b65a; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 Georgia, serif; padding:20px 16px 48px; }
+  h1 { margin:0 0 4px; font-size:26px; } .sub { color:var(--muted); margin:0 0 12px; max-width:980px; }
+  .controls { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 10px; }
+  button { font:inherit; padding:7px 13px; border-radius:8px; border:1px solid #6b5a40; background:#2b241d; color:var(--ink); cursor:pointer; }
+  button[aria-pressed="true"] { border-color:var(--gold); color:var(--gold); }
+  .room { position:relative; max-width:1200px; aspect-ratio:1672/941; background:url('../assets/home-scenes/refugio-012.png') center/cover; border-radius:12px; overflow:hidden; }
+  .walker { position:absolute; width:calc(12% * var(--depth, 1)); transform:translate(-50%, -91%); }
+  .walker .flip { transition:transform .3s ease; filter:saturate(.9) sepia(.1) drop-shadow(0 0 4px rgba(255,236,190,.5)); cursor:pointer; }
+  .walker.left .flip { transform:scaleX(-1); }
+  .walker .turn { transition:transform .16s ease-out; } .walker.turning .turn { transform:scale(.86, 1.08); }
+  .aura { position:absolute; left:50%; top:58%; width:150%; aspect-ratio:1; transform:translate(-50%,-50%); border-radius:50%; pointer-events:none;
+    background:radial-gradient(circle, rgba(255,236,160,.75) 0%, rgba(255,218,125,.38) 34%, rgba(255,205,110,.12) 52%, rgba(255,200,110,0) 68%); animation:aura 3.4s ease-in-out infinite; }
+  @keyframes aura { 50% { transform:translate(-50%,-50%) scale(1.08); opacity:.8; } }
+  /* Luciérnagas: viven en la sala (no dentro de la mascota) y la persiguen con retraso → dejan estela. */
+  .mote { position:absolute; width:.75%; aspect-ratio:1; border-radius:50%; pointer-events:none; transform:translate(-50%,-50%);
+    background:radial-gradient(circle, #fffbe0 0%, #ffd56a 42%, rgba(255,200,90,0) 72%); box-shadow:0 0 10px 3px rgba(255,214,110,.45); }
+  .carry { position:absolute; left:50%; top:-16%; width:36%; transform:translateX(-50%); }
+  .carry svg { animation:bob 1s ease-in-out infinite; } @keyframes bob { 50% { transform:translateY(-4%) rotate(-3deg); } }
+  .reading { position:absolute; left:58%; top:58%; width:66%; }
+  .reading .pg { transform-box:view-box; transform-origin:60px 34px; animation:page 3.4s ease-in-out infinite; }
+  @keyframes page { 0%, 60% { transform:scaleX(1); opacity:0; } 63% { transform:scaleX(1); opacity:1; } 80% { transform:scaleX(.04); opacity:1; } 96% { transform:scaleX(-1); opacity:.9; } 100% { transform:scaleX(-1); opacity:0; } }
+  .flybook { position:absolute; width:3.6%; transform:translate(-50%,-50%); pointer-events:none; filter:drop-shadow(0 0 5px rgba(255,236,190,.7)); }
+  .fx { position:absolute; pointer-events:none; transform:translate(-50%,-50%); font:bold 22px Georgia; text-shadow:0 0 6px #0008; }
+  .rune { color:#ffe3a0; font-size:16px; text-shadow:0 0 8px #ffcf6a; }
+  .note { color:#fff2c4; } .heart { color:#ff7a8a; } .bang { color:#fff6dc; font-size:26px; }
+  .zzz { position:absolute; left:62%; top:-6%; font:bold 22px Georgia; color:#fff6dc; text-shadow:0 0 6px #000a; pointer-events:none; }
+  .zzz span { position:absolute; animation:z 2.4s ease-out infinite; opacity:0; } .zzz span:nth-child(2) { animation-delay:.8s; left:12px; } .zzz span:nth-child(3) { animation-delay:1.6s; left:24px; }
+  @keyframes z { 0% { transform:translateY(0) scale(.6); opacity:0; } 20% { opacity:1; } 100% { transform:translateY(-40px) scale(1.2); opacity:0; } }
+  .bulb { position:absolute; left:50%; top:-22%; width:26%; transform:translateX(-50%); pointer-events:none; }
+  .puff { position:absolute; width:2.2%; aspect-ratio:1; border-radius:50%; background:radial-gradient(circle, rgba(255,240,215,.75), rgba(255,240,215,0) 70%); pointer-events:none; transform:translate(-50%,-50%); }
+  .status { color:var(--muted); font-size:14px; margin-top:8px; }
+  .wardrobe label { display:flex; gap:6px; align-items:center; color:var(--muted); font-size:14px; }
+  .wardrobe select { font:inherit; background:#2b241d; color:var(--ink); border:1px solid #6b5a40; border-radius:8px; padding:5px 8px; }
+  .six7 { position:absolute; top:-30%; font:900 34px Georgia; color:#ffd34d; -webkit-text-stroke:2px #3b2418; text-shadow:0 3px 0 #b8741a, 0 0 10px #ffd34d88; pointer-events:none; }
+  .six7.n6 { left:4%; } .six7.n7 { right:4%; }
+  .tear { position:absolute; width:6%; aspect-ratio:.7; background:radial-gradient(circle at 35% 35%, #e9f7ff, #6fc0f0 55%, #2f8fd1); border-radius:50% 50% 50% 50% / 60% 60% 40% 40%; pointer-events:none; }
+  .sweat { position:absolute; right:12%; top:20%; width:9%; aspect-ratio:.7; background:radial-gradient(circle at 35% 35%, #ffffff, #8fd3ff 55%, #3f9fd8); border:2px solid #2b5f80; border-radius:50% 50% 50% 50% / 62% 62% 38% 38%; pointer-events:none; }
+  .anger { position:absolute; right:6%; top:-6%; width:22%; pointer-events:none; }
+  .steam { position:absolute; width:12%; aspect-ratio:1; border-radius:50%; background:radial-gradient(circle, rgba(240,240,240,.85), rgba(240,240,240,0) 70%); pointer-events:none; }
+  .debug .node { position:absolute; width:10px; height:10px; margin:-5px; border-radius:50%; background:#ff3b3b; box-shadow:0 0 0 2px #fff; }
+  .debug .node small { position:absolute; left:12px; top:-4px; color:#fff; font:11px monospace; background:#000a; padding:0 3px; white-space:nowrap; }
+  .m-svg, .m-svg * { transform-box:view-box; }
+  .m-svg { overflow:visible; display:block; width:100%; height:auto; }
+  .m-eye { animation:blink 4.6s infinite; }
+  @keyframes blink { 0%, 93%, 100% { transform:scaleY(1); } 95.5% { transform:scaleY(.08); } }
+  .m-twinkle { animation:twinkle 2.4s ease-in-out infinite; transform-origin:center; transform-box:fill-box; }
+  @keyframes twinkle { 50% { opacity:.25; transform:scale(.6); } }
+  .m-bubbles circle { animation:rise 3.2s linear infinite; }
+  .m-bubbles circle:nth-child(2n) { animation-duration:2.6s; animation-delay:-1.1s; } .m-bubbles circle:nth-child(3n) { animation-duration:3.8s; animation-delay:-2s; }
+  @keyframes rise { 0% { transform:translateY(0); opacity:1; } 85% { opacity:1; } 100% { transform:translateY(-34px); opacity:0; } }
+  @media (prefers-reduced-motion: reduce) { .m-svg *, .carry svg, .zzz span, .aura, .reading .pg { animation:none !important; } }
+</style>
+</head>
+<body>
+<h1>Mascota en la sala · demo</h1>
+<p class="sub">Vive sola: pasea en curvas, saca un libro (¡sorpresa!), lo lee concentrada mientras salen runas y le llegan ideas, baila, saluda,
+bosteza y duerme en el sillón. Las luciérnagas la persiguen. <b>Tócala</b> para enamorarla.</p>
+<div class="controls" id="pick"></div>
+<div class="controls" id="acts"><button data-act="baile">Bailar</button><button data-act="saludo">Saludar</button><button data-act="bostezo">Bostezar</button><button data-act="idea">Tener una idea</button></div>
+<div class="controls" id="emotes"><button data-act="seisSiete">6 7</button><button data-act="confundida">Confundida</button><button data-act="llorar">Llorar</button><button data-act="enojada">Enojada</button><button data-act="nerviosa">Nerviosa</button><button data-act="deslumbrada">Deslumbrada</button></div>
+<div class="controls wardrobe" id="wardrobe"></div>
+<div class="controls"><button id="acc">Vestir al azar</button><button id="naked">Quitar todo</button><button id="pause">Pausar paseo</button><button id="debug">Ver puntos del suelo</button></div>
+<div class="room" id="room"><div class="walker" id="walker"><div class="aura"></div><div class="flip" id="flip"><div class="turn"><div id="pet"></div></div></div></div></div>
+<p class="status" id="status"></p>
+<script src="alquimicos.js?v=7"></script>
+<script>
+const NODES = {
+  desk: { at: [.205, .555], perch: .8 }, nearDesk: { at: [.25, .80] }, rug: { at: [.47, .86] },
+  shelf: { at: [.61, .70] }, chairSide: { at: [.76, .82] }, chair: { at: [.805, .62], perch: .78 }
+};
+const BOOK_SLOT = [.632, .44];
+const ROUTE = ['nearDesk', 'rug', 'shelf', 'rug', 'nearDesk', 'desk', 'nearDesk', 'rug', 'chairSide', 'chair', 'chairSide', 'rug', 'nearDesk', 'desk'];
+const room = document.getElementById('room'), walker = document.getElementById('walker'), pet = document.getElementById('pet'), status = document.getElementById('status');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const depth = y => Math.max(.62, Math.min(1.2, .62 + (y - .62) * 1.9));
+const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const pick = list => list[Math.floor(Math.random() * list.length)];
+
+// ——— Libros con detalle: cuero, esquinas de metal, símbolo en relieve, cinta marcapáginas; abierto: texto, capital y un benceno. ———
+const BOOK_COLORS = [['#8e3b2e', '#6a2a20'], ['#2f5d7a', '#1f4157'], ['#4f6b33', '#36491f']];
+function closedBook([c1, c2]) {
+  return `<svg viewBox="0 0 60 70"><defs><linearGradient id="lb${c1.slice(1)}" x1="0" x2="1"><stop offset="0" stop-color="${c2}"/><stop offset=".3" stop-color="${c1}"/><stop offset=".85" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs>
+    <path d="M40 60 L42 70 L45 66 L48 70 L48 58 Z" fill="#c2453a" stroke="#3b2418" stroke-width="1.4" stroke-linejoin="round"/>
+    <path d="M50 4 L55 7 L56 60 L52 64 Z" fill="#fbf3dc" stroke="#3b2418" stroke-width="1.8"/><path d="M52 10 L53 58 M54 12 L54.6 57" stroke="#d9c79f" stroke-width=".9"/>
+    <path d="M7 6 L49 3 C51 3 52 4 52 6 L53 62 C53 64 52 65 50 65 L11 67 C9 67 7 66 7 64 Z" fill="url(#lb${c1.slice(1)})" stroke="#3b2418" stroke-width="2.6" stroke-linejoin="round"/>
+    <path d="M7 6 L15 5.5 L16 66.5 L11 67 C9 67 7 66 7 64 Z" fill="${c2}" stroke="#3b2418" stroke-width="1.6"/>
+    <path d="M8 16 L15 15.6 M8 30 L15.4 29.6 M8 46 L15.6 45.6 M8 58 L15.8 57.6" stroke="#e3b04b" stroke-width="2"/>
+    <path d="M45 3.3 L52 3 L52.2 10 Z M45.6 65.3 L53 65 L52.8 58 Z" fill="#e3b04b" stroke="#7a5a1a" stroke-width="1"/>
+    <circle cx="33" cy="33" r="11" fill="none" stroke="#e3b04b" stroke-width="2"/><path d="M33 24 L41 38 L25 38 Z" fill="none" stroke="#e3b04b" stroke-width="1.8" stroke-linejoin="round"/>
+    <circle cx="33" cy="33" r="2.4" fill="#ffe08a"/><path d="M20 10 L46 8.4 M21 56 L47 54.6" stroke="#e3b04b" stroke-width="1.2" opacity=".8"/>
+    <path d="M18 8 C26 7 36 7 44 6" stroke="#fff" stroke-width="1.6" opacity=".35" stroke-linecap="round"/></svg>`;
+}
+function openBook([c1, c2]) {
+  return `<svg viewBox="0 0 120 70"><defs><linearGradient id="pl" x1="0" x2="1"><stop offset="0" stop-color="#f3e6c6"/><stop offset=".85" stop-color="#fbf4e2"/><stop offset="1" stop-color="#d8c69c"/></linearGradient>
+    <linearGradient id="pr" x1="0" x2="1"><stop offset="0" stop-color="#d8c69c"/><stop offset=".15" stop-color="#fbf4e2"/><stop offset="1" stop-color="#f3e6c6"/></linearGradient></defs>
+    <path d="M60 14 C45 6 22 6 6 11 L4 62 C20 58 44 58 60 66 C76 58 100 58 116 62 L114 11 C98 6 75 6 60 14 Z" fill="${c1}" stroke="#3b2418" stroke-width="2.6" stroke-linejoin="round"/>
+    <path d="M60 15 C46 8 25 8 10 12 L9 58 C24 55 45 55 60 62 Z" fill="url(#pl)" stroke="#3b2418" stroke-width="1.5"/>
+    <path d="M60 15 C74 8 95 8 110 12 L111 58 C96 55 75 55 60 62 Z" fill="url(#pr)" stroke="#3b2418" stroke-width="1.5"/>
+    <path d="M60 15 L60 62" stroke="#3b2418" stroke-width="1.6"/><path d="M58 60 L58 70 L60.5 67 L63 70 L63 60" fill="#c2453a" stroke="#3b2418" stroke-width="1.1"/>
+    <rect x="15" y="17" width="9" height="10" rx="1.5" fill="${c1}"/><text x="19.5" y="25.5" font-family="Georgia" font-size="9" font-weight="bold" fill="#f6e2b0" text-anchor="middle">A</text>
+    <path d="M27 19 L52 18 M27 23 L52 22.5 M15 31 L52 30 M15 35 L50 34.6 M15 39 L52 38.6 M15 43 L46 42.8 M15 47 L52 46.8 M15 51 L40 51" stroke="#9d8762" stroke-width="1.4" stroke-linecap="round"/>
+    <g fill="none" stroke="#5a3b22" stroke-width="1.5" stroke-linejoin="round"><path d="M84 20 L93 25 L93 35 L84 40 L75 35 L75 25 Z"/><circle cx="84" cy="30" r="5.2"/>
+      <path d="M93 25 L99 21 M75 35 L69 39"/><path d="M98 38 C102 42 104 46 102 50" stroke="#a8402f"/><path d="M100 50 L102 50.5 L102.6 48.4" stroke="#a8402f"/></g>
+    <path d="M70 46 L100 45.5 M70 50 L96 49.8 M70 54 L88 54" stroke="#9d8762" stroke-width="1.4" stroke-linecap="round"/>
+    <path class="pg" d="M60 15 C74 8 95 8 110 12 L111 58 C96 55 75 55 60 62 Z" fill="#fffaf0" stroke="#3b2418" stroke-width="1.3"/></svg>`;
+}
+const BULB = '<svg viewBox="0 0 40 50"><circle cx="20" cy="18" r="20" fill="#ffe08a" opacity=".35"/><path d="M20 4 C11 4 6 11 6 17 C6 24 12 27 13 33 L27 33 C28 27 34 24 34 17 C34 11 29 4 20 4 Z" fill="#ffe9a6" stroke="#3b2418" stroke-width="2.2"/>' +
+  '<path d="M15 26 L18 20 L20 25 L22 20 L25 26" fill="none" stroke="#e39a2a" stroke-width="1.6"/><rect x="13" y="33" width="14" height="7" rx="2" fill="#b9a07a" stroke="#3b2418" stroke-width="2"/><path d="M13 36.5 L27 36.5" stroke="#3b2418" stroke-width="1.4"/>' +
+  '<path d="M13 9 C11 11 10 14 10 16" stroke="#fff" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg>';
+
+// ——— Animador ———
+const A = { kind: 'matraz', parts: {}, w: 0, target: 0, phase: 0, t: 0, air: 0, sit: 0, sitT: 0, sq: 0, sqT: 0, joy: 0, lean: 0, leanT: 0,
+  look: [0, 0], lookT: [0, 0], nextGlance: 2, gesture: 0, dance: 0, stretch: 0, six: 0, shake: 0, mode: 'idle', excite: 0, last: performance.now() };
+function bindParts() {
+  const q = c => pet.querySelector('.' + c), qa = c => [...pet.querySelectorAll('.' + c)];
+  A.parts = { root: q('m-root'), body: q('m-body'), liquid: q('m-liquid'), footL: q('m-foot-l'), footR: q('m-foot-r'), tag: q('m-tag'),
+    hat: q('m-hat'), cork: q('m-cork'), drip: q('m-drip'), gaze: qa('m-gaze') };
+}
+let expr = 'neutral', exprTimer = 0;
+function setExpr(e, ms) { expr = e; Alquimicos.setExpression(pet, e); clearTimeout(exprTimer); if (ms) exprTimer = setTimeout(() => setExpr(baseExpr()), ms); }
+const baseExpr = () => A.mode === 'read' ? 'concentrada' : A.mode === 'sleep' ? 'dormida' : 'neutral';
+const tf = (el, v) => { if (el) el.style.transform = v; };
+const smooth = (v, target, dt, speed = 5) => v + (target - v) * (1 - Math.exp(-dt * speed));
+function frame(now) {
+  const dt = Math.min(.05, (now - A.last) / 1000); A.last = now; A.t += dt;
+  A.w = smooth(A.w, A.target, dt); A.sit = smooth(A.sit, A.sitT, dt, 3); A.sq = smooth(A.sq, A.sqT, dt, 14);
+  A.joy = smooth(A.joy, 0, dt, 2.2); A.lean = smooth(A.lean, A.leanT, dt, 6); A.excite = smooth(A.excite, 0, dt, 1.5);
+  A.dance = Math.max(0, A.dance - dt); A.stretch = Math.max(0, A.stretch - dt); A.six = Math.max(0, A.six - dt); A.shake = Math.max(0, A.shake - dt); A.gesture = Math.max(0, A.gesture - dt / 1.2);
+  if (A.mode === 'idle' && A.t > A.nextGlance) { A.lookT = [Math.random() * 6 - 3, Math.random() * 3 - 1.5]; A.nextGlance = A.t + 1.6 + Math.random() * 2.6; }
+  if (A.mode === 'walk') A.lookT = [3, 0]; if (A.mode === 'read') A.lookT = [1.5, 2.6];
+  A.look = [smooth(A.look[0], A.lookT[0], dt, 8), smooth(A.look[1], A.lookT[1], dt, 8)];
+  const g = A.gesture > 0 ? 1 - A.gesture : 0;
+  const w = reduced ? 0 : A.w, s = A.sit, P = A.parts, t = A.t, sq = A.sq, joyHop = Math.abs(Math.sin(A.joy * Math.PI * 3)) * A.joy;
+  const dz = A.dance > 0 ? Math.min(1, A.dance) : 0, dPh = t * Math.PI * 2 * 2.2;
+  const st = A.stretch > 0 ? Math.sin(Math.PI * (1 - A.stretch / 1.4)) : 0;
+  const freq = { matraz: 1.9, atomo: 1, slime: 1.4 }[A.kind];
+  A.phase += dt * Math.PI * 2 * freq * (.25 + .75 * w);
+  const ph = A.phase, idle = Math.sin(t * 2 * Math.PI / 3.2), breathe = Math.sin(t * 2 * Math.PI / (s > .5 ? 4.5 : 3));
+  const lift = 18 * A.air + 22 * joyHop + 10 * dz * Math.max(0, Math.sin(dPh));
+  const six = Math.min(1, A.six), sway = dz * 10 * Math.sin(dPh / 2) + six * 13 * Math.sin(t * Math.PI * 2 * 2.3), lean = A.lean + A.shake * 3.5 * Math.sin(t * 70);
+  P.gaze.forEach(el => tf(el, `translate(${A.look[0]}px, ${A.look[1]}px)`));
+  const bodyScale = (bx, by) => `scale(${bx + .12 * sq - .06 * st}, ${by - .15 * sq + .16 * st})`;
+  if (A.kind === 'matraz') {
+    const step = Math.sin(ph);
+    tf(P.root, `translateY(${-4.5 * w * Math.abs(step) - lift}px) rotate(${6 * w * step + sway + lean}deg)`);
+    tf(P.body, `rotate(${1.6 * idle * (1 - w) - 3 * s}deg) ` + bodyScale(1 + .02 * breathe * s, 1 + .1 * A.air - .05 * s + .03 * breathe * s));
+    tf(P.liquid, `rotate(${3 * idle * (1 - w) - 9 * w * Math.sin(ph - .7) - 14 * sq - 1.2 * sway - 1.5 * lean}deg)`);
+    tf(P.footL, `translateY(${-7 * Math.max(w * Math.max(0, step), dz * Math.max(0, Math.sin(dPh)))}px)`);
+    tf(P.footR, `translateY(${-7 * Math.max(w * Math.max(0, -step), dz * Math.max(0, -Math.sin(dPh)))}px)`);
+    tf(P.tag, `rotate(${6 * Math.sin(t * 2) + 10 * w * Math.sin(ph - 1) + 20 * joyHop - sway * 1.5}deg)`);
+    tf(P.cork, `translateY(${-16 * Math.sin(Math.PI * Math.min(1, g * 1.6)) - 6 * A.excite}px) rotate(${-14 * Math.sin(Math.PI * Math.min(1, g * 1.6))}deg)`);
+  } else if (A.kind === 'slime') {
+    const up = Math.max(0, Math.sin(ph)), down = Math.max(0, -Math.sin(ph)), wob = Math.sin(t * 2 * Math.PI / 1.9);
+    tf(P.root, `translateY(${-26 * w * up - lift}px) rotate(${sway * .7 + lean}deg)`);
+    const sx = 1 + .04 * wob * (1 - w) + w * (-.08 * up + .16 * down) + .1 * s + .03 * breathe * s + .06 * dz * Math.sin(dPh);
+    const sy = 1 - .04 * wob * (1 - w) + w * (.12 * up - .18 * down) - .14 * s + .12 * A.air - .06 * dz * Math.sin(dPh);
+    tf(P.body, bodyScale(sx, sy));
+    tf(P.hat, `rotate(${3 * wob + 8 * w * Math.sin(ph - 1) + 15 * joyHop - sway}deg) translateY(${-8 * A.excite}px)`);
+    tf(P.drip, `translateY(${34 * Math.min(1, g * 1.4) ** 2}px) scale(${1 - .6 * Math.max(0, g - .7) / .3})`);
+  } else {
+    const bob = Math.sin(t * 2 * Math.PI / 3), sc = 1 + .035 * Math.sin(t * 2.1);
+    tf(P.root, `translateY(${-9 * bob * (1 - w) - (8 + 4 * Math.sin(ph)) * w - lift * .7 + 10 * s}px) rotate(${9 * w + sway + lean}deg)`);
+    tf(P.body, `rotate(${360 * ease(Math.min(1, g * 1.3)) + 25 * A.excite * Math.sin(t * 9)}deg) ` + bodyScale(sc, sc));
+  }
+  moveMotes(dt);
+  requestAnimationFrame(frame);
+}
+
+// ——— Luciérnagas: orbitan alrededor de la mascota y la siguen con retraso (resorte). Se juntan al dormir y se alborotan al estar feliz. ———
+const motes = [0, 1, 2, 3, 4].map(i => { const el = document.createElement('span'); el.className = 'mote'; room.append(el);
+  return { el, a: i * 1.26, sp: .55 + i * .13, r: .045 + (i % 3) * .012, x: .25, y: .7, lag: 2.2 + i * .5 }; });
+function moveMotes(dt) {
+  const d = parseFloat(walker.style.getPropertyValue('--depth')) || 1, cx = pos[0], cy = pos[1] - .075 * d;
+  const calm = A.mode === 'sleep' ? .45 : 1, wild = 1 + 1.4 * Math.max(A.joy, A.excite, A.dance > 0 ? .6 : 0);
+  motes.forEach((m, i) => {
+    m.a += dt * m.sp * calm * wild;
+    const tx = cx + Math.cos(m.a) * m.r * calm * wild * .9 * d, ty = cy + (Math.sin(m.a * 1.3) * m.r * .55 * calm * wild - .02 * Math.sin(m.a * .7)) * d;
+    const k = 1 - Math.exp(-dt * m.lag);
+    m.x += (tx - m.x) * k; m.y += (ty - m.y) * k;
+    m.el.style.left = m.x * 100 + '%'; m.el.style.top = m.y * 100 + '%';
+    m.el.style.opacity = (.55 + .45 * Math.sin(A.t * (2 + i * .4) + i)) * (A.mode === 'sleep' ? .7 : 1);
+  });
+}
+
+// ——— Efectos flotantes (notas, runas, corazones, "!") ———
+function floatFx(cls, text, { n = 1, spread = .04, rise = .1, dur = 1300, gap = 130, from = [pos[0], pos[1] - .15] } = {}) {
+  if (reduced) return;
+  for (let i = 0; i < n; i++) {
+    const el = document.createElement('span'); el.className = 'fx ' + cls; el.textContent = text; room.append(el);
+    const x = from[0] + (Math.random() - .5) * spread, y = from[1];
+    Object.assign(el.style, { left: x * 100 + '%', top: y * 100 + '%', opacity: 0 });
+    el.animate([{ opacity: 0, transform: 'translate(-50%,-50%) scale(.4)' }, { opacity: 1, offset: .2 },
+      { left: (x + (Math.random() - .5) * spread) * 100 + '%', top: (y - rise) * 100 + '%', opacity: 0, transform: 'translate(-50%,-50%) scale(1.15) rotate(' + ((Math.random() - .5) * 30) + 'deg)' }],
+      { duration: dur + i * 120, delay: i * gap, easing: 'ease-out', fill: 'backwards' }).finished.then(() => el.remove());
+  }
+}
+function puff(x, y, n = 3) {
+  if (reduced) return;
+  for (let i = 0; i < n; i++) {
+    const p = document.createElement('span'); p.className = 'puff'; room.append(p);
+    const dx = (i - (n - 1) / 2) * 1.4;
+    p.animate([{ left: x * 100 + '%', top: y * 100 + '%', opacity: .9, transform: 'translate(-50%,-50%) scale(.4)' },
+      { left: (x + dx / 100) * 100 + '%', top: (y - .012) * 100 + '%', opacity: 0, transform: 'translate(-50%,-50%) scale(1.6)' }], { duration: 650, easing: 'ease-out' }).finished.then(() => p.remove());
+  }
+}
+
+// ——— Conductas ———
+const ACTS = {
+  async baile() { status.textContent = '¡Bailando!'; setExpr('feliz'); A.dance = 3.2;
+    const notes = setInterval(() => floatFx('note', pick(['♪', '♫', '♬'])), 450); await wait(3200); clearInterval(notes); setExpr(baseExpr()); },
+  async saludo() { status.textContent = '¡Hola!'; setExpr('feliz'); floatFx('bang', '¡!'); A.joy = 1; await wait(1200); setExpr(baseExpr()); },
+  async bostezo() { status.textContent = 'Bostezando…'; setExpr('bostezo'); A.stretch = 1.4; await wait(1500); setExpr(baseExpr()); },
+  async idea() { setExpr('idea'); A.excite = 1; walker.insertAdjacentHTML('beforeend', `<div class="bulb">${BULB}</div>`);
+    const b = walker.querySelector('.bulb'); b.animate([{ opacity: 0, transform: 'translate(-50%,10%) scale(.4)' }, { opacity: 1, transform: 'translate(-50%,0) scale(1.1)', offset: .25 },
+      { opacity: 1, transform: 'translate(-50%,0) scale(1)', offset: .8 }, { opacity: 0, transform: 'translate(-50%,-20%) scale(.9)' }], { duration: 1600, easing: 'ease-out', fill: 'both' });
+    floatFx('rune', '✦', { n: 3, spread: .03, rise: .06, from: [pos[0], pos[1] - .2] }); await wait(1600); b.remove(); setExpr(baseExpr()); }
+};
+// ——— Emotes nuevos ———
+const eyesAt = () => ({ matraz: [[43, 47], [57, 47]], atomo: [[44, 45], [56, 45]], slime: [[41, 57], [59, 57]] }[A.kind]);
+Object.assign(ACTS, {
+  async seisSiete() { status.textContent = '6… 7…'; setExpr('picara'); A.six = 2.8;
+    walker.insertAdjacentHTML('beforeend', '<span class="six7 n6">6</span><span class="six7 n7">7</span>');
+    const [n6, n7] = walker.querySelectorAll('.six7');
+    const bob = (el, d) => el.animate([{ transform: 'translateY(0) rotate(-8deg)' }, { transform: 'translateY(-38%) rotate(6deg)' }, { transform: 'translateY(0) rotate(-8deg)' }],
+      { duration: 435, iterations: 6, delay: d, easing: 'ease-in-out', fill: 'both' });
+    bob(n6, 0); bob(n7, 217); await wait(2700); n6.remove(); n7.remove(); setExpr(baseExpr()); },
+  async confundida() { status.textContent = '¿?'; setExpr('confundida'); A.leanT = 14; floatFx('bang', '?', { n: 2, gap: 380 }); await wait(1600); A.leanT = 0; setExpr(baseExpr()); },
+  async llorar() { status.textContent = 'Snif…'; setExpr('triste');
+    const tears = setInterval(() => eyesAt().forEach(([x, y]) => {
+      const d = document.createElement('span'); d.className = 'tear'; Object.assign(d.style, { left: x + '%', top: y + '%' }); walker.append(d);
+      d.animate([{ transform: 'translate(-50%,0) scale(.5)', opacity: 1 }, { transform: 'translate(-50%,160%) scale(1)', opacity: .9, offset: .7 }, { transform: 'translate(-50%,260%) scale(.6)', opacity: 0 }],
+        { duration: 900, easing: 'ease-in' }).finished.then(() => d.remove()); }), 380);
+    await wait(2400); clearInterval(tears); setExpr(baseExpr()); },
+  async enojada() { status.textContent = '¡Grrr!'; setExpr('enojada'); A.shake = 1.6;
+    walker.insertAdjacentHTML('beforeend', '<svg class="anger" viewBox="0 0 40 40"><g fill="none" stroke="#e0473a" stroke-width="5" stroke-linecap="round"><path d="M6 15 C14 15 15 14 15 6"/><path d="M25 6 C25 14 26 15 34 15"/><path d="M34 25 C26 25 25 26 25 34"/><path d="M15 34 C15 26 14 25 6 25"/></g></svg>');
+    const ang = walker.querySelector('.anger'); ang.animate([{ transform: 'scale(.8)' }, { transform: 'scale(1.15)' }], { duration: 260, iterations: 6, direction: 'alternate' });
+    const steam = setInterval(() => [28, 72].forEach(x => { const p = document.createElement('span'); p.className = 'steam'; Object.assign(p.style, { left: x + '%', top: '8%' }); walker.append(p);
+      p.animate([{ transform: 'translate(-50%,0) scale(.4)', opacity: .9 }, { transform: 'translate(' + (x < 50 ? '-120%' : '20%') + ',-120%) scale(1.4)', opacity: 0 }], { duration: 800, easing: 'ease-out' }).finished.then(() => p.remove()); }), 260);
+    await wait(1700); clearInterval(steam); ang.remove(); setExpr(baseExpr()); },
+  async nerviosa() { status.textContent = 'Eh… je je…'; setExpr('nerviosa'); A.shake = .9;
+    walker.insertAdjacentHTML('beforeend', '<span class="sweat"></span>'); const sw = walker.querySelector('.sweat');
+    sw.animate([{ transform: 'translateY(0)', opacity: 0 }, { opacity: 1, offset: .15 }, { transform: 'translateY(90%)', opacity: 1, offset: .85 }, { transform: 'translateY(110%)', opacity: 0 }], { duration: 1800, easing: 'ease-in' });
+    await wait(1800); sw.remove(); setExpr(baseExpr()); },
+  async deslumbrada() { status.textContent = '¡Wooow!'; setExpr('deslumbrada'); A.excite = 1; A.joy = .6;
+    floatFx('rune', '✦', { n: 6, spread: .07, rise: .08, gap: 90 }); await wait(1800); setExpr(baseExpr()); }
+});
+let busy = false;
+async function act(name) { if (busy) return; busy = true; try { await ACTS[name](); } finally { busy = false; } }
+
+// ——— Movimiento en curva (Bézier) con inclinación por aceleración ———
+let pos = NODES.nearDesk.at.slice(), perch = null, paused = false, carrying = null, facingLeft = false, bend = 1;
+function place([x, y], d) { walker.style.left = x * 100 + '%'; walker.style.top = y * 100 + '%'; walker.style.setProperty('--depth', d); }
+async function face(left) {
+  if (left === facingLeft) return;
+  facingLeft = left; walker.classList.add('turning'); await wait(140);
+  walker.classList.toggle('left', left); await wait(160); walker.classList.remove('turning');
+}
+async function moveTo(name) {
+  const node = NODES[name], from = pos.slice(), to = node.at, jump = Boolean(node.perch) !== Boolean(perch);
+  const d0 = perch ? NODES[perch].perch : depth(from[1]), d1 = node.perch || depth(to[1]);
+  const dx = to[0] - from[0], dy = (to[1] - from[1]) * 1.78, dist = Math.hypot(dx, dy);
+  bend = -bend;
+  const ctrl = [(from[0] + to[0]) / 2 - dy / 1.78 * .25 * bend, (from[1] + to[1]) / 2 + dx * .25 * bend * .56];
+  const speed = { atomo: .085, slime: .075, matraz: .065 }[A.kind];
+  const ms = reduced ? 1 : jump ? 900 : Math.max(700, dist / speed * 1000 * 1.1);
+  if (Math.abs(dx) > .005) await face(dx < 0);
+  if (jump) { A.sqT = 1; await wait(220); A.sqT = 0; }
+  A.target = jump ? 0 : 1; A.mode = 'walk';
+  let lastStep = 0;
+  const t0 = performance.now();
+  await new Promise(done => {
+    const tick = now => {
+      if (paused) { requestAnimationFrame(tick); return; }
+      const t = Math.min(1, (now - t0) / ms), e = jump ? t : ease(t), u = 1 - e;
+      A.air = jump ? Math.sin(Math.PI * t) : 0;
+      pos = jump ? [from[0] + dx * e, from[1] + (to[1] - from[1]) * e]
+        : [u * u * from[0] + 2 * u * e * ctrl[0] + e * e * to[0], u * u * from[1] + 2 * u * e * ctrl[1] + e * e * to[1]];
+      place([pos[0], pos[1] - (jump ? Math.sin(Math.PI * t) * .1 : 0)], d0 + (d1 - d0) * e);
+      A.leanT = jump ? 0 : 7 * (1 - 2 * t);
+      if (!jump && t > .8) A.target = 0;
+      if (!jump && now - lastStep > 700 && A.kind !== 'atomo') { lastStep = now; puff(pos[0], pos[1], 1); }
+      t < 1 ? requestAnimationFrame(tick) : done();
+    };
+    requestAnimationFrame(tick);
+  });
+  A.air = 0; A.target = 0; A.leanT = 0; A.mode = 'idle'; perch = node.perch ? name : null;
+  if (jump) { A.sqT = 1; puff(pos[0], pos[1], 3); await wait(160); A.sqT = 0; }
+}
+async function takeBook() {
+  const colors = pick(BOOK_COLORS);
+  A.lookT = [1, -3]; setExpr('sorpresa'); floatFx('bang', '!', { from: [pos[0], pos[1] - .17] });
+  const fly = document.createElement('div'); fly.className = 'flybook'; fly.innerHTML = closedBook(colors); room.append(fly);
+  const [x0, y0] = BOOK_SLOT, x1 = pos[0], y1 = pos[1] - .18;
+  await fly.animate([
+    { left: x0 * 100 + '%', top: y0 * 100 + '%', transform: 'translate(-50%,-50%) rotate(0deg) scale(.8)' },
+    { left: ((x0 + x1) / 2) * 100 + '%', top: (Math.min(y0, y1) - .09) * 100 + '%', transform: 'translate(-50%,-50%) rotate(-200deg) scale(1.15)', offset: .5 },
+    { left: x1 * 100 + '%', top: y1 * 100 + '%', transform: 'translate(-50%,-50%) rotate(-360deg) scale(1)' }
+  ], { duration: reduced ? 1 : 1150, easing: 'ease-in-out' }).finished;
+  fly.remove(); A.sqT = 1; await wait(140); A.sqT = 0; setExpr('feliz', 1200);
+  walker.insertAdjacentHTML('beforeend', `<div class="carry">${closedBook(colors)}</div>`); carrying = colors;
+}
+async function readBook() {
+  const colors = carrying; walker.querySelector('.carry')?.remove();
+  walker.insertAdjacentHTML('beforeend', `<div class="reading">${openBook(colors)}</div>`); carrying = null;
+  A.mode = 'read'; setExpr('concentrada'); status.textContent = 'Leyendo concentrada…';
+  const runes = setInterval(() => floatFx('rune', pick(['✦', '△', '☿', '⌬', '✧']), { from: [pos[0] + .03, pos[1] - .06], spread: .05, rise: .12, dur: 1800 }), 700);
+  await wait(3600); await ACTS.idea(); setExpr('concentrada'); await wait(3400);
+  clearInterval(runes); walker.querySelector('.reading')?.remove(); A.mode = 'idle'; setExpr('feliz', 900);
+}
+async function idleMoment(ms) {
+  const end = performance.now() + ms;
+  while (performance.now() < end) {
+    await wait(700);
+    if (busy || paused || Math.random() > .22) continue;
+    const r = Math.random();
+    if (r < .3) A.gesture = 1; else if (r < .45) await act('baile'); else if (r < .58) await act('saludo'); else if (r < .7) await act('idea');
+    else await act(pick(['seisSiete', 'confundida', 'deslumbrada', 'nerviosa']));
+  }
+}
+async function loop() {
+  place(pos, depth(pos[1])); setExpr('neutral');
+  for (let i = 0; ; i++) {
+    const name = ROUTE[i % ROUTE.length];
+    status.textContent = { shelf: 'Va a buscar un libro…', desk: 'Sube al escritorio…', chair: 'Se va al sillón…' }[name] || 'Paseando…';
+    await moveTo(name);
+    while (paused || busy) await wait(200);
+    if (name === 'shelf' && !carrying) { status.textContent = 'Sacando un libro de la estantería.'; await takeBook(); await wait(600); }
+    else if (name === 'desk') { if (carrying) await readBook(); else { status.textContent = 'Acompañándote en el escritorio.'; await idleMoment(5000); } }
+    else if (name === 'chair') {
+      await act('bostezo'); status.textContent = 'Durmiendo una siesta en el sillón.'; A.mode = 'sleep'; A.sitT = 1; setExpr('dormida');
+      walker.insertAdjacentHTML('beforeend', '<div class="zzz"><span>z</span><span>z</span><span>z</span></div>');
+      await wait(7500);
+      walker.querySelector('.zzz')?.remove(); A.sitT = 0; A.mode = 'idle'; A.stretch = 1.4; setExpr('sorpresa', 700); await wait(1500);
+    } else await idleMoment(1600);
+  }
+}
+
+// ——— Controles ———
+// ——— Vestuario: un selector por ranura; la ropa se mantiene al cambiar de mascota ———
+const outfit = {};
+function wearAll() { Alquimicos.unequip(pet); Object.values(outfit).forEach(id => id && Alquimicos.equip(pet, id)); }
+function renderWardrobe() {
+  document.getElementById('wardrobe').innerHTML = Alquimicos.SLOTS.map(slot => '<label>' + slot[0].toUpperCase() + slot.slice(1) +
+    ' <select data-slot="' + slot + '"><option value="">—</option>' + Object.entries(Alquimicos.ACCESORIOS).filter(([, a]) => a.slot === slot)
+      .map(([id]) => '<option value="' + id + '"' + (outfit[slot] === id ? ' selected' : '') + '>' + Alquimicos.NOMBRES[id] + '</option>').join('') + '</select></label>').join('');
+}
+document.getElementById('wardrobe').addEventListener('change', e => { outfit[e.target.dataset.slot] = e.target.value; wearAll(); A.joy = .5; });
+function setKind(k) {
+  A.kind = k; pet.innerHTML = Alquimicos[k](); bindParts(); Alquimicos.setExpression(pet, expr); wearAll();
+  document.querySelectorAll('#pick button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.k === k)));
+}
+document.getElementById('pick').innerHTML = Alquimicos.list.map(([k, l]) => `<button data-k="${k}">${l}</button>`).join('');
+document.getElementById('pick').addEventListener('click', e => { if (e.target.dataset.k) setKind(e.target.dataset.k); });
+document.getElementById('acts').addEventListener('click', e => { if (e.target.dataset.act) act(e.target.dataset.act); });
+document.getElementById('emotes').addEventListener('click', e => { if (e.target.dataset.act) act(e.target.dataset.act); });
+document.getElementById('acc').addEventListener('click', () => {
+  Alquimicos.SLOTS.forEach(slot => { const opts = Object.entries(Alquimicos.ACCESORIOS).filter(([, a]) => a.slot === slot).map(([id]) => id); outfit[slot] = Math.random() < .8 ? pick(opts) : ''; });
+  wearAll(); renderWardrobe(); A.joy = 1; setExpr('feliz', 900);
+});
+document.getElementById('naked').addEventListener('click', () => { Object.keys(outfit).forEach(k => { outfit[k] = ''; }); wearAll(); renderWardrobe(); });
+renderWardrobe();
+document.getElementById('flip').addEventListener('click', () => { A.joy = 1; setExpr('amor', 1500); floatFx('heart', '♥', { n: 4 }); });
+document.getElementById('pause').addEventListener('click', e => { paused = !paused; e.target.textContent = paused ? 'Seguir paseo' : 'Pausar paseo'; });
+document.getElementById('debug').addEventListener('click', () => {
+  room.classList.toggle('debug');
+  room.querySelectorAll('.node').forEach(n => n.remove());
+  if (room.classList.contains('debug')) [...Object.entries(NODES).map(([k, n]) => [k, n.at]), ['libro', BOOK_SLOT]].forEach(([k, at]) =>
+    room.insertAdjacentHTML('beforeend', `<span class="node" style="left:${at[0] * 100}%;top:${at[1] * 100}%"><small>${k}</small></span>`));
+});
+setKind(new URLSearchParams(location.search).get('m') || 'matraz');
+requestAnimationFrame(frame);
+loop();
+</script>
+</body>
+</html>

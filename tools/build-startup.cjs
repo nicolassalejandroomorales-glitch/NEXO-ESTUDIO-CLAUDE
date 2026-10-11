@@ -11,8 +11,7 @@ const startupModules = [
   'study/economy.js', 'academic/amine-mastery.js', 'academic/active-time.js',
   'academic/history.js', 'platform/loader.js', 'platform/performance.js',
   'platform/animation.js', 'platform/audio.js', 'game/manager.js',
-  'avatar/contracts.js', 'mascot/controller.js', 'avatar/catalog.js',
-  'avatar/vector-art.js', 'avatar/experience.js', 'mascot-rive.js',
+  'mascot/controller.js',
   'organic-manifest.js', 'classes/catalog.js'
 ];
 const startupBundle = startupModules.map(name => {

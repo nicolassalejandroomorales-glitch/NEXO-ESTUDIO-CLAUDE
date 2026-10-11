@@ -843,9 +843,41 @@
         {id:'light-rays',className:'refuge-light',bounds:[0,0,1,1],depth:3}
       ],
       lightingProfile:{sourceSlot:'window',driver:'NexoAmbientTime',states:['dawn','day','dusk','night'],continuous:true,feedback:{duration:600,peakBrightness:1.12}}
+    },
+    // 5 oct 2026 — refugio en pixel art (tools/home-pixel/build_refugio.py). 418×235 px de arte ×4.
+    // Coordenadas en el mismo sistema 1672×941; por ahora solo tintes de hora (las capas animadas vienen después).
+    'refugio-pixel':{
+      sceneId:'refugio-pixel',referenceWidth:1672,referenceHeight:941,
+      backgroundAsset:'assets/home-scenes/refugio-pixel.png',cleanPlateAsset:null,pixelArt:true,
+      layers:{background:0,ambientBack:1,modularObjects:2,mascotBack:3,mascot:4,mascotFront:5,ambientFront:6,integratedUI:7,hotspots:8},
+      slots:[{id:'window',type:'window',zone:'window-area',bounds:[72/1672,64/941,280/1672,344/941],layer:'modularObjects',renderMode:'baked',asset:null,foregroundAsset:null,replacementReady:false}],
+      hotspots:[
+        {id:'window-focus',slot:'window',inset:[.08,.06,.84,.86],action:'focus-light',accessibleLabel:'Ventana: resaltar suavemente la luz de entrada'},
+        {id:'staff-shop',bounds:[1160/1672,192/941,112/1672,448/941],action:'route',route:'shop',accessibleLabel:'Báculo estelar: abrir la Tienda'},
+        {id:'armchair-profile',bounds:[1264/1672,368/941,264/1672,296/941],action:'route',route:'profile',accessibleLabel:'Sillón: abrir tu Perfil'},
+        {id:'map-logbook',bounds:[616/1672,620/941,176/1672,60/941],action:'route',route:'planner',routeSub:'grades',accessibleLabel:'Mapa enrollado: abrir la Bitácora'},
+        {id:'parchment-calendar',bounds:[852/1672,172/941,128/1672,188/941],action:'route',route:'planner',routeSub:'calendar',accessibleLabel:'Pergamino de la pared: abrir el calendario'},
+        {id:'bookshelf-library',bounds:[408/1672,64/941,272/1672,536/941],action:'route',route:'learn',routeSub:'library',accessibleLabel:'Estantería: abrir la Biblioteca'},
+        {id:'globe-knowledge',bounds:[744/1672,328/941,104/1672,128/941],action:'route',route:'knowledge',accessibleLabel:'Globo dorado: abrir el mapa de conocimiento'},
+        {id:'desk-continue',bounds:[8/1672,416/941,392/1672,84/941],action:'continue',accessibleLabel:'Escritorio: continuar estudiando'}
+      ],
+      mascotAnchors:{
+        desk:{zone:'desk-area',bounds:[.005,.44,.235,.10],point:[.13,.475],layer:'mascot',active:true,seat:{width:.12,foot:.89}},
+        window:{zone:'window-area',bounds:[.043,.068,.168,.366],point:[.12,.41],layer:'mascotBack',active:false},
+        bookshelf:{zone:'bookshelf-area',bounds:[.43,.30,.17,.20],point:[.555,.48],layer:'mascotBack',active:false},
+        rest:{zone:'rest-area',bounds:[.76,.40,.21,.32],point:[.87,.70],layer:'mascotBack',active:false}
+      },
+      ambientLayers:[
+        {id:'tint-dawn',className:'home-light-layer home-tint-dawn',bounds:[0,0,1,1],depth:1},
+        {id:'tint-dusk',className:'home-light-layer home-tint-dusk',bounds:[0,0,1,1],depth:1},
+        {id:'tint-night',className:'home-light-layer home-tint-night',bounds:[0,0,1,1],depth:1}
+      ],
+      lightingProfile:{sourceSlot:'window',driver:'NexoAmbientTime',states:['dawn','day','dusk','night'],continuous:true,feedback:{duration:600,peakBrightness:1.12}}
     }
   });
-  const defaultSceneId='refugio-012';
+  // ?scene=refugio-012 abre el arte anterior (respaldo).
+  const requestedScene=typeof location!=='undefined'?new URLSearchParams(location.search).get('scene'):null;
+  const defaultSceneId=requestedScene&&profiles[requestedScene]?requestedScene:'refugio-pixel';
   function getProfile(id=defaultSceneId) {
     if(!profiles[id])throw new Error('Unknown home scene profile: '+id);
     return profiles[id];
@@ -2110,47 +2142,6 @@
 
 ;
 
-/* avatar/contracts.js */
-/* Contrato V13 compartido entre el renderer Canvas y futuros rigs Rive. */
-(() => {
-  'use strict';
-  const slots = Object.freeze(['head', 'face', 'shirt', 'back', 'tail', 'aura', 'background','main_hand','off_hand']);
-  const anchors = Object.freeze(['head_anchor', 'face_anchor', 'torso_anchor', 'back_anchor', 'tail_anchor', 'aura_anchor','main_hand_anchor','off_hand_anchor']);
-  const futureStates = Object.freeze(['idle', 'study', 'happy', 'celebrate', 'sleep', 'dance', 'surprised', 'rare_drop','read','write','think','ready']);
-  const legacySlot = Object.freeze({ hat: 'head', bag: 'back', tail: 'tail', shirt: 'shirt',scene:'background' });
-  const speciesAnchors=Object.freeze(Object.fromEntries(['pig','cat','dog'].map(species=>[species,Object.freeze({
-    head_anchor:[.53,.22],face_anchor:[.64,.37],torso_anchor:[.59,.59],
-    back_anchor:[.38,.65],tail_anchor:[.27,.68],aura_anchor:[.52,.49],
-    main_hand_anchor:null,off_hand_anchor:null
-  })])));
-  const rigCapabilities=Object.freeze({riveArtboards:['pig','cat','dog'],stateMachines:['Idle','Companion'],
-    timelines:Object.freeze({pig:['Idle','Read','Ready'],cat:['Idle'],dog:['Idle']}),
-    animatedSlots:[],verifiedAnchors:[]});
-  function compatibility(species,slot,item,room) {
-    if(!['pig','cat','dog'].includes(species)||!slots.includes(slot))return false;
-    if(item&&item.slot!==slot)return false;
-    if(item&&!(item.compatibleSpecies?.includes('*')||item.compatibleSpecies?.includes(species)))return false;
-    if(room==='games'&&slot==='main_hand')return false;
-    return true;
-  }
-  function cosmetic(item, species = []) {
-    if (!item?.id || !legacySlot[item.kind]) return null;
-    return {
-      id: item.id,
-      name: item.name,
-      slot: legacySlot[item.kind],
-      rarity: ['common','uncommon','rare','epic','legendary'][Math.min(4,Number(item.rarity)||0)],
-      price: Number(item.price) || 0,
-      compatibleSpecies: [...species],
-      asset: species.length ? Object.fromEntries(species.map(id => [id, `./assets/avatar/skins/${id}-${item.kind}-${item.key}.webp`])) : null
-    };
-  }
-  window.NexoAvatarContracts = { slots, anchors, futureStates, legacySlot, speciesAnchors,
-    rigCapabilities,compatibility,cosmetic };
-})();
-
-;
-
 /* mascot/controller.js */
 /* Context decisions only. Actual artboard animation remains Idle until the rig supports named states. */
 (() => {
@@ -2195,416 +2186,6 @@
   function cleanup(){clearTimeout(effectTimer);effectTimer=null;}
   window.NexoMascotController=Object.freeze({plan,intents,react,cleanup});
 })();
-
-;
-
-/* avatar/catalog.js */
-/* V13: catalog metadata and avatar domain. Stable V11 IDs preserve ownership. */
-(() => {
-  'use strict';
-  const legacySlot={hat:'head',bag:'back',shirt:'shirt',tail:'tail',scene:'background'};
-  const slots=['head','face','shirt','back','tail','aura','background','main_hand','off_hand'];
-  const labels={head:'Cabeza',face:'Cara',shirt:'Ropa',back:'Espalda',tail:'Cola',aura:'Aura',background:'Fondos',
-    main_hand:'Mano principal',off_hand:'Mano secundaria',species:'Mascotas'};
-  const rarities=['common','uncommon','rare','epic','legendary'];
-  const names={
-    'shirt-barca':'Túnica de resonancia', 'shirt-real':'Guardapolvo cristalino',
-    'shirt-udechile':'Capa de análisis', 'shirt-colocolo':'Uniforme de entropía',
-    'hat-asta-band':'Banda del catalizador', 'hat-golden-circlet':'Aro de la aurora',
-    'hat-bulls-hood':'Capucha de observatorio','bag-grimoire':'Morral de fórmulas',
-    'bag-bulls-mission':'Mochila de expedición', 'bag-golden-wind':'Mochila de resonancia',
-    'tail-antimagic':'Estela de vacío', 'tail-wind-spirit':'Estela de brisa',
-    'tail-salamander':'Estela de magma'
-  };
-  const originalArt=new Set(Object.keys(names));
-  const catalog=[
-    ...NEXO_DATA.companions.map(item=>({id:item.id,name:item.name,description:item.detail,slot:'species',
-      rarity:rarities[Math.min(4,item.rarity||1)],price:item.price,compatibleSpecies:['*'],assetKey:item.species,
-      active:true,metadata:{personality:item.species==='pig'?'curioso y metódico':'observador',
-        dialogueProfile:'study_companion',preferredAnimations:['idle','study','happy']}})),
-    ...NEXO_DATA.rewards.filter(item=>legacySlot[item.kind]).map(item=>({
-      id:item.id,name:names[item.id]||item.name,description:item.detail,
-      slot:legacySlot[item.kind],rarity:rarities[Math.min(4,item.rarity||1)],price:item.price,
-      compatibleSpecies:['pig','cat','dog'],assetKey:originalArt.has(item.id)?`vector:${item.id}`:
-        `${item.kind}:${item.key}`,active:true,metadata:{legacyKind:item.kind,legacyKey:item.key}
-    })),
-    ...[
-      {id:'face-lens',name:'Lente de espectro',description:'Observa patrones invisibles entre cada intento.',slot:'face',rarity:'rare',price:140,assetKey:'vector:face-lens'},
-      {id:'aura-resonance',name:'Aura de resonancia',description:'Una órbita suave que acompaña al estudio.',slot:'aura',rarity:'epic',price:310,assetKey:'vector:aura-resonance'},
-      {id:'scene-archive',name:'Archivo astral',description:'Un refugio para ideas en construcción.',slot:'background',rarity:'rare',price:190,assetKey:'scene:archive'}
-    ].map(item=>({...item,compatibleSpecies:['*'],active:true,metadata:{}})),
-    ...[
-      ['scene-ruins','Refugio de Nexo',0,'common','ruins'],
-      ['scene-forest','Bosque de musgo',90,'uncommon','forest'],
-      ['scene-lab','Laboratorio lunar',130,'rare','lab'],
-      ['scene-sunset','Atardecer ámbar',170,'rare','sunset']
-    ].map(([id,name,price,rarity,tone])=>({id,name,description:'Un entorno para tu compañero.',
-      slot:'background',rarity,price,compatibleSpecies:['*'],assetKey:`scene:${tone}`,active:true,metadata:{tone}}))
-  ];
-  const byId=new Map(catalog.map(item=>[item.id,Object.freeze(item)]));
-  const aliases={head:'hat',back:'bag',background:'scene'};
-  function normalize(mascot={},inventory=['species-pig','scene-ruins']) {
-    const current=mascot&&typeof mascot==='object'?mascot:{};
-    const owned=new Set(inventory);
-    const species=['pig','cat','dog'].includes(current.species)&&owned.has(`species-${current.species}`)
-      ?current.species:'pig';
-    const equipped={...current.slots};
-    for(const slot of slots) {
-      const legacy=aliases[slot]||slot;
-      if(equipped[slot]===undefined) equipped[slot]=current[legacy]||null;
-      const item=byId.get(equipped[slot]);
-      if(!item||item.slot!==slot||!owned.has(item.id)||
-        !(item.compatibleSpecies.includes('*')||item.compatibleSpecies.includes(species)))
-        equipped[slot]=slot==='background'?'scene-ruins':null;
-    }
-    const result={...current,species,name:current.name||'Nexo',slots:equipped,
-      animation:current.animation||'idle',appearance:current.appearance||{},
-      renderer:current.renderer||'auto'};
-    for(const slot of slots) result[aliases[slot]||slot]=equipped[slot];
-    result.look=null;
-    return result;
-  }
-  function preview(mascot,inventory,itemId) {
-    const item=byId.get(itemId);
-    if(!item)return normalize(mascot,inventory);
-    const base=normalize(mascot,inventory);
-    if(item.slot==='species')return {...base,species:item.assetKey};
-    const next={...base,slots:{...base.slots,[item.slot]:item.id}};
-    next[aliases[item.slot]||item.slot]=item.id;
-    return next;
-  }
-  function equip(mascot,inventory,itemId,slot) {
-    const item=itemId?byId.get(itemId):null;
-    if(!slots.includes(slot)&&slot!=='species')throw new Error('invalid_slot');
-    if(itemId&&(!item||item.slot!==slot||!inventory.includes(itemId)))throw new Error('item_not_owned');
-    const base=normalize(mascot,inventory);
-    if(slot==='species')return normalize({...base,species:item.assetKey},inventory);
-    if(item&&!(item.compatibleSpecies.includes('*')||item.compatibleSpecies.includes(base.species)))
-      throw new Error('incompatible_species');
-    if(slot==='background'&&!itemId)throw new Error('background_required');
-    return normalize({...base,slots:{...base.slots,[slot]:itemId}},inventory);
-  }
-  window.NexoAvatar={catalog,byId,slots,labels,rarities,legacySlot,normalize,preview,equip};
-})();
-
-;
-
-/* avatar/vector-art.js */
-/* Original accessory shapes composed over the mascot; no combination sprites. */
-(() => {
-  const esc=value=>String(value).replace(/[^a-z0-9-]/gi,'');
-  function svg(item,species='pig') {
-    const seed=[...item.id].reduce((n,c)=>n+c.charCodeAt(0),0);
-    const palette=['#73d9cd','#e4ac75','#af92e9','#d78493','#f0d590','#78aad4'];
-    const tone=palette[seed%palette.length],dark='#1f2535',light='#f9e9c8';
-    const shift=species==='cat'?-7:species==='dog'?5:0;
-    const paths={
-      head:`<path d="M252 ${155+shift} Q262 ${100+shift} 335 ${101+shift} Q397 ${101+shift} 421 ${154+shift} L419 ${172+shift} Q335 ${145+shift} 252 ${172+shift}Z" fill="${dark}" stroke="${light}" stroke-width="6"/><path d="M266 ${150+shift} Q336 ${127+shift} 409 ${150+shift}" fill="none" stroke="${tone}" stroke-width="12"/><path d="M329 ${127+shift} l12 -18 12 18 -12 17z" fill="${tone}"/>`,
-      face:`<path d="M344 237 Q375 214 399 237 M405 231 Q425 219 446 239" fill="none" stroke="${tone}" stroke-width="10" stroke-linecap="round"/><circle cx="405" cy="235" r="9" fill="${light}" stroke="${dark}" stroke-width="4"/>`,
-      shirt:`<path d="M326 320 L350 345 L392 333 L442 362 L461 421 L433 436 L430 519 Q374 541 320 514 L311 425 L292 432 L293 370 Z" fill="${dark}" stroke="${light}" stroke-width="6"/><path d="M344 355 Q385 382 428 352 M342 483 Q378 496 420 483" fill="none" stroke="${tone}" stroke-width="12"/><path d="M381 393 l18 18 -18 18 -18 -18z" fill="${tone}"/>`,
-      back:`<path d="M238 351 Q216 366 206 415 L207 487 Q243 504 280 482 L285 387 Q271 360 238 351Z" fill="${dark}" stroke="${light}" stroke-width="7"/><path d="M219 400 Q242 417 278 401 M232 454 L258 454" fill="none" stroke="${tone}" stroke-width="12"/>`,
-      tail:`<path d="M218 451 Q144 461 134 413 Q120 359 176 335" fill="none" stroke="${dark}" stroke-width="34" stroke-linecap="round"/><path d="M218 451 Q144 461 134 413 Q120 359 176 335" fill="none" stroke="${tone}" stroke-width="24" stroke-linecap="round"/>`,
-      aura:`<ellipse cx="333" cy="314" rx="199" ry="256" fill="none" stroke="${tone}" stroke-width="9" opacity=".7" stroke-dasharray="22 16"/><path d="M139 330 l-17 -20 -17 20 17 20z M520 219 l-13 -17 -13 17 13 17z M488 488 l-14 -18 -14 18 14 18z" fill="${light}" stroke="${tone}" stroke-width="5"/>`
-    };
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="640" height="640" aria-hidden="true" data-item="${esc(item.id)}">${paths[item.slot]||''}</svg>`;
-  }
-  const crops={head:'215 65 270 165',face:'320 165 150 130',shirt:'260 285 230 270',
-    back:'160 305 160 215',tail:'90 300 160 210',aura:'95 35 460 565'};
-  function thumbnail(item,species='pig') {
-    return svg(item,species).replace('viewBox="0 0 640 640"',`viewBox="${crops[item.slot]||'0 0 640 640'}"`)
-      .replace('width="640" height="640"','class="forge-item-art"');
-  }
-  window.NexoVectorArt={svg,thumbnail};
-})();
-
-;
-
-/* avatar/experience.js */
-/* V13 shop and wardrobe view. No storage or Supabase access in this module. */
-(() => {
-  'use strict';
-  const A=window.NexoAvatar;
-  const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const categories=[['all','Todo'],...['head','face','shirt','back','tail','aura','background','species']
-    .map(slot=>[slot,A.labels[slot]])];
-  function catalogFor(view) {
-    const remote=new Map((view.cloud.catalog||[]).map(item=>[item.cosmetic_id,item]));
-    return A.catalog.filter(item=>item.active && (!view.cloud.authenticated||!remote.size||remote.get(item.id)?.active))
-      .map(item=>({...item,...(remote.get(item.id)?{
-        price:remote.get(item.id).price,name:remote.get(item.id).name,
-        rarity:remote.get(item.id).rarity}:null)}));
-  }
-  const rarityNames={common:'Común',uncommon:'Inusual',rare:'Raro',epic:'Épico',legendary:'Legendario'};
-  function badge(item) {return `<span class="forge-rarity" data-rarity="${escape(item.rarity)}">${rarityNames[item.rarity]||escape(item.rarity)}</span>`;}
-  function stage(view,item,mode) {
-    const mascot=item?A.preview(view.state.mascot,view.state.inventory,item.id):view.state.mascot;
-    const scene=mascot.slots?.background||mascot.scene||'scene-ruins';
-    return `<div class="forge-stage forge-${escape(scene.replace('scene-',''))}" data-forge-stage>
-      <span class="forge-orbit" aria-hidden="true"></span>${view.avatarMarkup({large:true,model:mascot})}
-      <p class="forge-stage-caption">${item?`VISTA PREVIA · ${escape(item.name)}`:
-        mode==='shop'?'TU COMPAÑERO':'TU AVATAR ACTUAL'}</p></div>`;
-  }
-  function card(item,view,selected,mode) {
-    const owned=view.state.inventory.includes(item.id);
-    const equipped=item.slot==='species'?view.state.mascot.species===item.assetKey:
-      view.state.mascot.slots?.[item.slot]===item.id;
-    const art=item.slot==='species'?`<img class="forge-item-art" src="./assets/avatar/base/${escape(item.assetKey)}.webp" alt="" loading="lazy">`:
-      item.slot==='background'?`<span class="forge-background-art forge-${escape(item.id.replace('scene-',''))}" aria-hidden="true">✧</span>`:
-        window.NexoVectorArt.thumbnail(item,view.state.mascot.species);
-    return `<article class="forge-card ${selected?'is-selected':''}" data-rarity="${escape(item.rarity)}">
-      <button class="forge-card-preview" data-v13-preview="${escape(item.id)}" aria-label="Previsualizar ${escape(item.name)}">
-        <span class="forge-item-symbol" aria-hidden="true">${art}</span>
-        ${badge(item)}<strong>${escape(item.name)}</strong><small>${escape(A.labels[item.slot])}</small>
-      </button><div class="forge-card-bottom"><span>${equipped?'✓ Equipado':owned?'✓ En inventario':item.price?`${item.price} ⚛`:'Gratis'}</span>
-      ${mode==='shop'?'<span class="forge-card-cta">Ver →</span>':equipped?`<button data-v13-unequip="${escape(item.slot)}" ${item.slot==='background'||item.slot==='species'?'disabled':''}>Quitar</button>`:
-        owned?`<button data-v13-equip="${escape(item.id)}">Equipar</button>`:
-          `<button data-v13-buy="${escape(item.id)}" ${view.busy?'disabled':''}>Comprar</button>`}</div></article>`;
-  }
-  function renderShop(view) {
-    const catalog=catalogFor(view),filter=view.filter||'all';
-    const items=catalog.filter(item=>filter==='all'||item.slot===filter);
-    const selected=catalog.find(item=>item.id===view.previewId)||null;
-    return `<section class="page forge-page" data-v13-shop><header class="forge-intro"><div>
-      <p class="eyebrow">MERCADO ARCANO</p><h1>Tienda</h1></div></header>
-      <div class="forge-layout"><aside class="forge-preview-panel">${stage(view,selected,'shop')}
-      <div class="forge-selection">${selected?`${badge(selected)}<h2>${escape(selected.name)}</h2><p>${escape(selected.description)}</p>
-        <div class="forge-actions"><button class="secondary-btn" data-v13-clear-preview>Volver a mi avatar</button>
-        ${view.state.inventory.includes(selected.id)?`<button class="primary-btn" data-v13-equip="${escape(selected.id)}">Equipar</button>`:
-          `<button class="primary-btn" data-v13-buy="${escape(selected.id)}" ${view.busy?'disabled':''}>Comprar · ${selected.price} ⚛</button>`}</div>`:
-        '<h2>Vista previa</h2><p>Elige un artículo.</p>'}</div></aside>
-      <div class="forge-catalog"><nav class="forge-filters" aria-label="Categorías de la tienda">${categories.map(([id,label])=>
-        `<button data-v13-filter="${id}" aria-pressed="${filter===id}" class="${filter===id?'active':''}">${label}</button>`).join('')}</nav>
-        <div class="forge-grid">${items.map(item=>card(item,view,selected?.id===item.id,'shop')).join('')||
-          '<p class="forge-empty">Aún no hay piezas disponibles en esta categoría.</p>'}</div></div></div>
-      <p class="forge-note">${view.cloud.authenticated?'Compras verificadas por el servidor; el equipamiento se sincroniza con tu cuenta.':
-        'Modo invitado: átomos y compras quedan en este dispositivo; no son saldo comercial verificable.'}</p>
-    </section>`;
-  }
-  function renderEditor(view) {
-    const filter=view.filter==='all'?'head':view.filter;
-    const owned=catalogFor(view).filter(item=>view.state.inventory.includes(item.id)&&item.slot===filter);
-    const selected=A.catalog.find(item=>item.id===view.previewId)||null;
-    return `<section class="page forge-page forge-editor" data-v13-editor><header class="forge-intro"><div>
-      <h1>Vestuario</h1></div>
-      <button class="secondary-btn" data-route="shop">Explorar tienda →</button></header>
-      <div class="forge-layout"><aside class="forge-preview-panel">${stage(view,selected,'editor')}
-        <label class="field forge-name"><span>Nombre de tu compañero</span>
-          <input data-mascot-name maxlength="24" value="${escape(view.state.mascot.name)}"></label>
-        ${selected?`<button class="primary-btn" data-v13-equip="${escape(selected.id)}" ${view.state.inventory.includes(selected.id)?'':'disabled'}>Equipar pieza</button>`:''}
-      </aside><div class="forge-catalog"><nav class="forge-filters" aria-label="Ranuras del avatar">${categories.slice(1).map(([id,label])=>
-        `<button data-v13-filter="${id}" aria-pressed="${filter===id}" class="${filter===id?'active':''}">${label}</button>`).join('')}</nav>
-        <div class="forge-slot-heading"><h2>${escape(A.labels[filter]||'Inventario')}</h2><small>${owned.length} disponibles</small>
-          ${!['background','species'].includes(filter)?`<button class="text-btn" data-v13-unequip="${filter}">Desequipar ranura</button>`:''}</div>
-        <div class="forge-grid">${owned.map(item=>card(item,view,selected?.id===item.id,'editor')).join('')||
-          `<div class="forge-empty"><span>✧</span><h3>Todavía no tienes piezas aquí</h3>
-            <p>Estudia con Nexo y explora el catálogo cuando quieras personalizar esta ranura.</p>
-            <button class="secondary-btn" data-route="shop">Abrir tienda</button></div>`}</div></div></div></section>`;
-  }
-  window.NexoAvatarExperience={renderShop,renderEditor,catalogFor};
-})();
-
-;
-
-/* mascot-rive.js */
-/* Nexo mascot runtime — local Rive idle animations with layered-look fallback. */
-(function initNexoMascotRuntime(global) {
-  const imageCache = new Map();
-  const diffCache = new Map();
-  const vectorCache = new Map();
-
-  function loadImage(src) {
-    if (imageCache.has(src)) return imageCache.get(src);
-    const promise = new Promise((resolve, reject) => {
-      const image = new Image();
-      image.decoding = 'async';
-      image.onload = () => resolve(image);
-      image.onerror = reject;
-      image.src = src;
-    });
-    imageCache.set(src, promise);
-    return promise;
-  }
-
-  function fittedRect(image, size) {
-    const scale = Math.min(size / image.width, size / image.height);
-    const width = image.width * scale;
-    const height = image.height * scale;
-    return { x: (size - width) / 2, y: (size - height) / 2, width, height };
-  }
-
-  async function differenceLayer(baseSrc, skinSrc, size) {
-    const key = `${baseSrc}|${skinSrc}|${size}`;
-    if (diffCache.has(key)) return diffCache.get(key);
-    const promise = Promise.all([loadImage(baseSrc), loadImage(skinSrc)]).then(([base, skin]) => {
-      const baseCanvas = document.createElement('canvas');
-      const skinCanvas = document.createElement('canvas');
-      const output = document.createElement('canvas');
-      baseCanvas.width = skinCanvas.width = output.width = size;
-      baseCanvas.height = skinCanvas.height = output.height = size;
-      const baseContext = baseCanvas.getContext('2d', { willReadFrequently: true });
-      const skinContext = skinCanvas.getContext('2d', { willReadFrequently: true });
-      const outputContext = output.getContext('2d');
-      const baseRect = fittedRect(base, size);
-      const skinRect = fittedRect(skin, size);
-      baseContext.drawImage(base, baseRect.x, baseRect.y, baseRect.width, baseRect.height);
-      skinContext.drawImage(skin, skinRect.x, skinRect.y, skinRect.width, skinRect.height);
-      const baseData = baseContext.getImageData(0, 0, size, size);
-      const skinData = skinContext.getImageData(0, 0, size, size);
-      const pixels = skinData.data;
-      const original = baseData.data;
-      for (let index = 0; index < pixels.length; index += 4) {
-        const alpha = pixels[index + 3];
-        if (alpha < 8) continue;
-        const baseAlpha = original[index + 3];
-        const difference = Math.abs(pixels[index] - original[index])
-          + Math.abs(pixels[index + 1] - original[index + 1])
-          + Math.abs(pixels[index + 2] - original[index + 2])
-          + Math.abs(alpha - baseAlpha);
-        if (baseAlpha > 8 && difference < 54) pixels[index + 3] = 0;
-      }
-      outputContext.putImageData(skinData, 0, 0);
-      return output;
-    });
-    diffCache.set(key, promise);
-    if (diffCache.size > 24) diffCache.delete(diffCache.keys().next().value);
-    return promise;
-  }
-
-  function skinPath(species, slot, key) {
-    return key && key !== 'none' ? `./assets/avatar/skins/${species}-${slot}-${key}.webp` : null;
-  }
-
-  function selectedLayers(config) {
-    return ['aura','tail','shirt','back','head','face'].map(slot=>{
-      const item=global.NexoAvatar?.byId.get(config[slot]);
-      return item && item.slot===slot ? {slot,item} : null;
-    }).filter(Boolean);
-  }
-  function vectorImage(item,species) {
-    const key=`${item.id}:${species}`;
-    if(!vectorCache.has(key)) {
-      const svg=global.NexoVectorArt.svg(item,species);
-      vectorCache.set(key,loadImage('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)));
-    }
-    return vectorCache.get(key);
-  }
-  async function accessories(config,size) {
-    const baseSrc=`./assets/avatar/base/${config.species||'pig'}.webp`;
-    return Promise.all(selectedLayers(config).map(async entry=>{
-      const item=entry.item;
-      const image=item.assetKey.startsWith('vector:')
-        ? await vectorImage(item,config.species)
-        : await differenceLayer(baseSrc,skinPath(config.species,item.metadata.legacyKind,item.metadata.legacyKey),size);
-      return {...entry,image};
-    }));
-  }
-  async function drawLayered(canvas, config) {
-    const size = canvas.width || 640;
-    const context = canvas.getContext('2d');
-    const species = config.species || 'pig';
-    const hasEquipment=selectedLayers(config).length>0;
-    const pose=config.intent==='read'||config.intent==='think'?'read':config.intent==='ready'?'ready':'idle';
-    const baseSrc = species==='pig'&&!hasEquipment
-      ? `./assets/avatar/poses/pig-${pose}.png`
-      : `./assets/avatar/base/${species}.webp`;
-    const base = await loadImage(baseSrc);
-    const layers=await accessories(config,size);
-    if (!canvas.isConnected) return;
-    context.clearRect(0, 0, size, size);
-    for(const layer of layers.filter(item=>['aura','tail'].includes(item.slot)))
-      context.drawImage(layer.image,0,0,size,size);
-    const rect = fittedRect(base, size);
-    context.drawImage(base, rect.x, rect.y, rect.width, rect.height);
-    ['shirt', 'back', 'head','face'].forEach(slot => {
-      const layer = layers.find(item => item.slot === slot);
-      if (layer) context.drawImage(layer.image, 0, 0, size, size);
-    });
-    canvas.style.backgroundImage='none';
-    canvas.dataset.engine = 'layered';
-  }
-
-  async function mountRive(canvas, config) {
-    // This Rive file has no verified accessory anchors. Keep equipped pieces
-    // composited with the body in the still-frame fallback until the rig is upgraded.
-    if (selectedLayers(config).length) return false;
-    if (config.mini || document.body.classList.contains('reduce-motion') ||
-      document.body.dataset.nexoMascotMotion==='reduced' || document.body.dataset.nexoQuality==='low' ||
-      matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
-    if (!canvas.isConnected) return false;
-    try {
-      await global.NexoLoader.script('./vendor/rive/rive.js');
-      if (!canvas.isConnected || !global.rive) return false;
-      const { Rive, Layout, Fit, Alignment, RuntimeLoader } = global.rive;
-      RuntimeLoader.setWasmUrl('./vendor/rive/rive.wasm');
-      let instance;
-      const pose = config.intent === 'read' || config.intent === 'think' ? 'Read'
-        : config.intent === 'ready' ? 'Ready' : 'Idle';
-      const newPigRig = config.species === 'pig';
-      instance = new Rive({
-        src: newPigRig ? './assets/avatar/nexo-companion-v2.riv' : './assets/avatar/mascots.riv',
-        canvas,
-        artboard: config.species || 'pig',
-        autoplay: true,
-        ...(newPigRig ? { animations: pose } : { stateMachines: 'Idle' }),
-        layout: new Layout({ fit: Fit.Contain, alignment: Alignment.Center }),
-        onLoad: () => {
-          if (!canvas.isConnected) return instance.cleanup();
-          instance.resizeDrawingSurfaceToCanvas();
-          canvas.dataset.engine = 'rive';
-          canvas.dataset.pose = newPigRig ? pose : 'Idle';
-          canvas.style.backgroundImage='none';
-          const syncPlayback=()=>{
-            if(document.hidden || canvas.__nexoVisible===false)instance.pause();
-            else instance.play();
-          };
-          canvas.__nexoVisible=true;
-          canvas.__nexoObserver=new IntersectionObserver(entries=>{
-            canvas.__nexoVisible=entries[0]?.isIntersecting===true;
-            syncPlayback();
-          },{threshold:0.01});
-          canvas.__nexoObserver.observe(canvas);
-          canvas.__nexoVisibility=syncPlayback;
-          document.addEventListener('visibilitychange',syncPlayback);
-          syncPlayback();
-        },
-        onLoadError: () => {
-          instance.cleanup();
-          if (canvas.isConnected) drawLayered(canvas, config).catch(() => {});
-        }
-      });
-      canvas.__nexoRive = instance;
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  async function mount(canvas, config) {
-    if (canvas.dataset.rendered === '1') return;
-    canvas.dataset.rendered = '1';
-    if (await mountRive(canvas, config)) return;
-    try {
-      await drawLayered(canvas, config);
-    } catch {
-      const context = canvas.getContext('2d');
-      context.clearRect(0, 0, canvas.width, canvas.height);
-    }
-  }
-
-  function cleanup(root) {
-    root.querySelectorAll('canvas[data-mascot-config]').forEach(canvas => {
-      canvas.__nexoObserver?.disconnect();
-      if(canvas.__nexoVisibility)document.removeEventListener('visibilitychange',canvas.__nexoVisibility);
-      canvas.__nexoObserver=null;canvas.__nexoVisibility=null;
-      canvas.__nexoRive?.cleanup();
-      canvas.__nexoRive = null;
-    });
-  }
-
-  // Single high-level boundary. UI does not select Rive, Canvas or layers.
-  global.NexoAvatarRenderer = { mount, cleanup };
-  global.NexoMascotRuntime = global.NexoAvatarRenderer; // legacy integration alias
-})(window);
 
 ;
 

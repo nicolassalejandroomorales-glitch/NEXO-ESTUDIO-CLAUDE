@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mascotas · expresiones y cosméticos</title>
+<style>
+  body { margin:0; background:#1f1a15; color:#f4e8d2; font:15px/1.4 Georgia, serif; padding:20px 16px; }
+  h1 { margin:0 0 14px; font-size:24px; }
+  .row { display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:8px; margin-bottom:12px; max-width:1400px; }
+  figure { margin:0; background:radial-gradient(circle at 50% 35%, #f6ead2, #e2cda3); border-radius:10px; padding:4px; }
+  figcaption { text-align:center; color:#3b2418; font-size:13px; font-weight:bold; padding-bottom:4px; }
+  svg { width:100%; height:auto; display:block; }
+</style>
+</head>
+<body>
+<h1>Expresiones de las mascotas</h1>
+<div id="sheet"></div>
+<h1>Cosméticos</h1>
+<div id="acc"></div>
+<script src="alquimicos.js?v=7"></script>
+<script>
+const A = window.Alquimicos, sheet = document.getElementById('sheet');
+A.list.forEach(([k]) => {
+  const row = document.createElement('div'); row.className = 'row'; sheet.append(row);
+  Object.keys(A.EXPRESSIONS).forEach(e => {
+    const f = document.createElement('figure'); f.innerHTML = A[k]() + `<figcaption>${e}</figcaption>`; row.append(f);
+    A.setExpression(f, e);
+  });
+});
+const acc = document.getElementById('acc');
+A.list.forEach(([k]) => {
+  const row = document.createElement('div'); row.className = 'row'; acc.append(row);
+  Object.keys(A.ACCESORIOS).forEach(id => {
+    const f = document.createElement('figure'); f.innerHTML = A[k]() + '<figcaption>' + A.NOMBRES[id] + '</figcaption>'; row.append(f);
+    A.equip(f, id);
+  });
+});
+</script>
+</body>
+</html>

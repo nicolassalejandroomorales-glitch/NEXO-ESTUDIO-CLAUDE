@@ -1,4 +1,0 @@
-name: nexo-companion-v2
-main: pig
-output:
-  dir: build

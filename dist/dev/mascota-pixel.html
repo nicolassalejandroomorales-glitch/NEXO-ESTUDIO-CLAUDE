@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mascotas pixel · demo</title>
+<style>
+  :root { --bg:#1f1a15; --ink:#f4e8d2; --muted:#c3b291; --gold:#e8b65a; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 Georgia, serif; padding:20px 16px 48px; }
+  h1 { margin:0 0 4px; font-size:26px; } .sub { color:var(--muted); margin:0 0 12px; max-width:900px; }
+  .controls { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 10px; }
+  button { font:inherit; padding:7px 13px; border-radius:8px; border:1px solid #6b5a40; background:#2b241d; color:var(--ink); cursor:pointer; }
+  button[aria-pressed="true"] { border-color:var(--gold); color:var(--gold); }
+  .wardrobe label { display:flex; gap:6px; align-items:center; color:var(--muted); font-size:14px; }
+  .wardrobe select { font:inherit; background:#2b241d; color:var(--ink); border:1px solid #6b5a40; border-radius:8px; padding:5px 8px; }
+  /* Escenario en píxeles de arte (160×128) ampliado sin suavizado: mismo tamaño de píxel que el refugio (×4). */
+  #stage { width:min(100%, 640px); aspect-ratio:160/128; image-rendering:pixelated; display:block; border-radius:10px; cursor:pointer; }
+  .status { color:var(--muted); font-size:14px; margin-top:8px; }
+</style>
+</head>
+<body>
+<h1>Mascotas en pixel art · demo</h1>
+<p class="sub">Sobre la muestra pixel del refugio (mismo tamaño de píxel y paleta). Pasean por el escritorio, sacan un libro, leen,
+duermen y hacen emotes. <b>Toca el escenario</b> para enamorarla.</p>
+<div class="controls" id="pick"></div>
+<div class="controls" id="acts"><button data-act="baile">Bailar</button><button data-act="saludo">Saludar</button><button data-act="idea">Idea</button><button data-act="bostezo">Bostezar</button>
+  <button data-act="seisSiete">Six seven</button><button data-act="dab">Dab</button><button data-act="confundida">Confundida</button><button data-act="llorar">Llorar</button><button data-act="enojada">Enojada</button><button data-act="nerviosa">Nerviosa</button><button data-act="deslumbrada">Deslumbrada</button></div>
+<div class="controls wardrobe" id="wardrobe"></div>
+<div class="controls"><button id="acc">Vestir al azar</button><button id="naked">Quitar todo</button><button id="pause">Pausar paseo</button></div>
+<canvas id="stage" width="160" height="128"></canvas>
+<p class="status" id="status"></p>
+<script src="pixelmascotas.js?v=6"></script>
+<script>
+const P = window.PixelMascotas, stage = document.getElementById('stage'), ctx = stage.getContext('2d'), status = document.getElementById('status');
+ctx.imageSmoothingEnabled = false;
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const pick = list => list[Math.floor(Math.random() * list.length)];
+const smooth = (v, target, dt, speed = 5) => v + (target - v) * (1 - Math.exp(-dt * speed));
+const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+// Fondo: la muestra pixel del refugio (640×512 = 160×128 píxeles de arte ×4) → se baja a su tamaño real sin suavizado.
+const bg = document.createElement('canvas'); bg.width = 160; bg.height = 128;
+// Copia de docs/inicio-pixelart/muestra-ventana.png (el servidor solo sirve dist/).
+const bgImg = new Image(); bgImg.src = 'ref/muestra-ventana.png';
+bgImg.onload = () => { const b = bg.getContext('2d'); b.imageSmoothingEnabled = false; b.drawImage(bgImg, 0, 0, 160, 128); };
+
+// Lugares sobre el escritorio (x en píxeles de arte; el suelo es la cubierta del escritorio).
+const DESK_Y = 113;
+const SPOTS = { plantas: 22, ventana: 58, farol: 80, estante: 140 };
+const BOOK_FROM = [128, 86];
+const ROUTE = ['ventana', 'estante', 'ventana', 'farol', 'plantas', 'ventana', 'estante', 'farol'];
+
+// ——— Estado y animación (mismas ideas que la versión SVG: mezcla suave, aplastar/estirar, mirada, gestos) ———
+const A = { kind: 'matraz', x: SPOTS.ventana, left: false, w: 0, target: 0, phase: 0, t: 0, air: 0, sq: 0, sqT: 0, joy: 0, lean: 0, leanT: 0,
+  look: [0, 0], lookT: [0, 0], nextGlance: 2, gesture: 0, dance: 0, stretch: 0, six: 0, shake: 0, excite: 0, sit: 0, sitT: 0, mode: 'idle',
+  blinkUntil: 0, nextBlink: 3, expr: 'neutral', pose: null, arms: null, dabTilt: 0, dabTiltT: 0, outfit: {}, carry: null, reading: null, last: performance.now() };
+let exprTimer = 0;
+const baseExpr = () => A.mode === 'read' ? 'concentrada' : A.mode === 'sleep' ? 'dormida' : 'neutral';
+function setExpr(e, ms) { A.expr = e; clearTimeout(exprTimer); if (ms) exprTimer = setTimeout(() => setExpr(baseExpr()), ms); }
+const sprite = document.createElement('canvas'); sprite.width = P.W; sprite.height = P.H;
+const sctx = sprite.getContext('2d');
+
+// Efectos en pixel: suben y parpadean al final (sin transparencias a medias).
+const fx = [];
+const SPR = Object.fromEntries(Object.entries(P.FX).map(([k, rows]) => [k, P.sprite(rows)]));
+function emit(name, x, y, { vx = 0, vy = -10, life = 1.4, delay = 0 } = {}) { fx.push({ s: SPR[name], x, y, vx, vy, life, age: -delay }); }
+
+// Luciérnagas: lucecitas de píxel que persiguen a la mascota con retraso.
+const motes = [0, 1, 2, 3, 4].map(i => ({ a: i * 1.26, sp: .7 + i * .15, r: 9 + (i % 3) * 3, x: A.x, y: DESK_Y - 20, lag: 2 + i * .5 }));
+
+function frame(now) {
+  const dt = Math.min(.05, (now - A.last) / 1000); A.last = now; A.t += dt;
+  A.w = smooth(A.w, A.target, dt); A.sq = smooth(A.sq, A.sqT, dt, 14); A.joy = smooth(A.joy, 0, dt, 2.2); A.lean = smooth(A.lean, A.leanT, dt, 6);
+  A.excite = smooth(A.excite, 0, dt, 1.5); A.sit = smooth(A.sit, A.sitT, dt, 3);
+  ['dance', 'stretch', 'six', 'shake'].forEach(k => { A[k] = Math.max(0, A[k] - dt); }); A.gesture = Math.max(0, A.gesture - dt / 1.2);
+  if (A.mode === 'idle' && A.t > A.nextGlance) { A.lookT = [Math.round(Math.random() * 2 - 1), Math.random() < .3 ? -1 : 0]; A.nextGlance = A.t + 1.5 + Math.random() * 2.5; }
+  if (A.mode === 'walk') A.lookT = [1, 0]; if (A.mode === 'read') A.lookT = [1, 1];
+  A.look = [smooth(A.look[0], A.lookT[0], dt, 8), smooth(A.look[1], A.lookT[1], dt, 8)];
+  if (A.t > A.nextBlink) { A.blinkUntil = A.t + .13; A.nextBlink = A.t + 2.5 + Math.random() * 3; }
+  const freq = { matraz: 1.9, atomo: 1, slime: 1.4 }[A.kind], w = reduced ? 0 : A.w;
+  A.phase += dt * Math.PI * 2 * freq * (.25 + .75 * w);
+  const ph = A.phase, t = A.t, g = A.gesture > 0 ? 1 - A.gesture : 0, sq = A.sq;
+  const dz = Math.min(1, A.dance), dPh = t * Math.PI * 2 * 2.2, st6 = Math.min(1, A.six), str = A.stretch > 0 ? Math.sin(Math.PI * (1 - A.stretch / 1.4)) : 0;
+  const joyHop = Math.abs(Math.sin(A.joy * Math.PI * 3)) * A.joy, breathe = Math.sin(t * 2 * Math.PI / (A.sit > .5 ? 4.5 : 3));
+  const sway = dz * 9 * Math.sin(dPh / 2) + st6 * 3 * Math.sin(t * Math.PI * 2 * 2.3) + A.shake * 4 * Math.sin(t * 70);
+  const step = Math.sin(ph), up = Math.max(0, step), down = Math.max(0, -step);
+  // Brazos: pose según lo que hace; se mezclan suave hacia la pose nueva (codo y mano).
+  const poseName = A.pose || (A.mode === 'walk' ? 'walk' : A.mode === 'read' ? 'read' : A.mode === 'sleep' ? 'sleep' : A.carry ? 'carry' : 'rest');
+  const target = P.armPose(poseName, t, ph).map(a => ({ e: a.e || [a.h[0] / 2, a.h[1] / 2], h: a.h }));
+  if (!A.arms) A.arms = target.map(a => ({ e: a.e.slice(), h: a.h.slice() }));
+  const ka = 1 - Math.exp(-dt * (A.pose === 'dab' ? 22 : 12));
+  A.arms.forEach((a, i) => ['e', 'h'].forEach(k => { a[k][0] += (target[i][k][0] - a[k][0]) * ka; a[k][1] += (target[i][k][1] - a[k][1]) * ka; }));
+  A.dabTilt = smooth(A.dabTilt, A.dabTiltT, dt, 16);
+  const st = { t, expr: A.expr, outfit: A.outfit, arms: A.arms, look: A.look, blink: A.t < A.blinkUntil, excite: A.excite,
+    sx: 1 + .12 * sq - .06 * str, sy: 1 - .14 * sq + .14 * str - .04 * A.sit + .02 * breathe * A.sit,
+    bodyTilt: 0, rootTilt: sway + A.lean + A.dabTilt, hop: 0, lift: 0, slosh: 0, cork: 0, tag: 0, footL: 0, footR: 0, spin: 0, drip: 0, hat: 0 };
+  const airLift = 10 * A.air + 8 * joyHop + 3 * dz * Math.max(0, Math.sin(dPh));
+  if (A.kind === 'matraz') {
+    st.rootTilt += 6 * w * step; st.hop = 1.5 * w * Math.abs(step) + airLift;
+    st.slosh = 4 * Math.sin(t * 2) * (1 - w) - 12 * w * Math.sin(ph - .7) - 1.2 * sway;
+    st.footL = 2 * Math.max(w * up, dz * Math.max(0, Math.sin(dPh))); st.footR = 2 * Math.max(w * down, dz * Math.max(0, -Math.sin(dPh)));
+    st.tag = 10 * Math.sin(t * 2) + 14 * w * Math.sin(ph - 1); st.cork = 4 * Math.sin(Math.PI * Math.min(1, g * 1.6)) + 2 * A.excite;
+  } else if (A.kind === 'slime') {
+    const wob = Math.sin(t * 2 * Math.PI / 1.9);
+    st.lift = 7 * w * up + airLift; st.sx += .04 * wob * (1 - w) + w * (-.06 * up + .14 * down) + .08 * A.sit; st.sy += -.04 * wob * (1 - w) + w * (.1 * up - .16 * down) - .1 * A.sit;
+    st.hat = 4 * wob + 10 * w * Math.sin(ph - 1) - sway * .5; st.drip = Math.min(1, g * 1.4);
+  } else {
+    st.lift = 3 + 1.5 * Math.sin(t * 2 * Math.PI / 3) * (1 - w) + 3 * w + airLift * .7 - 3 * A.sit; st.bodyTilt = 8 * w;
+    st.spin = 360 * ease(Math.min(1, g * 1.3)) + 20 * A.excite * Math.sin(t * 9); st.sx = st.sy = 1 + .04 * Math.sin(t * 2.1) + .1 * sq;
+  }
+  // ——— Dibujar escenario ———
+  ctx.clearRect(0, 0, 160, 128); ctx.drawImage(bg, 0, 0);
+  P.render(sctx, A.kind, st);
+  const sxp = Math.round(A.x) - 20, syp = DESK_Y - 43 - Math.round(A.airY || 0);
+  ctx.save(); if (A.left) { ctx.translate(sxp * 2 + P.W, 0); ctx.scale(-1, 1); } ctx.drawImage(sprite, sxp, syp); ctx.restore();
+  // Libro que lleva o que lee.
+  if (A.carry) ctx.drawImage(SPR[A.carry], Math.round(A.x) - 5, syp - 2 + Math.round(Math.sin(t * 6)));
+  if (A.reading) { ctx.drawImage(SPR.open, Math.round(A.x) + (A.left ? -22 : 7), DESK_Y - 9);
+    if (Math.floor(t * 1.2) % 3 === 0) { ctx.fillStyle = '#fbf3dc'; ctx.fillRect(Math.round(A.x) + (A.left ? -14 : 15) + Math.floor((t * 6) % 3), DESK_Y - 8, 1, 6); } }
+  // Luciérnagas.
+  const calm = A.mode === 'sleep' ? .5 : 1, wild = 1 + 1.3 * Math.max(A.joy, A.excite, A.dance > 0 ? .6 : 0);
+  motes.forEach((m, i) => {
+    m.a += dt * m.sp * calm * wild;
+    const tx = A.x + Math.cos(m.a) * m.r * calm * wild, ty = DESK_Y - 22 - (A.airY || 0) + Math.sin(m.a * 1.3) * m.r * .5 * calm * wild;
+    const k = 1 - Math.exp(-dt * m.lag); m.x += (tx - m.x) * k; m.y += (ty - m.y) * k;
+    const x = Math.round(m.x), y = Math.round(m.y), on = Math.sin(t * (2 + i * .4) + i) > -.3;
+    ctx.fillStyle = '#ffd270'; if (on) { ctx.fillRect(x - 1, y, 1, 1); ctx.fillRect(x + 1, y, 1, 1); ctx.fillRect(x, y - 1, 1, 1); ctx.fillRect(x, y + 1, 1, 1); }
+    ctx.fillStyle = on ? '#fff6c8' : '#e2b850'; ctx.fillRect(x, y, 1, 1);
+  });
+  // Efectos flotantes.
+  for (let i = fx.length - 1; i >= 0; i--) {
+    const p = fx[i]; p.age += dt; if (p.age < 0) continue;
+    if (p.age > p.life) { fx.splice(i, 1); continue; }
+    p.x += p.vx * dt; p.y += p.vy * dt;
+    if (p.life - p.age < .3 && Math.floor(p.age * 20) % 2) continue;   // parpadea antes de desaparecer
+    ctx.drawImage(p.s, Math.round(p.x - p.s.width / 2), Math.round(p.y - p.s.height / 2));
+  }
+  requestAnimationFrame(frame);
+}
+
+// ——— Moverse por el escritorio ———
+let paused = false, busy = false;
+async function walkTo(name) {
+  const from = A.x, to = SPOTS[name], dist = Math.abs(to - from);
+  if (dist < 1) return;
+  A.left = to < from; A.mode = 'walk'; A.target = 1;
+  const speed = { atomo: 24, slime: 20, matraz: 16 }[A.kind], ms = reduced ? 1 : Math.max(500, dist / speed * 1000);
+  const t0 = performance.now();
+  await new Promise(done => { const tick = now => { if (paused) { requestAnimationFrame(tick); return; }
+    const t = Math.min(1, (now - t0) / ms); A.x = from + (to - from) * ease(t); A.leanT = 6 * (1 - 2 * t) * (A.left ? -1 : 1);
+    if (t > .8) A.target = 0; t < 1 ? requestAnimationFrame(tick) : done(); }; requestAnimationFrame(tick); });
+  A.target = 0; A.leanT = 0; A.mode = 'idle';
+}
+async function hopInPlace() { A.sqT = 1; await wait(160); A.sqT = 0; const t0 = performance.now();
+  await new Promise(done => { const tick = now => { const t = Math.min(1, (now - t0) / 500); A.air = Math.sin(Math.PI * t); t < 1 ? requestAnimationFrame(tick) : done(); }; requestAnimationFrame(tick); });
+  A.air = 0; A.sqT = 1; await wait(120); A.sqT = 0; }
+
+// ——— Conductas y emotes ———
+const head = () => [A.x, DESK_Y - 44];
+const dab = async () => { status.textContent = '¡Dab!'; A.sqT = 1; await wait(120); A.sqT = 0; setExpr('feliz'); A.dabTiltT = -12;
+  for (let i = 0; i < 4; i++) emit('star', A.x + 12 + Math.random() * 10, DESK_Y - 34 - Math.random() * 10, { vy: -5, life: .9, delay: i * .08 });
+  await wait(1500); A.dabTiltT = 0; setExpr(baseExpr()); };
+const withPose = async (pose, fn) => { A.pose = pose; try { await fn(); } finally { A.pose = null; } };
+const ACTS = {
+  async baile() { return withPose('dance', async () => { status.textContent = '¡Bailando!'; setExpr('feliz'); A.dance = 3.2; const iv = setInterval(() => emit('note', A.x + (Math.random() * 16 - 8), DESK_Y - 40), 420); await wait(3200); clearInterval(iv); setExpr(baseExpr()); }); },
+  async saludo() { return withPose('wave', async () => { status.textContent = '¡Hola!'; setExpr('feliz'); emit('bang', A.x, DESK_Y - 46, { vy: -6 }); A.joy = 1; await wait(1200); setExpr(baseExpr()); }); },
+  async bostezo() { return withPose('up', async () => { status.textContent = 'Bostezando…'; setExpr('bostezo'); A.stretch = 1.4; await wait(1500); setExpr(baseExpr()); }); },
+  async idea() { return withPose('up', async () => { status.textContent = '¡Ajá!'; setExpr('idea'); A.excite = 1; emit('bulb', A.x, DESK_Y - 50, { vy: -3, life: 1.6 }); await wait(1600); setExpr(baseExpr()); }); },
+  async seisSiete() { return withPose('sixseven', async () => { status.textContent = '6… 7…'; setExpr('picara'); A.six = 2.8;
+    for (let i = 0; i < 6; i++) { emit(i % 2 ? 'seven' : 'six', A.x + (i % 2 ? 9 : -9), DESK_Y - 44, { vy: -14, life: .45 }); await wait(440); } setExpr(baseExpr()); }); },
+  async confundida() { return withPose('scratch', async () => { status.textContent = '¿?'; setExpr('confundida'); A.leanT = 12; emit('quest', A.x + 8, DESK_Y - 46, { vy: -5, life: 1.5 }); await wait(1600); A.leanT = 0; setExpr(baseExpr()); }); },
+  async llorar() { return withPose('cry', async () => { status.textContent = 'Snif…'; setExpr('triste'); const e = P.SPECS[A.kind].eyes;
+    const iv = setInterval(() => e.forEach(([ex, ey]) => emit('tear', A.x - 20 + (A.left ? 40 - ex : ex), DESK_Y - 43 + ey + 3, { vy: 22, life: .5 })), 360); await wait(2400); clearInterval(iv); setExpr(baseExpr()); }); },
+  async enojada() { return withPose('fists', async () => { status.textContent = '¡Grrr!'; setExpr('enojada'); A.shake = 1.6; emit('anger', A.x + 10, DESK_Y - 44, { vy: 0, life: 1.6 });
+    const iv = setInterval(() => [-8, 8].forEach(d => emit('steam', A.x + d, DESK_Y - 42, { vx: d, vy: -16, life: .6 })), 260); await wait(1700); clearInterval(iv); setExpr(baseExpr()); }); },
+  async nerviosa() { return withPose('fiddle', async () => { status.textContent = 'Eh… je je…'; setExpr('nerviosa'); A.shake = .9; emit('tear', A.x + 11, DESK_Y - 36, { vy: 6, life: 1.6 }); await wait(1800); setExpr(baseExpr()); }); },
+  async deslumbrada() { return withPose('cheeks', async () => { status.textContent = '¡Wooow!'; setExpr('deslumbrada'); A.excite = 1; A.joy = .6;
+    for (let i = 0; i < 6; i++) emit('star', A.x + (Math.random() * 30 - 15), DESK_Y - 30 - Math.random() * 14, { vy: -6, life: 1, delay: i * .1 }); await wait(1800); setExpr(baseExpr()); }); }
+};
+ACTS.dab = () => withPose('dab', dab);
+async function act(name) { if (busy) return; busy = true; try { await ACTS[name](); } finally { busy = false; } }
+
+async function takeBook() {
+  status.textContent = 'Sacando un libro de la estantería…'; setExpr('sorpresa'); emit('bang', A.x, DESK_Y - 46, { vy: -6, life: .8 });
+  const book = pick(['bookA', 'bookB']), [x0, y0] = BOOK_FROM, x1 = A.x, y1 = DESK_Y - 46, t0 = performance.now();
+  const flying = { s: SPR[book], x: x0, y: y0, vx: 0, vy: 0, life: 99, age: 0 }; fx.push(flying);
+  await new Promise(done => { const tick = now => { const t = Math.min(1, (now - t0) / 900);
+    flying.x = x0 + (x1 - x0) * t; flying.y = y0 + (y1 - y0) * t - Math.sin(Math.PI * t) * 14; t < 1 ? requestAnimationFrame(tick) : done(); }; requestAnimationFrame(tick); });
+  fx.splice(fx.indexOf(flying), 1); A.carry = book; await hopInPlace(); setExpr('feliz', 900);
+}
+async function readBook() {
+  A.carry = null; A.reading = true; A.mode = 'read'; setExpr('concentrada'); status.textContent = 'Leyendo concentrada…';
+  const iv = setInterval(() => emit('star', A.x + (A.left ? -14 : 14) + Math.random() * 6 - 3, DESK_Y - 12, { vy: -12, life: 1.1 }), 650);
+  await wait(3200); await ACTS.idea(); setExpr('concentrada'); await wait(3000); clearInterval(iv);
+  A.reading = null; A.mode = 'idle'; setExpr('feliz', 900);
+}
+async function nap() {
+  await act('bostezo'); status.textContent = 'Durmiendo una siesta junto a las plantas.'; A.mode = 'sleep'; A.sitT = 1; setExpr('dormida');
+  const iv = setInterval(() => emit('zz', A.x + 10, DESK_Y - 40, { vx: 4, vy: -8, life: 1.6 }), 900);
+  await wait(7000); clearInterval(iv); A.sitT = 0; A.mode = 'idle'; A.stretch = 1.4; setExpr('sorpresa', 700); await wait(1400);
+}
+async function idleMoment(ms) {
+  const end = performance.now() + ms;
+  while (performance.now() < end) { await wait(700); if (busy || paused || Math.random() > .25) continue;
+    const r = Math.random(); if (r < .3) A.gesture = 1; else await act(pick(['baile', 'saludo', 'idea', 'seisSiete', 'dab', 'confundida', 'deslumbrada', 'nerviosa'])); }
+}
+async function loop() {
+  for (let i = 0; ; i++) {
+    const name = ROUTE[i % ROUTE.length];
+    await walkTo(name); while (paused || busy) await wait(200);
+    if (name === 'estante' && !A.carry) await takeBook();
+    else if (name === 'ventana' && A.carry) await readBook();
+    else if (name === 'plantas') await nap();
+    else { status.textContent = name === 'ventana' ? 'Mirando por la ventana…' : 'Paseando por el escritorio…'; if (name === 'ventana') A.lookT = [0, -1]; await idleMoment(2600); }
+  }
+}
+
+// ——— Controles ———
+function renderWardrobe() {
+  document.getElementById('wardrobe').innerHTML = P.SLOTS.map(slot => '<label>' + slot[0].toUpperCase() + slot.slice(1) + ' <select data-slot="' + slot + '"><option value="">—</option>' +
+    Object.entries(P.ACCESORIOS).filter(([, a]) => a.slot === slot).map(([id]) => '<option value="' + id + '"' + (A.outfit[slot] === id ? ' selected' : '') + '>' + P.NOMBRES[id] + '</option>').join('') + '</select></label>').join('');
+}
+document.getElementById('wardrobe').addEventListener('change', e => { A.outfit[e.target.dataset.slot] = e.target.value; A.joy = .5; });
+document.getElementById('acc').addEventListener('click', () => { P.SLOTS.forEach(slot => { const o = Object.entries(P.ACCESORIOS).filter(([, a]) => a.slot === slot).map(([id]) => id); A.outfit[slot] = Math.random() < .8 ? pick(o) : ''; }); renderWardrobe(); A.joy = 1; setExpr('feliz', 900); });
+document.getElementById('naked').addEventListener('click', () => { A.outfit = {}; renderWardrobe(); });
+document.getElementById('pick').innerHTML = P.list.map(([k, l]) => '<button data-k="' + k + '">' + l + '</button>').join('');
+const setKind = k => { A.kind = k; document.querySelectorAll('#pick button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.k === k))); };
+document.getElementById('pick').addEventListener('click', e => { if (e.target.dataset.k) setKind(e.target.dataset.k); });
+document.getElementById('acts').addEventListener('click', e => { if (e.target.dataset.act) act(e.target.dataset.act); });
+stage.addEventListener('click', () => { A.joy = 1; setExpr('amor', 1500); if (!busy) { A.pose = 'cheeks'; setTimeout(() => { if (A.pose === 'cheeks') A.pose = null; }, 1500); } for (let i = 0; i < 4; i++) emit('heart', A.x + (Math.random() * 14 - 7), DESK_Y - 44, { vy: -14, life: 1.2, delay: i * .12 }); });
+document.getElementById('pause').addEventListener('click', e => { paused = !paused; e.target.textContent = paused ? 'Seguir paseo' : 'Pausar paseo'; });
+renderWardrobe(); setKind(new URLSearchParams(location.search).get('m') || 'matraz');
+requestAnimationFrame(frame); loop();
+</script>
+</body>
+</html>
