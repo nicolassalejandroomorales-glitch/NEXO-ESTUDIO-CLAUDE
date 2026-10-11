@@ -86,6 +86,7 @@ Los chats **no se acuerdan entre sí**: la única memoria compartida es este arc
 - Todo chat parte desde `master` actualizado (git fetch + pull, contar en una línea qué llegó) y trae lo último de `master` antes de cerrar.
 - Cuando apruebe un cambio: commit claro en español, PR a `master` y merge, y aviso en una línea (permiso fijo, 11 oct 2026). Si ya se trabaja en `master`, basta commit + push.
 - Nunca uses force push, nunca subas .env ni claves.
+- Si `git status` muestra cambios de otro chat en módulos del bundle, regenerar `startup-bundle.js` en un worktree limpio antes del commit (11 oct 2026: casi se subió código a medias del Inicio).
 - Si hay un conflicto o algo raro, detente y explícamelo en simple antes de hacer nada.
 
 ## Límites (no hacer sin permiso explícito)
