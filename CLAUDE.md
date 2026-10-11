@@ -94,6 +94,7 @@ Los chats **no se acuerdan entre sí**: la única memoria compartida es este arc
 - No borrar archivos del usuario. No reescribir la app desde cero.
 - No copiar arte de otros artistas ni objetos o personajes de series conocidas: solo diseños propios.
 - Mascotas y arte: nada de diseños "planos"; siempre volumen, material y detalle. Estilo actual: **pixel art** con las rampas de `tools/home-pixel/pixel.py`.
+- Toda pantalla nueva o rehecha va en **pixel art y con la ambientación de la torre** (hora y clima reales, alquimista excéntrico + naturaleza que invade, sin runas nuevas). Nada de pantallas "de formulario" sueltas (Niquito, 11 oct 2026).
 
 ## Estado
 
