@@ -283,6 +283,9 @@
         if (!Array.isArray(existing) || (existing.length === 4 && existing.every(item => item.weight === '' && item.grade === ''))) next.grades[id] = { ...next.grades[id], ...deepClone(plan), rounding: '2' };
       }
     }
+    // Control 1 de Orgánica II (Aminas), confirmado el 05-10: se agrega a quienes ya tenían el calendario sembrado.
+    if(!next.events.some(item=>item.id==='official-org-c1')) next.events.push({...deepClone(NEXO_SEMESTER.events.find(item=>item.id==='official-org-c1')),priority:3,status:'planned'});
+    if(!next.events.some(item=>item.id==='official-fisio-pep1')) next.events.push({...deepClone(NEXO_SEMESTER.events.find(item=>item.id==='official-fisio-pep1')),priority:3,status:'planned'}); // PEP 1 de Fisiopatología (programa 2026-2)
     // La calendarización docente posterior corrigió la fecha inicial del Control 1 FQII.
     // Solo actualiza el evento sembrado, no una fecha que el estudiante haya cambiado.
     const fqControl=next.events.find(item=>item.id==='official-fq-c1');
@@ -514,6 +517,7 @@
     document.body.classList.remove('in-classroom');
     clearInterval(timerTicker);
     window.NexoWorkbench?.cleanup();
+    window.NexoWillowView?.cleanup();
     window.NexoAcademicTraining?.cleanup();
     window.NexoMascotController?.cleanup();
     const route = parseRoute();
@@ -569,6 +573,7 @@
       performance: () => renderWorkbench('performance'),
       shop: renderShop,
       mascot: renderMascot,
+      torre: () => renderTower(route[1] || 'organica'),
       settings: renderSettings
     };
     try { (renderers[route[0]] || renderHome)(); app.dataset.renderedRoute = route.join('/'); }
@@ -848,12 +853,16 @@
   const classroomLoads = new Map();
   function loadClassroom(id) {
     if (classroomLoads.has(id)) return classroomLoads.get(id);
-    const promise = Promise.resolve(window.NexoClassCatalog || window.NexoLoader.script('./classes/catalog.js?v=1')).then(() => {
+    const promise = Promise.resolve(window.NexoClassCatalog || window.NexoLoader.script('./classes/catalog.js?v=5')).then(() => {
       const file = window.NexoClassCatalog?.[id];
       if (!file) return false;
-      return Promise.all([window.NexoLoader.style('./classes/classroom.css?v=8'), window.NexoLoader.script('./classes/tower-art.js?v=1').then(() => window.NexoLoader.script('./classes/player.js?v=8')),
-        window.NexoLoader.script(`./classes/${file}?v=6`)])
-        .then(() => window.NexoLoader.script(`./classes/slides/${id}.js?v=1`).catch(() => null)) // diapositivas reales, si ya se convirtieron
+      return Promise.all([window.NexoLoader.style('./classes/classroom.css?v=23'), window.NexoLoader.script('./classes/tower-art.js?v=1').then(() => window.NexoLoader.script('./classes/player.js?v=25')),
+        window.NexoLoader.script('./classes/willow-tower.js?v=4').catch(() => null), // Torre del Sauce (etapa 10); sin ella, quedan las hojas en lista
+        window.NexoLoader.script(`./classes/${file}?v=18`),
+        // Motor de evidencia y repaso espaciado (FSRS); si no cargan, la clase funciona igual sin agendar repasos.
+        window.NexoLoader.script('./classes/evidence.js?v=5'), window.NexoLoader.script('./classes/molecule.js?v=2'), window.NexoLoader.script('./classes/editor.js?v=5'), window.NexoLoader.script('./academic/reviews.js?v=14').catch(() => null)])
+        .then(() => Promise.all([window.NexoLoader.script(`./classes/slides/${id}.js?v=1`).catch(() => null), // diapositivas reales, si ya se convirtieron
+          window.NexoLoader.script(`./classes/${id}-gen.js?v=5`).catch(() => null)])) // generadores de ejercicios (etapa 8), si la clase los tiene
         .then(() => true);
     });
     promise.catch(() => classroomLoads.delete(id));
@@ -882,6 +891,27 @@
       <button class="back-btn" data-open-subject="${subject.id}">← Ruta de ${subject.name}</button>
       <div class="panel lesson-soon-card"><p class="eyebrow">${esc(subject.short)} · CLASE</p><h1>${esc(source.title)}</h1><p><b>Disponible próximamente</b></p><p>Estamos rehaciendo esta clase desde cero para que enseñe de verdad. Vuelve pronto.</p><div class="button-row"><button class="primary-btn" data-open-subject="${subject.id}">Volver a ${subject.name}</button><button class="secondary-btn" data-route="home">Ir al refugio</button></div></div>
     </section>`;
+  }
+
+  /* La torre de cada ramo (etapa 10): un lugar propio donde el sauce crece con lo que demuestras. */
+  function renderTower(subjectId) {
+    const subject = SUBJECTS.find(x => x.id === subjectId) || SUBJECTS[0];
+    const lessonIds = (subject.peps || []).flatMap(p => p.lessons || []);
+    if (!window.NexoWillowView) app.innerHTML = '<section class="page"><div class="app-loader" role="status"><span></span><p>Subiendo a la torre…</p></div></section>';
+    // La torre junta las clases de la PEP 1 del ramo que ya existen (Orgánica: Aminas, Aromaticidad y SEA).
+    const pepIds = (subject.peps?.[0]?.lessons || lessonIds);
+    Promise.resolve(window.NexoClassCatalog || window.NexoLoader.script('./classes/catalog.js?v=5')).then(() => {
+      const ids = pepIds.filter(l => window.NexoClassCatalog?.[l]);
+      return Promise.all([window.NexoLoader.style('./classes/willow.css?v=4'), window.NexoLoader.script('./classes/willow-tower.js?v=4'), ...ids.map(loadClassroom)])
+        .then(() => window.NexoLoader.script('./classes/willow-view.js?v=5')).then(() => ids);
+    }).then(ids => {
+      const id = ids[0];
+      const route = parseRoute(); if (route[0] !== 'torre' || (route[1] || 'organica') !== subjectId) return;
+      window.NexoWillowView.render(app, { subject: { id: subject.id, name: subject.name, color: subject.color }, cls: id ? window.NexoClasses?.[id] : null, classes: ids.map(x => window.NexoClasses?.[x]).filter(Boolean),
+        getState: () => state, saveState: () => saveState({ backup: false }), subjectName: sid => subjectFor(sid).name,
+        go: sid => routeTo('torre', sid), back: () => routeTo('home'), rerender: () => renderTower(subjectId),
+        openClass: (cid, intent) => { if (!state.classSessions || typeof state.classSessions !== 'object') state.classSessions = {}; (state.classSessions[cid] ||= {}).intent = intent; saveState({ backup: false }); routeTo('lesson', cid); } });
+    }).catch(() => { app.innerHTML = '<section class="page"><div class="panel error-boundary"><h1>No se pudo abrir la torre</h1><p>Revisa tu conexión y vuelve a intentarlo.</p></div></section>'; });
   }
 
   function stageIntro(kicker, title, text) { return `<div class="stage-intro"><p class="eyebrow">${kicker}</p><h2 id="stageTitle">${title}</h2><p>${text}</p></div>`; }

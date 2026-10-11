@@ -1,10 +1,11 @@
 # Nexo — instrucciones para Claude
 
 Este archivo es la "memoria del proyecto". Cualquier sesión de Claude (Claude Code o Cowork) debe leerlo antes de trabajar.
+Lo que solo sirve para un tema vive en skills (`.claude/skills/`) y en `docs/`: se cargan solo cuando hacen falta.
 
 ## Quién y para qué
 
-- Autor: **Niquito**, estudiante de 2º año de Fisicoquímica en la USACH. Está **aprendiendo a programar sobre la marcha**.
+- Autor: **Niquito**, estudiante de 2º año de Química y Farmacia en la USACH (este semestre cursa, entre otros, Fisicoquímica y Orgánica II). Está **aprendiendo a programar sobre la marcha**.
   Hay que explicarle cada cambio en simple: qué es, por qué y qué comando ejecuta él.
 - Idioma: **español** (chileno, cercano). Respuestas directas, no muy largas.
 - Le gustan mucho las **imágenes ANTES/AHORA** de cada cambio visual: entrégalas siempre que algo cambie en pantalla.
@@ -25,36 +26,25 @@ node smoke-test.cjs; node tools/room-test.cjs; node tools/update01-test.cjs   # 
 ```
 
 - No hay framework ni paso de compilación: **el código fuente vive directo en `dist/`**.
-- `dist/startup-bundle.js` es **generado**: nunca editarlo a mano. Edita los módulos (por ejemplo `design-system/home-scene.js`, `ambient/time.js`) y regenera.
+- `dist/startup-bundle.js` es **generado**: nunca editarlo a mano. Edita los módulos y regenera.
 - Al cambiar CSS o JS, sube la versión `?v=` en `dist/index.html` para que el navegador no use la copia vieja.
-- Debug de escena: `http://127.0.0.1:8765/?debugScene=true#/home`.
-- Luz en la consola (F12): `NexoAmbientTime.timelapse()`, `NexoAmbientTime.preview(21)` y `NexoAmbientTime.stopPreview()`.
 
 ## Mapa del código (lo importante)
 
 | Archivo | Qué es |
 |---|---|
-| `dist/app.js` | Router (`routeTo`, `renderRoute`) y la mayoría de las pantallas. Es grande (236 KB); hay que extraerlo por partes con cuidado. |
-| `dist/design-system/home-scene.js` | **Única fuente de verdad del Inicio**: capas, objetos tocables (hotspots) y anclas de la mascota, en coordenadas del arte 1672×941. |
-| `dist/design-system/update01.css` | Estilos del Inicio y del grimorio. Al final están las capas de luz, los objetos y la "vida". |
-| `dist/platform/animation.js` | Transiciones: intro/reapertura/cierre del grimorio, cambio de página y capítulo. |
-| `dist/ambient/time.js` | Reloj de luz: escribe `--w-dawn/--w-day/--w-dusk/--w-night` (suman 1) y `data-nexo-time`. |
-| `dist/academic/*` | Motor académico: conceptos, evidencia, estados de conocimiento y FSRS. Hoy el piloto es solo **org-01 / Aminas**. |
+| `dist/app.js` | Router (`routeTo`, `renderRoute`) y la mayoría de las pantallas. Grande (184 KB): **nunca leerlo entero**; para ubicar algo usa el agente `nexo-explorador`. |
+| `dist/design-system/home-scene.js`, `update01.css`, `dist/ambient/time.js` | Inicio y luz. Antes de tocarlos: skill **`nexo-inicio`**. |
+| `dist/platform/animation.js`, `dist/platform/audio.js` | Grimorio: intro, cambio de página, sonidos. Skill **`nexo-grimorio`**. |
+| `dist/classes/` | Aula "torre del alquimista" y clases. Antes de tocarlas: skill **`nexo-clase`**. |
+| `dist/academic/*` | Motor académico: conceptos, evidencia, estados de conocimiento y FSRS. Piloto: **org-01 / Aminas**. Skill **`nexo-motor`**. |
+| `dist/dev/pixelmascotas.js`, `dist/mascot/` | Mascotas en pixel art. Skill **`nexo-mascota`**. Cualquier arte en pixel: skill **`nexo-pixel-art`**. |
+| `dist/games/` | Juegos (campaña "Camino a la PEP 1"). Antes de tocarlos: skill **`nexo-juegos`**. |
+| `dist/planner/` | Organización: calendario, notas, prioridades, labs (UPDATE 02). Skill **`nexo-organizacion`**. |
+| Perfil (`renderProfile` en `app.js`), `dist/academic/ranks.js` | Mascota, notas, inasistencias, estadísticas, ajustes, rangos. Skill **`nexo-perfil`**. |
 | `dist/data.js`, `semester-2026.js`, `organic-*.js` | Catálogo de ramos, fechas y contenido. |
-| `tools/` | Pruebas `*.cjs` y scripts de arte en Python (`window-views/`, `home-night/`, `home-staff/` [báculo + estrella], `home-map/`, `home-leaves/` [hojas que se mecen], `grimoire-cover/` [portada del grimorio], `grimoire-pages/` [decoración por ramo], `grimoire-audio/` [sonidos]). |
-| `docs/` | Una carpeta por cambio, cada una con su `SPEC.md`. `docs/contexto/` guarda la visión original y el historial de ChatGPT. |
-
-## Reglas del Inicio (escena)
-
-- `dist/assets/home-scenes/refugio-012.png` es el arte original: **nunca se modifica ni se borra** (queda de respaldo).
-  Desde el 5 oct 2026 el Inicio se rehace en **pixel art de verdad** (`refugio-pixel.png`, 418×235 ×4, ver `docs/inicio-pixelart/SPEC.md`):
-  dibujado píxel por píxel con rampas de color, nunca un filtro sobre el arte viejo ni sprites "cutres" pegados encima.
-- Cada asset nuevo se genera con un **script reproducible** en `tools/` (no a mano), que lee el original y escribe en `dist/assets/home-scenes/`.
-- Los objetos tocables **usan el mismo router** que los botones normales (`data-route` / `data-route-sub`). Son invisibles: sin etiquetas ni bordes, solo un brillo suave al pasar el mouse.
-- Toda capa de luz usa los pesos `--w-*` o `--sun` / `--lamps` para que el cambio sea gradual. No crear reglas nuevas por estado (`body[data-nexo-time=...]`) en el Inicio.
-- Respetar `prefers-reduced-motion`, `data-nexo-ambient-motion="reduced"`, `data-nexo-quality="low"` y `body.ambient-paused`.
-- En móvil (≤700 px) la sala se desliza de lado dentro de `.home-pan` (no se recorta).
-- Objetos actuales: ventana (pulso de luz), báculo → Tienda, sillón → Perfil, mapa enrollado → Bitácora (ponderaciones), pergamino → Calendario, estantería → Biblioteca, globo → Mapa de conocimiento, escritorio → Continuar estudiando.
+| `tools/` | Pruebas `*.cjs` y scripts de arte reproducibles (Python) por tema. |
+| `docs/` | Una carpeta por cambio con su `SPEC.md`. `docs/ESTADO.md` = historial de lo hecho. `docs/contexto/` = visión original. |
 
 ## Modelo y esfuerzo (cuidar los créditos)
 
@@ -63,7 +53,7 @@ node smoke-test.cjs; node tools/room-test.cjs; node tools/update01-test.cjs   # 
 - Por defecto: **Sonnet 5.5 · esfuerzo medio** (~80-90 % del trabajo: refugio, grimorio, pantallas, arreglos).
 - **Opus** solo para: diseñar el motor académico (FSRS, estados, corrección real), diseñar la estructura de una clase, un bug que falló 2 veces, decisiones de arquitectura.
 - Regla: primero subir el esfuerzo, después el modelo. Planear con Opus (`SPEC.md`) y ejecutar con Sonnet.
-- Una sesión = un cambio. Leer `dist/app.js` por partes (pesa 236 KB), nunca entero. Delegar sub-tareas simples a modelos baratos.
+- Una sesión = un cambio. Delegar a Haiku: búsquedas en el código → agente `nexo-explorador`; correr pruebas → agente `nexo-tester` (solo devuelve lo que falló).
 - Medir el costo por tarea terminada, no por mensaje. Revisar el gasto real cada pocas sesiones y recalibrar.
 
 ## Forma de trabajo (SDD liviano)
@@ -74,77 +64,38 @@ node smoke-test.cjs; node tools/room-test.cjs; node tools/update01-test.cjs   # 
 
 ## Varios chats, una sola memoria (reglas absolutas)
 
-Niquito trabaja Nexo en **chats separados, uno por tema** (Inicio/escena, grimorio, motor académico y clase, juegos, etc.)
-para diseñar, encontrar errores y decidir mejoras con orden. Los chats **no se acuerdan entre sí**: la única memoria compartida es este archivo y `docs/`.
+Niquito trabaja Nexo en **chats separados, uno por tema** (Inicio/escena, grimorio, motor académico y clase, juegos, etc.).
+Los chats **no se acuerdan entre sí**: la única memoria compartida es este archivo, `docs/` y las skills.
 
-1. **Al empezar un chat**: lee este `CLAUDE.md` y el `SPEC.md` del tema en `docs/<cambio>/`. Di en una línea qué entendiste y qué falta.
+1. **Al empezar un chat**: lee este `CLAUDE.md` y el `SPEC.md` del tema en `docs/<cambio>/` (y `docs/ESTADO.md` solo si necesitas contexto de otro tema). Di en una línea qué entendiste y qué falta.
 2. **Un chat = un tema = un `docs/<cambio>/SPEC.md`**. Si el tema no tiene SPEC, créalo antes de programar.
-3. **No salirse del tema**: si ves algo de otro tema (un bug, una idea), no lo arregles aquí. Anótalo en la sección **Pendiente** del SPEC de ese tema
+3. **No salirse del tema**: si ves algo de otro tema (un bug, una idea), no lo arregles aquí. Anótalo en el **Pendiente** del SPEC de ese tema
    (o en `docs/pendientes.md` si no tiene) y avísale a Niquito en una línea.
 4. **Archivos compartidos** (`dist/app.js`, `update01.css`, `dist/data.js`): toca lo mínimo. Lo nuevo va en archivos propios del tema
-   (por ejemplo `dist/games/*.js`) y se conecta con un cambio chico. Así dos chats no se pisan.
-5. **Cierre de cada chat** (obligatorio, sin que Niquito lo pida): actualiza el `SPEC.md` del tema (hecho / decisiones / pendiente)
-   y la sección **Estado** de este archivo, con fecha. Luego commit y push, según la sección de Git.
-6. **Este archivo se mantiene vivo**: cuando en cualquier chat se tome una decisión que deba valer siempre (una regla, un límite, una preferencia
-   de Niquito, un error que no debe repetirse), **Claude la agrega aquí por iniciativa propia**, corta y en la sección que corresponda, y se la cuenta a Niquito en una línea.
-   Una regla escrita aquí es **absoluta** para todos los chats futuros. Si dos reglas chocan, se detiene y le pregunta a Niquito. No se borran reglas sin su permiso.
-7. Mantenerlo corto: si una sección crece demasiado, se mueve el detalle a `docs/` y aquí queda un puntero.
+   y se conecta con un cambio chico. Así dos chats no se pisan.
+5. **Cierre de cada chat** (obligatorio, sin que Niquito lo pida): sigue la skill **`nexo-cierre`** (SPEC, `docs/ESTADO.md`, commit y push).
+6. **Este archivo se mantiene vivo**: cuando se tome una decisión que deba valer siempre (una regla, un límite, una preferencia
+   de Niquito, un error que no debe repetirse), **Claude la agrega aquí por iniciativa propia** (o en la skill del tema si solo vale para ese tema), corta, y se la cuenta a Niquito en una línea.
+   Una regla escrita aquí es **absoluta**. Si dos reglas chocan, se detiene y le pregunta a Niquito. No se borran reglas sin su permiso.
+7. Mantenerlo corto: lo que crezca se mueve a `docs/` o a una skill y aquí queda un puntero.
 
 ## Git y sincronización (lo hace Claude, no Niquito)
 
-- Al empezar cada sesión local: git fetch y, si hay cambios nuevos en
-  GitHub, git pull. Cuéntame en una línea qué llegó.
-- Cuando yo apruebe un cambio, haz el commit con un mensaje claro en
-  español y súbelo (git push) sin que yo lo pida.
+- Al empezar cada sesión local: git fetch y, si hay cambios nuevos en GitHub, git pull. Cuéntame en una línea qué llegó.
+- Cuando yo apruebe un cambio, haz el commit con un mensaje claro en español y súbelo (git push) sin que yo lo pida.
 - Nunca uses force push, nunca subas .env ni claves.
-- Si hay un conflicto o algo raro, detente y explícamelo en simple
-  antes de hacer nada.
+- Si hay un conflicto o algo raro, detente y explícamelo en simple antes de hacer nada.
 
 ## Límites (no hacer sin permiso explícito)
 
 - No tocar Supabase, SQL, migraciones, OAuth ni nada de cloud. No publicar en el Site.
 - Excepción autorizada (3 oct 2026): **clima real con Open-Meteo** (sin clave, ubicación fija Santiago, máx. cada 30 min, sin red = despejado). Ver `docs/mascota/SPEC.md`. Ningún otro servicio externo sin permiso.
-- **No generar imágenes con Canva** (ni otra IA de imágenes) sin que Niquito lo pida en ese momento (4 oct 2026: se agotó el crédito y no quiere más).
-  Los conceptos ya generados de las mascotas están en `docs/mascota/conceptos/`.
+- **No generar imágenes con Canva** (ni otra IA de imágenes) sin que Niquito lo pida en ese momento (4 oct 2026). Conceptos de mascotas en `docs/mascota/conceptos/`.
 - No borrar archivos del usuario. No reescribir la app desde cero.
-- No copiar arte de otros artistas ni objetos o personajes de series conocidas (por ejemplo, el báculo de Rudeus de Mushoku Tensei): solo diseños propios.
+- No copiar arte de otros artistas ni objetos o personajes de series conocidas: solo diseños propios.
+- Mascotas y arte: nada de diseños "planos"; siempre volumen, material y detalle. Estilo actual: **pixel art** con las rampas de `tools/home-pixel/pixel.py`.
 
-## Estado al 3 oct 2026
+## Estado
 
-- Base: UPDATE 01.2 (Sites v23) + Checkpoint 1. En Git desde el commit `f728d1e`.
-- Hecho en Claude: vista de la ventana según la hora, noche coherente (sin manchas de sol, faroles encendidos),
-  luz continua, 7 objetos tocables, báculo estelar y mapa pintados por código, llamas que titilan, estrella que se balancea y polvo en la luz.
-- UPDATE 01.4 (cierre del Inicio): báculo v2, mapa envejecido, sala deslizable en móvil, 4 enredaderas que se mecen
-  (`tools/home-leaves/`), iconos propios de Bitácora y Tienda. Ver `docs/update-01-4-cierre-inicio/SPEC.md`. Pendiente su aprobación visual.
-- UPDATE 01.5 (grimorio): portada pintada por código (`tools/grimoire-cover/`), intro ceremonial de 2,3 s, reapertura corta,
-  cierre al volver al refugio, cambio de página corregido y sonido de apertura. Ver `docs/update-01-5-grimorio/SPEC.md`.
-- UPDATE 01.6: páginas decoradas por ramo (`tools/grimoire-pages/`), cambio de página con hoja curvada y sonidos sintetizados
-  (`tools/grimoire-audio/`). Ver `docs/update-01-6-paginas/SPEC.md`.
-- UPDATE 01.7: páginas llenas de dibujos, sonido suave e intro épica una vez por sesión. Ver `docs/update-01-7-grimorio-epico/SPEC.md`.
-- **Clases borradas (4 oct 2026)**: se eliminaron los reproductores y el contenido de las clases (`amine-lesson.*`, `organic-studio.*`, `organic-pep1-3.js`, `organic-biomolecules.js`). Abrir cualquier tema muestra "Disponible próximamente". El catálogo de temas (`organic-manifest.js`, `data.js`) sigue. Siguen sin tocar: ejercicios generados desde el catálogo (`generatedExercises` en `app.js`) y el motor académico de Aminas (`dist/academic/*`); se decide caso a caso al rehacer cada clase.
-- **Clases nuevas (4 oct 2026, hechas en la nube y unidas a master)**: aula inmersiva "torre del alquimista" en `dist/classes/` (`player.js`, `org-01.js`, `tower-art.js`, `classroom.css`), Aminas completo para la PEP 1 (misiones 2 a 8, 63 actividades verificadas), diapositivas reales del PPT y glosario. Crear otra clase: `node tools/new-class.cjs` (guía en `docs/clases-estructura/COMO_CREAR_UNA_CLASE.md`). Prueba: `node tools/classroom-test.cjs`. Reemplaza lo de "Clases borradas" de arriba.
-- Pendiente del producto (lo más importante): **una clase completa que se sienta increíble** (Orgánica II → PEP 1 → Aminas → Basicidad),
-  con corrección real y actividades variadas. Ver `docs/contexto/RESUMEN_OBJETIVOS_NEXO.md`.
-- Arreglado: `tools/static-server.cjs` ya declara el MIME de `.svg`.
-- **Mascota** (4 oct 2026, chat propio, `docs/mascota/SPEC.md`): se borraron cerdito/gato/perro, cosméticos, tienda vieja y Rive; átomos a cero una vez.
-  **Mascotas elegidas (4 oct 2026): 3 criaturas alquímicas — átomo, matraz y slime** (`dist/dev/alquimicos.js`), dibujadas en **SVG por código con
-  mucho detalle** (luz/sombra, materiales, etiquetas, burbujas) y animadas con **JS/CSS** (no Rive: Niquito lo descartó; animales y estilo cartoon
-  también se probaron y rechazó). Cada SVG tiene partes con clase (`m-root`, `m-body`, `m-eye`…) y **ranuras de accesorios** (`m-slot`: cabeza, cara,
-  cuello, mano). Demo en la sala: `/dev/mascota-sala.html`. Regla: nada de diseños "planos"; siempre volumen, material y detalle. Tienda y Mascota
-  muestran "Disponible próximamente".
-  **5 oct 2026: versión PIXEL ART** (`dist/dev/pixelmascotas.js`, demo `/dev/mascota-pixel.html`): sprites de 40×44 px de arte con las **mismas
-  rampas y tamaño de píxel (×4) que el refugio pixel**; cada pose se re-rasteriza (nunca se estira la imagen). Mismas conductas, 14 expresiones,
-  emotes (incluido "6 7") y 14 accesorios. La versión SVG queda de respaldo.
-- **Inicio en pixel art** (5 oct 2026, chat propio, `docs/inicio-pixelart/SPEC.md`): el refugio se rehízo en pixel art de verdad
-  (`tools/home-pixel/build_refugio.py` → `refugio-pixel.png`, 113 KB) y **ya es el Inicio por defecto** (escena `refugio-pixel` en
-  `home-scene.js`; `?scene=refugio-012` abre el arte viejo). Le gustan mucho el piso, la ventana y las runas (no agregar más runas).
-  Pendiente: capas animadas en la app (hoy el fondo es estático; la animación existe en el GIF), ventana de tarde/noche en pixel y zoom por zonas.
-- **Juegos de Nexo** (3 oct 2026): chat nuevo dedicado. SPEC borrador en `docs/juegos/SPEC.md` (esperando decisiones de Niquito). Principio: los juegos deben alimentar
-  el motor académico (evidencia, FSRS), no ser entretención suelta. Código nuevo en `dist/games/`.
-- **Campaña "Camino a la PEP 1"** (4 oct 2026): `dist/games/pep1/` (abrir `http://127.0.0.1:8765/games/pep1/index.html`; `?todo=1` abre todos los jefes).
-  3 guardianes que se desbloquean (Trimetilamina, Ciclobutadieno, Benceno malvado) + Rey Amonio final; el juego elige el desafío (conectar, ordenar,
-  clasificar, ruta de síntesis, elegir, flecha) con preguntas de la pauta PEP 1 2025. Preguntas en `contenido.js`. Ver `docs/juegos-batalla/SPEC.md`.
-  Base aprobada por Niquito (4 oct). En curso: música de combate por jefe, arenas "de jefe" y rediseño del Rey. Pendiente: conectarlo a `#/games`.
-- **Bitácora viva** (5 oct 2026, chat propio, `docs/update-02-organizacion/SPEC.md` v2): diseño de organización, calendario, pruebas y notas
-  en pixel art de madera (pestañas Hoy · Calendario · Pruebas · Notas · Avisos), avisos por urgencia en el Inicio, semana crítica (19–27 oct),
-  notas en un solo lugar (frascos alquímicos) y mascota acompañando. Maqueta: `docs/update-02-organizacion/maqueta/`. **Solo diseño, sin programar**; esperando respuestas de Niquito.
+Historial completo en **`docs/ESTADO.md`**. Lo más importante pendiente: **una clase completa que se sienta increíble**
+(Orgánica II → PEP 1 → Aminas → Basicidad), con corrección real y actividades variadas.

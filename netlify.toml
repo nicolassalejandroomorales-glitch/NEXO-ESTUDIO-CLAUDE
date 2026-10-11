@@ -1,0 +1,4 @@
+# Publicación en Netlify: la app es estática (HTML/JS), no se compila nada.
+# Netlify lee este archivo y llena solo la configuración: publica la carpeta dist.
+[build]
+  publish = "dist"

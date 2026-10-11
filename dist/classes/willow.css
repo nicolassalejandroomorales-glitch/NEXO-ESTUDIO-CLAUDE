@@ -1,0 +1,52 @@
+/* La torre de cada ramo como lugar propio (etapa 10). Pantalla completa, el lienzo pixelado cubre todo y las cosas se tocan. */
+body.in-willow { overflow: hidden; }
+body.in-willow .companion-presence { display: none !important; }
+.wv { position: fixed; inset: 0; z-index: 150; overflow: hidden; color: #f4efff; font-family: var(--font-ui, system-ui, sans-serif); background: #0b0a18; }
+.wv-stage { position: absolute; inset: 0; overflow: hidden; background: radial-gradient(ellipse at 50% 30%, #1d1a3a, #0b0a18 70%); }
+/* El ancho lo fija willow-view.js: en pantallas anchas el paisaje se extiende a los lados; en celular vertical, la torre entera de lado a lado. */
+.wv-canvas { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); display: block; height: auto; image-rendering: pixelated; image-rendering: crisp-edges; touch-action: manipulation; animation: wv-in .9s ease-out both; }
+@keyframes wv-in { from { opacity: 0; } to { opacity: 1; } }
+.wv-top { position: absolute; left: 0; right: 0; top: 0; display: flex; align-items: center; gap: 10px; padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 22px;
+  background: linear-gradient(#0b0a18e6, #0b0a1800); }
+.wv-title { display: grid; min-width: 0; flex: 1; text-shadow: 0 1px 3px #000; }
+.wv-title b { font-size: 1.15rem; letter-spacing: .3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wv.is-tall .wv-title b { font-size: 1rem; }
+.wv-title span { font-size: .85rem; opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wv-switch { display: flex; gap: 6px; }
+.wv-btn { font: 600 .9rem var(--font-ui, system-ui, sans-serif); color: #f4efff; background: #1b1834d9; border: 2px solid #ffffff2e; border-radius: 6px; padding: 7px 11px; cursor: pointer; }
+.wv-btn:hover { border-color: var(--acc); }
+.wv-btn:focus-visible { outline: 3px solid var(--acc); outline-offset: 2px; }
+.wv-btn.is-primary { background: var(--acc); color: #1a1426; border-color: var(--acc); }
+.wv-hint { position: absolute; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); margin: 0; padding: 7px 14px; border-radius: 999px;
+  background: #0b0a18cc; border: 1px solid #ffffff26; font-size: .9rem; white-space: nowrap; pointer-events: none; animation: wv-hint 3s ease-in-out infinite; }
+@keyframes wv-hint { 50% { border-color: var(--acc); } }
+.wv-card { position: absolute; right: 16px; top: 84px; width: min(370px, calc(100% - 32px)); max-height: calc(100% - 110px); overflow: auto; padding: 16px 18px; border-radius: 10px;
+  background: #13112acc; backdrop-filter: blur(6px); border: 2px solid color-mix(in srgb, var(--acc) 55%, transparent); box-shadow: 0 10px 40px #000a, 0 0 24px color-mix(in srgb, var(--acc) 25%, transparent);
+  animation: wv-card .25s ease-out both; }
+@keyframes wv-card { from { opacity: 0; transform: translateY(8px); } }
+.wv-card h3 { margin: 2px 0 8px; font-size: 1.2rem; text-wrap: balance; padding-right: 36px; }
+.wv-card p { margin: 0 0 10px; line-height: 1.45; }
+.wv-close { position: absolute; top: 10px; right: 10px; padding: 4px 9px; }
+.wv-eyebrow { font-size: .75rem !important; text-transform: uppercase; letter-spacing: .8px; color: var(--acc); margin-bottom: 2px !important; }
+.wv-note { font-size: .85rem; opacity: .8; }
+.wv-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.wv-list { list-style: none; padding: 0; margin: 0 0 10px; display: grid; gap: 8px; }
+.wv-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; }
+.wv-list li .wv-bar { grid-column: 1; height: 6px; border-radius: 3px; background: #ffffff1f; overflow: hidden; }
+.wv-list li .wv-bar i { display: block; height: 100%; background: var(--acc); }
+.wv-list li .wv-btn { grid-column: 2; grid-row: 1 / span 2; }
+.wv-list li b { grid-column: 1; font-size: .8rem; opacity: .8; }
+.wv-leaf { display: inline-flex; align-items: center; gap: 7px; font-size: .9rem; }
+.wv-leaf i { width: 11px; height: 11px; border-radius: 50% 0; background: #9aa18b; transform: rotate(45deg); }
+.wv-leaf.is-brote i, .wv-leaf.is-clara i { background: #b9df85; } .wv-leaf.is-verde i, .wv-leaf.is-intensa i { background: #3f9a52; }
+.wv-leaf.is-flor i { background: var(--acc); border-radius: 50%; box-shadow: 0 0 8px var(--acc); } .wv-leaf.is-amarilla i { background: #e6bd3c; } .wv-leaf.is-seca i { background: #8a6a45; }
+/* Celular vertical: la torre arriba, entera; abajo, el suelo y la tarjeta. */
+.wv.is-tall .wv-stage { background: linear-gradient(#0b0a18 0 40%, #241914 100%); }
+.wv.is-tall .wv-canvas { top: calc(58px + env(safe-area-inset-top, 0px)); bottom: auto; }
+.wv.is-tall .wv-card { max-height: min(42%, calc(100% - 58px - 100vw * 192 / 148 + 40px)); min-height: 0; }
+@media (max-width: 700px) {
+  .wv-top { padding-inline: 12px; gap: 8px; }
+  .wv-card { left: 12px; right: 12px; width: auto; top: auto; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); max-height: 52%; }
+  .wv-hint { font-size: .82rem; }
+}
+@media (prefers-reduced-motion: reduce) { .wv-canvas, .wv-card, .wv-hint { animation: none; } }

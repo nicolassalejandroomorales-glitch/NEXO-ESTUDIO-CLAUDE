@@ -120,27 +120,27 @@ const NEXO_DATA = {
       "description": "Construir cadenas causales y distinguir cuadros que se parecen.",
       "peps": [
         {
-          "name": "PEP 1 · SNC y endocrino",
+          "name": "PEP 1 · Nervioso, respiratorio y digestivo",
           "lessons": [
             "fis-01",
             "fis-02",
-            "fis-03"
+            "fis-06",
+            "fis-09"
           ]
         },
         {
-          "name": "Bloque 2 · Cardio y respiratorio",
+          "name": "PEP 2 · Endocrino y cardiovascular",
           "lessons": [
+            "fis-03",
             "fis-04",
-            "fis-05",
-            "fis-06"
+            "fis-05"
           ]
         },
         {
-          "name": "Bloque 3 · Renal y digestivo",
+          "name": "PEP 2 · Renal",
           "lessons": [
             "fis-07",
-            "fis-08",
-            "fis-09"
+            "fis-08"
           ]
         }
       ]
@@ -639,7 +639,7 @@ const NEXO_DATA = {
     },
     "ana-01": {
       "subject": "analitica",
-      "title": "El proceso analítico completo",
+      "title": "El análisis químico y sus errores",
       "duration": 40,
       "reward": 45,
       "central": "¿Qué se mide realmente?",
@@ -693,7 +693,7 @@ const NEXO_DATA = {
     },
     "ana-02": {
       "subject": "analitica",
-      "title": "Mapa de recipientes y alícuotas",
+      "title": "Volumetría: de la bureta a la muestra",
       "duration": 50,
       "reward": 55,
       "central": "¿Cómo vuelvo desde la bureta a la muestra original?",
@@ -747,7 +747,7 @@ const NEXO_DATA = {
     },
     "ana-03": {
       "subject": "analitica",
-      "title": "Ácido–base y curvas",
+      "title": "Curvas de titulación ácido-base",
       "duration": 50,
       "reward": 55,
       "central": "¿Qué especie domina en cada zona?",
@@ -969,7 +969,7 @@ const NEXO_DATA = {
     },
     "fq-01": {
       "subject": "fisico",
-      "title": "K, Q y ΔG",
+      "title": "Equilibrio químico: ξ, Q, K y ΔG",
       "duration": 45,
       "reward": 50,
       "central": "¿Hacia dónde avanza el sistema?",
@@ -1299,7 +1299,7 @@ const NEXO_DATA = {
     },
     "fis-01": {
       "subject": "fisio",
-      "title": "Homeostasis y lesión aguda del SNC",
+      "title": "Motricidad y sistema nervioso vegetativo",
       "duration": 45,
       "reward": 50,
       "central": "¿Cómo un daño inicial se amplifica?",
@@ -1353,7 +1353,7 @@ const NEXO_DATA = {
     },
     "fis-02": {
       "subject": "fisio",
-      "title": "Edema vasogénico vs citotóxico",
+      "title": "Lesión cerebral aguda: isquemia, edema y PIC",
       "duration": 40,
       "reward": 45,
       "central": "¿Qué compartimento acumula agua?",
@@ -1517,7 +1517,7 @@ const NEXO_DATA = {
     },
     "fis-06": {
       "subject": "fisio",
-      "title": "Obstructivo vs restrictivo",
+      "title": "Respiratorio: ventilación e intercambio gaseoso",
       "duration": 30,
       "reward": 35,
       "central": "¿Qué patrón mecánico cambia?",
@@ -1601,7 +1601,7 @@ const NEXO_DATA = {
     },
     "fis-09": {
       "subject": "fisio",
-      "title": "Digestivo: barrera, secreción y motilidad",
+      "title": "Digestivo: barrera, secreción, motilidad e hígado",
       "duration": 30,
       "reward": 35,
       "central": "¿Qué función explica el síntoma?",
@@ -2449,28 +2449,28 @@ const NEXO_DATA = {
       "id": "g-fi1",
       "subject": "fisio",
       "pep": "PEP 1",
-      "title": "SNC y endocrino",
-      "question": "¿Cómo se amplifica el daño y en qué nivel falla el eje?",
+      "title": "Nervioso, respiratorio y digestivo",
+      "question": "¿Dónde está la falla y qué cadena causal explica los signos?",
       "route": [
-        "Homeostasis",
-        "Isquemia/ATP",
-        "Glutamato/Ca²⁺",
-        "Edema/PIC",
-        "Feedback endocrino"
+        "Localizar la lesión motora",
+        "Simpático/parasimpático",
+        "Isquemia → edema → PIC",
+        "Obstructivo/restrictivo y A-a",
+        "Agresión/defensa y diarrea"
       ],
-      "draw": "Dos cadenas: isquemia → PIC y hipotálamo → hipófisis → glándula.",
+      "draw": "Tres cadenas: isquemia → glutamato → Ca²⁺ → edema → PIC; hipoxemia → gradiente A-a; AINE → ↓ prostaglandinas → úlcera.",
       "check": [
         "Glutamato, no GABA, en excitotoxicidad",
-        "Compartimento del edema",
-        "Primario vs central",
-        "Mecanismo antes del síntoma"
+        "PPC = PAM − PIC",
+        "VEF₁/CVF < 0,70 es obstructivo",
+        "Brecha osmolar: osmótica o secretora"
       ],
-      "exam": "Alternativas que cambian un solo eslabón causal."
+      "exam": "Casos clínicos: localizar, explicar el mecanismo y justificar el fármaco."
     },
     {
       "id": "g-fi2",
       "subject": "fisio",
-      "pep": "Bloque 2",
+      "pep": "PEP 2",
       "title": "Cardiovascular y respiratorio",
       "question": "¿Qué compensación sostiene el sistema y cuándo se vuelve dañina?",
       "route": [

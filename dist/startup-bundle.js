@@ -1076,6 +1076,7 @@
     style.setProperty('--ambient-rgb',`${r} ${g} ${b}`);
     Object.entries(w).forEach(([key,value])=>style.setProperty(`--w-${key}`,value.toFixed(3)));
     document.body.dataset.nexoTime=hour<6?'night':hour<10?'morning':hour<17?'day':hour<20?'dusk':'night';
+    document.body.dataset.nexoHour=(((Number(hour)||0)%24+24)%24).toFixed(2); // la Torre del Sauce lee la hora de aquí
   }
   function update(at=new Date()) {
     if(previewing)return;
@@ -2289,7 +2290,17 @@ window.NEXO_ORGANIC_COURSE = Object.assign(window.NEXO_ORGANIC_COURSE || {}, {
 /* Clases que ya tienen contenido nuevo. Agregar una clase = crear su archivo de datos y sumar una línea aquí.
    Las clases que no aparecen siguen mostrando "Disponible próximamente". */
 window.NexoClassCatalog = Object.freeze({
-  'org-01': 'org-01.js'
+  'org-01': 'org-01.js',
+  'fq-01': 'fq-01.js',
+  'org-04': 'org-04.js',
+  'org-05': 'org-05.js',
+  'ana-01': 'ana-01.js',
+  'ana-02': 'ana-02.js',
+  'ana-03': 'ana-03.js',
+  'fis-01': 'fis-01.js',
+  'fis-02': 'fis-02.js',
+  'fis-06': 'fis-06.js',
+  'fis-09': 'fis-09.js'
 });
 
 ;

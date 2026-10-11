@@ -58,7 +58,7 @@ P1.MOL = {
 P1.JEFES = [
 {
   id:'amina', nombre:'TRIMETILAMINA', titulo:'La amina apestosa', subtitulo:'(CH₃)₃N · Guardiana del Pantano',
-  tema:'Aminas: estructura, propiedades y síntesis', vida:180, curaError:0, arena:'pantano', musica:'amina',
+  tema:'Aminas: estructura, propiedades y síntesis', vida:180, curaError:0, dificultad:.85, arena:'pantano', musica:'amina',
   pv:24, tes:2,
   fases:[{umbral:.5, linea:'¡Inversión piramidal! Mi par libre cambia de lado… y tú no sabes de cuál.'}],
   patrones:{1:['burbujas','lluvia','barrido'], 2:['burbujas','nube','metilos','barrido']},
@@ -72,7 +72,7 @@ P1.JEFES = [
 },
 {
   id:'ciclo', nombre:'CICLOBUTADIENO', titulo:'El antiaromático', subtitulo:'C₄H₄ · 4 electrones π de pura inestabilidad',
-  tema:'Aromaticidad, Hückel y heterociclos', vida:200, curaError:4, arena:'laboratorio', musica:'ciclo',
+  tema:'Aromaticidad, Hückel y heterociclos', vida:200, curaError:4, dificultad:1, arena:'laboratorio', musica:'ciclo',
   pv:24, tes:2,
   fases:[{umbral:.5, linea:'¡4n, 4n, 4n! ¡Mis dobles enlaces ya no saben dónde estar!'}],
   patrones:{1:['rebote','barrido','alternancia'], 2:['rebote','alternancia','dimero','lluvia']},
@@ -86,7 +86,7 @@ P1.JEFES = [
 },
 {
   id:'benceno', nombre:'BENCENO MALVADO', titulo:'El aromático supremo', subtitulo:'C₆H₆ · Señor de la Catedral',
-  tema:'SEA, Friedel-Crafts, síntesis y diazonio', vida:220, curaError:6, arena:'catedral', musica:'benceno',
+  tema:'SEA, Friedel-Crafts, síntesis y diazonio', vida:220, curaError:6, dificultad:1.15, arena:'catedral', musica:'benceno',
   pv:24, tes:2,
   fases:[{umbral:.5, linea:'¡Resonancia furiosa! Mis electrones π giran contra ti.'}],
   patrones:{1:['espiral','hexagonos','laser'], 2:['espiral','laser','electrofilos','hexagonos']},
@@ -100,7 +100,7 @@ P1.JEFES = [
 },
 {
   id:'rey', nombre:'REY AMONIO', titulo:'El jefe final', subtitulo:'NH₄⁺ · Guardián de la Basicidad',
-  tema:'Basicidad, Hofmann y repaso de toda la PEP', vida:280, curaError:8, arena:'trono', musica:'rey',
+  tema:'Basicidad, Hofmann y repaso de toda la PEP', vida:280, curaError:8, dificultad:1.35, combo:true, arena:'trono', musica:'rey',
   pv:28, tes:2, final:true, repaso:.3,
   fases:[{umbral:.66, linea:'¡Basta! Desplegaré mi tetraedro completo.'},{umbral:.33, linea:'¡Mi corona! ¡Mi protón! ¡Todo el poder del NH₄⁺!'}],
   patrones:{1:['protones','anillo','cadena'], 2:['protones','anillo','cadena','tetra'], 3:['corona','anillo','cadena','tetra','protones']},

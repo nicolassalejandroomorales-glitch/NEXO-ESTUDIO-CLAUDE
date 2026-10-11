@@ -31,6 +31,7 @@
     style.setProperty('--ambient-rgb',`${r} ${g} ${b}`);
     Object.entries(w).forEach(([key,value])=>style.setProperty(`--w-${key}`,value.toFixed(3)));
     document.body.dataset.nexoTime=hour<6?'night':hour<10?'morning':hour<17?'day':hour<20?'dusk':'night';
+    document.body.dataset.nexoHour=(((Number(hour)||0)%24+24)%24).toFixed(2); // la Torre del Sauce lee la hora de aquí
   }
   function update(at=new Date()) {
     if(previewing)return;

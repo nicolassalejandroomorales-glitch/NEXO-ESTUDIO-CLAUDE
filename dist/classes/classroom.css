@@ -425,3 +425,445 @@ body[data-nexo-ambient-motion="reduced"] .cr-spot .cr-spot-glow { animation: non
 .cr-mission-meta { grid-column: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; text-align: left; }
 .cr-mission-pts { margin-top: 0; }
 .cr-goal-legend i { margin-right: 4px; }
+
+/* ───── Barra de confianza (tipo volumen) ───── */
+.cr-conf { margin: 4px 0 14px; padding: 12px 14px; border-radius: 12px; background: rgb(255 250 240 / .8); border: 1px solid #e2cfa6; }
+.cr-conf.is-unset { border-color: var(--gold-deep); box-shadow: 0 0 0 3px rgb(232 192 106 / .35); }
+.cr-conf-label { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; font-weight: 600; color: var(--ink); }
+.cr-conf-label b { font-variant-numeric: tabular-nums; color: var(--gold-deep); min-width: 3ch; }
+.cr-conf-label span { font-weight: 500; font-size: .88rem; color: var(--ink-soft); }
+.cr-conf-range { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; margin: 8px 0 2px; background: transparent; cursor: pointer; }
+.cr-conf-range::-webkit-slider-runnable-track { height: 10px; border-radius: 99px; background: linear-gradient(90deg, #c99a44 var(--v, 50%), #e2cfa6 var(--v, 50%)); }
+.cr-conf-range::-moz-range-track { height: 10px; border-radius: 99px; background: #e2cfa6; }
+.cr-conf-range::-moz-range-progress { height: 10px; border-radius: 99px; background: #c99a44; }
+.cr-conf-range::-webkit-slider-thumb { -webkit-appearance: none; width: 26px; height: 26px; margin-top: -8px; border-radius: 50%; background: #fffaf0; border: 3px solid var(--gold-deep); box-shadow: 0 2px 6px rgb(0 0 0 / .3); }
+.cr-conf-range::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: #fffaf0; border: 3px solid var(--gold-deep); }
+.cr-conf.is-unset .cr-conf-range::-webkit-slider-thumb { background: #ffe7b0; }
+.cr-conf-range:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; border-radius: 8px; }
+.cr-conf-scale { display: flex; justify-content: space-between; font-size: .78rem; color: var(--ink-soft); }
+.cr-conf-why { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; }
+.cr-conf-why > span { font-size: .88rem; color: var(--ink); margin-right: 4px; }
+.cr-why-chip { min-height: 36px; padding: 6px 10px; font-size: .88rem; }
+.cr-gate { margin: 0; padding: 0; border: 0; min-width: 0; }
+.cr-gate:disabled > :not(.cr-gate-note) { opacity: .45; filter: saturate(.6); }
+.cr-gate-note { margin: 0 0 8px; font-size: .9rem; font-weight: 600; color: var(--gold-deep); }
+.cr-conf-result { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: rgb(255 250 240 / .85); border-left: 4px solid #b89c6c; color: var(--ink); }
+.cr-conf-result p { margin: 0; line-height: 1.5; }
+.cr-conf-result.is-solido { border-left-color: var(--right); }
+.cr-conf-result.is-alerta { border-left-color: var(--wrong); background: #fdebe6; }
+.cr-conf-result.is-fragil { border-left-color: #b8860b; background: #fff5d6; }
+.cr-conf-result .cr-btn { margin-top: 8px; }
+.cr-conf-route { margin-top: 8px !important; }
+
+/* ───── Respuesta escrita (escalón 5) ───── */
+.cr-textarea { width: 100%; min-height: 120px; padding: 12px; border-radius: 10px; border: 1px solid #b89c6c; background: #fffaf0; color: var(--ink);
+  font: 1rem/1.5 var(--font-ui); resize: vertical; }
+.cr-textarea:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.cr-warn { margin: 8px 0 0; font-weight: 600; color: var(--wrong); }
+.cr-write-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-bottom: 10px; }
+.cr-write-box { padding: 10px 12px; border-radius: 10px; background: rgb(255 250 240 / .85); border: 1px solid #e2cfa6; }
+.cr-write-box.is-model { border-left: 4px solid var(--right); }
+.cr-write-box p:last-child { margin: 0; line-height: 1.5; color: var(--ink); white-space: pre-wrap; }
+.cr-rubric { list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 6px; }
+.cr-rub { width: 100%; display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 8px 12px; border-radius: 10px; cursor: pointer; text-align: left;
+  border: 1px solid #b89c6c; background: #fffaf0; color: var(--ink); font: 500 .96rem/1.35 var(--font-ui); }
+.cr-rub.is-on { background: #e3f2e7; border-color: var(--right); }
+.classroom .cr-rub:disabled { opacity: 1; cursor: default; }
+.cr-rub-box { flex: 0 0 24px; height: 24px; display: grid; place-items: center; border-radius: 6px; border: 2px solid var(--gold-deep); font-weight: 700; color: var(--right); background: #fff; }
+
+/* ───── Hojas del árbol (vista previa) ───── */
+.cr-leaves { list-style: none; margin: 6px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 6px; }
+.cr-leaf { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 8px; align-items: center; padding: 6px 10px; border-radius: 10px; background: rgb(255 250 240 / .8); }
+.cr-leaf b { font-size: .9rem; color: var(--ink); }
+.cr-leaf small { grid-column: 2; font-size: .78rem; color: var(--ink-soft); }
+.cr-leaf-dot { grid-row: span 2; width: 18px; height: 18px; border-radius: 50% 0 50% 0; background: #d8cdb6; transform: rotate(-45deg); }
+.cr-leaf.is-brote .cr-leaf-dot { background: #b9d9a0; width: 12px; height: 12px; margin: 3px; }
+.cr-leaf.is-clara .cr-leaf-dot { background: #8fcf7a; }
+.cr-leaf.is-verde .cr-leaf-dot { background: #3f9a4e; }
+.cr-leaf.is-intensa .cr-leaf-dot { background: #1f6e33; }
+.cr-leaf.is-flor .cr-leaf-dot { background: radial-gradient(circle, #ffe680 30%, #e889b5 32%); border-radius: 50%; transform: none; }
+.cr-leaf.is-amarilla .cr-leaf-dot { background: #e2b93b; }
+.cr-leaf.is-seca .cr-leaf-dot { background: #9a7a4f; }
+.cr-leaf-group { display: grid; gap: 2px; }
+.cr-leaf-group > b { font-family: var(--font-title); color: var(--ink); }
+.cr-calib { margin: 8px 0 0; color: var(--ink); line-height: 1.5; }
+
+/* ───── Editor de moléculas y flechas (etapa 2) ───── */
+.mol-editor { display: grid; gap: 8px; }
+.mol-tools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.mol-tool { min-width: 44px; min-height: 40px; padding: 6px 10px; border-radius: 10px; border: 1px solid #b89c6c; background: #fffaf0; color: var(--ink);
+  font: 700 .95rem var(--font-ui); cursor: pointer; }
+.mol-tool.is-on { background: #3a2b1f; color: #ffe1a6; border-color: #3a2b1f; }
+.mol-tool:disabled { opacity: .45; cursor: default; }
+.mol-tool:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.mol-sep { flex: 1; }
+.mol-canvas { width: 100%; height: auto; display: block; border-radius: 12px; touch-action: none; user-select: none; -webkit-user-select: none; cursor: crosshair; }
+.mol-canvas.is-done { cursor: default; }
+.mol-bg { fill: #fffdf6; stroke: #e2cfa6; stroke-width: 1.5; }
+.mol-canvas:not(.is-done) .mol-bg { fill: #fffdf6; }
+.mol-bond line { stroke: #2b2118; stroke-width: 2.3; stroke-linecap: round; }
+.mol-bond-hit { stroke: transparent; stroke-width: 18; cursor: pointer; }
+.mol-hit { fill: transparent; }
+.mol-atom { cursor: pointer; }
+.mol-label { font: 600 17px Arial, 'Helvetica Neue', var(--font-ui), sans-serif; fill: #2b2118; paint-order: stroke; stroke: #fffdf6; stroke-width: 4px; stroke-linejoin: round; }
+.mol-atom.el-N .mol-label { fill: #2952a3; } .mol-atom.el-O .mol-label { fill: #b3261e; } .mol-atom.el-Cl .mol-label, .mol-atom.el-Br .mol-label { fill: #2f6b4a; }
+.mol-charge { font: 700 13px Arial, var(--font-ui), sans-serif; fill: #8a5d17; paint-order: stroke; stroke: #fffdf6; stroke-width: 4px; }
+.mol-atom.is-sel .mol-hit { fill: rgb(232 192 106 / .35); stroke: #8a5d17; stroke-width: 2; }
+.mol-atom.is-bad .mol-hit { fill: rgb(179 38 30 / .18); stroke: #b3261e; stroke-width: 2.5; stroke-dasharray: 4 3; }
+.mol-atom.is-suspect .mol-hit { fill: rgb(226 185 59 / .25); stroke: #b8860b; stroke-width: 2.5; stroke-dasharray: 4 3; }
+.mol-status { margin: 0; font-size: .92rem; color: var(--ink-soft); }
+.mol-status.is-bad { color: #9a3426; font-weight: 600; }
+.mol-status.is-ok { color: var(--right); font-weight: 600; }
+.mol-formula { margin: 0; font-size: .88rem; color: var(--ink-soft); }
+.mol-formula b { color: var(--ink); font-variant-numeric: tabular-nums; }
+/* Flechas */
+.mol-pick { cursor: pointer; }
+.mol-pick.is-sel .mol-lp-dot { fill: #e8a400; } .mol-pick.is-sel line { stroke: #e8a400; }
+.mol-lp-hit { fill: transparent; }
+.mol-lp .mol-lp-hit:hover, .mol-lp.is-sel .mol-lp-hit { fill: rgb(232 192 106 / .3); }
+.mol-lp-dot { fill: #2b2118; }
+.mol-arrow { fill: none; stroke: #b3261e; stroke-width: 2; stroke-linecap: round; cursor: pointer; }
+.mol-arrow.is-right { stroke: #2f6b4a; } .mol-arrow.is-wrong { stroke: #b3261e; stroke-dasharray: 6 4; }
+.mol-arrow.is-answer { stroke: #2f6b4a; stroke-dasharray: 3 4; opacity: .8; }
+.mol-electron { fill: #3fbf7a; filter: drop-shadow(0 0 4px #3fe39a); }
+@media (prefers-reduced-motion: reduce) { .mol-electron { display: none; } }
+
+/* ── Etapa 3: misión piloto de Reacciones (docs/clase-viva/DISENO.md) ── */
+/* Caso de farmacia y receta guardada: pergaminos con sello. */
+.cr-hook { position: relative; border: 2px solid var(--gold-deep); box-shadow: 0 0 0 6px rgb(232 192 106 / .18), 0 18px 40px rgb(0 0 0 / .25); }
+.cr-hook h3, .cr-recipe-card h3 { margin: 2px 0 10px; font-family: Georgia, 'Times New Roman', serif; color: var(--ink); }
+.cr-recipe-card { position: relative; background-image: linear-gradient(180deg, #fbf3df, var(--parch)); border: 2px solid var(--gold-deep); animation: cr-seal .7s ease-out both; }
+.cr-recipe-card::after { content: '✦'; position: absolute; top: 14px; right: 16px; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #c2453a, #7b1d17); color: #ffe7b0; font-size: 1.1rem; box-shadow: 0 3px 8px rgb(0 0 0 / .3); }
+.cr-recipe { display: grid; gap: 8px; margin: 0; }
+.cr-recipe > div { display: grid; grid-template-columns: minmax(120px, 34%) 1fr; gap: 10px; padding: 8px 10px; border-radius: 8px; background: rgb(255 255 255 / .45); }
+.cr-recipe dt { font-weight: 700; color: var(--gold-deep); }
+.cr-recipe dd { margin: 0; color: var(--ink); }
+.cr-recipe-card .cr-note { margin: 12px 0 0; padding: 10px 12px; border-radius: 8px; background: #fff7e3; border-left: 4px solid var(--gold-deep); color: var(--ink); line-height: 1.5; }
+@keyframes cr-seal { from { opacity: 0; transform: translateY(10px) scale(.97); } to { opacity: 1; transform: none; } }
+
+/* Mecanismo con controles. */
+.cr-mech-stage { display: grid; place-items: center; min-height: 200px; padding: 8px; border-radius: 12px; background: #fffaf0; border: 1px solid var(--parch-edge); color: var(--ink); }
+.cr-mech-stage svg { max-width: 100%; height: auto; }
+.cr-mech-caption { margin: 12px 0 10px; color: var(--ink); line-height: 1.55; min-height: 3em; }
+.cr-mech-controls { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.cr-mech-dots { display: flex; gap: 8px; justify-content: center; margin-top: 10px; }
+.cr-mech-dots i { width: 10px; height: 10px; border-radius: 50%; background: #d9c49a; transition: background .3s, transform .3s; }
+.cr-mech-dots i.is-on { background: var(--gold-deep); transform: scale(1.3); }
+.cr-lesson-mech { display: grid; gap: 14px; justify-items: center; }
+
+/* Casos gemelos: dos dibujos lado a lado. */
+.cr-figures { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 6px 0 14px; }
+.cr-fig { margin: 0; padding: 10px; border-radius: 12px; background: #fffaf0; border: 1px solid var(--parch-edge); color: var(--ink); text-align: center; }
+.cr-fig svg { max-width: 100%; height: auto; }
+.cr-fig figcaption { margin-top: 6px; font-size: .9rem; color: var(--ink-soft); }
+
+/* Predice, observa, explica: matraz que reacciona a la temperatura. */
+.cr-poe { display: grid; gap: 12px; }
+.cr-sim { padding: 12px; border-radius: 12px; background: #eef4f6; border: 1px solid #bcd0d6; transition: background .5s; }
+.cr-sim.is-above { background: #fbe9e2; border-color: #e0b3a5; }
+.cr-sim-body { display: grid; grid-template-columns: 110px 1fr; gap: 14px; align-items: center; }
+.cr-flask { width: 110px; height: auto; }
+.cr-flask-glass { fill: rgb(255 255 255 / .55); stroke: #4d3f30; stroke-width: 3; }
+.cr-flask-liquid { fill: #8fc6d8; transition: fill .6s; }
+.cr-sim.is-above .cr-flask-liquid { fill: #d9915f; }
+.cr-flask-bubble { fill: #fff; opacity: 0; }
+.cr-sim.is-above .cr-flask-bubble { animation: cr-bubble 1.4s ease-in infinite; }
+@keyframes cr-bubble { 0% { opacity: 0; transform: translateY(0); } 20% { opacity: .9; } 100% { opacity: 0; transform: translateY(-40px); } }
+.cr-sim-ctrl label { display: block; color: var(--ink); margin-bottom: 6px; }
+.cr-sim-ctrl input[type=range] { width: 100%; min-height: 44px; accent-color: var(--gold-deep); }
+.cr-sim-text { margin: 6px 0 0; color: var(--ink); line-height: 1.5; }
+
+/* El caldero. */
+.cr-recipe-act { display: grid; gap: 10px; }
+.cr-cauldron { display: grid; grid-template-columns: 150px 1fr; gap: 14px; align-items: center; }
+.cr-cauldron svg { width: 150px; height: auto; overflow: visible; }
+.cr-caul-rim { fill: #3b3430; stroke: #1f1a17; stroke-width: 3; }
+.cr-caul-body { fill: #2b2522; stroke: #1f1a17; stroke-width: 3; }
+.cr-caul-brew { fill: #5aa36c; transition: fill .6s; }
+.cr-recipe-act.is-right .cr-caul-brew { fill: #9be3a8; filter: drop-shadow(0 0 8px #b6f5c0); }
+.cr-recipe-act.is-wrong .cr-caul-brew { fill: #6b5a4a; }
+.cr-caul-bub { fill: #b6f5c0; animation: cr-caulbub 1.8s ease-in-out infinite; }
+@keyframes cr-caulbub { 0%, 100% { transform: translateY(0); opacity: .9; } 50% { transform: translateY(-8px); opacity: .3; } }
+.cr-smoke circle { fill: #7d7470; opacity: .7; animation: cr-smoke 2.4s ease-out infinite; }
+@keyframes cr-smoke { from { transform: translateY(0); opacity: .75; } to { transform: translateY(-18px); opacity: 0; } }
+.cr-caul-seq { flex-direction: column; align-items: stretch; }
+.cr-caul-seq .cr-slot { display: flex; align-items: center; gap: 8px; }
+.cr-shelf { background: linear-gradient(180deg, rgb(255 250 240 / .6), rgb(217 196 154 / .45)); border-style: solid; border-bottom: 6px solid #8a6a3e; }
+
+/* El aprendiz que se equivocó. */
+.cr-apprentice { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.cr-step { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 10px 12px; text-align: left; border-radius: 10px; cursor: pointer;
+  border: 2px solid var(--parch-edge); background: #fffaf0; color: var(--ink); font: inherit; }
+.cr-step:hover:not(:disabled) { border-color: var(--gold-deep); }
+.classroom .cr-step:disabled { opacity: 1; cursor: default; }
+.cr-step.is-right { border-color: var(--right); background: #dff1e5; }
+.cr-step.is-wrong { border-color: var(--wrong); background: #f8ddd6; }
+
+/* Ideas clave de la respuesta escrita. */
+.cr-ideas { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: #fff7e3; border: 1px solid var(--parch-edge); color: var(--ink); }
+.cr-idea { display: inline-block; margin: 4px 6px 4px 0; padding: 4px 10px; border-radius: 999px; background: #ece4d2; color: var(--ink-soft); font-size: .9rem; }
+.cr-idea.is-hit { background: #dff1e5; color: #1f4d34; font-weight: 600; }
+.cr-idea-note { margin: 8px 0 0; font-size: .85rem; color: var(--ink-soft); }
+.cr-paper { margin: 0 0 10px; padding: 8px 12px; border-radius: 8px; background: #f1ead8; border: 1px dashed #b89a64; color: var(--ink); font-size: .92rem; }
+
+/* Flecha que ya viene dibujada (práctica que se va soltando). */
+.mol-arrow.is-given { stroke: #8a5d17; stroke-dasharray: none; opacity: .85; pointer-events: none; }
+
+@media (max-width: 700px) {
+  .cr-sim-body, .cr-cauldron { grid-template-columns: 1fr; justify-items: center; }
+  .cr-recipe > div { grid-template-columns: 1fr; gap: 2px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cr-recipe-card, .cr-flask-bubble, .cr-caul-bub, .cr-smoke circle { animation: none !important; }
+}
+body[data-nexo-ambient-motion="reduced"] :is(.cr-recipe-card, .cr-flask-bubble, .cr-caul-bub, .cr-smoke circle) { animation: none !important; }
+
+/* ── Etapa 4: diagnóstico, errores que guían y repaso desde cero (docs/etapa-4-diagnostico/SPEC.md) ── */
+.cr-tip-card { width: min(860px, 100%); margin: 0 0 12px; display: grid; gap: 2px; padding: 12px 16px; border-radius: 14px; cursor: pointer; text-align: left; font: inherit;
+  color: var(--chalk); border: 1px dashed rgb(232 192 106 / .7); background: rgb(29 42 39 / .82); box-shadow: 0 10px 26px rgb(0 0 0 / .35); transition: transform .2s, border-color .2s; }
+.cr-tip-card:hover { transform: translateY(-2px); border-color: var(--gold); }
+.cr-tip-card b { font-family: var(--font-title); font-size: 1.05rem; color: var(--gold); }
+.cr-tip-card span { color: #e3dccb; font-size: .92rem; }
+.cr-tip-card.is-done { border-style: solid; border-color: #7fc79d; }
+.cr-tip-card.is-done b { color: #b6f5c0; }
+.cr-tip-card.is-base { margin: 12px 0 0; }
+.cr-diag h3, .cr-detour h3 { margin: 2px 0 10px; font-family: Georgia, 'Times New Roman', serif; color: var(--ink); }
+.cr-diag-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 10px; }
+.cr-diag-cols > div { padding: 10px 12px; border-radius: 10px; background: rgb(255 255 255 / .5); }
+.cr-diag-h { margin: 0 0 6px; font-weight: 700; color: var(--gold-deep); }
+.cr-diag ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.cr-diag li { color: var(--ink); }
+.cr-diag li.is-right { color: #1f4d34; font-weight: 600; }
+.cr-diag li.is-wrong { color: var(--wrong); font-weight: 600; }
+.cr-diag li.is-likely { color: var(--ink-soft); }
+.cr-diag li small { color: var(--ink-soft); }
+.cr-detour { border-left: 6px solid var(--gold-deep); }
+.cr-detour ul { margin: 6px 0 10px; padding-left: 20px; color: var(--ink); }
+.cr-detour li { margin: 4px 0; }
+/* Con el diagnóstico son 4 caminos: 2 × 2 en pantalla ancha (el diagnóstico primero). */
+.cr-paths { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); width: min(720px, 100%); }
+.cr-base-card h3 { margin: 2px 0 10px; font-family: Georgia, 'Times New Roman', serif; color: var(--ink); }
+.cr-base-card > p:not(.cr-eyebrow) { font-size: 1.08rem; line-height: 1.65; color: var(--ink); }
+
+/* ── Etapa 4b: que un usuario nuevo no se maree (docs/etapa-4b-intuitivo/SPEC.md) ── */
+.cr-tour { position: fixed; left: 0; right: 0; margin: 0 auto; z-index: 60; width: min(440px, calc(100vw - 32px)); padding: 14px 16px; border-radius: 14px;
+  color: var(--ink); background: linear-gradient(180deg, #fffaf0, var(--parch)); border: 2px solid var(--gold-deep); box-shadow: 0 18px 50px rgb(0 0 0 / .55);
+  animation: cr-seal .35s ease-out both; }
+.cr-tour.is-center { top: 32%; }
+.cr-tour.is-top { top: 76px; }
+.cr-tour > b { display: block; font-family: Georgia, 'Times New Roman', serif; font-size: 1.15rem; margin: 2px 0 4px; }
+.cr-tour > p:not(.cr-eyebrow) { margin: 0 0 10px; line-height: 1.5; }
+.cr-tour .cr-row { display: flex; justify-content: flex-end; gap: 8px; }
+.is-tour-target:not(.cr-spot):not(.cr-dialog) { position: relative; }
+.is-tour-target { z-index: 55 !important; outline: 3px solid var(--gold) !important; outline-offset: 3px; border-radius: 12px; animation: cr-tour-pulse 1.4s ease-in-out infinite; }
+@keyframes cr-tour-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgb(232 192 106 / .55); } 50% { box-shadow: 0 0 0 10px rgb(232 192 106 / 0); } }
+/* En el recorrido, los objetos invisibles de la pintura muestran su nombre. */
+.classroom.is-touring .cr-spot.is-tour-target { background: rgb(255 226 160 / .14); }
+.classroom.is-touring .cr-spot.is-tour-target::after { content: attr(data-name); position: absolute; left: 50%; bottom: 100%; transform: translate(-50%, -6px); white-space: nowrap;
+  padding: 4px 8px; border-radius: 8px; background: rgb(29 26 22 / .92); color: #ffe7b0; font-size: .8rem; font-weight: 600; pointer-events: none; }
+/* Hasta que tocas un objeto por primera vez, brillan suave para que sepas que existen. */
+.classroom.is-spots-new:not(.is-touring) .cr-spot { animation: cr-spot-hello 3.2s ease-in-out infinite; }
+.classroom.is-spots-new .cr-object { box-shadow: 0 0 0 2px rgb(232 192 106 / .55); }
+@keyframes cr-spot-hello { 0%, 100% { box-shadow: 0 0 0 0 rgb(255 214 140 / 0); } 50% { box-shadow: 0 0 34px 8px rgb(255 214 140 / .28); } }
+.cr-help-btn { min-width: 40px; font-weight: 800; font-size: 1.05rem; }
+.cr-help { display: grid; gap: 8px; margin: 0 0 14px; }
+.cr-help > div { padding: 10px 12px; border-radius: 10px; background: rgb(255 255 255 / .5); }
+.cr-help dt { font-weight: 700; color: var(--gold-deep); }
+.cr-help dd { margin: 2px 0 0; color: var(--ink); line-height: 1.5; }
+.cr-tip { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; padding: 10px 12px; border-radius: 10px; background: #fff3cf; border: 1px solid #e3c271; color: var(--ink); line-height: 1.45; }
+.cr-tip > span:nth-child(2) { flex: 1; }
+.cr-path.is-recommended { box-shadow: 0 0 0 3px var(--gold), 0 14px 34px rgb(0 0 0 / .4); }
+.cr-path-rec { align-self: flex-start; padding: 2px 10px; border-radius: 999px; background: #2f6b4a; color: #fff; font-size: .78rem; font-weight: 700; }
+@media (max-width: 700px) { .cr-tip { flex-wrap: wrap; } .cr-tour.is-top { top: 120px; } }
+@media (prefers-reduced-motion: reduce) { .is-tour-target, .classroom.is-spots-new .cr-spot, .cr-tour { animation: none !important; } }
+body[data-nexo-ambient-motion="reduced"] :is(.is-tour-target, .cr-spot, .cr-tour) { animation: none !important; }
+
+/* ── Etapa 5: el grimorio (docs/etapa-5-grimorio/SPEC.md) ── */
+.cr-tabs { display: flex; gap: 6px; margin: 0 0 14px; padding: 4px; border-radius: 12px; background: rgb(138 93 23 / .12); }
+.cr-tab { flex: 1; min-height: 44px; border: 0; border-radius: 9px; background: transparent; color: var(--ink-soft); font: inherit; font-weight: 700; cursor: pointer; }
+.cr-tab.is-on { background: var(--parch); color: var(--ink); box-shadow: 0 2px 8px rgb(80 50 10 / .2); }
+.cr-formulas, .cr-recipes { display: grid; gap: 10px; }
+.cr-fcard { border-radius: 12px; border: 1px solid var(--parch-edge); background: rgb(255 255 255 / .55); overflow: hidden; }
+.cr-fcard.is-open { border-color: var(--gold-deep); background: #fffaf0; }
+.cr-fhead { width: 100%; display: grid; gap: 4px; padding: 12px 14px; border: 0; background: transparent; text-align: left; cursor: pointer; color: var(--ink); font: inherit; }
+.cr-fhead b { color: var(--gold-deep); }
+.cr-formula-big { font-family: Georgia, 'Times New Roman', serif; font-size: 1.15rem; color: var(--ink); }
+.cr-fbody { padding: 0 14px 14px; display: grid; gap: 10px; }
+.cr-vars { width: 100%; border-collapse: collapse; font-size: .92rem; }
+.cr-vars th, .cr-vars td { padding: 6px 8px; border-bottom: 1px solid #eadcbc; text-align: left; vertical-align: top; color: var(--ink); }
+.cr-vars th { color: var(--gold-deep); font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; }
+.cr-fdl { display: grid; gap: 6px; margin: 0; }
+.cr-fdl dt { font-weight: 700; color: var(--gold-deep); }
+.cr-fdl dd { margin: 0; color: var(--ink); line-height: 1.55; }
+.cr-calc { padding: 10px 12px; border-radius: 10px; background: #eef4f6; border: 1px solid #bcd0d6; }
+.cr-calc-in { display: flex; flex-wrap: wrap; gap: 10px; }
+.cr-calc-in label { display: grid; gap: 4px; font-size: .88rem; color: var(--ink); }
+.cr-calc-in input { width: 130px; min-height: 40px; padding: 6px 8px; border-radius: 8px; border: 1px solid #9fb6bd; font: inherit; color: var(--ink); background: #fff; }
+.cr-calc-out { margin: 8px 0 0; color: var(--ink); font-size: 1.02rem; }
+.cr-fsrc { margin: 0; font-size: .88rem; color: var(--ink-soft); }
+.cr-fsrc a { color: var(--gold-deep); }
+.cr-rcard { position: relative; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--parch-edge); background: rgb(255 255 255 / .55); color: var(--ink); }
+.cr-rcard h3 { margin: 0 0 8px; font-family: Georgia, 'Times New Roman', serif; }
+.cr-rcard.is-hidden { background: repeating-linear-gradient(135deg, #efe4cb 0 10px, #e9dcbf 10px 20px); color: var(--ink-soft); }
+.cr-rcard.is-hidden h3 { letter-spacing: .3em; }
+.cr-rcard.is-mastered { border: 2px solid var(--gold-deep); box-shadow: 0 0 0 4px rgb(232 192 106 / .25); }
+.cr-unknown { color: var(--ink-soft); letter-spacing: .2em; }
+.cr-seal { position: absolute; top: 10px; right: 12px; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #f2cf74, #a7731c); color: #fff7dc; box-shadow: 0 3px 8px rgb(0 0 0 / .3); }
+@media (min-width: 900px) { .cr-recipes { grid-template-columns: 1fr 1fr; } }
+.cr-formula-big sup, .cr-fdl sup { font-size: .72em; }
+@media (max-width: 700px) {
+  .cr-vars thead { display: none; }
+  .cr-vars tr { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; padding: 6px 0; border-bottom: 1px solid #eadcbc; }
+  .cr-vars td { border: 0; padding: 0; }
+  .cr-vars td:nth-child(2) { grid-column: 2; }
+  .cr-vars td:nth-child(3) { grid-column: 2; color: var(--ink-soft); font-size: .85rem; }
+}
+
+/* ── Más ayuda: mini clase y a profundidad ── */
+.cr-more { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.cr-lesson > .cr-more { justify-content: center; }
+.cr-ghost-dark { background: rgb(29 26 22 / .82); color: #ffe7b0; border-color: rgb(232 192 106 / .6); }
+.cr-mini, .cr-deepclass { display: grid; gap: 12px; color: var(--ink); }
+.cr-mini-big { font-size: 1.15rem; line-height: 1.6; margin: 0; }
+.cr-mini-steps { margin: 0; padding-left: 22px; display: grid; gap: 8px; }
+.cr-mini-steps li { line-height: 1.55; opacity: .7; }
+.cr-mini-steps li.is-now { opacity: 1; font-weight: 600; animation: cr-seal .35s ease-out both; }
+.cr-mini-nav { justify-content: space-between; display: flex; gap: 8px; }
+.cr-deepclass section { padding: 10px 12px; border-radius: 10px; background: rgb(255 255 255 / .55); }
+.cr-deepclass h3 { margin: 0 0 4px; font-family: Georgia, 'Times New Roman', serif; color: var(--gold-deep); }
+.cr-deepclass p { margin: 0; line-height: 1.6; }
+.cr-deep-challenge { border: 1px solid var(--parch-edge); }
+
+/* Reglas del sabio (misiones sin reacciones) y simulación de pH */
+.cr-rule { margin: 0; padding-left: 22px; display: grid; gap: 8px; color: var(--ink); line-height: 1.55; }
+.cr-rules-h { margin: 18px 0 8px; font-family: Georgia, 'Times New Roman', serif; color: var(--ink); }
+.cr-sim.is-ph .cr-flask-liquid { fill: #d97aa8; }
+.cr-sim.is-ph.is-above .cr-flask-liquid { fill: #7f9ad9; }
+.cr-sim.is-ph .cr-flask-bubble { animation: none !important; opacity: 0; }
+.cr-sim.is-ph, .cr-sim.is-ph.is-above { background: #f3eef6; border-color: #cdbfd9; }
+
+/* ── Etapa 7: plan del día, ronda del alba, simulacro PEP y papel (docs/etapa-7-prueba/SPEC.md) ── */
+.cr-plan h3, .cr-sim-start h3 { margin: 2px 0 12px; font-family: Georgia, 'Times New Roman', serif; color: var(--ink); }
+.cr-plan-mins { display: flex; flex-wrap: wrap; gap: 10px; }
+.cr-plan-mins .cr-btn { min-width: 110px; min-height: 52px; font-size: 1.05rem; }
+.cr-plan-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.cr-plan-list li { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 12px; background: rgb(255 255 255 / .6); border: 1px solid var(--parch-edge); color: var(--ink); }
+.cr-plan-list li.is-done { background: #e6f3ea; border-color: #9fd1b1; }
+.cr-plan-n { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--gold-deep); color: #fff; font-weight: 700; }
+.cr-plan-list li.is-done .cr-plan-n { background: #2f6b4a; }
+.cr-plan-txt { display: grid; gap: 2px; }
+.cr-plan-txt small { color: var(--gold-deep); font-weight: 700; }
+.cr-plan-txt span { color: var(--ink-soft); font-size: .92rem; }
+.cr-plan-list em { color: #2f6b4a; font-weight: 700; font-style: normal; }
+.cr-round { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 6px; color: var(--ink); }
+.cr-round li { padding: 8px 10px; border-radius: 10px; background: rgb(255 255 255 / .55); }
+.cr-round li.is-right { background: #e6f3ea; } .cr-round li.is-wrong { background: #f8e3dd; }
+.cr-round small { color: var(--ink-soft); }
+.cr-timer { display: inline-flex; gap: 4px; padding: 1px 8px; border-radius: 999px; background: rgb(0 0 0 / .45); color: #ffe7b0; }
+.cr-timer.is-low { background: #9a3426; color: #fff; animation: cr-tour-pulse 1s ease-in-out infinite; }
+/* En el simulacro no se ve si acertaste hasta la corrección, como en una prueba. */
+.cr-card.is-blind :is(.is-right, .is-wrong) { border-color: var(--gold-deep) !important; background: #fff3d6 !important; color: var(--ink) !important; }
+.cr-card.is-blind :is(.mol-status, .cr-solution, details, .cr-ideas) { display: none !important; }
+.cr-card.is-blind .mol-arrow { stroke: #8a5d17 !important; }
+.cr-card.is-blind .mol-electron, .cr-card.is-blind .mol-arrow.is-answer { display: none; }
+.cr-sim-result h3 { margin: 0; }
+.cr-sim-score { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; margin: 6px 0; color: var(--ink); }
+.cr-sim-score b { font-family: Georgia, 'Times New Roman', serif; font-size: 2.6rem; color: var(--gold-deep); }
+.cr-sim-score em { margin-left: auto; padding: 4px 12px; border-radius: 999px; background: #2f6b4a; color: #fff; font-style: normal; font-weight: 700; }
+.cr-sim-rows { margin: 0; padding-left: 20px; display: grid; gap: 10px; }
+.cr-sim-row { padding: 10px 12px; border-radius: 10px; background: rgb(255 255 255 / .6); border-left: 5px solid #c9ad7a; color: var(--ink); }
+.cr-sim-row.is-right { border-left-color: #2f6b4a; } .cr-sim-row.is-wrong, .cr-sim-row.is-empty { border-left-color: #9a3426; } .cr-sim-row.is-part { border-left-color: #c98a1b; }
+.cr-sim-row .cr-q { font-size: 1rem; margin: 0 0 4px; }
+.cr-sim-row p { margin: 4px 0; }
+.cr-rub-list { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 3px; font-size: .92rem; }
+.cr-rub-list .is-right { color: #1f4d34; } .cr-rub-list .is-wrong { color: #9a3426; }
+.cr-paper-box { margin-bottom: 10px; padding: 10px 12px; border-radius: 10px; background: #f1ead8; border: 1px dashed #b89a64; }
+.cr-photo { display: block; max-width: 100%; max-height: 360px; margin: 8px 0; border-radius: 8px; border: 1px solid var(--parch-edge); }
+.cr-photo-btn { display: inline-flex; cursor: pointer; }
+.cr-check { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+@media (max-width: 700px) { .cr-plan-list li { grid-template-columns: auto 1fr; } .cr-plan-list li > :last-child { grid-column: 2; justify-self: start; } .cr-sim-score em { margin-left: 0; } }
+@media (max-width: 700px) { .cr-paths-btn { padding-inline: 8px; } }
+@media (max-width: 700px) { .cr-paths-btn span { display: none; } }
+
+/* ───────── Etapa 8: Entrenar, niveles, laboratorio, bestiario y noche antes (docs/etapa-8-entrenar/SPEC.md) ───────── */
+.cr-level { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: .78em; font-weight: 800; letter-spacing: .02em; vertical-align: 1px;
+  color: #fff; background: var(--lv, #7a6a55); }
+.cr-level.is-l1 { --lv: #4f8a5b; } .cr-level.is-l2 { --lv: #3f7f8f; } .cr-level.is-l3 { --lv: #5d63a8; } .cr-level.is-l4 { --lv: #9a5a9c; } .cr-level.is-l5 { --lv: #b5562e; }
+.cr-train-levels { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
+.cr-train-row { display: grid; gap: 6px; margin: 10px 0; padding-top: 10px; border-top: 1px dashed var(--parch-edge); }
+.cr-train-row .cr-link { justify-self: start; font-weight: 800; }
+.cr-train-base { font-weight: 800; color: var(--ink-soft); }
+.cr-train-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.cr-train-chip { flex-direction: column; align-items: flex-start; gap: 2px; border-left: 5px solid var(--lv); }
+.cr-train-chip span { font-size: .8em; color: var(--ink-soft); }
+.cr-train-chip.is-l1 { --lv: #4f8a5b; } .cr-train-chip.is-l2 { --lv: #3f7f8f; } .cr-train-chip.is-l3 { --lv: #5d63a8; } .cr-train-chip.is-l4 { --lv: #9a5a9c; } .cr-train-chip.is-l5 { --lv: #b5562e; }
+
+.cr-tabs { flex-wrap: wrap; }
+.cr-tab { flex: 1 1 auto; padding-inline: 10px; }
+@media (max-width: 700px) { .cr-tab { flex-basis: 30%; font-size: .9em; } }
+
+.cr-lab-starts, .cr-lab-reagents { display: flex; flex-wrap: wrap; gap: 6px; }
+.cr-lab-starts .cr-chip { flex-direction: column; align-items: flex-start; gap: 2px; }
+.cr-lab-starts small { color: var(--ink-soft); }
+.cr-lab { display: grid; gap: 10px; }
+.cr-lab-flask { padding: 14px 16px; border-radius: 14px; border: 2px solid var(--parch-edge); background: linear-gradient(180deg, #fffaf0, #f1e2c2); }
+.cr-lab-flask b { display: block; font-size: 1.15em; }
+.cr-lab-formula { display: block; margin-top: 4px; font-size: 1.25em; font-family: 'Cambria Math', Georgia, serif; overflow-wrap: anywhere; }
+.cr-lab-flask.is-ok { border-color: #5d9b62; animation: cr-lab-pop .5s ease-out; }
+.cr-lab-flask.is-no { border-color: #c27a4a; }
+@keyframes cr-lab-pop { 0% { transform: scale(.97); box-shadow: 0 0 0 0 rgb(93 155 98 / .6); } 100% { transform: none; box-shadow: 0 0 0 14px rgb(93 155 98 / 0); } }
+.cr-lab-msg { margin: 0; padding: 10px 12px; border-radius: 10px; background: rgb(138 93 23 / .08); }
+.cr-lab-msg.is-ok { background: rgb(93 155 98 / .16); } .cr-lab-msg.is-no { background: rgb(194 122 74 / .16); }
+.cr-lab-trail { margin: 0; font-size: .9em; color: var(--ink-soft); }
+.cr-lab-trail i { font-style: normal; font-weight: 700; }
+
+.cr-beasts { display: grid; gap: 10px; }
+.cr-beast { display: grid; grid-template-columns: 76px 1fr; gap: 12px; align-items: start; padding: 12px; border-radius: 14px; border: 1px solid var(--parch-edge); background: rgb(255 250 240 / .6); }
+.cr-beast h3 { margin: 2px 0 4px; font-size: 1.02em; }
+.cr-beast p { margin: 0 0 4px; }
+.cr-beast-svg { width: 76px; height: 76px; }
+.cr-beast-svg.is-wild { animation: cr-beast-hop 2.4s ease-in-out infinite; }
+.cr-beast.is-captured { border-color: var(--gold-deep, #a87a2a); }
+@keyframes cr-beast-hop { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+
+.cr-night { margin-top: 12px; padding: 16px 18px; border-radius: 6px; background: #fffdf7; color: #1f1a14; border: 1px solid #d8cdb5; font-size: .92em; line-height: 1.4; }
+.cr-night header { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding-bottom: 6px; margin-bottom: 8px; border-bottom: 2px solid #1f1a14; }
+.cr-night h4 { margin: 10px 0 4px; font-size: 1em; text-transform: uppercase; letter-spacing: .04em; }
+.cr-night ul { margin: 0; padding-left: 18px; }
+.cr-night li { margin: 2px 0; }
+#nexo-print-sheet { display: none; }
+@media print {
+  body.nexo-print-night > :not(#nexo-print-sheet) { display: none !important; }
+  body.nexo-print-night { background: #fff !important; }
+  body.nexo-print-night #nexo-print-sheet { display: block; margin: 0; border: 0; font-size: 10.5pt; }
+}
+@media (prefers-reduced-motion: reduce) { .cr-beast-svg.is-wild, .cr-lab-flask.is-ok { animation: none; } }
+body[data-nexo-ambient-motion="reduced"] .cr-beast-svg.is-wild, body[data-nexo-ambient-motion="reduced"] .cr-lab-flask.is-ok { animation: none; }
+/* 7 caminos: tarjetas un poco más compactas y la última (impar) a lo ancho, para que la meta siga a la vista. */
+@media (min-width: 701px) { .cr-path { padding: 14px 18px; gap: 4px; } .cr-paths > .cr-path:last-child:nth-child(odd) { grid-column: 1 / -1; } }
+/* Cuenta regresiva a la próxima evaluación del ramo (desde el calendario de Bitácora). */
+.cr-exam-line { margin-top: 10px; background: rgb(122 70 20 / .85); color: #ffe9bf; }
+.cr-exam-line .cr-link { color: #ffe1a6; }
+.cr-exam-line + .cr-goal-line { margin-top: 6px; }
+
+/* Acceso a la torre del ramo (etapa 10): la torre tiene su propio lugar, #/torre/<ramo>. */
+.cr-willow-link { display: flex; align-items: center; gap: 12px; width: 100%; max-width: 520px; margin: 10px 0 4px; padding: 10px 14px; text-align: left; cursor: pointer;
+  font: inherit; color: var(--chalk); background: linear-gradient(90deg, #1d1a3a, #2a2350); border: 2px solid var(--gold); border-radius: 8px; box-shadow: 0 0 18px #e8c06a33; }
+.cr-willow-link > span:first-child { font-size: 1.6rem; }
+.cr-willow-link > span:nth-child(2) { display: grid; flex: 1; min-width: 0; }
+.cr-willow-link small { opacity: .85; }
+.cr-willow-link:hover { box-shadow: 0 0 26px #e8c06a66; }
+.cr-willow-link:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+/* Respuesta numérica (Fisicoquímica, Analítica) */
+.cr-num-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0; }
+.cr-num-label { font-weight: 600; }
+.cr-num-input { font: inherit; font-size: 1.15rem; width: 11ch; padding: 6px 10px; border-radius: 6px; border: 2px solid var(--parch-edge); background: #fffaf0; color: var(--ink); font-variant-numeric: tabular-nums; }
+.cr-num-input:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.cr-num-input.is-right { border-color: var(--right); } .cr-num-input.is-wrong { border-color: var(--wrong); }
+.cr-num-unit { font: inherit; padding: 6px 8px; border-radius: 6px; border: 2px solid var(--parch-edge); background: #fffaf0; color: var(--ink); }
+.cr-num-fixed { font-weight: 600; }
+.cr-num-steps { margin: 6px 0 0; padding-left: 1.3em; }
+.cr-num-steps li { margin: 2px 0; }

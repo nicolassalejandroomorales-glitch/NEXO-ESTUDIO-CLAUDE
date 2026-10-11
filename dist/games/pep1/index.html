@@ -50,8 +50,17 @@ canvas#arena{display:block;width:100%;touch-action:none;user-select:none;-webkit
 
 /* ---------- Panel ---------- */
 .panel{border:1px solid var(--ink-700);border-radius:14px;background:var(--ink-900);padding:14px;display:flex;flex-direction:column;gap:12px;min-height:140px}
-.dialog{margin:0;min-height:3em;font-size:15px;cursor:pointer}
-.dialog b{font-family:var(--font-title);color:var(--amber);letter-spacing:.06em;font-size:13px;margin-right:6px}
+.dialog{margin:0;min-height:4.2em;font-size:16px;cursor:pointer;background:#000;border:3px solid #f5f0e4;border-radius:4px;padding:10px 14px;box-shadow:inset 0 0 0 2px #000,0 4px 0 rgb(0 0 0 / .4)}
+.dialog b{display:block;font-family:var(--font-title);color:var(--amber);letter-spacing:.12em;font-size:12px;margin-bottom:2px}
+.dialog .txt{font-family:"Cascadia Mono","Consolas","Courier New",monospace;font-size:15px;letter-spacing:.02em;line-height:1.55}
+.inicio{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:20px;
+  background:radial-gradient(ellipse at 50% 40%,#1a1630,#05050c 75%);transition:opacity .5s}
+.inicio.fuera{opacity:0;pointer-events:none}
+.inicio h2{font-family:var(--font-title);font-size:clamp(30px,6vw,46px);margin:0;text-shadow:0 0 24px rgb(217 172 104 / .45)}
+.inicio p{margin:0;color:var(--paper-dim)}
+.inicio small{color:var(--paper-dim);font-size:12px}
+.big{background:var(--amber);color:var(--ink-950);border:0;border-radius:10px;padding:12px 26px;font-weight:800;font-size:17px;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 12px rgb(217 172 104 / 0),0 0 30px rgb(217 172 104 / .35)}}
 .dialog span b{font-family:inherit;color:var(--paper);letter-spacing:0;font-size:inherit;margin:0}
 .accion{display:flex;flex-direction:column;gap:10px}
 .accion.in>div{animation:rise .32s cubic-bezier(.2,.8,.2,1) both}
@@ -155,6 +164,7 @@ canvas#arena{display:block;width:100%;touch-action:none;user-select:none;-webkit
 
 @media (max-width:700px){
   .stage:has(.mapa:not([hidden])) canvas#arena{display:none}
+  .inicio{position:fixed}
   .mapa{position:relative;inset:auto;overflow:visible;background:linear-gradient(#173040,#081016)}
   .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
   .con{gap:8px 30px}
@@ -199,11 +209,11 @@ canvas#arena{display:block;width:100%;touch-action:none;user-select:none;-webkit
     <span>Rozar balas sin que te toquen llena el <b>foco</b></span>
   </footer>
 </div>
-<script src="contenido.js?v=1"></script>
-<script src="moleculas.js?v=1"></script>
-<script src="audio.js?v=1"></script>
-<script src="arte.js?v=1"></script>
-<script src="desafios.js?v=1"></script>
-<script src="juego.js?v=1"></script>
+<script src="contenido.js?v=3"></script>
+<script src="moleculas.js?v=3"></script>
+<script src="audio.js?v=3"></script>
+<script src="arte.js?v=3"></script>
+<script src="desafios.js?v=3"></script>
+<script src="juego.js?v=3"></script>
 </body>
 </html>
