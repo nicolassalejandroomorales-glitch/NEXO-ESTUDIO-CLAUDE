@@ -324,8 +324,12 @@
     if (Array.isArray(raw.practiceCompleted)) {
       raw.practiceCompleted.forEach(id => { if (!next.practice[id]) next.practice[id] = { attempts: 1, checked: true, correct: true, lastAttempt: todayKey() }; });
     }
-    // Mascota nueva en preparación (docs/mascota/SPEC.md): sin especies ni cosméticos; solo se conserva el nombre.
-    next.mascot = { name: String(next.mascot?.name || '').trim().slice(0, 24) || 'Nexo' };
+    // Mascota pixel (docs/mascota/SPEC.md · Fase 6): nombre, especie y vestuario (4 ranuras). Solo local.
+    {
+      const m = next.mascot || {}, outfit = {};
+      ['cabeza', 'cara', 'cuello', 'mano'].forEach(slot => { if (typeof m.outfit?.[slot] === 'string' && /^\w{1,20}$/.test(m.outfit[slot])) outfit[slot] = m.outfit[slot]; });
+      next.mascot = { name: String(m.name || '').trim().slice(0, 24) || 'Nexo', kind: ['matraz', 'atomo', 'slime'].includes(m.kind) ? m.kind : 'matraz', outfit };
+    }
     if (!DATA.backgrounds.some(item => item.id === next.settings.background)) next.settings.background = base.settings.background;
     next.lessonSession = null; // las clases se están rehaciendo: no hay avance de clase que conservar
     next.meta = { ...base.meta, ...next.meta };
@@ -464,9 +468,19 @@
   function reward(id) { return DATA.rewards.find(item => item.id === id); }
   // La mascota se está rehaciendo (docs/mascota/SPEC.md): por ahora no se dibuja en ninguna pantalla.
   function avatarMarkup() { return ''; }
+  function petBind() {
+    window.NexoPet?.bind({
+      get: () => state.mascot,
+      set: patch => { Object.assign(state.mascot, patch); saveState({ backup: false }); window.NexoPet.renderDock(document.getElementById('companionPresence')); },
+      motion: () => state.settings.mascotMotion,
+      studying: () => state.timer.status === 'running'
+    });
+  }
   function renderCompanionPresence() {
     const dock=document.getElementById('companionPresence');
-    if(dock){dock.hidden=true;dock.replaceChildren();}
+    if(!dock)return;
+    petBind();
+    if(window.NexoPet)window.NexoPet.renderDock(dock);else{dock.hidden=true;dock.replaceChildren();}
   }
 
   function statusChip(status) {
@@ -520,6 +534,7 @@
     window.NexoWillowView?.cleanup();
     window.NexoAcademicTraining?.cleanup();
     window.NexoMascotController?.cleanup();
+    window.NexoPet?.cleanup();
     const route = parseRoute();
     const routeChanged=previousRoute!==route.join('/');
     const roomFamily=parts=>['subject','lesson','subjects','library','knowledge','inspector'].includes(parts[0])?'learn':
@@ -662,6 +677,7 @@
       </div>
     </section>`;
     window.NexoHomeScene.enhancePan?.(app);
+    petBind(); window.NexoPet?.mountHome(app.querySelector('.home-art-plane')); window.NexoPet?.checkWeather();
   }
 
   function renderTimer() {
@@ -1291,13 +1307,25 @@
     return `<section class="empty-state" aria-labelledby="${id}"><span class="empty-state-mark" aria-hidden="true">✧</span><p class="eyebrow">${eyebrow}</p><h2 id="${id}">${title}</h2><p>${text}</p></section>`;
   }
   function renderShop() {
-    app.innerHTML=`<section class="page forge-page">${comingSoon('MERCADO ARCANO','shopSoon','Tienda · Disponible próximamente',
-      'Estamos rehaciendo la tienda junto con tu nuevo compañero. Tus átomos se siguen ganando al estudiar.')}</section>`+
+    petBind();
+    app.innerHTML=`<section class="page forge-page"><p class="eyebrow">MERCADO ARCANO</p><h2>Tienda de accesorios</h2>
+      <p>Pruébale los accesorios a tu compañero. Comprar se activa pronto; tus átomos se siguen ganando al estudiar (${state.coins} ⚛).</p>
+      <div style="display:flex;justify-content:center;background:radial-gradient(circle at 50% 40%,#f3e6c8,#d8c39a);border-radius:12px;margin:10px 0"><canvas id="petShopPreview" width="40" height="44" style="width:160px;height:176px;image-rendering:pixelated" aria-label="Vista previa de tu compañero"></canvas></div>
+      <div id="petShop" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px"></div></section>`+
       `<details class="forge-challenges"><summary>Desafíos de estudio</summary>${renderChallenges()}</details>`;
+    window.NexoPet?.wireShop(app);
   }
   function renderMascot() {
-    app.innerHTML=`<section class="page">${comingSoon('TU COMPAÑERO','mascotSoon','Mascota · Disponible próximamente',
-      'Estamos diseñando un compañero nuevo, propio de Nexo, que vivirá en tu refugio.')}</section>`;
+    petBind();
+    app.innerHTML=`<section class="page"><p class="eyebrow">TU COMPAÑERO</p><h2>Mascota</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px">
+        <div class="panel"><h3>Elige tu compañero</h3><div id="petPick" style="display:flex;gap:10px;flex-wrap:wrap"></div>
+          <p><label>Nombre <input id="petName" maxlength="20" autocomplete="off"></label></p>
+          <h3>Vestuario</h3><div id="petWardrobe" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+          <p><small>Cuatro ranuras (cabeza, cara, cuello, mano). Más accesorios en la Tienda.</small></p></div>
+        <div class="panel" style="display:flex;justify-content:center;align-items:center;background:radial-gradient(circle at 50% 40%,#f3e6c8,#d8c39a)"><canvas id="petBig" width="40" height="44" style="width:240px;height:264px;image-rendering:pixelated" aria-label="Así se ve tu compañero"></canvas></div>
+      </div></section>`;
+    window.NexoPet?.wireProfile(app);
   }
 
   function renderSettings() {
@@ -1414,7 +1442,7 @@
       }
       if (!cloud.authenticated) state.coins += rewardValue;
       state.timer = { status: 'idle', subject: state.timer.subject, startedAt: null, elapsedBeforeMs: 0 };
-      saveState(); playSuccess(); renderRoute(false);
+      saveState(); playSuccess(); renderRoute(false); window.NexoPet?.celebrate(rewardValue);
       showToast(`Sesión guardada · ${formatClock(confirmedSeconds * 1000)}${rewardValue ? ` · +${rewardValue} átomos` : ' · sin átomos pendientes'}`);
       cloud.track('study_session_completed',{subject_id:state.timer.subject,seconds:confirmedSeconds});
     };

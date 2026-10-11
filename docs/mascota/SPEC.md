@@ -23,11 +23,33 @@ Antes de la vida en la sala se borra todo lo viejo para rehacerlo con el diseño
 **Quedó pendiente de la Fase 0**: CSS muerto del avatar/tienda en `styles.css`, `arcane.css` y `update01.css` (no estorba; limpiarlo al hacer la tienda nueva),
 y pruebas de navegador/nube que aún mencionan la mascota vieja (`e2e-test`, `cloud-e2e`, `cloud-test`, `database-test`, `optimize-room-art`).
 
-## Fase 5 — Las mismas mascotas en PIXEL ART (5 oct 2026) ← DIRECCIÓN ACTUAL
+## Fase 6 — Llevarla a la app (11 oct 2026) ← IMPLEMENTADA, falta aprobación de Niquito
+
+**Hecho**: motores en `dist/mascot/`, `home-pet.js` (en el bundle; carga perezosa de los motores), Inicio, barra lateral/móvil, Perfil › Mascota, Tienda (solo "Probar"; "Comprar" espera la economía), celebrar al guardar sesión, noche, tormenta (Open-Meteo). Estado en `state.mascot {name,kind,outfit}`.
+**Pendiente**: precios/compra, oclusión detrás de muebles, nube.
+
+Niquito: "creo que podríamos añadirlo ya, dame un preview de todo lo que se añadiría". Maqueta funcionando con el motor real:
+**`/dev/preview-mascota-app.html`** + motor de vida en una sala **`dist/dev/pixel-vida.js`** (lugares del piso y "perchas" a las que salta,
+escala por profundidad re-rasterizada, libro, siesta, noche, tormenta, celebrar con "+15 ⚛", tocarla). Capturas en `capturas/preview/`.
+
+**Qué se agrega (al aprobar)**
+1. **Inicio**: la mascota vive en `refugio-pixel` (lugares en px de arte 418×235: piso del escritorio (84,166), escritorio (88,112, percha),
+   estantería (132,162, saca libro de (120,96)), alfombra (214,196)/(276,206), frente al sillón (336,178), sillón (354,136, percha, siesta)).
+   Un `<canvas>` del tamaño del arte encima del fondo, con `image-rendering: pixelated`. Respeta reduced-motion, pestaña oculta y calidad baja.
+2. **Barra lateral / móvil**: mini mascota animada (respira, parpadea, accesorios) fuera del Inicio.
+3. **Perfil › Mascota**: elegir átomo/matraz/slime, nombre y vestuario (4 ranuras). Se guarda en `state.mascot` (local, sin nube).
+4. **Tienda pixel**: 14 accesorios con "Probar"; precios de ejemplo 60–260 ⚛ → **la economía la decide Niquito antes de activar "Comprar"**.
+5. **Reacciones**: celebrar al terminar una sesión de estudio, dormir de noche (`--w-night`), nerviosa con tormenta (Open-Meteo ya autorizado).
+
+**Cómo (archivos)**: mover `pixelmascotas.js` y `pixel-vida.js` a `dist/mascot/`, un módulo `dist/mascot/home-pet.js` que monta el canvas
+en el Inicio, y cambios chicos en `app.js` (Perfil › Mascota, Tienda, barra lateral, aviso al terminar sesión). Sin tocar Supabase.
+**Fuera de este paso**: pasar detrás de muebles (oclusión), zoom por zonas, sincronizar con la nube, precios definitivos.
+
+## Fase 5 — Las mismas mascotas en PIXEL ART (5 oct 2026)
 
 Niquito pidió rehacer átomo, matraz y slime en pixel art con todas las animaciones. El Inicio también pasa a pixel art
 (otro chat: `docs/inicio-pixelart/SPEC.md`, 418×235 px de arte ×4), así que las mascotas usan **el mismo tamaño de píxel y las mismas rampas**.
-- `dist/dev/pixelmascotas.js`: motor de sprites. Grilla de 40×44 px de arte; cada cuadro se **re-rasteriza** con la pose (aplastar, inclinar,
+- `dist/mascot/pixelmascotas.js`: motor de sprites. Grilla de 40×44 px de arte; cada cuadro se **re-rasteriza** con la pose (aplastar, inclinar,
   flotar, poción inclinada, corcho que salta) → nunca se estira la imagen. Sombreado por escalones dentro de rampas (luz arriba-izquierda),
   contorno propio de cada pieza + contorno exterior con el tono más oscuro ("selout"). Ojos, bocas, 14 expresiones, 14 accesorios y efectos
   (corazón, notas, !, ?, 6, 7, lágrima, z, estrella, vapor, enojo, libros, bombilla) son mini dibujos hechos a mano (mapas de caracteres).

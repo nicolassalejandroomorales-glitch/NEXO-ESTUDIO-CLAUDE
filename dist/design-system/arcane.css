@@ -363,3 +363,10 @@ body[data-nexo-room="learn"] .subject-card footer strong { color:#346552; }
 .grade-course-final { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:17px; padding:17px 19px; border:1px solid #d4b97d; border-radius:10px; background:linear-gradient(110deg,#35423b,#222e30); box-shadow:inset 0 1px rgb(255 241 195 / .13),0 8px 20px rgb(0 0 0 / .17); }
 .grade-course-final span { color:#f5ead2; font:700 .88rem/1.3 var(--font-ui); }
 .grade-course-final strong { color:#ffd38b; font:800 1.65rem/1 var(--font-title); font-variant-numeric:tabular-nums; }
+/* Mascota pixel en la barra (Fase 6): grande en el riel, chiquita en la barra de arriba del móvil */
+.companion-presence .dock-pet { width:96px;height:106px;margin:0 auto;display:block;image-rendering:pixelated; }
+.companion-presence .companion-name { text-align:center;margin:2px 0 0;font-size:13px;color:#f8e7c8; }
+@media (max-width:900px) {
+  .companion-presence .dock-pet { width:48px;height:53px; }
+  .companion-presence .companion-name { display:none; }
+}

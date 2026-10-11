@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preview · Mascota en Nexo</title>
+<style>
+  :root { --bg:#1d1813; --panel:#2a221b; --line:#4a3d2e; --ink:#f4e8d2; --muted:#c3b291; --gold:#e8b65a; --green:#7fc28a; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 Georgia, serif; padding:24px 16px 60px; }
+  main { max-width:1180px; margin:0 auto; }
+  h1 { margin:0 0 6px; font-size:30px; } h2 { margin:34px 0 6px; font-size:22px; color:var(--gold); } h3 { margin:0 0 6px; font-size:17px; }
+  p { margin:0 0 10px; color:var(--muted); } .tag { display:inline-block; font-size:12px; background:var(--gold); color:#1d1813; border-radius:6px; padding:0 7px; margin-right:6px; }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; }
+  .grid2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; }
+  ul { margin:6px 0 0; padding-left:20px; } li { margin:3px 0; }
+  canvas { image-rendering:pixelated; display:block; }
+  #room { width:100%; aspect-ratio:418/235; border-radius:12px; cursor:pointer; }
+  .controls { display:flex; flex-wrap:wrap; gap:7px; margin:10px 0; }
+  button { font:inherit; font-size:14px; padding:6px 12px; border-radius:8px; border:1px solid #6b5a40; background:#2b241d; color:var(--ink); cursor:pointer; }
+  button[aria-pressed="true"] { border-color:var(--gold); color:var(--gold); }
+  button.study { border-color:var(--green); color:var(--green); }
+  .status { font-size:14px; color:var(--muted); min-height:20px; }
+  /* Barra lateral (mock) */
+  .shell { display:flex; gap:0; border:1px solid var(--line); border-radius:12px; overflow:hidden; min-height:260px; }
+  .rail { width:170px; background:#1a1a14; padding:14px 12px; display:flex; flex-direction:column; gap:8px; }
+  .rail b { color:var(--gold); } .rail span { font-size:14px; color:var(--muted); padding:5px 8px; border-radius:6px; } .rail span.on { background:#2e2a1e; color:var(--ink); }
+  .rail .dock { margin-top:auto; text-align:center; font-size:13px; color:var(--muted); }
+  .page { flex:1; padding:16px; background:#221c16; color:var(--muted); }
+  .mobilebar { display:flex; align-items:center; gap:10px; background:#1a1a14; border-radius:10px; padding:6px 10px; margin-top:12px; }
+  /* Perfil */
+  .pets { display:flex; gap:10px; flex-wrap:wrap; }
+  .pet { background:#e9d9b4; border-radius:10px; padding:4px; border:3px solid transparent; cursor:pointer; text-align:center; color:#3b2418; font-weight:bold; font-size:13px; }
+  .pet[aria-pressed="true"] { border-color:var(--gold); }
+  .field { display:flex; gap:8px; align-items:center; margin:10px 0; flex-wrap:wrap; }
+  .field input, .field select { font:inherit; background:#1d1813; color:var(--ink); border:1px solid #6b5a40; border-radius:8px; padding:5px 8px; }
+  .big { background:radial-gradient(circle at 50% 40%, #f3e6c8, #d8c39a); border-radius:12px; display:flex; justify-content:center; }
+  /* Tienda */
+  .shop { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:10px; }
+  .item { background:#1f1a14; border:1px solid var(--line); border-radius:10px; padding:8px; text-align:center; }
+  .item .icon { background:#e9d9b4; border-radius:8px; display:flex; justify-content:center; align-items:center; height:64px; margin-bottom:6px; }
+  .item small { display:block; color:var(--muted); } .item .price { color:var(--gold); font-weight:bold; }
+  .item button { margin-top:6px; width:100%; }
+  .scope li b { color:var(--ink); }
+</style>
+</head>
+<body>
+<main>
+<h1>Preview · lo que entraría a Nexo con la mascota</h1>
+<p>Todo esto funciona con el motor real (pixel art re-rasterizado). Nada de esto está todavía dentro de la app: es la maqueta para aprobar.</p>
+
+<section class="panel scope">
+  <h3>Qué se agregaría a la app</h3>
+  <ul>
+    <li><b>1. Inicio:</b> tu mascota vive en el refugio pixel (escritorio, estantería, alfombra, sillón), saca libros, lee, duerme, hace emotes y la puedes tocar.</li>
+    <li><b>2. Barra lateral / móvil:</b> la mascota en miniatura te acompaña en las otras pantallas.</li>
+    <li><b>3. Perfil › Mascota:</b> elegir átomo, matraz o slime, ponerle nombre y vestirla (4 ranuras). Se guarda en tu progreso.</li>
+    <li><b>4. Tienda:</b> los 14 accesorios en pixel, con precio en átomos y "probar antes de comprar".</li>
+    <li><b>5. Reacciona a tu estudio:</b> celebra al terminar una sesión (+átomos), duerme de noche y se pone nerviosa con la tormenta (clima real ya autorizado).</li>
+  </ul>
+</section>
+
+<h2>1 · Inicio: la mascota vive en el refugio</h2>
+<p>Toca la sala para hacerle cariño. Abajo puedes simular lo que pasaría con tu estudio.</p>
+<div class="controls" id="pickRoom"></div>
+<canvas id="room" width="418" height="235"></canvas>
+<p class="status" id="status"></p>
+<div class="controls"><button class="study" id="study">✦ Terminé una sesión de estudio (+15 átomos)</button><button id="night">Es de noche</button><button id="storm">Tormenta</button></div>
+<div class="controls" id="acts">
+  <button data-act="saludo">Saludar</button><button data-act="baile">Bailar</button><button data-act="seisSiete">Six seven</button><button data-act="dab">Dab</button>
+  <button data-act="idea">Idea</button><button data-act="confundida">Confundida</button><button data-act="deslumbrada">Deslumbrada</button>
+  <button data-act="nerviosa">Nerviosa</button><button data-act="llorar">Llorar</button><button data-act="enojada">Enojada</button></div>
+
+<h2>2 · Te acompaña en las otras pantallas</h2>
+<div class="grid2">
+  <div class="shell"><div class="rail"><b>✦ NEXO</b><span>Inicio</span><span class="on">Aprender</span><span>Entrenar</span><span>Juegos</span><span>Perfil</span>
+    <div class="dock"><canvas id="mini" width="40" height="44" style="width:96px;height:106px;margin:0 auto"></canvas><span id="miniName">Matraz</span></div></div>
+    <div class="page"><h3 style="color:var(--ink)">Aprender</h3><p>(la pantalla normal de la app)</p><p>La mascota queda abajo en la barra lateral, respirando y parpadeando; si estudias, se pone concentrada.</p></div></div>
+  <div class="panel"><h3>En el celular</h3><p>Va chiquita en la barra de arriba, sin tapar nada.</p>
+    <div class="mobilebar"><canvas id="mini2" width="40" height="44" style="width:44px;height:48px"></canvas><b style="color:var(--gold)">NEXO</b><span style="margin-left:auto;color:var(--gold)">✦ 0</span></div></div>
+</div>
+
+<h2>3 · Perfil › Mascota</h2>
+<div class="grid2">
+  <div class="panel">
+    <h3>Elige tu compañero</h3>
+    <div class="pets" id="pets"></div>
+    <div class="field"><label>Nombre <input id="petName" maxlength="20" value="Matraz"></label></div>
+    <h3>Vestuario</h3>
+    <div class="field" id="wardrobe"></div>
+    <p style="font-size:13px">Las 4 ranuras (cabeza, cara, cuello, mano) sirven igual para las tres mascotas.</p>
+  </div>
+  <div class="panel"><h3>Así se ve</h3><div class="big"><canvas id="profileBig" width="40" height="44" style="width:240px;height:264px"></canvas></div>
+    <p id="exprLabel" style="text-align:center;margin-top:8px"></p></div>
+</div>
+
+<h2>4 · Tienda en pixel</h2>
+<p>Precios de ejemplo (la economía de átomos todavía se decide). "Probar" la pone en la vista previa del Perfil.</p>
+<div class="shop" id="shop"></div>
+
+<h2>Lo que NO entra en este paso</h2>
+<section class="panel"><ul>
+  <li>Pasar <i>detrás</i> de muebles (oclusión) y el zoom por zonas del refugio: cambios aparte.</li>
+  <li>Sincronizar mascota y compras con la nube (Supabase): sigue sin tocarse; todo queda en el dispositivo.</li>
+  <li>Precios y economía definitivos de la tienda: los decides tú antes de activar "Comprar".</li>
+</ul></section>
+</main>
+
+<script src="../mascot/pixelmascotas.js?v=7"></script>
+<script src="../mascot/pixel-vida.js?v=1"></script>
+<script>
+const P = window.PixelMascotas, reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const NAMES = { matraz: 'Matraz', atomo: 'Átomo', slime: 'Slime' };
+let kind = 'matraz', outfit = {};
+
+// ——— 1 · Inicio ———
+const room = document.getElementById('room');
+const bg = new Image(); bg.src = '../assets/home-scenes/refugio-pixel.png';
+const bgArt = document.createElement('canvas'); bgArt.width = 418; bgArt.height = 235;
+bg.onload = () => { const b = bgArt.getContext('2d'); b.imageSmoothingEnabled = false; b.drawImage(bg, 0, 0, 418, 235); };
+const stations = {
+  deskFloor: { x: 84, y: 166 },
+  desk: { x: 88, y: 112, perch: true, from: 'deskFloor', scale: .92, action: 'read', say: 'Sube al escritorio…' },
+  shelf: { x: 132, y: 162, action: 'book', say: 'Va a la estantería…' },
+  rug: { x: 214, y: 196, say: 'Paseando por la alfombra…' },
+  rug2: { x: 276, y: 206, say: 'Paseando por la alfombra…' },
+  chairFront: { x: 336, y: 178 },
+  chair: { x: 354, y: 136, perch: true, from: 'chairFront', scale: .9, action: 'nap', say: 'Se va al sillón…' }
+};
+const life = PixelVida.create({ canvas: room, background: bgArt, stations, bookFrom: [120, 96], reduced,
+  route: ['deskFloor', 'shelf', 'desk', 'rug', 'rug2', 'chair', 'rug', 'shelf', 'desk', 'rug2'],
+  depth: y => .86 + Math.max(0, Math.min(1, (y - 150) / 85)) * .4, onStatus: t => { document.getElementById('status').textContent = t; } });
+room.addEventListener('click', () => life.poke());
+document.getElementById('acts').addEventListener('click', e => { if (e.target.dataset.act) life.act(e.target.dataset.act); });
+document.getElementById('study').addEventListener('click', () => life.celebrate(15));
+document.getElementById('night').addEventListener('click', e => { const on = e.target.getAttribute('aria-pressed') !== 'true'; e.target.setAttribute('aria-pressed', on); life.night(on); });
+document.getElementById('storm').addEventListener('click', e => { const on = e.target.getAttribute('aria-pressed') !== 'true'; e.target.setAttribute('aria-pressed', on); life.storm(on); });
+
+// ——— Selección compartida (Inicio, barra, Perfil) ———
+function renderPick() {
+  document.getElementById('pickRoom').innerHTML = P.list.map(([k, l]) => `<button data-k="${k}" aria-pressed="${k === kind}">${l}</button>`).join('');
+  document.querySelectorAll('.pet').forEach(p => p.setAttribute('aria-pressed', String(p.dataset.k === kind)));
+}
+function setKind(k) { kind = k; life.setKind(k); renderPick(); const n = document.getElementById('petName'); if (Object.values(NAMES).includes(n.value)) n.value = NAMES[k]; document.getElementById('miniName').textContent = n.value; }
+document.getElementById('pickRoom').addEventListener('click', e => { if (e.target.dataset.k) setKind(e.target.dataset.k); });
+document.getElementById('petName').addEventListener('input', e => { document.getElementById('miniName').textContent = e.target.value || NAMES[kind]; });
+
+// ——— 3 · Perfil ———
+const pets = document.getElementById('pets');
+pets.innerHTML = P.list.map(([k, l]) => `<div class="pet" data-k="${k}"><canvas width="40" height="44" style="width:96px;height:106px"></canvas>${l}</div>`).join('');
+pets.addEventListener('click', e => { const p = e.target.closest('.pet'); if (p) setKind(p.dataset.k); });
+function renderWardrobe() {
+  document.getElementById('wardrobe').innerHTML = P.SLOTS.map(slot => `<label>${slot[0].toUpperCase() + slot.slice(1)} <select data-slot="${slot}"><option value="">—</option>` +
+    Object.entries(P.ACCESORIOS).filter(([, a]) => a.slot === slot).map(([id]) => `<option value="${id}"${outfit[slot] === id ? ' selected' : ''}>${P.NOMBRES[id]}</option>`).join('') + '</select></label>').join('');
+}
+document.getElementById('wardrobe').addEventListener('change', e => { outfit[e.target.dataset.slot] = e.target.value; life.setOutfit(outfit); });
+
+// ——— 4 · Tienda ———
+const PRICES = { flor: 60, corbatin: 60, lentes: 80, gorro: 90, taza: 90, bufanda: 110, lupa: 110, monoculo: 120, collar: 140, birrete: 160, lentesSol: 160, varita: 180, sombrero: 200, corona: 260 };
+const shop = document.getElementById('shop');
+shop.innerHTML = Object.entries(P.ACCESORIOS).sort((a, b) => PRICES[a[0]] - PRICES[b[0]]).map(([id, a]) =>
+  `<div class="item" data-id="${id}"><div class="icon"></div><b>${P.NOMBRES[id]}</b><small>${a.slot}</small><span class="price">${PRICES[id]} ⚛</span>` +
+  `<button data-try="${id}">Probar</button></div>`).join('');
+shop.querySelectorAll('.item').forEach(it => { const c = P.sprite(P.ACCESORIOS[it.dataset.id].rows); c.style.width = c.width * 4 + 'px'; c.style.height = c.height * 4 + 'px'; it.querySelector('.icon').append(c); });
+shop.addEventListener('click', e => { const id = e.target.dataset.try; if (!id) return; const slot = P.ACCESORIOS[id].slot;
+  outfit[slot] = outfit[slot] === id ? '' : id; e.target.textContent = outfit[slot] === id ? 'Quitar' : 'Probar'; renderWardrobe(); life.setOutfit(outfit);
+  document.getElementById('profileBig').scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+
+// ——— Sprites pequeños animados (barra, perfil) ———
+const smalls = [...document.querySelectorAll('#mini, #mini2, #profileBig, .pet canvas')];
+const EXPRS = ['neutral', 'feliz', 'picara', 'deslumbrada', 'amor', 'concentrada'];
+function tick(now) {
+  const t = now / 1000, blink = (t % 3.4) < .13, e = EXPRS[Math.floor(t / 2.5) % EXPRS.length];
+  smalls.forEach(c => {
+    const k = c.closest('.pet')?.dataset.k || kind, big = c.id === 'profileBig';
+    const st = { t, sx: 1, sy: 1 + .02 * Math.sin(t * 2), bodyTilt: 0, rootTilt: 0, hop: 0, lift: k === 'atomo' ? 2 + Math.sin(t * 2) * 1.5 : 0, slosh: 4 * Math.sin(t * 2),
+      cork: 0, tag: 8 * Math.sin(t * 2), footL: 0, footR: 0, spin: 0, excite: 0, drip: 0, hat: 3 * Math.sin(t * 3), look: [0, 0], blink,
+      expr: big ? e : 'neutral', outfit: (big || c.id.startsWith('mini')) ? outfit : {}, arms: P.armPose(big && e === 'picara' ? 'sixseven' : big && e === 'feliz' ? 'wave' : 'rest', t) };
+    P.render(c.getContext('2d'), k, st);
+  });
+  document.getElementById('exprLabel').textContent = 'Expresión: ' + e;
+  requestAnimationFrame(tick);
+}
+renderPick(); renderWardrobe(); requestAnimationFrame(tick);
+</script>
+</body>
+</html>

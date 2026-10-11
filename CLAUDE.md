@@ -39,7 +39,7 @@ npm test                            # todas las pruebas rápidas (tools/run-test
 | `dist/platform/animation.js`, `dist/platform/audio.js` | Grimorio: intro, cambio de página, sonidos. Skill **`nexo-grimorio`**. |
 | `dist/classes/` | Aula "torre del alquimista" y clases. Antes de tocarlas: skill **`nexo-clase`**. |
 | `dist/academic/*` | Motor académico: conceptos, evidencia, estados de conocimiento y FSRS. Piloto: **org-01 / Aminas**. Skill **`nexo-motor`**. |
-| `dist/dev/pixelmascotas.js`, `dist/mascot/` | Mascotas en pixel art. Skill **`nexo-mascota`**. Cualquier arte en pixel: skill **`nexo-pixel-art`**. |
+| `dist/mascot/pixelmascotas.js`, `dist/mascot/` | Mascotas en pixel art. Skill **`nexo-mascota`**. Cualquier arte en pixel: skill **`nexo-pixel-art`**. |
 | `dist/games/` | Juegos (campaña "Camino a la PEP 1"). Antes de tocarlos: skill **`nexo-juegos`**. |
 | `dist/planner/` | Organización: calendario, notas, prioridades, labs (UPDATE 02). Skill **`nexo-organizacion`**. |
 | Perfil (`renderProfile` en `app.js`), `dist/academic/ranks.js` | Mascota, notas, inasistencias, estadísticas, ajustes, rangos. Skill **`nexo-perfil`**. |
@@ -59,6 +59,8 @@ npm test                            # todas las pruebas rápidas (tools/run-test
 
 ## Forma de trabajo (SDD liviano)
 
+00. **"Diseñar" = conversar** (11 oct 2026): cuando Niquito diga "diseñemos/sigamos diseñando", solo hablar: ideas, opciones y preguntas, **sin generar imágenes, GIF, pixel art ni código**.
+    Esas cosas se hacen solo cuando él diga "hazlo / dibújalo / implementa". Cuesta tokens y suele no ser lo que quiere.
 0. Si la instrucción es ambigua: máximo 3 preguntas cortas con opciones antes de programar. En cosas grandes, maqueta primero.
 1. Antes de programar, una página en `docs/<cambio>/SPEC.md`: **qué**, **decisiones**, **cómo**, **criterios de aceptación** y **pendiente**.
 2. Implementar en pasos chicos. Probar en desktop (1440) y en móvil (390), y correr las pruebas rápidas.

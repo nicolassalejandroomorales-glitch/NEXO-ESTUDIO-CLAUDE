@@ -52,5 +52,5 @@ for (const exam of exams) {
 
 // Mascota y tienda en preparación (docs/mascota/SPEC.md): no deben quedar restos del sistema anterior.
 if (companions.length || rewards.length || ['/* avatar/', 'mascot-rive', 'vendor/rive'].some(text => startupBundle.includes(text)) || fs.existsSync(path.join(dist, 'assets', 'avatar'))
-  || !app.includes('Tienda · Disponible próximamente') || !app.includes('shopReset202610')) throw new Error('La mascota y la tienda antiguas deben estar borradas');
-console.log(`OK: cuatro destinos, perfil, mascota y tienda en preparación, ${ids.length} clases del catálogo base, ${exercises.length + ids.length * 3} ejercicios de la base anterior. El aula nueva de Orgánica se valida por separado.`);
+  || !app.includes('Tienda de accesorios') || !app.includes('shopReset202610')) throw new Error('La mascota y la tienda antiguas deben estar borradas');
+console.log(`OK: cuatro destinos, perfil, mascota y tienda pixel, ${ids.length} clases del catálogo base, ${exercises.length + ids.length * 3} ejercicios de la base anterior. El aula nueva de Orgánica se valida por separado.`);

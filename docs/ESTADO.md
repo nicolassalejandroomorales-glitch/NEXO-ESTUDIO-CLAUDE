@@ -47,3 +47,6 @@ Historial de lo hecho por tema. Lo lee Claude solo cuando necesita contexto de o
   Bitácora viva (diseño) y del prototipo de juegos solo `dist/games/prototipos/batalla-rey-amonio.html` + `docs/juegos-batalla/ENEMIGOS.md`.
 - Subido lo que estaba sin subir en el PC: mascota pixel (six seven, dab), juego PEP 1 (arte/audio nuevos) y capturas.
 - Reglas nuevas: `npm test` = `tools/run-tests.cjs` (encuentra las pruebas solo), `?v=` por hash (`tools/stamp-versions.cjs`), `docs/ESTADO.md merge=union`.
+
+## 11 oct 2026 · Mascota pixel en la app (Fase 6)
+- La mascota vive en el Inicio, barra lateral/móvil, Perfil › Mascota y Tienda (solo "Probar"); celebra al guardar sesión, duerme de noche y se pone nerviosa con tormenta. Motores en `dist/mascot/`. Detalle y pendiente (precios, oclusión, nube): `docs/mascota/SPEC.md`.
