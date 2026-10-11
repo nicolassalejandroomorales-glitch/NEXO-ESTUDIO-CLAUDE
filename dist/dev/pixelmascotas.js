@@ -135,14 +135,32 @@
     f.stamp(mouth, spec.mouthAt[0], spec.mouthAt[1] + (mouth.length > 2 ? 1 : 0));
   }
 
+  // ——— Mini brazos con manitos (se redibujan en cada pose: siempre píxeles nítidos) ———
+  const REST_ARMS = [{ h: [-3, 5] }, { h: [3, 5] }];
+  function segDist(px, py, ax, ay, bx, by) {
+    const dx = bx - ax, dy = by - ay, l = dx * dx + dy * dy || 1, t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / l));
+    return Math.hypot(px - ax - t * dx, py - ay - t * dy);
+  }
+  function drawArms(f, kind, st) {
+    const sp = SPECS[kind], arms = st.arms || REST_ARMS;
+    sp.shoulders.forEach(([sx0, sy0], k) => {
+      const a = arms[k] || REST_ARMS[k], H = [sx0 + a.h[0], sy0 + a.h[1]], E = a.e ? [sx0 + a.e[0], sy0 + a.e[1]] : null;
+      const pts = E ? [[sx0, sy0], E, H] : [[sx0, sy0], H];
+      const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+      const bbox = [Math.min(...xs) - 3, Math.min(...ys) - 3, Math.max(...xs) + 3, Math.max(...ys) + 3];
+      f.fill(bbox, sp.arm, (x, y) => pts.slice(1).some((p, i) => segDist(x, y, pts[i][0], pts[i][1], p[0], p[1]) <= 1.9), (x, y) => sp.armLvl + .4 - (y > (E ? E[1] : H[1]) ? .6 : 0));
+      f.fill([H[0] - 4, H[1] - 4, H[0] + 4, H[1] + 4], sp.hand, inEllipse(H[0], H[1], 2.45, 2.3), (x, y) => sp.handLvl + (x < H[0] && y < H[1] ? 1.2 : .3));
+    });
+  }
+
   // ——— Las tres mascotas (coordenadas en píxeles de arte; centro x=20, suelo y=43) ———
   const SPECS = {
     matraz: { eyes: [[16.5, 27], [23.5, 27]], mouthAt: [20, 30.5], mouth: 'sonrisa', blush: [[12.5, 29.5], [27.5, 29.5]],
-      slots: { cabeza: [20, 6.5], cara: [20, 27], cuello: [20, 15], mano: [32, 34] } },
+      slots: { cabeza: [20, 6.5], cara: [20, 27], cuello: [20, 15], mano: [32, 34] }, shoulders: [[11.6, 29.5], [28.4, 29.5]], arm: 'glass', armLvl: 5, hand: 'paper', handLvl: 4 },
     atomo: { eyes: [[17.5, 21], [22.5, 21]], mouthAt: [20, 24], mouth: 'sonrisa', blush: [[14.5, 23], [25.5, 23]],
-      slots: { cabeza: [20, 14.5], cara: [20, 21], cuello: [20, 31], mano: [32, 27] } },
+      slots: { cabeza: [20, 14.5], cara: [20, 21], cuello: [20, 31], mano: [32, 27] }, shoulders: [[12.4, 25], [27.6, 25]], arm: 'orbit', armLvl: 2.6, hand: 'paper', handLvl: 4 },
     slime: { eyes: [[15.5, 30], [24.5, 30]], mouthAt: [20, 33.5], mouth: 'abierta', blush: [[11.5, 32.5], [28.5, 32.5]],
-      slots: { cabeza: [20, 10], cara: [20, 30], cuello: [20, 38], mano: [35, 36] } }
+      slots: { cabeza: [20, 10], cara: [20, 30], cuello: [20, 38], mano: [35, 36] }, shoulders: [[7.5, 34], [32.5, 34]], arm: 'slime', armLvl: 5, hand: 'slime', handLvl: 6 }
   };
   const FLASK = [[16.6, 12], [23.4, 12], [23.4, 19], [32, 35.5], [32.6, 38.6], [30.6, 41.6], [9.4, 41.6], [7.4, 38.6], [8, 35.5], [16.6, 19]];
 
@@ -179,6 +197,7 @@
     f.fill([23, 14, 30, 21], 'paper', (sx, sy) => sx >= 24.5 && sx < 29.5 && sy >= 16 && sy < 20, (sx, sy) => 4 + (sy < 17 ? 1 : 0));
     f.stamp(['G'], 27, 18); f.restore();
     drawFace(f, SPECS.matraz, st);
+    drawArms(f, 'matraz', st);
     f.restore();
   }
 
@@ -205,7 +224,7 @@
     f.restore();
     f.save(); f.scale(st.sx, st.sy, 20, 22);
     f.fill([12, 14, 28, 30], 'proton', inEllipse(20, 22, 6.6, 6.6), sphere(20, 22, 6.6, 6.6, 4.3, 2.6));
-    drawFace(f, SPECS.atomo, st); f.restore();
+    drawFace(f, SPECS.atomo, st); drawArms(f, 'atomo', st); f.restore();
     orbits.forEach(([rot]) => ring(rot, true));
     // Electrones que giran (adelante brillan más).
     orbits.forEach(([rot, off]) => {
@@ -242,6 +261,7 @@
     f.fill([16, 9, 24, 13], 'wood', (sx, sy) => sy >= 10 && sy < 12.6 && Math.abs(sx - 20) < 2.6, (sx, sy) => (sy < 11 ? 7 : 5) - (sx - 20) * .3);
     f.stamp(['w'], 18, 17); f.restore();
     drawFace(f, SPECS.slime, st);
+    drawArms(f, 'slime', st);
     f.restore(); f.restore();
   }
 
@@ -313,6 +333,27 @@
     return c;
   }
 
-  window.PixelMascotas = Object.freeze({ W, H, render, SPECS, EXPRESSIONS: Object.keys(EXPRESSIONS), ACCESORIOS, NOMBRES, FX, sprite, RAMPS,
+  // Poses: t = tiempo (s), ph = fase de caminata. Coordenadas relativas a cada hombro (izquierdo, derecho) mirando a la derecha.
+  function armPose(name, t = 0, ph = 0) {
+    const w = Math.sin(t * Math.PI * 2 * 2.3);                    // six seven: 2,3 vaivenes por segundo
+    switch (name) {
+      case 'walk': return [{ h: [-3, 5 - 1.6 * Math.sin(ph)] }, { h: [3, 5 + 1.6 * Math.sin(ph)] }];
+      case 'sixseven': return [{ e: [-2.5, 1], h: [-5, -1 + 3.2 * w] }, { e: [2.5, 1], h: [5, -1 - 3.2 * w] }];
+      case 'dab': return [{ e: [6.5, -2.5], h: [10.5, -6] }, { e: [4, -4], h: [8, -8] }];
+      case 'wave': return [{ h: [-3, 5] }, { e: [3, -1], h: [4 + 1.6 * Math.sin(t * 16), -7] }];
+      case 'dance': return [{ h: [-4, -5 + 3 * Math.sin(t * 13.8)] }, { h: [4, -5 - 3 * Math.sin(t * 13.8)] }];
+      case 'up': return [{ h: [-4, -8] }, { h: [4, -8] }];
+      case 'carry': return [{ e: [-1.5, -5], h: [4, -11] }, { e: [1.5, -5], h: [-4, -11] }];
+      case 'read': return [{ h: [9, 2] }, { h: [6, 3] }];
+      case 'cry': return [{ e: [1, -1], h: [5, -3 + .5 * Math.sin(t * 20)] }, { e: [-1, -1], h: [-5, -3 + .5 * Math.sin(t * 20 + 1)] }];
+      case 'fists': return [{ h: [-3 + .8 * Math.sin(t * 40), -3] }, { h: [3 + .8 * Math.sin(t * 40 + 1), -3] }];
+      case 'fiddle': return [{ h: [6 + .7 * Math.sin(t * 12), 3] }, { h: [-6 - .7 * Math.sin(t * 12), 3] }];
+      case 'scratch': return [{ h: [-3, 5] }, { e: [3, -5], h: [-1 + .8 * Math.sin(t * 18), -11] }];
+      case 'cheeks': return [{ h: [5, 0] }, { h: [-5, 0] }];
+      case 'sleep': return [{ h: [6, 4] }, { h: [-6, 4] }];
+      default: return [{ h: [-3, 5 + .4 * Math.sin(t * 2)] }, { h: [3, 5 + .4 * Math.sin(t * 2 + 1)] }];
+    }
+  }
+  window.PixelMascotas = Object.freeze({ W, H, render, armPose, SPECS, EXPRESSIONS: Object.keys(EXPRESSIONS), ACCESORIOS, NOMBRES, FX, sprite, RAMPS,
     SLOTS: ['cabeza', 'cara', 'cuello', 'mano'], list: [['matraz', 'Matraz'], ['atomo', 'Átomo'], ['slime', 'Slime']] });
 })();

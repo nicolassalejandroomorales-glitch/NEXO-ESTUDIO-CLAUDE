@@ -35,6 +35,10 @@ Niquito pidió rehacer átomo, matraz y slime en pixel art con todas las animaci
   saca un libro de la estantería, lo lee junto a la ventana, duerme junto a las plantas, emotes, vestuario y luciérnagas de píxel.
   Hoja de revisión: `/dev/pixel-hoja.html` (×6–×8, expresiones, cosméticos y poses).
 - La versión SVG (Fase 4) queda como respaldo; el diseño, conductas, expresiones, emotes y ranuras son los mismos.
+- **Mini brazos con manitos** (5 oct 2026): cápsula hombro→(codo)→mano + manito redonda, re-rasterizados por cuadro. Matraz: brazos de vidrio
+  con manitos crema; átomo: brazos celeste energía con manitos crema; slime: seudópodos de gelatina. `armPose(nombre)`: rest, walk,
+  **sixseven** (el gesto del meme: palmas arriba que suben y bajan alternadas), **dab** (brazos en diagonal, cara en el codo, cuerpo inclinado),
+  wave, dance, up, carry, read, cry, fists, fiddle, scratch, cheeks, sleep. En la demo las poses se mezclan suave y cada conducta usa la suya.
 
 ## Fase 4 — Mascota temática simple (4 oct 2026) — su diseño se conserva en la Fase 5 (pixel)
 
