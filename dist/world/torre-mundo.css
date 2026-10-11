@@ -1,0 +1,60 @@
+/* Mundo de la torre (docs/mundo-torre/SPEC.md): escena pixel recorrible arriba de Entrenar, Juegos y Perfil. */
+/* Igual que el refugio del Inicio: el arte es parte de la página (de borde a borde, sin marco). Ancho, alto y márgenes los pone el JS. */
+.torre-scene {
+  position: relative; display: flex; justify-content: center; height: 420px; margin-bottom: 8px;
+  overflow: hidden; background: #140c10; touch-action: manipulation; user-select: none; --torre-fade: #10171a;
+}
+.torre-view { display: block; flex: none; image-rendering: pixelated; image-rendering: crisp-edges; }
+/* Sombra arriba para que se lea el título, y fundido abajo hacia el resto de la página. */
+.torre-scene::before, .torre-scene::after { content: ""; position: absolute; left: 0; right: 0; pointer-events: none; z-index: 1; }
+.torre-scene::before { top: 0; height: 34%; background: linear-gradient(rgb(12 8 8 / .72), rgb(12 8 8 / 0)); }
+.torre-scene::after { bottom: 0; height: 14%; background: linear-gradient(transparent, var(--torre-fade)); }
+.torre-title { position: absolute; z-index: 2; top: clamp(14px, 2.4vw, 30px); left: clamp(16px, 3vw, 44px); right: 120px; pointer-events: none; }
+.torre-title > * { pointer-events: auto; }
+.torre-title h1, .torre-title .page-header h1 { margin: 0; color: #fff2dc; text-shadow: 0 2px 0 #140d0a, 0 2px 14px #140d0a; }
+.torre-title .page-header { margin: 0; padding: 0; min-height: 0; border: 0; background: none; box-shadow: none; }
+.torre-title .eyebrow, .torre-title .lede { color: #fbe08a; text-shadow: 0 1px 0 #140d0a, 0 2px 10px #140d0a; }
+.torre-title .lede { display: none; }   /* el mensaje ya está en la pista de abajo */
+
+.torre-tip, .torre-say {
+  position: absolute; z-index: 2; margin: 0; transform: translateX(-50%); pointer-events: none; white-space: nowrap;
+  font-size: .8rem; line-height: 1.2;
+}
+.torre-tip { padding: 4px 10px; color: #fff0c4; background: rgb(20 12 16 / .9); border: 1px solid #e2b850; border-radius: 8px; }
+.torre-say {
+  max-width: 260px; padding: 6px 11px; white-space: normal; text-align: center; color: #3b2418; font-weight: 700;
+  background: #f6ecd4; border: 2px solid #3b2418; border-radius: 10px; box-shadow: 0 3px 0 rgb(20 12 16 / .45);
+}
+.torre-say::after {
+  content: ""; position: absolute; left: 50%; bottom: -8px; width: 10px; height: 10px; transform: translateX(-50%) rotate(45deg);
+  background: #f6ecd4; border-right: 2px solid #3b2418; border-bottom: 2px solid #3b2418;
+}
+.torre-hint {
+  position: absolute; z-index: 2; left: 14px; bottom: 14px; margin: 0; padding: 3px 9px; pointer-events: none; font-size: .74rem;
+  color: rgb(255 240 196 / .88); background: rgb(20 12 16 / .6); border-radius: 6px;
+}
+/* Teclado: los objetos también son botones (aparecen al llegar con Tab). */
+.torre-keys { position: absolute; top: 8px; left: 8px; right: 8px; display: flex; flex-wrap: wrap; gap: 6px;
+  clip-path: inset(50%); }
+.torre-keys:focus-within { clip-path: none; }
+.torre-keys button { padding: 4px 9px; font-size: .78rem; color: #fff0c4; background: rgb(20 12 16 / .9); border: 1px solid #e2b850; border-radius: 8px; }
+
+/* La escena reemplaza las cabeceras con imagen de antes. */
+.arcane-training.torre-on .torre-title h1 { min-height: 0; padding: 0; border: 0; background: none; box-shadow: none; display: block; }
+.profile-page.torre-on .profile-room-header { display: none; }
+
+/* Cuando un objeto elige algo, el formulario o la tarjeta brillan un momento. */
+.torre-flash { animation: torre-flash 1.3s ease-out; }
+@keyframes torre-flash {
+  0% { box-shadow: 0 0 0 0 rgb(226 184 80 / .9); }
+  40% { box-shadow: 0 0 0 6px rgb(226 184 80 / .45); }
+  100% { box-shadow: 0 0 0 0 rgb(226 184 80 / 0); }
+}
+.game-placeholder.game-ready { text-decoration: none; border-color: #e2b850; background: linear-gradient(135deg, #3a2448, #1b2630); }
+.game-placeholder.game-ready p { color: #fbe08a; font-weight: 700; }
+
+@media (max-width: 700px) {
+  .torre-hint { font-size: .68rem; left: 8px; bottom: 8px; }
+  .torre-title { right: 70px; }
+}
+@media (prefers-reduced-motion: reduce) { .torre-flash { animation: none; outline: 2px solid #e2b850; } }

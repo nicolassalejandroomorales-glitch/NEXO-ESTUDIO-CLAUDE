@@ -15,3 +15,4 @@ description: Cómo se dibuja pixel art en Nexo (rampas de color, escala ×4, scr
 - Todo asset sale de un **script reproducible** en `tools/`; nunca editar el PNG a mano. Sin IA de imágenes.
 - Diseños propios: ambiente inspirado está bien, copiar personajes u objetos de series no.
 - Gustos de Niquito: le encantan el piso, la ventana y las runas del refugio; **no agregar más runas**. Le gustó la v3: calma, verde, mágica sin recargar.
+- **Escenas en la app = parte de la página, como el refugio del Inicio** (11 oct 2026): de borde a borde, pegadas arriba, sin marco ni esquinas, título encima del arte. Nunca dentro de un "cuadrito" o tarjeta. Ejemplo: `dist/world/torre-mundo.js` (`resize`).

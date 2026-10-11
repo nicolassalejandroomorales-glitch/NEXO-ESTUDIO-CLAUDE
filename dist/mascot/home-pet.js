@@ -153,6 +153,7 @@
 
   window.NexoPet = Object.freeze({
     bind(a) { api = { ...api, ...a }; },
-    mountHome, cleanup, renderDock, celebrate, wireProfile, wireShop, checkWeather, kinds: KINDS, names: NAMES
+    mountHome, cleanup, renderDock, celebrate, wireProfile, wireShop, checkWeather, kinds: KINDS, names: NAMES,
+    engine, current: pet, reduced   // los usa el mundo de la torre (world/torre-mundo.js)
   });
 })();

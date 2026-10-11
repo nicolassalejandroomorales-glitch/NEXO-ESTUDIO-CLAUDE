@@ -50,3 +50,7 @@ Historial de lo hecho por tema. Lo lee Claude solo cuando necesita contexto de o
 
 ## 11 oct 2026 · Mascota pixel en la app (Fase 6)
 - La mascota vive en el Inicio, barra lateral/móvil, Perfil › Mascota y Tienda (solo "Probar"); celebra al guardar sesión, duerme de noche y se pone nerviosa con tormenta. Motores en `dist/mascot/`. Detalle y pendiente (precios, oclusión, nube): `docs/mascota/SPEC.md`.
+
+## 11 oct 2026 · Mundo de la torre (fases 1 y 2)
+- Entrenar, Juegos y Perfil tienen escena pixel **de borde a borde** (como el Inicio) donde la mascota camina con clic/toque; cada objeto hace algo (elige modo, abre juego, cambia pestaña). Perfil = habitación de la mascota; Juegos = arcade v1 con portal a la campaña PEP 1.
+- Entrenar = **Laboratorio de Orgánica II** con calidad nueva: capas con parallax, luz por hora real, animaciones y 3 estados de progreso (provisorio). Diseño de la torre completa (pisos por ramo, escalera + ascensor) en `docs/mundo-torre/SPEC.md`.

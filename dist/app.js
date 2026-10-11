@@ -612,7 +612,8 @@
   function renderHome() { return renderHomeRpg(); }
 
   function renderGames() {
-    app.innerHTML = `<section class="page games-room">${pageHeader('ARCADE ARCANO','Juegos','Próximamente')}<div class="games-grid">${['Memory Lab','Error Hunter','Blitz','Boss Arena'].map(name=>`<article class="game-placeholder"><span aria-hidden="true">◇</span><h2>${name}</h2><p>Próximamente</p></article>`).join('')}</div></section>`;
+    // La escena del Arcade la pone world/torre-mundo.js; cada tarjeta tiene su máquina en la sala (data-game-card).
+    app.innerHTML = `<section class="page games-room">${pageHeader('ARCADE ARCANO','Juegos','Elige una máquina o cruza el portal')}<div class="games-grid">${[['memory','Memory Lab'],['hunter','Error Hunter'],['blitz','Blitz']].map(([id,name])=>`<article class="game-placeholder" data-game-card="${id}"><span aria-hidden="true">◇</span><h2>${name}</h2><p>Próximamente</p></article>`).join('')}<a class="game-placeholder game-ready" data-game-card="campaign" href="games/pep1/index.html"><span aria-hidden="true">♛</span><h2>Boss Arena · Camino a la PEP 1</h2><p>Jugar</p></a></div></section>`;
   }
 
   function rankedCommitments() {

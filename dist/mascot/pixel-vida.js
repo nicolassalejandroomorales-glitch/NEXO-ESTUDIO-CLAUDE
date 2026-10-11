@@ -24,18 +24,20 @@
     return out.map(r => r.join(''));
   }
 
-  function create({ canvas, background, stations, route, bookFrom, depth = () => 1, kind = 'matraz', onStatus = () => {}, reduced = false }) {
+  function create({ canvas, background, stations, route, bookFrom, depth = () => 1, kind = 'matraz', onStatus = () => {}, reduced = false,
+    manual = false, start: startAt = null, speed: speedK = 1 }) {
+    // manual: sin paseo automático; la página la mueve con walkTo(x, y) (mundo de la torre, docs/mundo-torre/SPEC.md).
     const P = window.PixelMascotas, ctx = canvas.getContext('2d'), W = canvas.width, H = canvas.height;
     ctx.imageSmoothingEnabled = false;
     const sprite = document.createElement('canvas'); sprite.width = P.W; sprite.height = P.H;
     const sctx = sprite.getContext('2d');
     const SPR = Object.fromEntries(Object.entries(P.FX).map(([k, rows]) => [k, P.sprite(rows)]));
-    const start = stations[route[0]];
-    const A = { kind, x: start.x, y: start.y, at: route[0], left: false, w: 0, target: 0, phase: 0, t: 0, air: 0, jumpY: 0, sq: 0, sqT: 0, joy: 0,
+    const start = startAt || stations[route[0]];
+    const A = { kind, x: start.x, y: start.y, at: manual ? null : route[0], left: false, w: 0, target: 0, phase: 0, t: 0, air: 0, jumpY: 0, sq: 0, sqT: 0, joy: 0,
       lean: 0, leanT: 0, look: [0, 0], lookT: [0, 0], nextGlance: 2, gesture: 0, dance: 0, stretch: 0, six: 0, shake: 0, excite: 0, sit: 0, sitT: 0,
       mode: 'idle', blinkUntil: 0, nextBlink: 3, expr: 'neutral', outfit: {}, carry: null, reading: false, pose: null, arms: null, dabTilt: 0, dabTiltT: 0,
       night: false, storm: false, flash: 0, last: performance.now() };
-    let exprTimer = 0, busy = false, paused = false, running = true;
+    let exprTimer = 0, busy = false, paused = false, running = true, walkId = 0;
     const baseExpr = () => A.mode === 'read' ? 'concentrada' : A.mode === 'sleep' ? 'dormida' : A.storm ? 'nerviosa' : 'neutral';
     const setExpr = (e, ms) => { A.expr = e; clearTimeout(exprTimer); if (ms) exprTimer = setTimeout(() => setExpr(baseExpr()), ms); };
     const say = t => onStatus(t);
@@ -116,15 +118,16 @@
 
     // ——— Movimiento ———
     async function walk(x, y) {
-      const fx0 = A.x, fy0 = A.y, dist = Math.hypot(x - fx0, (y - fy0) * 1.6);
-      if (dist < 1) return;
+      const fx0 = A.x, fy0 = A.y, dist = Math.hypot(x - fx0, (y - fy0) * 1.6), id = ++walkId;
+      if (dist < 1) return true;
       if (Math.abs(x - fx0) > .5) A.left = x < fx0;
       A.mode = 'walk'; A.target = 1; A.moving = true;
-      const speed = { atomo: 38, slime: 32, matraz: 26 }[A.kind], ms = reduced ? 1 : Math.max(450, dist / speed * 1000), t0 = performance.now();
-      await new Promise(done => { const tick = now => { if (paused) { requestAnimationFrame(tick); return; }
+      const speed = { atomo: 38, slime: 32, matraz: 26 }[A.kind] * speedK, ms = reduced ? 1 : Math.max(450, dist / speed * 1000), t0 = performance.now();
+      await new Promise(done => { const tick = now => { if (id !== walkId) return done(); if (paused) { requestAnimationFrame(tick); return; }
         const t = Math.min(1, (now - t0) / ms), e = ease(t); A.x = fx0 + (x - fx0) * e; A.y = fy0 + (y - fy0) * e; A.leanT = 6 * (1 - 2 * t) * (A.left ? -1 : 1);
         if (t > .8) A.target = 0; t < 1 ? requestAnimationFrame(tick) : done(); }; requestAnimationFrame(tick); });
-      A.target = 0; A.leanT = 0; A.mode = 'idle'; A.moving = false;
+      if (id !== walkId) return false;
+      A.target = 0; A.leanT = 0; A.mode = 'idle'; A.moving = false; return true;
     }
     async function jump(x, y) {
       A.sqT = 1; await wait(170); A.sqT = 0; A.moving = true;
@@ -203,10 +206,19 @@
         else await idleMoment(s.wait || 2400);
       }
     }
-    requestAnimationFrame(frame); loop();
+    requestAnimationFrame(frame); if (!manual) loop();
     return {
       state: A, act,
       setKind(k) { A.kind = k; }, setOutfit(o) { A.outfit = { ...o }; },
+      walkTo(x, y) { A.pose = null; if (A.mode === 'sleep') { A.mode = 'idle'; A.sitT = 0; setExpr(baseExpr()); } return walk(x, y); },
+      place(x, y, left) { walkId++; A.x = x; A.y = y; A.left = !!left; A.mode = 'idle'; A.moving = false; A.target = 0; },
+      async sleep(on) {
+        clearInterval(A.zz);
+        if (on && A.mode !== 'sleep') { await act('bostezo'); A.mode = 'sleep'; A.sitT = 1; setExpr('dormida');
+          A.zz = setInterval(() => { if (A.mode !== 'sleep') return clearInterval(A.zz); emit('zz', A.x + 10, top() + 6, { vx: 4, vy: -8, life: 1.6 }); }, 900); }
+        else if (!on && A.mode === 'sleep') { A.mode = 'idle'; A.sitT = 0; setExpr('sorpresa', 700); }
+      },
+      get busy() { return busy; },
       poke() { A.joy = 1; setExpr('amor', 1500); if (!busy) { A.pose = 'cheeks'; setTimeout(() => { if (A.pose === 'cheeks') A.pose = null; }, 1500); }
         for (let i = 0; i < 4; i++) emit('heart', A.x + Math.random() * 14 - 7, top(), { vy: -14, life: 1.2, delay: i * .12 }); },
       async celebrate(atoms = 15) { if (busy) return; busy = true; try { await withPose('up', async () => {
