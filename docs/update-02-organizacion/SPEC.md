@@ -60,8 +60,29 @@ Mandan sobre todo lo de más abajo (diseño v2 del 5 oct). Donde choquen, gana e
 - **Tareas: pendiente / en progreso / hecha**.
 - **Vista semestre**: PEPs y controles por ramo (una fila cada uno), semanas críticas, notas que van cayendo y marca de "hoy".
 
-**Falta preguntar** (próximas tandas): detalle de las vistas mes/semana/lista, tablero de pruebas (qué dice cada ficha), cómo se ve la escena
-(hora, clima, objetos con vida), lab y ponderaciones por ramo **con los PDF de Niquito**, y orden de implementación.
+**Tanda 3 (11 oct) — regla: todo en pixel art y con la ambientación de la torre** (rampas de `tools/home-pixel/pixel.py`,
+resolución mixta, hora real, clima real, alquimista excéntrico + naturaleza que invade, sin runas nuevas).
+- **Escena del estudio**: ventanal con vista exterior (hora y clima reales), mapas y planos colgando (mini historias de un cartógrafo
+  excéntrico: compases, reglas, tinteros), hiedra y hongos que brillan, chimenea o caldero (luz cálida de noche).
+- **Objetos con vida**: reloj con péndulo (hora real), campana que se mece y suena con aviso nuevo, matraces que burbujean (más si hay pre-lab
+  pendiente), velas y polvo en la luz.
+- **La escena refleja la situación real**: el corcho se llena de fichas (rojas si están cerca), la balanza se inclina a verde/rojo según notas,
+  ambiente algo más cálido y papeles revueltos en semana crítica (sin ansiedad), mesa ordenada si se cumple el plan (desordenada si no, sin culpa).
+- **Ficha de prueba**: reloj de arena + días, temario y material (Biblioteca, clases, PEPs antiguas), preparación con evidencia (no minutos) y plan hacia atrás.
+- **Vista Mes**: pergamino desplegado en la mesa (se enrolla al cambiar de mes), sellos de lacre por prueba + iconos pixel (matraz = lab,
+  pluma = entrega), hoy con brillo que respira, tocar un día abre su hoja (al costado en PC, desde abajo en celular).
+- **Vista Semana**: horario fijo (tablillas de madera), bloques de estudio del plan, tareas con estado y **mover bloques arrastrando**.
+- **Vista Lista**: por fecha, agrupada por semana.
+- **Sonido**: ambiente suave (fuego, lluvia real, tic-tac bajito) y sonidos al actuar (pluma, sello, campana). Respeta silencio/ajustes.
+- **Notas en pixel**: frascos en un estante (teoría y lab en repisas distintas), número grande tallado ("Necesitas 4,6"),
+  simulador con **palanca de latón**, lomos de libro por ramo.
+- **Al guardar una nota**: el frasco se llena por escalones, la pluma escribe "guardado" (con deshacer), la mascota reacciona
+  (roja → "¿vemos qué falló?") y chispas de color según la nota.
+- **Horario**: Niquito manda foto, Claude lo carga, y él lo ajusta en Nexo.
+- **Orden de construcción**: primero **escena del estudio + Hoy + avisos en el Inicio**.
+
+**Falta**: los **PDF/fotos de los programas** (ponderaciones, lab, mínimos, recuperativas) y la **foto del horario**;
+orden de las fases siguientes; cómo se ve Avisos (campana) y la vista Semestre en pixel; cómo se integra el viaje escalera/ascensor.
 
 ---
 
