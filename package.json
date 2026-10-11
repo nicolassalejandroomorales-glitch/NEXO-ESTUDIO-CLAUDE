@@ -8,7 +8,7 @@
     "dev": "node tools/static-server.cjs",
     "supabase:prepare": "node tools/prepare-supabase.cjs",
     "build": "node tools/build.cjs",
-    "test": "node smoke-test.cjs && node tools/classroom-test.cjs && node tools/state-test.cjs && node tools/cloud-test.cjs && node tools/avatar-test.cjs && node tools/game-test.cjs && node tools/mascot-controller-test.cjs && node tools/audio-test.cjs && node tools/ambient-event-test.cjs && node tools/academic-test.cjs && node tools/structured-test.cjs && node tools/training-test.cjs && node tools/rescue-test.cjs && node tools/rank-test.cjs && node tools/active-time-test.cjs && node tools/priority-test.cjs && node tools/lab-test.cjs && node tools/grade-test.cjs && node tools/room-test.cjs && node tools/security-audit.cjs && node tools/database-test.cjs",
+    "test": "node smoke-test.cjs && node tools/classroom-test.cjs && node tools/state-test.cjs && node tools/cloud-test.cjs && node tools/avatar-test.cjs && node tools/game-test.cjs && node tools/mascot-controller-test.cjs && node tools/audio-test.cjs && node tools/ambient-event-test.cjs && node tools/academic-test.cjs && node tools/structured-test.cjs && node tools/training-test.cjs && node tools/rescue-test.cjs && node tools/rank-test.cjs && node tools/active-time-test.cjs && node tools/priority-test.cjs && node tools/lab-test.cjs && node tools/grade-test.cjs && node tools/room-test.cjs && node tools/security-audit.cjs && node tools/database-test.cjs && node tools/check-skills.cjs",
     "test:e2e": "node tools/e2e-test.cjs && node tools/profile-test.cjs && node tools/planner-e2e.cjs && node tools/cloud-e2e.cjs",
     "test:perf": "node tools/perf-audit.cjs",
     "test:a11y": "node tools/accessibility-test.cjs",

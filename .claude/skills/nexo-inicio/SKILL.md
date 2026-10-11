@@ -14,7 +14,7 @@ description: Reglas del Inicio de Nexo (refugio, escena, luz, objetos tocables, 
 
 ## Reglas
 - `dist/assets/home-scenes/refugio-012.png` es el original: **nunca se modifica ni se borra**.
-- Desde el 5 oct 2026 el Inicio es **pixel art de verdad** (`refugio-pixel.png`, 418×235 ×4, ver `docs/inicio-pixelart/SPEC.md`): píxel por píxel con rampas de color (`tools/home-pixel/pixel.py`), nunca un filtro sobre el arte viejo ni sprites pegados encima. Le gustan el piso, la ventana y las runas (no agregar más runas).
+- Desde el 5 oct 2026 el Inicio es **pixel art de verdad** (`refugio-pixel.png`, 418×235 ×4, ver `docs/inicio-pixelart/SPEC.md`): sigue la skill `nexo-pixel-art`. Le gustan el piso, la ventana y las runas (no agregar más runas).
 - Cada asset nuevo sale de un **script reproducible** en `tools/` que escribe en `dist/assets/home-scenes/`.
 - Objetos tocables: usan el router normal (`data-route` / `data-route-sub`), invisibles, sin etiquetas ni bordes, solo brillo suave al pasar el mouse.
 - Toda capa de luz usa `--w-*` o `--sun` / `--lamps` (cambio gradual). **No** crear reglas por estado `body[data-nexo-time=...]`.

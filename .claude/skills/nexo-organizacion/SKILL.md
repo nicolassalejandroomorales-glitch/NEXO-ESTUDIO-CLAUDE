@@ -18,7 +18,7 @@ description: Área de Organización de Nexo (UPDATE 02: plan semanal, calendario
 - Pruebas: `node tools/priority-test.cjs`, `tools/lab-test.cjs`, `tools/grade-test.cjs`, `tools/planner-e2e.cjs`.
 
 ## Reglas
-- Código nuevo en módulos propios (`dist/planner/schedule.js`, `weekly-plan.js`, `tasks.js`, `dist/organization.js`), **no** más líneas en `app.js`.
+- Código nuevo en módulos propios (planeados: dist/planner/schedule.js, weekly-plan.js, tasks.js y dist/organization.js), **no** más líneas en `app.js`.
 - El plan reparte **tiempo**; nunca declara dominio por minutos. Prioriza por evidencia (errores, transferencia, repaso espaciado) y muestra la razón de cada bloque.
 - `#/planner` debe seguir funcionando (redirige a Organización).
 - Objeto nuevo en el refugio: seguir la skill `nexo-inicio`.

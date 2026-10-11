@@ -35,9 +35,10 @@ node smoke-test.cjs; node tools/room-test.cjs; node tools/update01-test.cjs   # 
 |---|---|
 | `dist/app.js` | Router (`routeTo`, `renderRoute`) y la mayoría de las pantallas. Grande (184 KB): **nunca leerlo entero**; para ubicar algo usa el agente `nexo-explorador`. |
 | `dist/design-system/home-scene.js`, `update01.css`, `dist/ambient/time.js` | Inicio y luz. Antes de tocarlos: skill **`nexo-inicio`**. |
-| `dist/platform/animation.js` | Transiciones del grimorio (intro/reapertura/cierre, página y capítulo). |
+| `dist/platform/animation.js`, `dist/platform/audio.js` | Grimorio: intro, cambio de página, sonidos. Skill **`nexo-grimorio`**. |
 | `dist/classes/` | Aula "torre del alquimista" y clases. Antes de tocarlas: skill **`nexo-clase`**. |
-| `dist/academic/*` | Motor académico: conceptos, evidencia, estados de conocimiento y FSRS. Piloto: **org-01 / Aminas**. |
+| `dist/academic/*` | Motor académico: conceptos, evidencia, estados de conocimiento y FSRS. Piloto: **org-01 / Aminas**. Skill **`nexo-motor`**. |
+| `dist/dev/pixelmascotas.js`, `dist/mascot/` | Mascotas en pixel art. Skill **`nexo-mascota`**. Cualquier arte en pixel: skill **`nexo-pixel-art`**. |
 | `dist/games/` | Juegos (campaña "Camino a la PEP 1"). Antes de tocarlos: skill **`nexo-juegos`**. |
 | `dist/planner/` | Organización: calendario, notas, prioridades, labs (UPDATE 02). Skill **`nexo-organizacion`**. |
 | Perfil (`renderProfile` en `app.js`), `dist/academic/ranks.js` | Mascota, notas, inasistencias, estadísticas, ajustes, rangos. Skill **`nexo-perfil`**. |
@@ -52,7 +53,7 @@ node smoke-test.cjs; node tools/room-test.cjs; node tools/update01-test.cjs   # 
 - Por defecto: **Sonnet 5.5 · esfuerzo medio** (~80-90 % del trabajo: refugio, grimorio, pantallas, arreglos).
 - **Opus** solo para: diseñar el motor académico (FSRS, estados, corrección real), diseñar la estructura de una clase, un bug que falló 2 veces, decisiones de arquitectura.
 - Regla: primero subir el esfuerzo, después el modelo. Planear con Opus (`SPEC.md`) y ejecutar con Sonnet.
-- Una sesión = un cambio. Delegar búsquedas en el código al agente `nexo-explorador` (Haiku, solo lectura).
+- Una sesión = un cambio. Delegar a Haiku: búsquedas en el código → agente `nexo-explorador`; correr pruebas → agente `nexo-tester` (solo devuelve lo que falló).
 - Medir el costo por tarea terminada, no por mensaje. Revisar el gasto real cada pocas sesiones y recalibrar.
 
 ## Forma de trabajo (SDD liviano)
