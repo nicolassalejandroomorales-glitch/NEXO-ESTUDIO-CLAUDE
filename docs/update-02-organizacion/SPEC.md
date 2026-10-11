@@ -1,7 +1,60 @@
 # UPDATE 02 — La Bitácora viva (organización, calendario, pruebas y notas)
 
-Estado: **diseño v2 para aprobación de Niquito (5 oct 2026). Nada programado.**
-Reemplaza el borrador v1 de este mismo archivo (sus decisiones siguen abajo). Los avisos de Classroom siguen en `AVISOS.md`.
+Estado: **diseño en tandas de preguntas (11 oct 2026). Nada programado.**
+Los avisos de Classroom siguen en `AVISOS.md`.
+
+## Decisiones de Niquito · tandas de preguntas (11 oct 2026)
+
+Mandan sobre todo lo de más abajo (diseño v2 del 5 oct). Donde choquen, gana esta sección.
+
+**Lugar y estilo**
+- La Organización es el **estudio de planos de la torre** (`docs/mundo-torre/SPEC.md`): escena pixel de borde a borde, la mascota camina
+  y cada objeto abre una parte; el contenido va debajo como **pergamino sobre madera**. La Bitácora vieja y la maqueta del 5 oct "cortan la continuidad".
+- Objetos: **mesa de planos = Calendario** · **tablero de corcho = Pruebas** · **balanza/libro = Notas** (con inasistencias) ·
+  **banco con matraces = Laboratorio** · **reloj de pared = Hoy** · **campana = Avisos**.
+- Se llega desde el **calendario de la pared del refugio** (abre Hoy) y por la **escalera/ascensor de la torre**. (El mapa del suelo no se eligió.)
+- De la maqueta se rescatan: **relojes de arena, cinta "semana crítica", sellos de lacre y frascos de notas**.
+- **Notas e Inasistencias se mudan del Perfil a Organización** (una sola casa). → Avisar al chat del Perfil (`docs/mundo-torre/SPEC.md`: escritorio y calendario de la habitación).
+
+**Qué hace**
+- Lo más importante: **qué estudiar hoy** (y en qué orden). Luego calendario, notas y no olvidar nada.
+- Organiza: **pruebas y controles, laboratorio, tareas y lecturas, horario de clases**.
+- Plan del día: **Nexo propone, Niquito acepta/mueve**. Prioridad = **mezcla equilibrada** (cercanía + dificultad + ponderación + cómo va en el ramo + errores abiertos).
+- Dificultad: **Niquito parte con 1–5, Nexo ajusta** con errores y notas reales.
+- Tiempo de estudio: **distinto por día de la semana** (lo configura él).
+- Si no cumple: **reprograma sin culpa** y avisa si ya no alcanza.
+- Cambio de fecha: **historial + deshacer + aviso en Inicio + reacomoda el plan**.
+- Calendario con 4 vistas: **mes, semana, semestre (línea de tiempo) y lista**.
+- Agregar cosas: **botón rápido (qué, ramo, fecha)**, **desde la escena** y **conectar Classroom** (requiere terminar la prueba de factibilidad OAuth de `AVISOS.md`, Fase 0 pendiente).
+
+**Avisos**
+- **Solo dentro de Nexo** (sin nube). Primer aviso **2 semanas antes**.
+- En el Inicio, todo: **tablón que cambia por urgencia**, **la mascota lo dice**, **el calendario de la pared brilla** (≤ 7 días) y **plan de hoy visible con "Empezar"**.
+
+**Notas**
+- Las publican en **Classroom** o **el profe las dice/envía** → se ingresan a mano (o Classroom si se conecta).
+- Al caer una nota: **recalcula cuánto necesita**, **ajusta prioridades**, **3 preguntas de qué falló** y **la mascota reacciona**.
+- Después de rendir (sin nota aún): **"¿cómo te fue?" + nota estimada**; al llegar la real se compara (calibración).
+- Pantalla de Notas: **cuánto necesito**, **simulador "¿y si me saco…?"**, **riesgo de examen/reprobar** y **promedio general del semestre**.
+- Laboratorio hoy está mal en todo: **% no reales, no se ve si aprueba, confuso/feo y falta desglose**.
+  Partes del lab: **pre-lab / control de entrada, informes y prueba de laboratorio**.
+- Ponderaciones reales: Niquito pasa **foto o PDF del programa** de cada ramo y Claude las carga.
+- Inasistencias: **cuántas quedan** (barra vs máximo, teoría y lab) y **aviso cuando queda 1**.
+
+**Mascota en el estudio**: camina al objeto que tocas, **señala qué toca hoy** (objeto que brilla), reacciona a notas y pruebas, da consejos con evidencia. Nunca culpa.
+
+**Extras elegidos**: ritual del domingo, modo día de prueba, exportar al calendario del celular (.ics), resumen del semestre.
+
+**Urgencia**: diseñar todo con calma antes de programar (no se hace nada mínimo antes del 19 oct).
+
+**Falta preguntar** (próximas tandas): detalle de cada vista del calendario, cómo se ve el plan de hoy, lab por ramo con los PDF,
+examen/eximición/recuperativas, ritual del domingo y modo día de prueba, qué pasa en vacaciones o semanas sin clases.
+
+---
+
+# Diseño v2 (5 oct 2026) — referencia
+
+Reemplazó el borrador v1 (sus decisiones siguen al final).
 
 - ANTES (capturas reales de hoy): `antes/` (Inicio, Calendario, Ponderaciones y Perfil → Notas, en 1440 y 390 px).
 - PROPUESTA (maqueta estática, no es la app): `maqueta/maqueta.html` y sus capturas `maqueta/propuesta-*.png`.
