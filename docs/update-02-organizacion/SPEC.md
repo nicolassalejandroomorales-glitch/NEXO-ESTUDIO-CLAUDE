@@ -47,8 +47,21 @@ Mandan sobre todo lo de más abajo (diseño v2 del 5 oct). Donde choquen, gana e
 
 **Urgencia**: diseñar todo con calma antes de programar (no se hace nada mínimo antes del 19 oct).
 
-**Falta preguntar** (próximas tandas): detalle de cada vista del calendario, cómo se ve el plan de hoy, lab por ramo con los PDF,
-examen/eximición/recuperativas, ritual del domingo y modo día de prueba, qué pasa en vacaciones o semanas sin clases.
+**Tanda 2 (11 oct)**
+- Bloque del plan: **qué hacer + duración + la razón + botón Empezar + se tacha con tinta** al terminar (suma a la meta).
+  **Orden y duración; la hora es opcional** (la pone Niquito si quiere).
+- Reglas de evaluación conocidas: **PEP roja → examen** y **prueba recuperativa** si falta. El resto, desde los PDF de cada ramo.
+- Recesos (vacaciones, paro): **plan liviano de repaso**.
+- **Ritual del domingo**: ver la semana que viene, confirmar fechas, aceptar el plan semanal y mirar lo cumplido (sin culpa).
+- **Modo día de prueba**: repaso flash de 10 min (lo clave + errores típicos, sin materia nueva) e Inicio calmado.
+- **Mascota habla** 1 vez al entrar y cuando pasa algo (nota nueva, cambio de fecha).
+- **Banco del lab**: próxima sesión y su práctico, pre-lab pendiente, informes por entregar (estado) y notas de lab aparte con mínimo.
+- **Promedio general: simple** (todos los ramos valen igual).
+- **Tareas: pendiente / en progreso / hecha**.
+- **Vista semestre**: PEPs y controles por ramo (una fila cada uno), semanas críticas, notas que van cayendo y marca de "hoy".
+
+**Falta preguntar** (próximas tandas): detalle de las vistas mes/semana/lista, tablero de pruebas (qué dice cada ficha), cómo se ve la escena
+(hora, clima, objetos con vida), lab y ponderaciones por ramo **con los PDF de Niquito**, y orden de implementación.
 
 ---
 
