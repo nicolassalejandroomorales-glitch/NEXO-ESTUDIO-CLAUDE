@@ -41,3 +41,9 @@ Historial de lo hecho por tema. Lo lee Claude solo cuando necesita contexto de o
 - **Bitácora viva** (5 oct 2026, chat propio, `docs/update-02-organizacion/SPEC.md` v2): diseño de organización, calendario, pruebas y notas
   en pixel art de madera (pestañas Hoy · Calendario · Pruebas · Notas · Avisos), avisos por urgencia en el Inicio, semana crítica (19–27 oct),
   notas en un solo lugar (frascos alquímicos) y mascota acompañando. Maqueta: `docs/update-02-organizacion/maqueta/`. **Solo diseño, sin programar**; esperando respuestas de Niquito.
+
+## 11 oct 2026 · Unión de ramas en master
+- Unidas a `master`: Clases (Analítica, Fisiopatología, Orgánica II, FQ II, ejercicios infinitos con regla de calidad, Torre del Sauce, `netlify.toml`),
+  Bitácora viva (diseño) y del prototipo de juegos solo `dist/games/prototipos/batalla-rey-amonio.html` + `docs/juegos-batalla/ENEMIGOS.md`.
+- Subido lo que estaba sin subir en el PC: mascota pixel (six seven, dab), juego PEP 1 (arte/audio nuevos) y capturas.
+- Reglas nuevas: `npm test` = `tools/run-tests.cjs` (encuentra las pruebas solo), `?v=` por hash (`tools/stamp-versions.cjs`), `docs/ESTADO.md merge=union`.

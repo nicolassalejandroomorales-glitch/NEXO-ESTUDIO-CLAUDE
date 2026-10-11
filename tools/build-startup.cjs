@@ -21,3 +21,4 @@ const startupBundle = startupModules.map(name => {
 fs.writeFileSync(path.join(root, 'dist', 'startup-bundle.js'),
   '/* Generado por tools/build.cjs; editar los módulos fuente, no este archivo. */\n' + startupBundle);
 console.log(`Arranque: ${startupModules.length} módulos en startup-bundle.js.`);
+require("./stamp-versions.cjs");
