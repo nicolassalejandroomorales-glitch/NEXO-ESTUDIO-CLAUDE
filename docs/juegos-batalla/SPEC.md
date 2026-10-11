@@ -46,6 +46,19 @@ Código: `dist/games/pep1/` (abrir `http://127.0.0.1:8765/games/pep1/index.html`
   cetro con H⁺, enlaces de energía y ojos dorados (rojos y con colmillos desde la fase 2).
 - **Calidad automática**: si el juego va lento (computador o celular modesto) apaga rayos y remolinos. Forzar con `?calidad=baja`.
 
+## v3 (4 oct 2026)
+
+- **Música estilo chiptune** (inspirada en el género de bandas sonoras como la de Undertale: ondas cuadradas, bajo saltarín, arpegios,
+  melodías pegajosas). Todas las melodías son originales; se arman con "motivos" que tocan notas del acorde, así siempre calzan.
+  El **lobby (mapa) tiene su propio tema** tranquilo en Fa mayor; cada jefe tiene su tema de combate. Pantalla de inicio "▶ Comenzar" (activa el sonido).
+- **Texto lento con voz** (estilo Undertale): letra a letra, cada personaje suena distinto, pausas en puntos y comas; clic para terminar.
+- **Barra de precisión que va y vuelve** (3,6 s, dos oportunidades de crítico).
+- **Dificultad que escala**: ×0,85 · ×1 · ×1,15 · ×1,35. El Rey en la fase 3 lanza **dos ataques a la vez**.
+- **Animaciones nuevas**: conjuro del jefe antes de atacar, ondas expansivas, pausa de impacto al golpear, escena de cambio de fase
+  (un solo destello que se desvanece + cámara lenta), borde rojo al recibir daño, "¡Tu turno!".
+- **Fondos = dimensiones del grimorio** (se quitaron los dibujos de objetos que se veían básicos): nebulosa pintada con ruido,
+  constelación con la forma de la molécula, páginas del grimorio flotando con dibujos, sello con runas, piso de luz, runas que suben.
+
 ## Criterios de aceptación
 
 - Se juega completo de principio a fin: mapa → 3 guardianes → Rey Amonio → final, sin errores en consola.
