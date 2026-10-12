@@ -10,6 +10,7 @@ description: Tutorial guiado de Nexo (Grimorio que explica la app, elección y n
 
 ## Código
 - `dist/tutorial/tutorial.js` + `tutorial.css`: se cargan perezosamente al abrir la ruta **`#/tutorial`** (app.js tiene una entrada en `renderers`). Nada va al bundle.
+- `dist/tutorial/avisos.js` + `avisos.css`: globo del Grimorio. Primera vez por sección (solo si `state.tutorial.status==='skipped'`) y novedades (`NEWS`, id sube de 1 en 1). app.js lo carga en `checkAvisos`. Prueba: `tools/avisos-test.cjs`.
 - Exporta `window.NexoTutorial.render(app, { sound, exit })`. Los pasos son el arreglo `STEPS` (cada uno: `pose`, `text` o función de `s`, `scene`, `needs`, `next/back`, `noBack`).
 - Estado de **prueba** en `localStorage['nexo.tutorial.test.v1']` = `{i, kind, draft, name}`. **No toca** `state.mascot` ni las monedas todavía. Para repetir: `localStorage.removeItem('nexo.tutorial.test.v1')`.
 - La mascota que nace se dibuja con `window.PixelMascotas.render` (mismo código que `home-pet.js`), no con las hojas de huevos.

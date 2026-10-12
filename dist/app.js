@@ -137,7 +137,7 @@
       weeklyGoal: 300,
       inventory: [],
       mascot: { name: 'Nexo' },
-      tutorial: { status: 'pending', rewarded: false },
+      tutorial: { status: 'pending', rewarded: false, sections: {}, news: 0 },
       boosts: { streakShields: 0, protectedDates: [] },
       settings: { background: 'studio', sound: false, volume: 0.4, sfxVolume: 0.4,
         music: false, musicVolume: 0.15, ambient: false, ambientVolume: 0.12,
@@ -335,8 +335,9 @@
     {
       const tu = raw.tutorial && typeof raw.tutorial === 'object' ? raw.tutorial : null;
       const hasProgress = (next.sessions?.length || 0) + (next.completedLessons?.length || 0) + Object.keys(next.practice || {}).length > 0;
-      next.tutorial = tu && ['pending', 'skipped', 'done'].includes(tu.status) ? { status: tu.status, rewarded: !!tu.rewarded }
-        : hasProgress ? { status: 'done', rewarded: true } : { status: 'pending', rewarded: false };
+      const sections = {}; ['clases', 'juegos', 'organizacion', 'perfil'].forEach(k => { if (tu?.sections?.[k]) sections[k] = true; });
+      next.tutorial = tu && ['pending', 'skipped', 'done'].includes(tu.status) ? { status: tu.status, rewarded: !!tu.rewarded, sections, news: Math.max(0, Math.floor(Number(tu.news)) || 0) }
+        : hasProgress ? { status: 'done', rewarded: true, sections: {}, news: 0 } : { status: 'pending', rewarded: false, sections: {}, news: 0 };
     }
     if (!DATA.backgrounds.some(item => item.id === next.settings.background)) next.settings.background = base.settings.background;
     next.lessonSession = null; // las clases se están rehaciendo: no hay avance de clase que conservar
@@ -519,6 +520,15 @@
   }
   // La primera vez (cuenta nueva) el Inicio lleva al tutorial. Navegadores automatizados (pruebas) no lo ven.
   const tutorialDue = () => state.tutorial?.status === 'pending' && !navigator.webdriver;
+  // Avisos del Grimorio (dist/tutorial/avisos.js, carga perezosa): primera vez en cada sección si saltaste el tutorial, y novedades.
+  const withAvisos = fn => {
+    if (window.NexoAvisos) return fn(window.NexoAvisos);
+    const sc = document.createElement('script'); sc.src = 'tutorial/avisos.js?v=1'; sc.onload = () => fn(window.NexoAvisos); document.head.append(sc);
+  };
+  const checkAvisos = route => {
+    if (navigator.webdriver || !state.tutorial || state.tutorial.status === 'pending' || route[0] === 'lesson') return;
+    withAvisos(a => { if (parseRoute().join('/') === route.join('/')) a.check(route, state.tutorial, () => saveState({ backup: false })); });
+  };
   function routeTo(...parts) {
     const target = `#/${parts.map(encodeURIComponent).join('/')}`;
     if (location.hash === target) renderRoute(); else location.hash = target;
@@ -608,8 +618,8 @@
           canReward: () => !cloud.authenticated && !state.tutorial.rewarded,
           reward: () => { if (cloud.authenticated || state.tutorial.rewarded) return 0; state.coins += REWARD; state.tutorial.rewarded = true; saveState(); updateChrome(); return REWARD; },
           reward_amount: REWARD,
-          skip: () => { if (state.tutorial.status === 'pending') { state.tutorial.status = 'skipped'; saveState({ backup: false }); } },
-          finish: () => { state.tutorial.status = 'done'; saveState({ backup: false }); }
+          skip: () => { if (state.tutorial.status === 'pending') { state.tutorial.status = 'skipped'; saveState({ backup: false }); withAvisos(a => { state.tutorial.news = a.VERSION; saveState({ backup: false }); }); } },
+          finish: () => { state.tutorial.status = 'done'; saveState({ backup: false }); withAvisos(a => { state.tutorial.news = Math.max(state.tutorial.news || 0, a.VERSION); saveState({ backup: false }); }); }
         };
         const go = () => { if (parseRoute()[0] === 'tutorial') window.NexoTutorial.render(app, { mode, api: mode === 'test' ? null : api, sound: () => !!state.settings?.sound, exit: () => routeTo('home') }); };
         if (window.NexoTutorial) go(); else { const sc = document.createElement('script'); sc.src = 'tutorial/tutorial.js?v=2'; sc.onload = go; document.head.append(sc); }
@@ -624,6 +634,7 @@
     window.NexoAnimation?.navigate(app,previousRoute,route.join('/'));
     updateChrome();
     renderCompanionPresence(route);
+    if (routeChanged) checkAvisos(route);
     document.documentElement.classList.add('nexo-ready');
     if(routeChanged)window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     if (moveFocus) requestAnimationFrame(() => {

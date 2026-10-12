@@ -168,7 +168,7 @@ hay que tocar los 8 (contador x/8, se guarda en `seen`) para habilitar Siguiente
 - Filtro de nombres: palabras ofensivas por fragmento o exactas (ignora tildes y cambios tipo "l33t"); lista corta en `tutorial.js`, ampliable.
 
 ## Pendiente
-- Aparición «primera vez en cada sección» (Clases, Juegos, etc.) y avisos de secciones nuevas: no hecho.
+- ✅ Avisos (12 oct): globo chico del Grimorio en la esquina con «Entendido». **Primera vez en cada sección solo si saltaste el tutorial** (si lo hiciste completo no se repite). Novedades: lista con versión `NEWS` en `dist/tutorial/avisos.js` (el id sube de 1 en 1; cada aviso sale una vez en el Inicio). Estado en `state.tutorial.sections` y `.news`. Prueba: `tools/avisos-test.cjs`. Falta revisar en móvil (390).
 - Decidir qué pasa con el premio en cuentas con nube. Probar en móvil (390). Aprobar el tono del guion.
 - Revisar el filtro de nombres (palabras no permitidas) y los datos de estudio del guion.
 
