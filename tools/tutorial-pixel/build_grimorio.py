@@ -35,16 +35,16 @@ POSES = {
 _D = dict(rh='down', lh='down', look=0)
 HABLAR = {
     'reposo':      dict(POSES['reposo'], mouth='neutral'),
-    'senalar':     dict(POSES['senalar'], mouth='neutral'),
+    'senalar':     dict(POSES['senalar'], mouth='neutral', fx='senalar'),
     'abrir':       dict(POSES['abrir'], mouth='neutral'),
     'importante':  dict(POSES['importante'], mouth='o'),
     'feliz':       dict(dy=0, eye='happy', brow='idle', mouth='smile', **_D),
     'sorprendido': dict(dy=-1, eye='wide', brow='up', mouth='o', **_D),
-    'pensativo':   dict(dy=0, eye='open', brow=('idle', 'up'), mouth='flat', rh='up', lh='down', look=1, dots=True),
-    'triste':      dict(dy=1, eye='open', brow='sad', mouth='frown', tear=True, **_D),
+    'pensativo':   dict(dy=0, eye='open', brow=('idle', 'up'), mouth='flat', rh='up', lh='down', look=1, fx='pensar'),
+    'triste':      dict(dy=1, eye='open', brow='sad', mouth='frown', tear=True, fx='lluvia', halo='#4a6aa8', **_D),
     'enojado':     dict(dy=0, eye='open', brow='angry', mouth='grit', rh='up', lh='up', look=0, mark=True),
     'espiral':     dict(dy=0, eye='spiral', brow='relax', mouth='wavy', stars=True, **_D),
-    'sudor':       dict(dy=0, eye='open', brow='sad', mouth='wavy', sweat=True, rh='down', lh='down', look=-1),
+    'sudor':       dict(dy=0, eye='open', brow='sad', mouth='wavy', sweat=True, fx='nervios', rh='down', lh='down', look=-1),
     'guino':       dict(dy=0, eye=('open', 'happy'), brow='idle', mouth='smile', spark=True, rh='down', lh='down', look=1),
     'nocreo':      dict(dy=0, eye='lid', brow=('idle', 'up'), mouth='flat', rh='down', lh='down', look=-1),
     'lista':       dict(dy=0, eye='open', brow='idle', mouth='neutral', rh='hold', lh='down', look=1, panel='lista'),
@@ -471,6 +471,54 @@ def extras(c, p, dy):
     if p.get('idea'):                                         # chispa de idea sobre el dedo
         c.sprite(BX1 + 3, 1 + dy, ['..#..', '.###.', '#####', '.###.', '..#..'], 'rune', {'#': 6})
 
+def nube(c, cx, cy, mat, lv, rx_list):
+    """Nube hecha de elipses (cx, cy centro; rx_list = [(dx, dy, rx, ry), ...]); borde oscuro."""
+    m = np.zeros((H, W), bool)
+    for (dx, dy_, rx, ry) in rx_list:
+        m |= ell(c, cx + dx, cy + dy_, rx, ry)
+    yy, xx = c.grid()
+    e = m & ~erode(m)
+    lvl = np.full(m.shape, lv, np.float32)
+    lvl[yy > cy + 1] = lv - 1
+    lvl[yy < cy - 2] = lv + 1
+    lvl[e] = 1
+    c.mask(m, mat, lvl)
+
+
+def efectos_pose(c, p, dy):
+    ey = BY0 + dy + 8
+    if p.get('fx') == 'senalar':                              # estela mágica y destello en la punta
+        for (x, y, w) in ((53, 9 + dy, 5), (56, 12 + dy, 4), (50, 23 + dy, 4), (54, 26 + dy, 5)):
+            c.rect(x, y, x + w, y + 1, 'rune', 4)
+        c.sprite(60, 5 + dy, ['..#..', '..#..', '#####', '..#..', '..#..'], 'rune', {'#': 6})
+        c.px(62, 7 + dy, 'wax', 5)
+        for (x, y) in ((65, 11 + dy), (64, 22 + dy), (58, 28 + dy)):
+            c.px(x, y, 'rune', 5)
+    if p.get('fx') == 'pensar':                               # nube de pensamiento con ? y engranaje
+        nube(c, 57, 8, 'cloud', 5, [(-5, 1, 5, 3.5), (0, -1, 6, 4.5), (5, 1, 5, 3.5)])
+        c.sprite(55, 3, ['.###.', '#...#', '...#.', '..#..', '.....', '..#..'], 'arcane', {'#': 2})
+        c.sprite(55, 3, ['.....', '.....', '.....', '.....', '.....', '..#..'], 'arcane', {'#': 2})
+        c.rect(46, 14, 48, 16, 'cloud', 5)
+        c.px(44, 17, 'cloud', 5)
+        c.sprite(3, 12 + dy, ['.#.', '..#', '.#.', '...', '.#.'], 'rune', {'#': 5})   # ? chiquito
+        c.sprite(6, 26 + dy, ['.#.', '###', '.#.'], 'rune', {'#': 5})
+    if p.get('fx') == 'lluvia':                               # nube de lluvia sobre la cabeza
+        nube(c, CX, 6, 'cloud', 3, [(-8, 1, 6, 3.5), (-1, -1, 8, 4.5), (8, 1, 7, 3.5)])
+        for (x, y0_) in ((CX - 9, 10), (CX - 3, 11), (CX + 4, 10), (CX + 10, 12)):
+            c.rect(x, y0_, x + 1, y0_ + 3, 'blue', 5)
+            c.px(x, y0_, 'blue', 6)
+        for (x, y) in ((8, 20), (56, 22)):                    # gotas sueltas a los lados
+            c.rect(x, y, x + 1, y + 2, 'blue', 4)
+        for x in (CX - 9, CX + 8):                            # lágrima que baja por la barba
+            c.rect(x, ey + 10, x + 1, ey + 13, 'crystal', 5)
+    if p.get('fx') == 'nervios':                              # temblor, gotas voladoras y cara pálida
+        for (x, y) in ((7, 20), (4, 23), (58, 20), (61, 23)):
+            c.rect(x, y + dy, x + 1, y + 4 + dy, 'rune', 4)
+        for (x, y, big) in ((7, 15 + dy, True), (47, 13 + dy, False), (52, 20 + dy, False)):
+            c.sprite(x, y, ['.o.', 'o#o', 'o#o', '.o.'] if big else ['.o', 'o#', '.o'], 'crystal', {'o': ('clay', 0), '#': ('crystal', 6)})
+        c.rect(CX - 9, ey + 7, CX - 4, ey + 9, 'green', 4)     # cara verdosa (mejillas pálidas)
+        c.rect(CX + 4, ey + 7, CX + 9, ey + 9, 'green', 4)
+
 
 def particulas(c):
     for (x, y, m, l) in ((3, 48, 'rune', 4), (7, 57, 'arcane', 5), (63, 50, 'rune', 3), (64, 58, 'arcane', 4)):
@@ -491,6 +539,7 @@ def cuadro(name, p, phase=None):
     barba(c, ey, p, phase)
     marcapaginas(c, dy, 2 if name != 'dormido' else 1 if phase is None else (0, 2, 3)[phase])
     extras(c, p, dy)
+    efectos_pose(c, p, dy)
     if p.get('panel'):
         panel(c, dy, p['panel'] == 'lista')
     if p.get('excl'):
@@ -514,6 +563,10 @@ def cuadro(name, p, phase=None):
         halos = [(CX, LEDGE + 2, 26, '#9060dc', 0.9, 2.6), (cl, LEDGE - 6, 9, '#f89a30', 0.8, 1.0), (cr, LEDGE - 6, 9, '#f89a30', 0.8, 1.0)]
     if p.get('excl'):
         halos.append((CX, 30, 30, '#ffd860', 0.6, 1.0))
+    if p.get('halo'):
+        halos.append((CX, 20, 30, p['halo'], 0.45, 1.0))
+    if p.get('fx') == 'senalar':
+        halos.append((62, 9, 9, '#fff0a8', 0.8, 1.0))
     if p.get('mark'):
         halos.append((CX, 30, 30, '#e04030', 0.35, 1.0))
     if p.get('panel'):
