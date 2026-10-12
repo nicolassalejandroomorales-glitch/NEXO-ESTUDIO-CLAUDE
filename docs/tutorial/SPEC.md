@@ -161,9 +161,15 @@ hay que tocar los 8 (contador x/8, se guarda en `seen`) para habilitar Siguiente
 
 **Guion completo programado (12 oct):** pasos 27–29. Paso 27 = panel con dos enlaces a las pantallas que ya existen (#/planner/calendar y #/profile); el tutorial retoma donde quedaste al volver a #/tutorial. Paso 28 = la mascota entrega **+150 ⚛** (decidido por Niquito; en la prueba es solo visual). Paso 29 = cierre del Grimorio. Queda solo la conexión real.
 
+**Conexión real hecha (12 oct):** `state.tutorial = {status: pending|skipped|done, rewarded}` en `app.js` (defaultState + normalizeState: saves con progreso previo quedan como `done` y sin premio).
+- Cuenta nueva (`pending`): el Inicio redirige solo a `#/tutorial` (no en navegadores automatizados: `navigator.webdriver`). Los huevos guardan `state.mascot.kind/name` al confirmar el nombre (definitivo). **Salir** = `skipped`; terminar = `done`.
+- **Premio:** +150 ⚛ al llegar al paso del saco, una sola vez (`rewarded`). Con cuenta en la nube **no** se da ni se muestra el paso (el saldo viene de la nube; a decidir). Repetir desde Ajustes → Tutoriales (`#/tutorial`, panel nuevo en `renderSettings`): salta los pasos de elegir mascota, usa la real y solo premia si nunca lo cobraste.
+- `#/tutorial/test` = la prueba de antes (sin guardar nada). Avance real en `localStorage['nexo.tutorial.v1']`.
+- Filtro de nombres: palabras ofensivas por fragmento o exactas (ignora tildes y cambios tipo "l33t"); lista corta en `tutorial.js`, ampliable.
+
 ## Pendiente
-- Conectar el tutorial: guardar mascota/nombre reales en cuentas nuevas, aparición automática la primera vez, Ajustes → Tutoriales, premio de monedas (sin función única de monedas: ver `state.coins` en app.js).
-- Guion de 29 pasos ya programado en la ruta de prueba.
+- Aparición «primera vez en cada sección» (Clases, Juegos, etc.) y avisos de secciones nuevas: no hecho.
+- Decidir qué pasa con el premio en cuentas con nube. Probar en móvil (390). Aprobar el tono del guion.
 - Revisar el filtro de nombres (palabras no permitidas) y los datos de estudio del guion.
 
 - Aprobar la segunda tanda (expresiones, boca, marco).

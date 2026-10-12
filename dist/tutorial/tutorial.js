@@ -5,7 +5,8 @@
   'use strict';
   const HERE = document.currentScript?.src || new URL('tutorial/tutorial.js', document.baseURI).href;
   const asset = p => new URL('../assets/tutorial/' + p, HERE).href;
-  const STORE = 'nexo.tutorial.test.v1';
+  const STORE_TEST = 'nexo.tutorial.test.v1', STORE_REAL = 'nexo.tutorial.v1';
+  let STORE = STORE_TEST;
   const ROWS = ['reposo', 'senalar', 'abrir', 'importante', 'feliz', 'sorprendido', 'pensativo', 'triste', 'enojado', 'espiral', 'sudor', 'guino', 'nocreo', 'lista', 'dedo'];
   const KINDS = ['atomo', 'matraz', 'slime'];
   const INFO = {
@@ -27,12 +28,17 @@
     'globe-knowledge': ['Globo dorado', 'El mapa de conocimiento: qué dominas y qué no.'],
     'desk-continue': ['Escritorio', 'Continuar estudiando justo donde lo dejaste.']
   };
+  const BANNED_PARTS = ['mierda', 'conchetumare', 'weon', 'hueon', 'huevon', 'culiao', 'maricon', 'chucha', 'pendejo', 'cabron', 'carajo', 'follar', 'nazi', 'hitler', 'fuck', 'shit', 'bitch', 'cunt', 'nigg', 'porn', 'sexo', 'vagina'];
+  const BANNED_EXACT = ['ano', 'tonto', 'tonta', 'idiota', 'imbecil', 'estupido', 'estupida', 'gay', 'puta', 'puto', 'pico', 'pene', 'marica', 'coger', 'concha', 'culia', 'zorra', 'verga'];
+  const plain = v => v.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[0@]/g, m => (m === '@' ? 'a' : 'o')).replace(/1/g, 'i').replace(/3/g, 'e').replace(/4/g, 'a').replace(/5/g, 's').replace(/[^a-z]/g, '');
   const NAME_OK = /^\p{L}+(?:-?\p{N}{1,2})?$/u;
   const nameError = v => {
     const t = v.trim();
     if (t.length < 2) return 'Mínimo 2 caracteres.';
     if (t.length > 12) return 'Máximo 12 caracteres.';
     if (!NAME_OK.test(t)) return 'Solo letras (y un número o guion al final).';
+    const q = plain(t);
+    if (BANNED_EXACT.includes(q) || BANNED_PARTS.some(w => q.includes(w))) return 'Elige otro nombre, por favor.';
     return '';
   };
 
@@ -79,7 +85,7 @@
     { id: 'config', pose: 'importante', text: 'Último paso serio: dime tus ramos, las fechas de tus pruebas y cuánto tiempo tienes. Con eso la ruta parte hecha a tu medida.', scene: 'panel',
       panel: '<div class="tut-chips"><span>ramos</span><span>fechas de pruebas</span><span>tiempo disponible</span></div><div class="tut-links"><a class="secondary-btn" href="#/planner/calendar">Ir al calendario</a><a class="secondary-btn" href="#/profile">Ir al perfil</a></div><small class="tut-cite">Cuando termines, vuelve a #/tutorial y seguimos donde quedaste.</small>' },
     { id: 'premio', who: 'M', text: '¡Terminamos! Esto es para ti. Gasta con cabeza.', scene: 'premio', noBack: true },
-    { id: 'fin', pose: 'feliz', text: 'Fue un honor. Si me necesitas, estoy en Ajustes. Y no, no me pagan.', scene: 'mascota', next: 'Reiniciar prueba', noBack: true }
+    { id: 'fin', pose: 'feliz', text: 'Fue un honor. Si me necesitas, estoy en Ajustes. Y no, no me pagan.', scene: 'mascota', noBack: true }
   ];
 
   const load = () => { try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch (_) { return {}; } };
@@ -90,7 +96,7 @@
 
   function ensureCss() {
     if (cssLoaded) return; cssLoaded = true;
-    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = new URL('./tutorial.css?v=1', HERE).href; document.head.append(l);
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = new URL('./tutorial.css?v=2', HERE).href; document.head.append(l);
   }
   function ensurePixel() {
     if (window.PixelMascotas) return Promise.resolve(window.PixelMascotas);
@@ -102,11 +108,15 @@
 
   function render(app, opts = {}) {
     ensureCss();
+    const mode = opts.mode || 'test', api = opts.api || null;
+    STORE = mode === 'test' ? STORE_TEST : STORE_REAL;
     const sound = opts.sound || (() => false);
     const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const PRE = new Set(['g1', 'g1b', 'g2', 'g3', 'huevos', 'seguro', 'nace', 'nombre', 'graba', 'hola']);
+    const steps = STEPS.filter(x => !(mode === 'replay' && PRE.has(x.id)) && !(x.id === 'premio' && mode !== 'test' && !(api && api.canReward())));
     const saved = load();
-    const s = { i: Math.min(saved.i || 0, STEPS.length - 1), kind: KINDS.includes(saved.kind) ? saved.kind : '', draft: saved.draft || '', name: saved.name || '', seen: Array.isArray(saved.seen) ? saved.seen : [] };
-    if (STEPS[s.i].id === 'nace') s.i = STEPS.findIndex(x => x.id === 'nace');   // si cerró a media eclosión, la repite
+    const s = { i: Math.min(saved.i || 0, steps.length - 1), kind: mode === 'replay' ? api.pet().kind : KINDS.includes(saved.kind) ? saved.kind : '', draft: saved.draft || '', name: mode === 'replay' ? api.pet().name : saved.name || '', seen: Array.isArray(saved.seen) ? saved.seen : [] };
+    if (steps[s.i].id === 'nace') s.i = steps.findIndex(x => x.id === 'nace');   // si cerró a media eclosión, la repite
 
     app.innerHTML = '';
     const root = el('section', 'tut');
@@ -158,7 +168,7 @@
       grim.style.backgroundSize = `calc(var(--s) * 204px) calc(var(--s) * ${76 * ROWS.length}px)`;
       grim.style.backgroundPosition = `calc(var(--s) * ${-68 * col}px) calc(var(--s) * ${-76 * row}px)`;
     }
-    const speakerIsPet = () => STEPS[s.i].who === 'M';
+    const speakerIsPet = () => steps[s.i].who === 'M';
 
     // ——— Texto letra por letra ———
     function say(text, who = 'G', then) {
@@ -244,9 +254,9 @@
         sceneEl.append(f);
       } else if (name === 'premio') {
         const p = petCanvas(s.kind, 'feliz'); const wrap = el('div', 'tut-mascot big'); wrap.append(p.c);
-        sceneEl.append(wrap, el('div', 'tut-prize', '+150 ⚛<small>premio de prueba: aún no se suma a tus monedas</small>'));
+        sceneEl.append(wrap, el('div', 'tut-prize', '+150 ⚛<small>' + (mode === 'test' ? 'premio de prueba: aún no se suma a tus monedas' : 'ya está en tu cuenta') + '</small>'));
       } else if (name === 'panel') {
-        sceneEl.append(el('div', 'tut-panel', STEPS[s.i].panel));
+        sceneEl.append(el('div', 'tut-panel', steps[s.i].panel));
       } else if (name === 'refugio') {
         refugio();
       } else if (name === 'mascota') {
@@ -259,7 +269,7 @@
       const H = window.NexoHomeScene, prof = H && H.getProfile && H.getProfile();
       if (!prof) { sceneEl.append(el('p', 'tut-err', 'No pude cargar el refugio.')); return; }
       const stage = el('div', 'tut-stage'); stage.style.backgroundImage = `url(${new URL(prof.backgroundAsset, document.baseURI).href})`;
-      const objetos = !!STEPS[s.i].objetos, pc = el('div', 'tut-stage-pet'), p = petCanvas(s.kind, 'feliz');
+      const objetos = !!steps[s.i].objetos, pc = el('div', 'tut-stage-pet'), p = petCanvas(s.kind, 'feliz');
       const anc = prof.mascotAnchors.rest.point; pc.style.left = anc[0] * 100 + '%'; pc.style.top = anc[1] * 100 + '%'; pc.append(p.c); stage.append(pc);
       const counter = el('div', 'tut-count'); const upd = () => { counter.textContent = `${s.seen.length}/${Object.keys(OBJETOS).length} objetos`; };
       prof.hotspots.forEach(h => {
@@ -307,36 +317,41 @@
     // ——— Navegación ———
     function textOf(step) { return typeof step.text === 'function' ? step.text(s) : step.text; }
     function refresh() {
-      const step = STEPS[s.i];
+      const step = steps[s.i];
       const needOk = !step.needs || (step.needs === 'kind' ? !!s.kind : step.needs === 'seen' ? Object.keys(OBJETOS).every(k => s.seen.includes(k)) : !nameError(s.draft));
       nextBtn.disabled = busy || !needOk;
-      nextBtn.textContent = step.next || (s.i === STEPS.length - 1 ? 'Reiniciar prueba' : 'Siguiente');
+      nextBtn.textContent = step.next || (s.i === steps.length - 1 ? (mode === 'test' ? 'Reiniciar prueba' : 'Terminar') : 'Siguiente');
       backBtn.disabled = busy || s.i === 0 || !!step.noBack;
       backBtn.textContent = step.back || 'Atrás';
-      barEl.firstElementChild.style.width = Math.round(s.i / (STEPS.length - 1) * 100) + '%';
-      barEl.setAttribute('aria-valuenow', Math.round(s.i / (STEPS.length - 1) * 100));
+      barEl.firstElementChild.style.width = Math.round(s.i / (steps.length - 1) * 100) + '%';
+      barEl.setAttribute('aria-valuenow', Math.round(s.i / (steps.length - 1) * 100));
     }
     function show(i) {
       clearAll(); clearInterval(scene.iv); busy = false; s.i = i; save(s);
-      const step = STEPS[i];
+      const step = steps[i];
       talk.classList.toggle('pet', step.who === 'M');
       scene(step.scene);
+      if (step.id === 'premio' && api) api.reward();
       if (step.who === 'M') { grim.style.backgroundImage = 'none'; tagEl.textContent = s.name; say(textOf(step), 'M'); }
       else if (step.scene === 'nace') { nace(); }
       else { drawGrim(step.pose); say(textOf(step)); }
       refresh();
     }
     nextBtn.addEventListener('click', () => {
-      const step = STEPS[s.i];
+      const step = steps[s.i];
       if (typing && !busy) { skipType(curText); return; }
       if (step.id === 'nombre') s.draft = s.draft.trim();
-      if (step.id === 'graba') s.name = s.draft.trim();
-      if (s.i >= STEPS.length - 1) { try { localStorage.removeItem(STORE); } catch (_) {} Object.assign(s, { kind: '', draft: '', name: '', seen: [] }); show(0); return; }
+      if (step.id === 'graba') { s.name = s.draft.trim(); if (mode === 'first') api.setPet(s.kind, s.name); }
+      if (s.i >= steps.length - 1) {
+        try { localStorage.removeItem(STORE); } catch (_) {}
+        if (mode !== 'test') { api.finish(); clearAll(); if (opts.exit) opts.exit(); else location.hash = '#/home'; return; }
+        Object.assign(s, { kind: '', draft: '', name: '', seen: [] }); show(0); return;
+      }
       show(s.i + 1);
     });
     backBtn.addEventListener('click', () => { if (s.i > 0) show(s.i - 1); });
     box.addEventListener('click', () => { if (typing && !busy) skipType(curText); });
-    $('.tut-skip').addEventListener('click', () => { clearAll(); if (opts.exit) opts.exit(); else location.hash = '#/home'; });
+    $('.tut-skip').addEventListener('click', () => { clearAll(); if (mode === 'first') api.skip(); if (opts.exit) opts.exit(); else location.hash = '#/home'; });
     show(s.i);
   }
 

@@ -137,6 +137,7 @@
       weeklyGoal: 300,
       inventory: [],
       mascot: { name: 'Nexo' },
+      tutorial: { status: 'pending', rewarded: false },
       boosts: { streakShields: 0, protectedDates: [] },
       settings: { background: 'studio', sound: false, volume: 0.4, sfxVolume: 0.4,
         music: false, musicVolume: 0.15, ambient: false, ambientVolume: 0.12,
@@ -330,6 +331,13 @@
       ['cabeza', 'cara', 'cuello', 'mano'].forEach(slot => { if (typeof m.outfit?.[slot] === 'string' && /^\w{1,20}$/.test(m.outfit[slot])) outfit[slot] = m.outfit[slot]; });
       next.mascot = { name: String(m.name || '').trim().slice(0, 24) || 'Nexo', kind: ['matraz', 'atomo', 'slime'].includes(m.kind) ? m.kind : 'matraz', outfit };
     }
+    // Tutorial (docs/tutorial/SPEC.md): pending = lo verá solo; skipped/done = solo desde Ajustes. Datos viejos con progreso cuentan como ya vistos.
+    {
+      const tu = raw.tutorial && typeof raw.tutorial === 'object' ? raw.tutorial : null;
+      const hasProgress = (next.sessions?.length || 0) + (next.completedLessons?.length || 0) + Object.keys(next.practice || {}).length > 0;
+      next.tutorial = tu && ['pending', 'skipped', 'done'].includes(tu.status) ? { status: tu.status, rewarded: !!tu.rewarded }
+        : hasProgress ? { status: 'done', rewarded: true } : { status: 'pending', rewarded: false };
+    }
     if (!DATA.backgrounds.some(item => item.id === next.settings.background)) next.settings.background = base.settings.background;
     next.lessonSession = null; // las clases se están rehaciendo: no hay avance de clase que conservar
     next.meta = { ...base.meta, ...next.meta };
@@ -509,6 +517,8 @@
     const parts = raw.split('/').filter(Boolean).map(decodeURIComponent);
     return parts.length ? parts : ['home'];
   }
+  // La primera vez (cuenta nueva) el Inicio lleva al tutorial. Navegadores automatizados (pruebas) no lo ven.
+  const tutorialDue = () => state.tutorial?.status === 'pending' && !navigator.webdriver;
   function routeTo(...parts) {
     const target = `#/${parts.map(encodeURIComponent).join('/')}`;
     if (location.hash === target) renderRoute(); else location.hash = target;
@@ -554,7 +564,7 @@
     setActiveNav(route);
     closeMore();
     const renderers = {
-      home: renderHome,
+      home: () => (tutorialDue() ? routeTo('tutorial') : renderHome()),
       learn: () => route[1] === 'course'
         ? (route[3] === 'lesson' ? (LESSONS[route[4]]?.subject===route[2] ? renderLesson(route[4]) : renderSubjects())
           : route[3] === 'concept' ? renderAcademicExplorer('knowledge',route[4])
@@ -590,9 +600,19 @@
       mascot: renderMascot,
       torre: () => renderTower(route[1] || 'organica'),
       settings: renderSettings,
-      tutorial: () => { // ruta de PRUEBA del tutorial (docs/tutorial/SPEC.md); se carga solo al abrirla
-        const go = () => { if (parseRoute()[0] === 'tutorial') window.NexoTutorial.render(app, { sound: () => !!state.settings?.sound, exit: () => routeTo('home') }); };
-        if (window.NexoTutorial) go(); else { const sc = document.createElement('script'); sc.src = 'tutorial/tutorial.js?v=1'; sc.onload = go; document.head.append(sc); }
+      tutorial: () => { // docs/tutorial/SPEC.md · #/tutorial/test = prueba sin guardar nada; se carga solo al abrirla
+        const mode = route[1] === 'test' ? 'test' : state.tutorial.status === 'pending' ? 'first' : 'replay';
+        const REWARD = 150, api = {
+          pet: () => ({ kind: state.mascot.kind, name: state.mascot.name }),
+          setPet: (kind, name) => { Object.assign(state.mascot, { kind, name }); saveState({ backup: false }); window.NexoPet?.renderDock?.(document.getElementById('companionPresence')); },
+          canReward: () => !cloud.authenticated && !state.tutorial.rewarded,
+          reward: () => { if (cloud.authenticated || state.tutorial.rewarded) return 0; state.coins += REWARD; state.tutorial.rewarded = true; saveState(); updateChrome(); return REWARD; },
+          reward_amount: REWARD,
+          skip: () => { if (state.tutorial.status === 'pending') { state.tutorial.status = 'skipped'; saveState({ backup: false }); } },
+          finish: () => { state.tutorial.status = 'done'; saveState({ backup: false }); }
+        };
+        const go = () => { if (parseRoute()[0] === 'tutorial') window.NexoTutorial.render(app, { mode, api: mode === 'test' ? null : api, sound: () => !!state.settings?.sound, exit: () => routeTo('home') }); };
+        if (window.NexoTutorial) go(); else { const sc = document.createElement('script'); sc.src = 'tutorial/tutorial.js?v=2'; sc.onload = go; document.head.append(sc); }
       }
     };
     try { (renderers[route[0]] || renderHome)(); app.dataset.renderedRoute = route.join('/'); }
@@ -1367,6 +1387,7 @@
         <label class="toggle"><input type="checkbox" data-setting="music" ${state.settings.music ? 'checked' : ''}><span><b>Música</b><small>Pista instrumental opcional; se detiene durante las clases.</small></span></label>
         <label class="field"><span>Volumen de música</span><input type="range" min="0" max="100" step="5" data-setting-volume="musicVolume" value="${Math.round(state.settings.musicVolume * 100)}" aria-label="Volumen de música"></label>
         <label class="toggle"><input type="checkbox" data-setting="motion" ${state.settings.motion ? 'checked' : ''}><span><b>Animaciones suaves</b><small>Desactívalas si prefieres menos movimiento.</small></span></label><label class="toggle"><input type="checkbox" data-setting="focusMode" ${state.settings.focusMode ? 'checked' : ''} ${state.inventory.includes('focus-mode') ? '' : 'disabled'}><span><b>Modo sin distracciones</b><small>${state.inventory.includes('focus-mode') ? 'Oculta paneles secundarios mientras corre el cronómetro.' : 'Se desbloquea en Tienda.'}</small></span></label></section>
+      <section class="panel"><p class="eyebrow">TUTORIALES</p><h2>Vuelve a ver al Grimorio</h2><p>${state.tutorial?.status === 'done' ? 'Ya lo completaste.' : 'Aún no lo completas.'}${cloud.authenticated || state.tutorial?.rewarded ? '' : ' Al completarlo ganas monedas, una sola vez.'}</p><button class="secondary-btn" data-route="tutorial">Ver el tutorial</button></section>
       <section class="panel"><p class="eyebrow">PORTABILIDAD</p><h2>Respaldo manual</h2><p>El archivo incluye sesiones, errores, notas, inasistencias, clases, calendario y personalización. No contiene contraseñas.</p><div class="button-stack"><button class="primary-btn" data-action="export-data">Exportar progreso .json</button><button class="secondary-btn" data-action="import-data">Importar progreso</button><button class="secondary-btn" data-action="restore-backup" ${backup ? '' : 'disabled'}>Restaurar copia automática</button></div><small>Última copia automática: ${state.meta.lastBackupAt ? new Intl.DateTimeFormat('es-CL', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(state.meta.lastBackupAt)) : 'todavía no existe'}</small></section>
       <section class="panel danger-zone"><p class="eyebrow">ZONA DE CUIDADO</p><h2>Reiniciar la app</h2><p>${cloud.authenticated ? 'Para eliminar datos sincronizados usa la opción Eliminar mi cuenta.' : 'Antes de borrar todo, exporta un archivo. El reinicio exige una segunda confirmación y conserva una copia recuperable.'}</p><button class="text-btn danger" data-action="reset-app" ${cloud.authenticated ? 'disabled' : ''}>Borrar progreso y comenzar de nuevo</button></section></div>
       <section class="panel performance-settings"><p class="eyebrow">RENDIMIENTO</p><h2>Gráficos y movimiento</h2><div class="performance-settings-grid">
