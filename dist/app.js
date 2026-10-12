@@ -589,7 +589,11 @@
       shop: renderShop,
       mascot: renderMascot,
       torre: () => renderTower(route[1] || 'organica'),
-      settings: renderSettings
+      settings: renderSettings,
+      tutorial: () => { // ruta de PRUEBA del tutorial (docs/tutorial/SPEC.md); se carga solo al abrirla
+        const go = () => { if (parseRoute()[0] === 'tutorial') window.NexoTutorial.render(app, { sound: () => !!state.settings?.sound, exit: () => routeTo('home') }); };
+        if (window.NexoTutorial) go(); else { const sc = document.createElement('script'); sc.src = 'tutorial/tutorial.js?v=1'; sc.onload = go; document.head.append(sc); }
+      }
     };
     try { (renderers[route[0]] || renderHome)(); app.dataset.renderedRoute = route.join('/'); }
     catch (error) {

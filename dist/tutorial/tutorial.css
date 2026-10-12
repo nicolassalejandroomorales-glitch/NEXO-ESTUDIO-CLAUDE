@@ -1,0 +1,60 @@
+/* Tutorial de Nexo (dist/tutorial/tutorial.js). Pixel art a x4 (x2 en móvil) con las piezas de dist/assets/tutorial/. */
+.tut { --s: 4; --e: 3; --m: 6; position: relative; display: grid; grid-template-rows: auto 1fr auto auto; gap: 12px; min-height: calc(100vh - 96px); padding: 14px 16px 18px; color: #fff0c4;
+  background: radial-gradient(120% 90% at 50% 20%, #2a2140 0%, #181426 60%, #100d1a 100%); border-radius: 14px; overflow: hidden; isolation: isolate; }
+.tut::before { content: ""; position: absolute; inset: 0; z-index: -1; background:
+  radial-gradient(2px 2px at 12% 20%, #fff6 50%, transparent 52%), radial-gradient(2px 2px at 80% 12%, #fff5 50%, transparent 52%),
+  radial-gradient(2px 2px at 64% 70%, #ffd86088 50%, transparent 52%), radial-gradient(2px 2px at 25% 78%, #9ce8f066 50%, transparent 52%); }
+.tut-top { display: flex; align-items: center; gap: 14px; }
+.tut-bar { flex: 1; height: 10px; border-radius: 6px; background: #0007; border: 2px solid #5a3616; overflow: hidden; }
+.tut-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #e2b850, #fff0a8); transition: width .35s steps(8); }
+.tut-skip { padding: 6px 12px; font-size: .85rem; }
+
+.tut-scene { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; min-height: calc(var(--e) * 64px * 1.25 + 90px); position: relative; }
+.tut-eggs { display: flex; gap: calc(var(--e) * 14px); justify-content: center; align-items: flex-end; }
+.tut-egg { width: calc(var(--e) * 56px); height: calc(var(--e) * 64px); background-size: calc(var(--e) * 504px) calc(var(--e) * 64px); background-repeat: no-repeat; image-rendering: pixelated; }
+.tut-egg.big { transform: scale(1.25); transform-origin: bottom center; margin-bottom: 10px; }
+.tut-egg-btn { background: none; border: 2px solid transparent; border-radius: 12px; padding: 4px; cursor: pointer; transition: transform .15s steps(3); animation: tutBob 2.4s steps(4) infinite; }
+.tut-egg-btn:nth-child(2) { animation-delay: -.8s; } .tut-egg-btn:nth-child(3) { animation-delay: -1.6s; }
+.tut-egg-btn:hover, .tut-egg-btn:focus-visible { transform: translateY(-6px); outline: none; border-color: #fbe08a88; }
+.tut-egg-btn.on { border-color: #ffd860; background: #ffd86018; }
+.tut-egg.shake { animation: tutShake .12s steps(2) infinite; } .tut-egg.shake.hard { animation-duration: .08s; }
+@keyframes tutBob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -5px; } }
+@keyframes tutShake { 0% { translate: -3px 0; } 100% { translate: 3px 0; } }
+.tut-flash { position: absolute; inset: 0; background: radial-gradient(circle at 50% 55%, #fff8d0 0%, #fff0a855 30%, transparent 62%); opacity: 0; pointer-events: none; transition: opacity .15s steps(3); }
+.tut-flash.on { opacity: .75; } .tut-flash.on.big { opacity: 1; }
+
+.tut-pet { width: calc(var(--m) * 40px); height: calc(var(--m) * 44px); image-rendering: pixelated; display: block; }
+.tut-mascot.big .tut-pet { width: calc(var(--m) * 48px); height: calc(var(--m) * 52px); }
+.tut-mascot.hatch { position: absolute; bottom: calc(var(--e) * 12px); left: 50%; translate: -50% 0; }
+.tut-name { display: grid; gap: 8px; justify-items: center; width: min(420px, 100%); }
+.tut-name label { font-weight: 700; }
+.tut-name input { width: 100%; padding: 10px 12px; font-size: 1.15rem; text-align: center; border-radius: 8px; border: 2px solid #b0743d; background: #0b0814; color: #fff0c4; }
+.tut-sug { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.tut-err { min-height: 1.2em; margin: 0; font-size: .85rem; color: #ffb4a0; }
+
+.tut-talk { position: relative; display: flex; align-items: flex-end; gap: 6px; }
+.tut-grim { flex: none; width: calc(var(--s) * 68px); height: calc(var(--s) * 76px); background-repeat: no-repeat; image-rendering: pixelated; }
+.tut-talk.pet .tut-grim { display: none; }
+.tut-box { position: relative; flex: 1; min-height: calc(var(--s) * 26px); cursor: pointer; box-sizing: border-box; padding: calc(var(--s) * 7px) calc(var(--s) * 8px) calc(var(--s) * 6px);
+  border-style: solid; border-width: calc(var(--s) * 3px); border-image: url("../assets/tutorial/marco-dialogo.png") 12 fill / calc(var(--s) * 3px) stretch; image-rendering: pixelated; color: #3a2414; }
+.tut-text { margin: 0; font-size: clamp(1rem, 1.5vw + .5rem, 1.35rem); line-height: 1.45; min-height: 3em; }
+.tut-tag { position: absolute; top: calc(var(--s) * -9px); left: calc(var(--s) * 4px); box-sizing: border-box; min-width: calc(var(--s) * 28px); padding: calc(var(--s) * 2px) calc(var(--s) * 3px); font-weight: 800; font-size: .9rem; text-align: center; color: #3a2414;
+  border-style: solid; border-width: calc(var(--s) * 2px); border-image: url("../assets/tutorial/marco-nombre.png") 6 fill / calc(var(--s) * 2px) stretch; image-rendering: pixelated; }
+.tut-arrow { position: absolute; right: calc(var(--s) * 5px); bottom: calc(var(--s) * 4px); width: calc(var(--s) * 10px); height: calc(var(--s) * 8px); opacity: 0; background: url("../assets/tutorial/flecha-siguiente.png") 0 0 / calc(var(--s) * 20px) calc(var(--s) * 8px) no-repeat; image-rendering: pixelated; }
+.tut-box.done .tut-arrow { opacity: 1; animation: tutArrow .8s steps(1) infinite; }
+@keyframes tutArrow { 0% { background-position: 0 0; } 50% { background-position: calc(var(--s) * -10px) 0; } }
+
+.tut-nav { display: flex; justify-content: space-between; gap: 12px; }
+.tut-nav button { min-width: 120px; }
+.tut-nav button:disabled { opacity: .4; cursor: not-allowed; }
+
+@media (max-width: 699px) {
+  .tut { padding: 10px 10px 12px; min-height: calc(100vh - 140px); }
+  .tut-talk { flex-direction: column; align-items: stretch; gap: 0; }
+  .tut-grim { align-self: flex-start; margin-bottom: calc(var(--s) * -6px); position: relative; z-index: 1; }
+  .tut-box { padding-top: calc(var(--s) * 8px); }
+  .tut-tag { top: calc(var(--s) * -6px); left: auto; right: calc(var(--s) * 4px); }
+}
+@media (prefers-reduced-motion: reduce) { .tut-egg-btn, .tut-egg.shake, .tut-box.done .tut-arrow { animation: none; } }
+
+@media (max-width: 1100px) { .tut { padding-bottom: 96px; } }

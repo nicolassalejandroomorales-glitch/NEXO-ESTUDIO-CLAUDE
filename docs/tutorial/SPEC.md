@@ -144,7 +144,15 @@ y `flecha-siguiente.png` (2 cuadros de 10×8). Esperando aprobación de Niquito.
 matraz = vidrio con líquido verde sobre soporte de latón; slime = gelatina verde-amarilla con núcleo y burbujas sobre una poza. La mascota que nace sale del dibujo real
 (`dist/mascot/pixelmascotas.js`). Vista previa: `huevos-preview.png`.
 
+**Tramo 1 programado (12 oct):** `dist/tutorial/tutorial.js` + `tutorial.css`, ruta de **prueba** `#/tutorial` (carga perezosa, sin bundle). Cubre los pasos 1–10 del guion:
+despertar del Grimorio, elegir huevo (ficha al tocar), confirmación, nacimiento de ~11 s con suspenso, nombre (sugeridos, 2–12 caracteres), confirmación y presentación de la mascota.
+Motor: texto letra por letra con boca animada y bips 8 bits, Siguiente/Atrás, barra de progreso, retoma donde ibas, escala x4/x2. **No toca** `state.mascot` ni monedas todavía.
+Skill: `.claude/skills/nexo-tutorial`.
+
 ## Pendiente
+- Conectar el tutorial: guardar mascota/nombre reales en cuentas nuevas, aparición automática la primera vez, Ajustes → Tutoriales, premio de monedas (sin función única de monedas: ver `state.coins` en app.js).
+- Tramos siguientes: Inicio y mascota (pasos 11+), Clases, Juegos, Organización y Perfil.
+- Revisar el filtro de nombres (palabras no permitidas) y los datos de estudio del guion.
 
 - Aprobar la segunda tanda (expresiones, boca, marco).
 
