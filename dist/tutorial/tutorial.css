@@ -50,6 +50,7 @@
 
 @media (max-width: 699px) {
   .tut { padding: 10px 10px 12px; min-height: calc(100vh - 140px); }
+  .tut-eggs { gap: 6px; } .tut-egg-btn { padding: 1px; } /* los 3 huevos caben en 390 */
   .tut-talk { flex-direction: column; align-items: stretch; gap: 0; }
   .tut-grim { align-self: flex-start; margin-bottom: calc(var(--s) * -6px); position: relative; z-index: 1; }
   .tut-box { padding-top: calc(var(--s) * 8px); }
