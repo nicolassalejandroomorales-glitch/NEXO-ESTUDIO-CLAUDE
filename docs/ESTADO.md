@@ -56,3 +56,5 @@ Historial de lo hecho por tema. Lo lee Claude solo cuando necesita contexto de o
 - Entrenar = **Laboratorio de Orgánica II** con calidad nueva: capas con parallax, luz por hora real, animaciones y 3 estados de progreso (provisorio). Diseño de la torre completa (pisos por ramo, escalera + ascensor) en `docs/mundo-torre/SPEC.md`.
 ## 12 oct 2026 · Tutorial (diseño + Grimorio)
 - Diseño cerrado en `docs/tutorial/` (SPEC, GUION de 29 pasos, FRASES de las mascotas) y Grimorio v3 en pixel art aprobado: libro abombado con barba, atril con paño y 5 poses (`tools/tutorial-pixel/build_grimorio.py` → `dist/assets/tutorial/grimorio-v1.png`). Falta programar el tutorial.
+- Segunda tanda del Grimorio (15 poses × 3 bocas, `grimorio-hablar.png`), marco de diálogo RPG, y huevos de átomo/matraz/slime con nacimiento (9 cuadros) en pixel art, todo en `tools/tutorial-pixel/`.
+- **Tramo 1 programado** (pasos 1–10 del guion): `dist/tutorial/tutorial.js` + `.css`, ruta de PRUEBA `#/tutorial` (no toca la mascota ni las monedas). Skill `nexo-tutorial`. Siguiente: tramo 2 (Inicio y mascota) y conectar a cuentas nuevas/Ajustes/monedas. Ver `docs/tutorial/SPEC.md`.
