@@ -54,3 +54,5 @@ Historial de lo hecho por tema. Lo lee Claude solo cuando necesita contexto de o
 ## 11 oct 2026 · Mundo de la torre (fases 1 y 2)
 - Entrenar, Juegos y Perfil tienen escena pixel **de borde a borde** (como el Inicio) donde la mascota camina con clic/toque; cada objeto hace algo (elige modo, abre juego, cambia pestaña). Perfil = habitación de la mascota; Juegos = arcade v1 con portal a la campaña PEP 1.
 - Entrenar = **Laboratorio de Orgánica II** con calidad nueva: capas con parallax, luz por hora real, animaciones y 3 estados de progreso (provisorio). Diseño de la torre completa (pisos por ramo, escalera + ascensor) en `docs/mundo-torre/SPEC.md`.
+## 12 oct 2026 · Tutorial (diseño + Grimorio)
+- Diseño cerrado en `docs/tutorial/` (SPEC, GUION de 29 pasos, FRASES de las mascotas) y Grimorio v3 en pixel art aprobado: libro abombado con barba, atril con paño y 5 poses (`tools/tutorial-pixel/build_grimorio.py` → `dist/assets/tutorial/grimorio-v1.png`). Falta programar el tutorial.
