@@ -139,10 +139,14 @@ pensativo, triste, enojado, espiral, sudor, guino, nocreo, lista, dedo. `dormido
 Marco de diálogo: `tools/tutorial-pixel/build_marco.py` → `marco-dialogo.png` (48×48, 9-slice con esquinas de 12), `marco-nombre.png` (36×16, esquinas de 6)
 y `flecha-siguiente.png` (2 cuadros de 10×8). Esperando aprobación de Niquito.
 
+**Huevos dibujados (12 oct), esperando aprobación:** `tools/tutorial-pixel/build_huevos.py` → `dist/assets/tutorial/huevo-atomo.png`, `huevo-matraz.png`, `huevo-slime.png`
+(hojas de 9 cuadros de 56×64: reposo, temblor ×2, brillo, grieta ×3, estallido, cáscara vacía). Átomo = azul noche con órbitas y protones sobre aro flotante;
+matraz = vidrio con líquido verde sobre soporte de latón; slime = gelatina verde-amarilla con núcleo y burbujas sobre una poza. La mascota que nace sale del dibujo real
+(`dist/mascot/pixelmascotas.js`). Vista previa: `huevos-preview.png`.
+
 ## Pendiente
 
 - Aprobar la segunda tanda (expresiones, boca, marco).
-- Huevos y nacimiento de las 3 mascotas (pixel art).
 
 - Banco de frases de las mascotas y reglas del nombre: borrador en [FRASES.md](FRASES.md) (12 oct). Falta que Niquito corrija el tono.
 - Banco de frases del Grimorio: ya está dentro del [GUION.md](GUION.md).
