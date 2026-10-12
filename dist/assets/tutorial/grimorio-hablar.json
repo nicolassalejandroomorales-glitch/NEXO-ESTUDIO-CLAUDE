@@ -1,0 +1,29 @@
+{
+ "frame": [
+  68,
+  76
+ ],
+ "columnas": [
+  "cerrada",
+  "media",
+  "abierta"
+ ],
+ "filas": [
+  "reposo",
+  "senalar",
+  "abrir",
+  "importante",
+  "feliz",
+  "sorprendido",
+  "pensativo",
+  "triste",
+  "enojado",
+  "espiral",
+  "sudor",
+  "guino",
+  "nocreo",
+  "lista",
+  "dedo"
+ ],
+ "base": "grimorio-v1.png (poses sueltas: reposo, senalar, abrir, importante, dormido)"
+}

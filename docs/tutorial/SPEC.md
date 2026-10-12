@@ -133,9 +133,15 @@ atril más proporcionado al libro y menos genérico.
 con sombra azulada, atril nuevo (tapa de madera con canto de latón, paño mágico con flecos, patas) y menos detalles (un remiendo,
 sin hojas sueltas arriba ni cinta azul, 4 partículas). Hoja de 5 poses de 68×76. **Aprobado por Niquito (12 oct).**
 
+**Segunda tanda dibujada (12 oct):** `build_grimorio.py` ahora también genera `dist/assets/tutorial/grimorio-hablar.png` (+ `.json` con el orden):
+15 poses/expresiones × 3 cuadros de boca (cerrada, media, abierta), cuadros de 68×76. Poses: reposo, senalar, abrir, importante, feliz, sorprendido,
+pensativo, triste, enojado, espiral, sudor, guino, nocreo, lista, dedo. `dormido` sigue en `grimorio-v1.png`. Vista previa: `grimorio-expresiones-preview.png`.
+Marco de diálogo: `tools/tutorial-pixel/build_marco.py` → `marco-dialogo.png` (48×48, 9-slice con esquinas de 12), `marco-nombre.png` (36×16, esquinas de 6)
+y `flecha-siguiente.png` (2 cuadros de 10×8). Esperando aprobación de Niquito.
+
 ## Pendiente
 
-- Segunda tanda del Grimorio (expresiones básicas y cómicas, pose de lista), boca animada y marco de diálogo.
+- Aprobar la segunda tanda (expresiones, boca, marco).
 - Huevos y nacimiento de las 3 mascotas (pixel art).
 
 - Banco de frases de las mascotas y reglas del nombre: borrador en [FRASES.md](FRASES.md) (12 oct). Falta que Niquito corrija el tono.

@@ -31,6 +31,27 @@ POSES = {
 }
 
 
+# Segunda tanda: expresiones, poses nuevas y boca animada (3 cuadros por pose: cerrada, media, abierta)
+_D = dict(rh='down', lh='down', look=0)
+HABLAR = {
+    'reposo':      dict(POSES['reposo'], mouth='neutral'),
+    'senalar':     dict(POSES['senalar'], mouth='neutral'),
+    'abrir':       dict(POSES['abrir'], mouth='neutral'),
+    'importante':  dict(POSES['importante'], mouth='o'),
+    'feliz':       dict(dy=0, eye='happy', brow='idle', mouth='smile', **_D),
+    'sorprendido': dict(dy=-1, eye='wide', brow='up', mouth='o', **_D),
+    'pensativo':   dict(dy=0, eye='open', brow=('idle', 'up'), mouth='flat', rh='up', lh='down', look=1, dots=True),
+    'triste':      dict(dy=1, eye='open', brow='sad', mouth='frown', tear=True, **_D),
+    'enojado':     dict(dy=0, eye='open', brow='angry', mouth='grit', rh='up', lh='up', look=0, mark=True),
+    'espiral':     dict(dy=0, eye='spiral', brow='relax', mouth='wavy', stars=True, **_D),
+    'sudor':       dict(dy=0, eye='open', brow='sad', mouth='wavy', sweat=True, rh='down', lh='down', look=-1),
+    'guino':       dict(dy=0, eye=('open', 'happy'), brow='idle', mouth='smile', spark=True, rh='down', lh='down', look=1),
+    'nocreo':      dict(dy=0, eye='lid', brow=('idle', 'up'), mouth='flat', rh='down', lh='down', look=-1),
+    'lista':       dict(dy=0, eye='open', brow='idle', mouth='neutral', rh='hold', lh='down', look=1, panel='lista'),
+    'dedo':        dict(dy=-1, eye='open', brow='up', mouth='neutral', rh='finger', lh='down', look=1, idea=True),
+}
+
+
 def ell(c, cx, cy, rx, ry):
     yy, xx = c.grid()
     return ((xx - cx) / rx) ** 2 + ((yy - cy) / ry) ** 2 <= 1.0
@@ -163,7 +184,26 @@ def detalles_libro(c, dy):
 
 
 # ---------------------------------------------------------------- cara
+SPIRAL = ['######', '#....#', '#.##.#', '#..#.#', '####.#']
+
+
 def ojo(c, ex, ey, kind, look):
+    if kind == 'happy':                                   # arco ^ (ojo feliz / guiño)
+        for i, d in enumerate((3, 2, 1, 1, 1, 1, 2, 3)):
+            c.px(ex + i, ey + 1 + d, 'clay', 0)
+            c.px(ex + i, ey + 2 + d, 'clay', 0)
+        return
+    if kind == 'spiral':                                  # ojo en espiral
+        rows = ['.oooooo.'] + ['o######o'] * 5 + ['.oooooo.']
+        c.sprite(ex, ey, rows, 'wax', {'o': ('clay', 0), '#': ('wax', 5)})
+        for j, row in enumerate(SPIRAL):
+            for i, ch in enumerate(row):
+                if ch == '#':
+                    c.px(ex + 1 + i, ey + 1 + j, 'crystal', 3)
+        return
+    lid = kind == 'lid'                                   # párpado a medias (desconfianza)
+    if lid:
+        kind = 'open'
     if kind == 'closed':
         for i, dy_ in enumerate((0, 1, 2, 2, 2, 2, 1, 0)):
             c.px(ex + i, ey + 2 + dy_, 'clay', 0)
@@ -182,6 +222,9 @@ def ojo(c, ex, ey, kind, look):
     c.px(ix, top, 'wax', 5)                                         # dos brillos
     c.px(ix + 1, top, 'wax', 5)
     c.px(ix + 3, top + 3, 'crystal', 7)
+    if lid:
+        c.rect(ex + 1, ey + 1, ex + 7, ey + 3, 'clay', 3)
+        c.rect(ex + 1, ey + 3, ex + 7, ey + 4, 'clay', 0)
 
 
 def ceja(c, x, y, outer_dy, inner_dy, outer_left):
@@ -196,14 +239,18 @@ def ceja(c, x, y, outer_dy, inner_dy, outer_left):
             c.px(x + i, y + yy - 1, 'petal', 3)
 
 
+BROWS = {'idle': (-1, 0), 'up': (-3, -4), 'relax': (1, 0), 'angry': (-2, 2), 'sad': (2, -2)}
+
+
 def cara(c, p, dy):
     ey = BY0 + dy + 8
     ex_l, ex_r = CX - 11, CX + 3
-    ojo(c, ex_l, ey, p['eye'], p['look'])
-    ojo(c, ex_r, ey, p['eye'], p['look'])
-    od, idd = {'idle': (-1, 0), 'up': (-3, -4), 'relax': (1, 0)}[p['brow']]
-    ceja(c, ex_l, ey - 3, od, idd, True)
-    ceja(c, ex_r, ey - 3, od, idd, False)
+    el, er = p['eye'] if isinstance(p['eye'], tuple) else (p['eye'],) * 2
+    bl, br = p['brow'] if isinstance(p['brow'], tuple) else (p['brow'],) * 2
+    ojo(c, ex_l, ey, el, p['look'])
+    ojo(c, ex_r, ey, er, p['look'])
+    ceja(c, ex_l, ey - 3, *BROWS[bl], True)
+    ceja(c, ex_r, ey - 3, *BROWS[br], False)
     c.rect(ex_l + 1, ey + 8, ex_l + 5, ey + 10, 'red', 5)             # mejillas
     c.rect(ex_r + 3, ey + 8, ex_r + 7, ey + 10, 'red', 5)
     c.sprite(CX - 2, ey + 6, ['.##.', '####', '####', '.##.'], 'clay', {'#': 5})   # nariz
@@ -227,13 +274,71 @@ def mechon(c, xc, ytop, length, width, sway):
     c.mask(m, 'petal', lvl)
 
 
-def barba(c, ey, p):
+def boca_fase(c, my, style, phase):
+    """Boca de 3 cuadros: 0 cerrada, 1 media, 2 abierta."""
+    yy, xx = c.grid()
+    dark = ('red', 0)
+    if style in ('neutral', 'flat'):
+        if phase == 0:
+            c.rect(CX - 3, my + 4, CX + 4, my + 5, 'clay', 0)
+            if style == 'neutral':
+                c.px(CX - 4, my + 3, 'clay', 0)
+                c.px(CX + 4, my + 3, 'clay', 0)
+        elif phase == 1:
+            c.mask(ell(c, CX, my + 4, 2.6, 1.4), *dark)
+        else:
+            c.mask(ell(c, CX, my + 4, 3, 2), *dark)
+            c.rect(CX - 1, my + 5, CX + 2, my + 6, 'red', 4)
+    elif style == 'smile':
+        if phase == 0:
+            c.rect(CX - 3, my + 4, CX + 4, my + 5, 'clay', 0)
+            for sx in (-4, 4):
+                c.px(CX + sx, my + 3, 'clay', 0)
+            for sx in (-5, 5):
+                c.px(CX + sx, my + 2, 'clay', 0)
+        else:
+            ry = 1.8 if phase == 1 else 3
+            c.mask(ell(c, CX, my + 3.5, 4, ry) & (yy >= my + 3), *dark)
+            c.rect(CX - 4, my + 3, CX + 5, my + 4, 'clay', 0)
+            if phase == 2:
+                c.rect(CX - 2, my + 5, CX + 3, my + 6, 'red', 4)
+    elif style == 'frown':
+        if phase == 0:
+            c.rect(CX - 3, my + 5, CX + 4, my + 6, 'clay', 0)
+            for sx in (-4, 4):
+                c.px(CX + sx, my + 6, 'clay', 0)
+        else:
+            c.mask(ell(c, CX, my + 5, 2.2, 1.2 if phase == 1 else 2.2), *dark)
+            c.rect(CX - 3, my + 3, CX + 4, my + 4, 'clay', 0)
+    elif style == 'grit':
+        h = (1, 2, 3)[phase]
+        c.rect(CX - 4, my + 4, CX + 5, my + 5 + h, *dark)
+        c.rect(CX - 4, my + 4, CX + 5, my + 5, 'paper', 5)
+        for x in (CX - 2, CX, CX + 2):
+            c.px(x, my + 4, 'clay', 2)
+        if h > 1:
+            c.rect(CX - 4, my + 4 + h, CX + 5, my + 5 + h, 'paper', 4)
+    elif style == 'wavy':
+        for i, x in enumerate(range(CX - 4, CX + 5)):
+            c.px(x, my + 4 + (i % 2), 'clay', 0)
+        if phase:
+            c.mask(ell(c, CX, my + 5.5, 2, 1 if phase == 1 else 1.6), *dark)
+    elif style == 'o':
+        r = (1, 1.6, 2)[phase]
+        c.mask(ell(c, CX, my + 5, r, (1.2, 2.2, 3)[phase]), *dark)
+        if phase == 2:
+            c.rect(CX - 1, my + 6, CX + 1, my + 7, 'red', 3)
+
+
+def barba(c, ey, p, phase=None):
     my = ey + 10
     mechon(c, CX - 6, my, 20, 6, -1.5)
     mechon(c, CX + 6, my, 20, 6, 1.5)
     mechon(c, CX, my, 27, 7, 1.2)
     k = p['mouth']
-    if k == 'talk':
+    if phase is not None:
+        boca_fase(c, my, k, phase)
+    elif k == 'talk':
         c.mask(ell(c, CX, my + 4, 3, 2), 'red', 0)
         c.rect(CX - 1, my + 5, CX + 2, my + 6, 'red', 4)
     elif k == 'o':
@@ -299,13 +404,19 @@ def manos(c, p, dy):
     elif rh == 'point':
         brazo(c, BX1 + 4, 27 + dy, BX1 + 12, 21 + dy)
         manopla(c, BX1 + 9, 15 + dy, finger=True)
+    elif rh == 'finger':
+        brazo(c, BX1 + 4, 28 + dy, BX1 + 9, 21 + dy)
+        manopla(c, BX1 + 6, 15 + dy)
+        c.rect(BX1 + 8, 8 + dy, BX1 + 10, 16 + dy, 'clay', 5)
+        c.rect(BX1 + 9, 8 + dy, BX1 + 10, 16 + dy, 'clay', 4)
+        c.px(BX1 + 8, 8 + dy, 'clay', 5)
     elif rh == 'hold':
         brazo(c, BX1 + 4, 33 + dy, BX1 + 11, 36 + dy)
         manopla(c, BX1 + 9, 35 + dy)
 
 
 # ---------------------------------------------------------------- extras
-def panel(c, dy):
+def panel(c, dy, checks=False):
     x0, y0, x1, y1 = 51, 7 + dy, 67, 33 + dy
     c.rect(x0, y0, x1, y1, 'brass', 3)
     c.rect(x0 + 1, y0 + 1, x1 - 1, y1 - 1, 'paper', 5)
@@ -316,6 +427,11 @@ def panel(c, dy):
         c.rect(x0 + 7, row, x1 - 3 - (i % 2) * 3, row + 1, 'paper', 2)
         c.rect(x0 + 7, row + 2, x1 - 6 + (i % 2) * 2, row + 3, 'paper', 1)
     c.rect(x0, y0, x1, y0 + 1, 'brass', 5)
+    if checks:
+        for row in (y0 + 5, y0 + 12, y0 + 19):
+            c.rect(x0 + 3, row - 1, x0 + 6, row + 2, 'green', 3)
+            for (a, b) in ((0, 1), (1, 2), (2, 1)):
+                c.px(x0 + 3 + a, row - 1 + b, 'paper', 5)
 
 
 def exclamacion(c, dy):
@@ -334,13 +450,35 @@ def zeta(c, x, y, s):
     c.px(x, y, 'crystal', 7)
 
 
+def extras(c, p, dy):
+    ey = BY0 + dy + 8
+    if p.get('dots'):                                         # "..." pensando
+        for (x, y) in ((CX + 15, 11 + dy), (CX + 19, 8 + dy), (CX + 23, 5 + dy)):
+            c.rect(x, y, x + 2, y + 2, 'rune', 4)
+    if p.get('tear'):                                         # lágrimas
+        for x in (CX - 9, CX + 8):
+            c.rect(x, ey + 7, x + 2, ey + 10, 'crystal', 5)
+            c.px(x, ey + 7, 'crystal', 7)
+    if p.get('sweat'):                                        # gota de sudor
+        c.sprite(BX1 - 5, BY0 + dy + 2, ['.o.', 'o#o', 'o#o', '.o.'], 'crystal', {'o': ('clay', 0), '#': ('crystal', 6)})
+    if p.get('mark'):                                         # marca de enojo
+        c.sprite(BX1 + 1, BY0 + dy - 5, ['#...#', '.#.#.', '..#..', '.#.#.', '#...#'], 'red', {'#': 5})
+    if p.get('spark'):                                        # destello (guiño)
+        c.sprite(CX + 12, ey - 5, ['.#.', '###', '.#.'], 'rune', {'#': 6})
+    if p.get('stars'):                                        # mareo
+        for (x, y) in ((5, 20 + dy), (60, 24 + dy), (9, 34 + dy), (57, 38 + dy)):
+            c.sprite(x, y, ['.#.', '###', '.#.'], 'rune', {'#': 5})
+    if p.get('idea'):                                         # chispa de idea sobre el dedo
+        c.sprite(BX1 + 3, 1 + dy, ['..#..', '.###.', '#####', '.###.', '..#..'], 'rune', {'#': 6})
+
+
 def particulas(c):
     for (x, y, m, l) in ((3, 48, 'rune', 4), (7, 57, 'arcane', 5), (63, 50, 'rune', 3), (64, 58, 'arcane', 4)):
         c.px(x, y, m, l)
 
 
 # ---------------------------------------------------------------- cuadro
-def cuadro(name, p):
+def cuadro(name, p, phase=None):
     c = Canvas(W, H)
     dy = p['dy']
     atril(c)
@@ -350,10 +488,11 @@ def cuadro(name, p):
     libro(c, dy)
     detalles_libro(c, dy)
     ey = cara(c, p, dy)
-    barba(c, ey, p)
-    marcapaginas(c, dy, 2 if name != 'dormido' else 1)
+    barba(c, ey, p, phase)
+    marcapaginas(c, dy, 2 if name != 'dormido' else 1 if phase is None else (0, 2, 3)[phase])
+    extras(c, p, dy)
     if p.get('panel'):
-        panel(c, dy)
+        panel(c, dy, p['panel'] == 'lista')
     if p.get('excl'):
         exclamacion(c, dy)
     if name != 'dormido':
@@ -375,6 +514,8 @@ def cuadro(name, p):
         halos = [(CX, LEDGE + 2, 26, '#9060dc', 0.9, 2.6), (cl, LEDGE - 6, 9, '#f89a30', 0.8, 1.0), (cr, LEDGE - 6, 9, '#f89a30', 0.8, 1.0)]
     if p.get('excl'):
         halos.append((CX, 30, 30, '#ffd860', 0.6, 1.0))
+    if p.get('mark'):
+        halos.append((CX, 30, 30, '#e04030', 0.35, 1.0))
     if p.get('panel'):
         halos.append((59, 20, 16, '#fff0a8', 0.7, 1.0))
 
@@ -408,6 +549,33 @@ def main():
         d.text((i * W * S + 8, big.height + 8), n, fill=(255, 240, 196, 255))
     bg.convert('RGB').save(ROOT / 'docs' / 'tutorial' / 'grimorio-v1-preview.png')
     print('ok', sheet.size)
+
+    # hoja de habla: una fila por pose, 3 columnas (cerrada, media, abierta)
+    names = list(HABLAR)
+    hs = Image.new('RGBA', (W * 3, H * len(names)), (0, 0, 0, 0))
+    grid = {}
+    for r, n in enumerate(names):
+        for ph in range(3):
+            im = cuadro(n, HABLAR[n], ph)
+            grid[(n, ph)] = im
+            hs.paste(im, (ph * W, r * H))
+    hs.save(out / 'grimorio-hablar.png')
+    import json
+    (out / 'grimorio-hablar.json').write_text(json.dumps(
+        {'frame': [W, H], 'columnas': ['cerrada', 'media', 'abierta'], 'filas': names,
+         'base': 'grimorio-v1.png (poses sueltas: reposo, senalar, abrir, importante, dormido)'},
+        ensure_ascii=False, indent=1), encoding='utf-8')
+    # vista previa: cuadricula con la boca abierta (x2) + tira de bocas
+    S2, cols = 2, 5
+    cw, ch = W * S2, H * S2 + 14
+    rows_n = (len(names) + cols - 1) // cols
+    pv = Image.new('RGBA', (cw * cols, ch * rows_n), hexes('#45302c')[0] + (255,))
+    d = ImageDraw.Draw(pv)
+    for i, n in enumerate(names):
+        x, y = (i % cols) * cw, (i // cols) * ch
+        pv.alpha_composite(grid[(n, 2)].resize((cw, H * S2), Image.NEAREST), (x, y))
+        d.text((x + 6, y + H * S2 + 1), n, fill=(255, 240, 196, 255))
+    pv.convert('RGB').save(ROOT / 'docs' / 'tutorial' / 'grimorio-expresiones-preview.png')
 
 
 if __name__ == '__main__':
