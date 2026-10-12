@@ -149,9 +149,21 @@ despertar del Grimorio, elegir huevo (ficha al tocar), confirmación, nacimiento
 Motor: texto letra por letra con boca animada y bips 8 bits, Siguiente/Atrás, barra de progreso, retoma donde ibas, escala x4/x2. **No toca** `state.mascot` ni monedas todavía.
 Skill: `.claude/skills/nexo-tutorial`.
 
+**Tramo 2 programado (12 oct):** pasos 11–14 del guion (refugio, 8 objetos, vestuario/tienda, dato del espaciado) en `tutorial.js`. La mascota habla; el escenario `refugio`
+lee fondo, objetos y ancla de la mascota **en vivo** desde `NexoHomeScene.getProfile()` (no se tocó `home-scene.js` ni se copiaron coordenadas). En el paso "Toca los objetos"
+hay que tocar los 8 (contador x/8, se guarda en `seen`) para habilitar Siguiente. Probado en el navegador de Claude (8/8 y avance). Falta tu visto bueno.
+
+**Tramo 3 programado (12 oct):** pasos 15–18 (Clases) como paneles ilustrados (`scene: 'panel'`, HTML simple en `step.panel`): ruta al 7, releer vs responder (Roediger y Karpicke, 2006), repaso espaciado (Cepeda et al., 2006), errores como pistas. Las dos citas son estudios reales; falta que Niquito confirme el texto.
+
+**Tramo 4 programado (12 oct):** pasos 19–22 (Juegos) como paneles: campaña PEP 1, desafíos, monedas, dato de recordar sin mirar. Texto de los desafíos ampliado un poco respecto al guion ("retos cortos con premio"); a confirmar.
+
+**Tramo 5 programado (12 oct):** pasos 23–26 (Organización y Perfil) como paneles: calendario y prioridades, notas y labs, estadísticas y rangos arcanos, ajustes e inasistencias. Faltan el paso 27 (configurar ramos y fechas) y el cierre con monedas (28–29).
+
+**Guion completo programado (12 oct):** pasos 27–29. Paso 27 = panel con dos enlaces a las pantallas que ya existen (#/planner/calendar y #/profile); el tutorial retoma donde quedaste al volver a #/tutorial. Paso 28 = la mascota entrega **+150 ⚛** (decidido por Niquito; en la prueba es solo visual). Paso 29 = cierre del Grimorio. Queda solo la conexión real.
+
 ## Pendiente
 - Conectar el tutorial: guardar mascota/nombre reales en cuentas nuevas, aparición automática la primera vez, Ajustes → Tutoriales, premio de monedas (sin función única de monedas: ver `state.coins` en app.js).
-- Tramos siguientes: Inicio y mascota (pasos 11+), Clases, Juegos, Organización y Perfil.
+- Guion de 29 pasos ya programado en la ruta de prueba.
 - Revisar el filtro de nombres (palabras no permitidas) y los datos de estudio del guion.
 
 - Aprobar la segunda tanda (expresiones, boca, marco).

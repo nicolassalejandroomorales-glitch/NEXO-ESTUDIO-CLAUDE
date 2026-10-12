@@ -58,3 +58,41 @@
 @media (prefers-reduced-motion: reduce) { .tut-egg-btn, .tut-egg.shake, .tut-box.done .tut-arrow { animation: none; } }
 
 @media (max-width: 1100px) { .tut { padding-bottom: 96px; } }
+
+/* Refugio de ejemplo (tramo 2) */
+.tut-stage { position: relative; width: min(100%, 900px, calc(44vh * 1672 / 941)); aspect-ratio: 1672 / 941; background-size: 100% 100%; image-rendering: pixelated; border: 3px solid #3a2a1e; border-radius: 6px; overflow: hidden; }
+.tut-stage-pet { position: absolute; width: 9%; translate: -50% -100%; pointer-events: none; }
+.tut-stage-pet .tut-pet { width: 100%; height: auto; image-rendering: pixelated; display: block; }
+.tut-hot { position: absolute; background: transparent; border: 2px dashed transparent; border-radius: 6px; cursor: pointer; padding: 0; }
+.tut-hot:not(:disabled) { border-color: rgba(255, 224, 140, .55); animation: tut-hot 1.6s ease-in-out infinite; }
+.tut-hot.seen:not(:disabled) { border-color: rgba(140, 230, 160, .6); animation: none; }
+.tut-hot.on { background: rgba(255, 236, 160, .28); border-style: solid; border-color: #ffe08c; }
+.tut-hot:disabled { cursor: default; }
+.tut-count { font-size: .85rem; opacity: .85; }
+@keyframes tut-hot { 50% { background: rgba(255, 224, 140, .16); } }
+@media (prefers-reduced-motion: reduce) { .tut-hot:not(:disabled) { animation: none; } }
+
+/* Paneles ilustrados (tramo 3: Clases) */
+.tut-panel { width: min(100%, 560px); display: flex; flex-direction: column; gap: 14px; align-items: center; padding: 18px; background: rgba(30, 20, 40, .55); border: 3px solid #3a2a1e; border-radius: 6px; }
+.tut-path { display: flex; align-items: center; gap: 8px; width: 100%; }
+.tut-path b { padding: 8px 12px; border: 2px solid #ffe08c; border-radius: 6px; background: rgba(255, 224, 140, .12); white-space: nowrap; font-size: .95rem; }
+.tut-path i { flex: 1; height: 0; border-top: 3px dashed #ffe08c; min-width: 14px; }
+.tut-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.tut-chips span { padding: 4px 10px; border-radius: 99px; background: rgba(140, 230, 160, .18); border: 1px solid rgba(140, 230, 160, .6); font-size: .85rem; }
+.tut-vs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
+.tut-vs > div { padding: 12px; border: 2px solid rgba(255, 255, 255, .25); border-radius: 6px; text-align: center; }
+.tut-vs > .win { border-color: #8ce6a0; background: rgba(140, 230, 160, .12); }
+.tut-vs h4 { margin: 0 0 6px; font-size: 1rem; }
+.tut-vs p { margin: 0; font-size: .9rem; opacity: .9; }
+.tut-time { display: flex; align-items: center; width: 100%; }
+.tut-time span { padding: 6px 10px; border: 2px solid #ffe08c; border-radius: 6px; font-size: .85rem; white-space: nowrap; }
+.tut-time i { flex: 1; border-top: 3px dashed #ffe08c; min-width: 8px; }
+.tut-time i.l { flex: 2; }
+.tut-time i.xl { flex: 4; }
+.tut-cite { opacity: .75; font-size: .78rem; text-align: center; line-height: 1.35; }
+@media (max-width: 700px) { .tut-path b, .tut-time span { padding: 5px 7px; font-size: .78rem; } }
+
+.tut-links { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.tut-links a { text-decoration: none; }
+.tut-prize { font-size: 1.8rem; font-weight: 700; color: #ffe08c; text-align: center; display: flex; flex-direction: column; gap: 2px; }
+.tut-prize small { font-size: .72rem; font-weight: 400; opacity: .7; }

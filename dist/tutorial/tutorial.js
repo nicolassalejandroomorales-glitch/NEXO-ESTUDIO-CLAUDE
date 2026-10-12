@@ -16,6 +16,17 @@
     slime:  { nombre: 'Slime',  pose: 'feliz',       ficha: 'Dormilón. Vive tranquilo. Duerme más que tú en época de pruebas.', tono: 260,
               sugeridos: ['Gelatina', 'Flan', 'Nube'],  hola: n => `Hola. Soy ${n}. …¿Hay almohadas por aquí?` }
   };
+  // Qué dice la mascota al tocar cada objeto del refugio (ids de NexoHomeScene.getProfile().hotspots; guion paso 12).
+  const OBJETOS = {
+    'window-focus': ['Ventana', 'Resalta la luz de entrada. Cambia con la hora y el clima de verdad.'],
+    'staff-shop': ['Báculo estelar', 'Abre la Tienda.'],
+    'armchair-profile': ['Sillón', 'Tu Perfil: mascota, estadísticas y ajustes.'],
+    'map-logbook': ['Mapa enrollado', 'La Bitácora: tus notas y calificaciones.'],
+    'parchment-calendar': ['Pergamino de la pared', 'El calendario con tus fechas.'],
+    'bookshelf-library': ['Estantería', 'La Biblioteca.'],
+    'globe-knowledge': ['Globo dorado', 'El mapa de conocimiento: qué dominas y qué no.'],
+    'desk-continue': ['Escritorio', 'Continuar estudiando justo donde lo dejaste.']
+  };
   const NAME_OK = /^\p{L}+(?:-?\p{N}{1,2})?$/u;
   const nameError = v => {
     const t = v.trim();
@@ -37,11 +48,42 @@
     { id: 'nombre', pose: 'feliz', text: 'Ahora el nombre. Será el que escuches cuando te alienten y cuando saques un 7. Elige bien.', scene: 'nombre', needs: 'draft', next: 'Ponerle ese nombre', noBack: true },
     { id: 'graba', pose: 'importante', text: s => `${s.draft.trim()}. Queda grabado en tinta que no sale. Última confirmación.`, scene: 'mascota', next: 'Confirmar' },
     { id: 'hola', who: 'M', text: s => INFO[s.kind].hola(s.name), scene: 'mascota', noBack: true },
-    { id: 'fin', pose: 'feliz', text: s => `Hasta aquí llega el tramo de prueba. ${s.name} y yo seguimos pronto con el refugio, las clases y los juegos.`, scene: 'mascota', next: 'Reiniciar prueba', noBack: true }
+    { id: 'ref1', who: 'M', text: 'Este es el refugio: tu base. Cambia con la hora del día y el clima, y siempre vuelves aquí.', scene: 'refugio', noBack: true },
+    { id: 'ref2', who: 'M', text: 'Toca los objetos. Cada uno hace algo distinto.', scene: 'refugio', objetos: true, needs: 'seen', next: 'Ya los toqué todos' },
+    { id: 'vest', who: 'M', text: 'Aquí me vistes y compras cosas con monedas. Sí, tengo opiniones sobre mi sombrero.', scene: 'refugio' },
+    { id: 'dato1', pose: 'pensativo', text: 'Dato: volver todos los días, aunque sea poco, ayuda más que estudiar mucho una sola noche. El espaciado funciona.', scene: 'mascota' },
+    { id: 'ruta', pose: 'senalar', text: 'Esta es tu ruta al 7. Sigue el material de tu semestre y se adapta a tu tiempo, a lo que ya sabes y a tus errores.', scene: 'panel',
+      panel: '<div class="tut-path"><b>Hoy</b><i></i><b>PEP 1</b><i></i><b>Un 7</b></div><div class="tut-chips"><span>tu tiempo</span><span>lo que ya sabes</span><span>tus errores</span></div>' },
+    { id: 'evid', pose: 'dedo', text: 'Releer da sensación de dominio. Acertar sin ayuda da dominio de verdad. Por eso te pido que respondas antes de mostrarte nada.', scene: 'panel',
+      panel: '<div class="tut-vs"><div><h4>Releer</h4><p>Se siente fácil.<br>Se olvida rápido.</p></div><div class="win"><h4>Responder sin mirar</h4><p>Cuesta un poco.<br>Se queda.</p></div></div><small class="tut-cite">Roediger y Karpicke, 2006: practicar recordando supera a releer cuando se evalúa días después.</small>' },
+    { id: 'espac', pose: 'importante', text: 'Te hago volver a temas viejos justo antes de que se te olviden. Molesta un poco. Funciona.', scene: 'panel',
+      panel: '<div class="tut-time"><span>Día 1</span><i></i><span>Día 3</span><i class="l"></i><span>Día 8</span><i class="xl"></i><span>Día 21</span></div><small class="tut-cite">Cepeda et al., 2006: repartir el repaso en el tiempo mejora el recuerdo a largo plazo frente a hacerlo todo junto.</small>' },
+    { id: 'error', pose: 'pensativo', text: 'Equivocarte no es el fin. Es información: la ruta se ajusta a lo que fallaste.', scene: 'panel',
+      panel: '<div class="tut-path"><b>Fallo</b><i></i><b>Pista</b><i></i><b>Ruta ajustada</b></div>' },
+    { id: 'camp', pose: 'abrir', text: 'Esta es la campaña Camino a la PEP 1: un mapa, jefes y combates que avanzan con tu estudio.', scene: 'panel',
+      panel: '<div class="tut-path"><b>Inicio</b><i></i><b>Combate</b><i></i><b>Jefe</b></div><div class="tut-chips"><span>mapa</span><span>jefes</span><span>combates</span></div>' },
+    { id: 'desaf', pose: 'senalar', text: 'Los desafíos son retos cortos con premio. Perfectos para un rato libre entre clases.', scene: 'panel',
+      panel: '<div class="tut-vs"><div><h4>Reto corto</h4><p>Unos minutos.<br>Una pregunta a la vez.</p></div><div class="win"><h4>Premio</h4><p>Monedas para<br>tu refugio.</p></div></div>' },
+    { id: 'monedas', pose: 'feliz', text: 'Aquí ganas monedas, y las gastas en la tienda del refugio.', scene: 'panel',
+      panel: '<div class="tut-path"><b>Juegas</b><i></i><b>Ganas monedas</b><i></i><b>Tienda</b></div>' },
+    { id: 'dato2', pose: 'guino', text: 'Dato: jugar no es perder el tiempo. Te obliga a recordar sin mirar, que es justo lo que funciona.', scene: 'panel',
+      panel: '<div class="tut-vs"><div><h4>Mirar la respuesta</h4><p>Se siente bien.<br>Enseña poco.</p></div><div class="win"><h4>Recordarla jugando</h4><p>Cuesta un poco.<br>Se queda.</p></div></div>' },
+    { id: 'cal', pose: 'senalar', text: 'Calendario y prioridades: tus fechas de pruebas. Con eso te digo qué estudiar primero.', scene: 'panel',
+      panel: '<div class="tut-path"><b>Tus fechas</b><i></i><b>Prioridades</b><i></i><b>Qué estudiar hoy</b></div>' },
+    { id: 'notas', pose: 'abrir', text: 'Notas y labs: tus apuntes y trabajos de laboratorio, en un solo lugar.', scene: 'panel',
+      panel: '<div class="tut-vs"><div><h4>Notas</h4><p>Tus apuntes<br>y calificaciones.</p></div><div><h4>Labs</h4><p>Trabajos de<br>laboratorio.</p></div></div>' },
+    { id: 'rangos', pose: 'importante', text: 'Estadísticas y rangos: tu avance real y tus rangos arcanos. Subes por evidencia, no por tiempo sentado.', scene: 'panel',
+      panel: '<div class="tut-path"><b>Evidencia</b><i></i><b>Avance real</b><i></i><b>Rango arcano</b></div>' },
+    { id: 'ajustes', pose: 'guino', text: 'Ajustes e inasistencias: sonido, tutoriales (aquí vuelves a verme) y control de faltas.', scene: 'panel',
+      panel: '<div class="tut-chips"><span>sonido</span><span>tutoriales</span><span>inasistencias</span></div>' },
+    { id: 'config', pose: 'importante', text: 'Último paso serio: dime tus ramos, las fechas de tus pruebas y cuánto tiempo tienes. Con eso la ruta parte hecha a tu medida.', scene: 'panel',
+      panel: '<div class="tut-chips"><span>ramos</span><span>fechas de pruebas</span><span>tiempo disponible</span></div><div class="tut-links"><a class="secondary-btn" href="#/planner/calendar">Ir al calendario</a><a class="secondary-btn" href="#/profile">Ir al perfil</a></div><small class="tut-cite">Cuando termines, vuelve a #/tutorial y seguimos donde quedaste.</small>' },
+    { id: 'premio', who: 'M', text: '¡Terminamos! Esto es para ti. Gasta con cabeza.', scene: 'premio', noBack: true },
+    { id: 'fin', pose: 'feliz', text: 'Fue un honor. Si me necesitas, estoy en Ajustes. Y no, no me pagan.', scene: 'mascota', next: 'Reiniciar prueba', noBack: true }
   ];
 
   const load = () => { try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch (_) { return {}; } };
-  const save = s => { try { localStorage.setItem(STORE, JSON.stringify({ i: s.i, kind: s.kind, draft: s.draft, name: s.name })); } catch (_) { /* sin almacenamiento */ } };
+  const save = s => { try { localStorage.setItem(STORE, JSON.stringify({ i: s.i, kind: s.kind, draft: s.draft, name: s.name, seen: s.seen })); } catch (_) { /* sin almacenamiento */ } };
   const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
   const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   let cssLoaded = false, pixelLoading = null;
@@ -63,7 +105,7 @@
     const sound = opts.sound || (() => false);
     const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
     const saved = load();
-    const s = { i: Math.min(saved.i || 0, STEPS.length - 1), kind: KINDS.includes(saved.kind) ? saved.kind : '', draft: saved.draft || '', name: saved.name || '' };
+    const s = { i: Math.min(saved.i || 0, STEPS.length - 1), kind: KINDS.includes(saved.kind) ? saved.kind : '', draft: saved.draft || '', name: saved.name || '', seen: Array.isArray(saved.seen) ? saved.seen : [] };
     if (STEPS[s.i].id === 'nace') s.i = STEPS.findIndex(x => x.id === 'nace');   // si cerró a media eclosión, la repite
 
     app.innerHTML = '';
@@ -86,7 +128,7 @@
     const sizeVars = () => { const small = innerWidth < 700; root.style.setProperty('--s', small ? 2 : 4); root.style.setProperty('--e', small ? 2 : 3); root.style.setProperty('--m', small ? 4 : 6); };
     sizeVars(); addEventListener('resize', sizeVars);
 
-    let timers = [], typeTimer = 0, typing = false, mouthCol = 0, pose = 'reposo', busy = false, raf = 0;
+    let curText = '', timers = [], typeTimer = 0, typing = false, mouthCol = 0, pose = 'reposo', busy = false, raf = 0;
     const alive = () => root.isConnected;
     const later = (ms, fn) => { const t = setTimeout(() => { if (alive()) fn(); }, ms); timers.push(t); return t; };
     const clearAll = () => { timers.forEach(clearTimeout); timers = []; clearTimeout(typeTimer); typing = false; };
@@ -120,7 +162,7 @@
 
     // ——— Texto letra por letra ———
     function say(text, who = 'G', then) {
-      clearTimeout(typeTimer);
+      clearTimeout(typeTimer); curText = text;
       tagEl.textContent = who === 'M' ? (s.name || INFO[s.kind]?.nombre || '') : 'Grimorio';
       box.classList.remove('done');
       let k = 0; typing = true; textEl.textContent = '';
@@ -200,9 +242,42 @@
         INFO[s.kind].sugeridos.forEach(n => { const b = el('button', 'secondary-btn', esc(n)); b.type = 'button'; b.addEventListener('click', () => { inp.value = n; inp.dispatchEvent(new Event('input')); }); f.querySelector('.tut-sug').append(b); });
         inp.addEventListener('input', () => { s.draft = inp.value; err.textContent = inp.value && nameError(inp.value) ? nameError(inp.value) : ''; save(s); refresh(); });
         sceneEl.append(f);
+      } else if (name === 'premio') {
+        const p = petCanvas(s.kind, 'feliz'); const wrap = el('div', 'tut-mascot big'); wrap.append(p.c);
+        sceneEl.append(wrap, el('div', 'tut-prize', '+150 ⚛<small>premio de prueba: aún no se suma a tus monedas</small>'));
+      } else if (name === 'panel') {
+        sceneEl.append(el('div', 'tut-panel', STEPS[s.i].panel));
+      } else if (name === 'refugio') {
+        refugio();
       } else if (name === 'mascota') {
         const p = petCanvas(s.kind, 'feliz'); const wrap = el('div', 'tut-mascot big'); wrap.append(p.c); sceneEl.append(wrap);
       }
+    }
+
+    // ——— Refugio de ejemplo: fondo y objetos salen de NexoHomeScene (no se duplican coordenadas) ———
+    function refugio() {
+      const H = window.NexoHomeScene, prof = H && H.getProfile && H.getProfile();
+      if (!prof) { sceneEl.append(el('p', 'tut-err', 'No pude cargar el refugio.')); return; }
+      const stage = el('div', 'tut-stage'); stage.style.backgroundImage = `url(${new URL(prof.backgroundAsset, document.baseURI).href})`;
+      const objetos = !!STEPS[s.i].objetos, pc = el('div', 'tut-stage-pet'), p = petCanvas(s.kind, 'feliz');
+      const anc = prof.mascotAnchors.rest.point; pc.style.left = anc[0] * 100 + '%'; pc.style.top = anc[1] * 100 + '%'; pc.append(p.c); stage.append(pc);
+      const counter = el('div', 'tut-count'); const upd = () => { counter.textContent = `${s.seen.length}/${Object.keys(OBJETOS).length} objetos`; };
+      prof.hotspots.forEach(h => {
+        const info = OBJETOS[h.id]; if (!info) return;
+        let [x, y, w, hh] = h.bounds || [0, 0, 1, 1];
+        if (h.slot) { const sl = prof.slots.find(q => q.id === h.slot).bounds, i = h.inset; x = sl[0] + sl[2] * i[0]; y = sl[1] + sl[3] * i[1]; w = sl[2] * i[2]; hh = sl[3] * i[3]; }
+        const b = el('button', 'tut-hot'); b.type = 'button'; b.disabled = !objetos; b.setAttribute('aria-label', info[0]);
+        b.style.cssText = `left:${x * 100}%;top:${y * 100}%;width:${w * 100}%;height:${hh * 100}%`;
+        b.classList.toggle('seen', s.seen.includes(h.id));
+        b.addEventListener('click', () => {
+          stage.querySelectorAll('.tut-hot.on').forEach(q => q.classList.remove('on')); b.classList.add('on', 'seen');
+          if (!s.seen.includes(h.id)) { s.seen.push(h.id); save(s); upd(); refresh(); }
+          say(`${info[0]}: ${info[1]}`, 'M');
+        });
+        stage.append(b);
+      });
+      sceneEl.append(stage);
+      if (objetos) { upd(); sceneEl.append(counter); }
     }
 
     // ——— Nacimiento con suspenso (~11 s) ———
@@ -233,7 +308,7 @@
     function textOf(step) { return typeof step.text === 'function' ? step.text(s) : step.text; }
     function refresh() {
       const step = STEPS[s.i];
-      const needOk = !step.needs || (step.needs === 'kind' ? !!s.kind : !nameError(s.draft));
+      const needOk = !step.needs || (step.needs === 'kind' ? !!s.kind : step.needs === 'seen' ? Object.keys(OBJETOS).every(k => s.seen.includes(k)) : !nameError(s.draft));
       nextBtn.disabled = busy || !needOk;
       nextBtn.textContent = step.next || (s.i === STEPS.length - 1 ? 'Reiniciar prueba' : 'Siguiente');
       backBtn.disabled = busy || s.i === 0 || !!step.noBack;
@@ -253,14 +328,14 @@
     }
     nextBtn.addEventListener('click', () => {
       const step = STEPS[s.i];
-      if (typing && !busy) { skipType(textOf(step)); return; }
+      if (typing && !busy) { skipType(curText); return; }
       if (step.id === 'nombre') s.draft = s.draft.trim();
       if (step.id === 'graba') s.name = s.draft.trim();
-      if (s.i >= STEPS.length - 1) { try { localStorage.removeItem(STORE); } catch (_) {} Object.assign(s, { kind: '', draft: '', name: '' }); show(0); return; }
+      if (s.i >= STEPS.length - 1) { try { localStorage.removeItem(STORE); } catch (_) {} Object.assign(s, { kind: '', draft: '', name: '', seen: [] }); show(0); return; }
       show(s.i + 1);
     });
     backBtn.addEventListener('click', () => { if (s.i > 0) show(s.i - 1); });
-    box.addEventListener('click', () => { if (typing && !busy) skipType(textOf(STEPS[s.i])); });
+    box.addEventListener('click', () => { if (typing && !busy) skipType(curText); });
     $('.tut-skip').addEventListener('click', () => { clearAll(); if (opts.exit) opts.exit(); else location.hash = '#/home'; });
     show(s.i);
   }
