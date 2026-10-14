@@ -1,6 +1,6 @@
 # UPDATE 02 — La Bitácora viva (organización, calendario, pruebas y notas)
 
-Estado: **Fase 1 programada (14 oct 2026), esperando aprobación visual de Niquito.** Diseño en `## Decisiones de Niquito`.
+Estado: **Fase 1 aprobada por Niquito (14 oct 2026).** Siguen Calendario, Notas, Lab y Avisos. Diseño en `## Decisiones de Niquito`.
 Los avisos de Classroom siguen en `AVISOS.md`.
 
 ## Decisiones de Niquito · tandas de preguntas (11 oct 2026)
@@ -86,7 +86,7 @@ reglas de examen/eximición/PF por ramo (`rules`), 14 fechas nuevas (labs de ORG
 (`NEXO_SEMESTER.schedule`) y actualización segura de cuentas existentes (`NEXO_SEMESTER.upgrade`, nunca pisa notas). Prueba `tools/semester-test.cjs`.
 La pantalla sigue siendo la vieja: el rediseño (estudio de planos) no se ha programado.
 
-**Hecho 14 oct 2026 — Fase 1: estudio de planos + Hoy + avisos en el Inicio** (esperando aprobación; ANTES/AHORA en `fase1/`).
+**Hecho 14 oct 2026 — Fase 1: estudio de planos + Hoy + avisos en el Inicio** (aprobada por Niquito; ANTES/AHORA en `fase1/`).
 - Escena pixel de borde a borde: `tools/torre-pixel/build_estudio.py` (+ `estudio_fondo.py`, `estudio_frente.py`; reutiliza el piso, la ventana y las piezas del laboratorio)
   → `dist/assets/torre/estudio/` (vista, fondo, frente y campana por hora + `estudio.json`). Kit de la vista Hoy: `tools/torre-pixel/estudio_ui.py` (madera, pergamino, rollos, relojes de arena, cinta).
   Chimenea, reloj de péndulo con la **hora real**, ventanal con hora y **clima real** (lluvia, nieve, nubes, niebla, tormenta encima de la vista), mapas, hiedra, hongos que brillan, velas, polvo en la luz.
@@ -307,7 +307,7 @@ Orden pensado para que lo urgente (la semana del 19 oct) llegue primero:
 
 ## Pendiente
 
-- **Aprobación visual de la Fase 1** (Niquito). Después: Calendario (mes/semana/semestre, mover con historial), Notas (balanza, frascos, simulador; mudar Notas e Inasistencias del Perfil), Lab completo, Avisos (campana).
+- Siguiente (Fase 1 ya aprobada): Calendario (mes/semana/semestre, mover con historial), Notas (balanza, frascos, simulador; mudar Notas e Inasistencias del Perfil), Lab completo, Avisos (campana).
 - Fase 1, falta: sonidos (fuego, lluvia, tic-tac, pluma, campana), balanza que se inclina según notas, mesa ordenada/desordenada según el plan, editar o borrar una fecha desde el estudio (hoy solo agregar),
   "¿cómo te fue?" después de rendir (llega con Notas), Inicio calmado el día de prueba, ritual del domingo.
 - Avisar al chat del Perfil: Notas e Inasistencias se mudan a Organización (pendiente desde la tanda 1).

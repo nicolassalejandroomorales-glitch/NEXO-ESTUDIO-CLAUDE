@@ -67,4 +67,5 @@ Historial de lo hecho por tema. Lo lee Claude solo cuando necesita contexto de o
 - Leídos del Drive los programas de Orgánica II, Analítica, FQ II (lab y ejercicios), Fisiopatología y el horario. Cargados en `dist/semester-2026.js`:
   ponderaciones con lab desglosado, reglas de examen/eximición, 14 fechas nuevas (labs, pruebas de ciclo, PEP 2 FISIO) y horario fijo.
   Cuentas existentes se actualizan una vez sin pisar notas (`NEXO_SEMESTER.upgrade`, prueba `tools/semester-test.cjs`). Detalle y dudas: `docs/update-02-organizacion/DATOS-RAMOS.md`.
-- El rediseño de Organización (estudio de planos de la torre) sigue en diseño: decisiones de 3 tandas en `docs/update-02-organizacion/SPEC.md`.
+- El rediseño de Organización: decisiones de 3 tandas en `docs/update-02-organizacion/SPEC.md`.
+- **Fase 1 aprobada por Niquito (14 oct)**: estudio de planos de la torre (escena pixel con hora y clima reales), vista Hoy con plan propuesto (Empezar / Listo / Hoy no), relojes de arena, cinta de semana crítica y avisos en el Inicio. El diseño viejo de la Bitácora ya no se ve. Detalle en `docs/update-02-organizacion/SPEC.md`; prueba `tools/organizacion-test.cjs`. Siguen: Calendario, Notas, Lab y Avisos.
