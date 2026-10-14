@@ -6,9 +6,15 @@ description: Área de Organización de Nexo (UPDATE 02: plan semanal, calendario
 # Organización (UPDATE 02)
 
 ## Leer primero
-- `docs/update-02-organizacion/SPEC.md` (borrador **esperando aprobación de Niquito**; responder sus preguntas pendientes antes de programar).
+- `docs/update-02-organizacion/SPEC.md` (la sección "Decisiones de Niquito" manda; Fase 1 hecha, esperando aprobación visual).
 - `docs/update-02-organizacion/AVISOS.md` (avisos: diseño en curso, sin código).
 - Lo que ya existe: `docs/PLANNER_1_0.md`.
+
+## Estudio de planos (Fase 1, 14 oct 2026)
+- `#/planner/<hoy|calendario|pruebas|notas|lab|avisos>` → `dist/planner/estudio.js` (`NexoEstudio.render(app, vista, orgBridge())`). `#/hub/calendar|grades` redirigen. Lo viejo (`renderPlanner`…) ya no se ve.
+- Plan, relojes, semana crítica y urgencia: `dist/planner/today-plan.js` (puro, `tools/organizacion-test.cjs`). Avisos e Inicio: `dist/planner/avisos.js` (`window.NexoOrgAvisos`; ¡`NexoAvisos` es del tutorial!).
+- Arte: `python tools/torre-pixel/build_estudio.py` (escena) y `estudio_ui.py` (kit). Objetos en `estudio.json` (coordenadas gruesas 360×150).
+- Estado: `state.organization` (minutos por día, marcas del plan, avisos vistos). Los tres módulos van en el bundle (`node tools/build-startup.cjs`).
 
 ## Qué existe hoy (reutilizar, no reescribir)
 - Eventos en `state.events` (sincronizados como `academic_events`). UI vieja de Bitácora en `dist/app.js` (`renderPlanner`, `renderCalendarInteractive`, `renderGrades`).

@@ -287,6 +287,7 @@
     // Control 1 de Orgánica II (Aminas), confirmado el 05-10: se agrega a quienes ya tenían el calendario sembrado.
     if(!next.events.some(item=>item.id==='official-org-c1')) next.events.push({...deepClone(NEXO_SEMESTER.events.find(item=>item.id==='official-org-c1')),priority:3,status:'planned'});
     if(!next.events.some(item=>item.id==='official-fisio-pep1')) next.events.push({...deepClone(NEXO_SEMESTER.events.find(item=>item.id==='official-fisio-pep1')),priority:3,status:'planned'}); // PEP 1 de Fisiopatología (programa 2026-2)
+    NEXO_SEMESTER.upgrade?.(next, deepClone); // ponderaciones, labs y fechas reales de los programas (14-10-2026)
     // La calendarización docente posterior corrigió la fecha inicial del Control 1 FQII.
     // Solo actualiza el evento sembrado, no una fecha que el estudiante haya cambiado.
     const fqControl=next.events.find(item=>item.id==='official-fq-c1');
@@ -589,12 +590,12 @@
               : route[1] ? renderPractice(route[1],route[2]) : renderAcademicTraining(),
       games: renderGames,
       subjects: renderSubjects,
-      hub: () => renderHub(route[1] || 'timer'),
+      hub: () => window.NexoEstudio && ['calendar','grades'].includes(route[1]) ? routeTo('planner', window.NexoEstudio.legacy[route[1]]) : renderHub(route[1] || 'timer'),
       profile: () => renderProfile(({avatar:'mascot',collection:'mascot',progress:'stats'})[route[1]]||route[1]||'mascot'),
       subject: () => renderSubject(route[1]),
       lesson: () => renderLesson(route[1]),
       practice: () => renderPractice(route[1] || 'exercises', route[2]),
-      planner: () => renderPlanner(route[1] || 'calendar'),
+      planner: () => window.NexoEstudio ? window.NexoEstudio.render(app, route[1], orgBridge()) : renderPlanner(route[1] || 'calendar'),
       timer: renderTimer,
       stats: renderStats,
       history: () => window.NexoHistory.render(app,cloud,state),
@@ -665,6 +666,10 @@
     return `<article class="priority-card" style="--course:${subject.color}"><div class="priority-card-top"><span>${esc(subject.short)}</span><time datetime="${esc(event.date)}">${formatDate(event.date)}</time></div><h3>${esc(event.title)}</h3><p>${reasons.map(esc).join(' · ')}</p><button data-route="planner" data-route-sub="calendar">Ver en calendario →</button></article>`;
   }
 
+  // Organización (UPDATE 02): planner/estudio.js y planner/avisos.js leen y guardan el estado por aquí.
+  const orgBridge = () => ({ state, save: () => saveState({ backup: false }), today: () => todayKey(), ranked: rankedCommitments,
+    subjects: SUBJECTS, subjectFor, go: routeTo, toast: showToast });
+
   function todayStudyMinutes() {
     return Math.round(state.sessions.filter(session => session.date === todayKey())
       .reduce((sum, session) => sum + sessionSeconds(session), 0) / 60);
@@ -714,6 +719,7 @@
     </section>`;
     window.NexoHomeScene.enhancePan?.(app);
     petBind(); window.NexoPet?.mountHome(app.querySelector('.home-art-plane')); window.NexoPet?.checkWeather();
+    window.NexoOrgAvisos?.home(app, orgBridge());
   }
 
   function renderTimer() {
@@ -844,7 +850,7 @@
   let mascotAcademicSubscribed=false;
   function loadAcademicFoundation() {
     if(!academicFoundation)academicFoundation=['model','graph','diagnosis','knowledge','ranks','classifiers','sources','reviews','structured','engine','library','inspector','explorer','training','rescue']
-      .reduce((promise,name)=>promise.then(()=>window.NexoLoader.script(`./academic/${name}.js?v=c503132d`)),Promise.resolve())
+      .reduce((promise,name)=>promise.then(()=>window.NexoLoader.script(`./academic/${name}.js?v=e512334b`)),Promise.resolve())
       .then(()=>{if(!mascotAcademicSubscribed){window.NexoAcademicEngine.subscribe(event=>
         window.NexoMascotController.react(event,app));mascotAcademicSubscribed=true;}})
       .catch(error=>{academicFoundation=null;throw error;});
@@ -886,7 +892,7 @@
     if (new URLSearchParams(location.search).get('nexoDev') !== '1') return renderHome();
     if(view==='ui-lab'&&!window.NexoArcaneRanks){
       app.innerHTML='<section class="page"><p role="status">Abriendo componentes…</p></section>';
-      Promise.all([loadAcademicFoundation(),window.NexoLoader.script('./dev/workbench.js?v=32c5574c')])
+      Promise.all([loadAcademicFoundation(),window.NexoLoader.script('./dev/workbench.js?v=3952b1bd')])
         .then(()=>{if(parseRoute()[0]===view)renderRoute(false);})
         .catch(()=>{app.innerHTML='<section class="page"><h1>UI Lab no disponible</h1></section>';});
       return;
@@ -897,7 +903,7 @@
       return window.NexoWorkbench.renderReview(app);
     }
     app.innerHTML='<section class="page"><p role="status">Abriendo herramientas de revisión…</p></section>';
-    window.NexoLoader.script('./dev/workbench.js?v=32c5574c')
+    window.NexoLoader.script('./dev/workbench.js?v=3952b1bd')
       .then(() => { if (parseRoute()[0] === view) renderRoute(false); })
       .catch(() => { if (parseRoute()[0] === view) app.innerHTML='<section class="page"><h1>Revisión no disponible</h1><button data-route="home">Volver al inicio</button></section>'; });
   }
@@ -905,16 +911,16 @@
   const classroomLoads = new Map();
   function loadClassroom(id) {
     if (classroomLoads.has(id)) return classroomLoads.get(id);
-    const promise = Promise.resolve(window.NexoClassCatalog || window.NexoLoader.script('./classes/catalog.js?v=8dec702d')).then(() => {
+    const promise = Promise.resolve(window.NexoClassCatalog || window.NexoLoader.script('./classes/catalog.js?v=46c3f531')).then(() => {
       const file = window.NexoClassCatalog?.[id];
       if (!file) return false;
-      return Promise.all([window.NexoLoader.style('./classes/classroom.css?v=f5f7c02d'), window.NexoLoader.script('./classes/tower-art.js?v=9099c2df').then(() => window.NexoLoader.script('./classes/player.js?v=4242bf88')),
-        window.NexoLoader.script('./classes/willow-tower.js?v=09c21b87').catch(() => null), // Torre del Sauce (etapa 10); sin ella, quedan las hojas en lista
+      return Promise.all([window.NexoLoader.style('./classes/classroom.css?v=2ffd901f'), window.NexoLoader.script('./classes/tower-art.js?v=8f8838f8').then(() => window.NexoLoader.script('./classes/player.js?v=c209dc10')),
+        window.NexoLoader.script('./classes/willow-tower.js?v=0c3a9a96').catch(() => null), // Torre del Sauce (etapa 10); sin ella, quedan las hojas en lista
         window.NexoLoader.script(`./classes/${file}?v=18`),
         // Motor de evidencia y repaso espaciado (FSRS); si no cargan, la clase funciona igual sin agendar repasos.
-        window.NexoLoader.script('./classes/evidence.js?v=308f7a40'), window.NexoLoader.script('./classes/molecule.js?v=b3b2e5aa'), window.NexoLoader.script('./classes/editor.js?v=df0be94e'), window.NexoLoader.script('./academic/reviews.js?v=0273ea6c').catch(() => null)])
-        .then(() => Promise.all([window.NexoLoader.script(`./classes/slides/${id}.js?v=268941af`).catch(() => null), // diapositivas reales, si ya se convirtieron
-          window.NexoLoader.script(`./classes/${id}-gen.js?v=00c1b5a9`).catch(() => null)])) // generadores de ejercicios (etapa 8), si la clase los tiene
+        window.NexoLoader.script('./classes/evidence.js?v=72d89c59'), window.NexoLoader.script('./classes/molecule.js?v=d1c39777'), window.NexoLoader.script('./classes/editor.js?v=b35d66e7'), window.NexoLoader.script('./academic/reviews.js?v=c9a83999').catch(() => null)])
+        .then(() => Promise.all([window.NexoLoader.script(`./classes/slides/${id}.js?v=279accdd`).catch(() => null), // diapositivas reales, si ya se convirtieron
+          window.NexoLoader.script(`./classes/${id}-gen.js?v=83a0bee2`).catch(() => null)])) // generadores de ejercicios (etapa 8), si la clase los tiene
         .then(() => true);
     });
     promise.catch(() => classroomLoads.delete(id));
@@ -952,10 +958,10 @@
     if (!window.NexoWillowView) app.innerHTML = '<section class="page"><div class="app-loader" role="status"><span></span><p>Subiendo a la torre…</p></div></section>';
     // La torre junta las clases de la PEP 1 del ramo que ya existen (Orgánica: Aminas, Aromaticidad y SEA).
     const pepIds = (subject.peps?.[0]?.lessons || lessonIds);
-    Promise.resolve(window.NexoClassCatalog || window.NexoLoader.script('./classes/catalog.js?v=8dec702d')).then(() => {
+    Promise.resolve(window.NexoClassCatalog || window.NexoLoader.script('./classes/catalog.js?v=46c3f531')).then(() => {
       const ids = pepIds.filter(l => window.NexoClassCatalog?.[l]);
-      return Promise.all([window.NexoLoader.style('./classes/willow.css?v=5a60c6e7'), window.NexoLoader.script('./classes/willow-tower.js?v=09c21b87'), ...ids.map(loadClassroom)])
-        .then(() => window.NexoLoader.script('./classes/willow-view.js?v=291be729')).then(() => ids);
+      return Promise.all([window.NexoLoader.style('./classes/willow.css?v=418a9917'), window.NexoLoader.script('./classes/willow-tower.js?v=0c3a9a96'), ...ids.map(loadClassroom)])
+        .then(() => window.NexoLoader.script('./classes/willow-view.js?v=96a04d73')).then(() => ids);
     }).then(ids => {
       const id = ids[0];
       const route = parseRoute(); if (route[0] !== 'torre' || (route[1] || 'organica') !== subjectId) return;
