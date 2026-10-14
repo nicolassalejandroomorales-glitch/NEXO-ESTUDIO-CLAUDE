@@ -34,6 +34,13 @@
 
 .tut-talk { position: relative; display: flex; align-items: flex-end; gap: 6px; }
 .tut-grim { flex: none; width: calc(var(--s) * 68px); height: calc(var(--s) * 76px); background-repeat: no-repeat; image-rendering: pixelated; }
+/* Grimorio vivo: flota y respira siempre (transform), salta al hablar (translate, por JS) y rebota al cambiar de pose (scale) */
+.tut-grim { animation: grimFloat 3.4s ease-in-out infinite; transform-origin: 50% 100%; }
+.tut-grim.pop { animation: grimFloat 3.4s ease-in-out infinite, grimPop .42s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes grimFloat { 0%, 100% { transform: translateY(0) rotate(-.6deg) scale(1, 1); } 50% { transform: translateY(calc(var(--s) * -3px)) rotate(.6deg) scale(1.015, 1.03); } }
+@keyframes grimPop { 0% { scale: .86 1.14; } 55% { scale: 1.1 .92; } 100% { scale: 1 1; } }
+.tut-mute { padding: 6px 10px; font-size: .95rem; } .tut-mute.off { opacity: .45; text-decoration: line-through; }
+@media (prefers-reduced-motion: reduce) { .tut-grim, .tut-grim.pop { animation: none; } }
 .tut-talk.pet .tut-grim { display: none; }
 .tut-box { position: relative; flex: 1; min-height: calc(var(--s) * 26px); cursor: pointer; box-sizing: border-box; padding: calc(var(--s) * 7px) calc(var(--s) * 8px) calc(var(--s) * 6px);
   border-style: solid; border-width: calc(var(--s) * 3px); border-image: url("../assets/tutorial/marco-dialogo.png") 12 fill / calc(var(--s) * 3px) stretch; image-rendering: pixelated; color: #3a2414; }
@@ -64,14 +71,18 @@
 .tut-stage { position: relative; width: min(100%, 900px, calc(44vh * 1672 / 941)); aspect-ratio: 1672 / 941; background-size: 100% 100%; image-rendering: pixelated; border: 3px solid #3a2a1e; border-radius: 6px; overflow: hidden; }
 .tut-stage-pet { position: absolute; width: 9%; translate: -50% -100%; pointer-events: none; }
 .tut-stage-pet .tut-pet { width: 100%; height: auto; image-rendering: pixelated; display: block; }
-.tut-hot { position: absolute; background: transparent; border: 2px dashed transparent; border-radius: 6px; cursor: pointer; padding: 0; }
-.tut-hot:not(:disabled) { border-color: rgba(255, 224, 140, .55); animation: tut-hot 1.6s ease-in-out infinite; }
-.tut-hot.seen:not(:disabled) { border-color: rgba(140, 230, 160, .6); animation: none; }
-.tut-hot.on { background: rgba(255, 236, 160, .28); border-style: solid; border-color: #ffe08c; }
+.tut-hot { position: absolute; background: transparent; border: 2px solid transparent; border-radius: 10px; cursor: pointer; padding: 0; }
+.tut-hot:not(:disabled) { border-color: #ffe08c; background: rgba(255, 224, 140, .14); animation: tut-hot 1.4s ease-in-out infinite; }
+.tut-hot:not(:disabled)::after { content: '✦'; position: absolute; top: -12px; right: -10px; width: 22px; height: 22px; display: grid; place-items: center; font-size: 14px; color: #3a2414; background: #ffe08c; border-radius: 50%; box-shadow: 0 0 10px #ffd860; animation: tut-star 1.4s ease-in-out infinite; }
+.tut-hot:not(:disabled):hover { background: rgba(255, 236, 160, .3); transform: scale(1.03); }
+.tut-hot.seen:not(:disabled) { border-color: rgba(140, 230, 160, .85); background: rgba(140, 230, 160, .1); animation: none; }
+.tut-hot.seen:not(:disabled)::after { content: '✓'; background: #8ce6a0; box-shadow: 0 0 8px #8ce6a0; animation: none; }
+.tut-hot.on { background: rgba(255, 236, 160, .3); border-color: #ffe08c; }
 .tut-hot:disabled { cursor: default; }
 .tut-count { font-size: .85rem; opacity: .85; }
-@keyframes tut-hot { 50% { background: rgba(255, 224, 140, .16); } }
-@media (prefers-reduced-motion: reduce) { .tut-hot:not(:disabled) { animation: none; } }
+@keyframes tut-hot { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 216, 96, .55), 0 0 6px rgba(255, 216, 96, .5); } 50% { box-shadow: 0 0 0 7px rgba(255, 216, 96, 0), 0 0 18px rgba(255, 216, 96, .9); } }
+@keyframes tut-star { 50% { transform: translateY(-4px) scale(1.15); } }
+@media (prefers-reduced-motion: reduce) { .tut-hot:not(:disabled), .tut-hot:not(:disabled)::after { animation: none; } }
 
 /* Paneles ilustrados (tramo 3: Clases) */
 .tut-panel { width: min(100%, 560px); display: flex; flex-direction: column; gap: 14px; align-items: center; padding: 18px; background: rgba(30, 20, 40, .55); border: 3px solid #3a2a1e; border-radius: 6px; }

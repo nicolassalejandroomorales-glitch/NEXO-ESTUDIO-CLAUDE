@@ -167,19 +167,45 @@ hay que tocar los 8 (contador x/8, se guarda en `seen`) para habilitar Siguiente
 - `#/tutorial/test` = la prueba de antes (sin guardar nada). Avance real en `localStorage['nexo.tutorial.v1']`.
 - Filtro de nombres: palabras ofensivas por fragmento o exactas (ignora tildes y cambios tipo "l33t"); lista corta en `tutorial.js`, ampliable.
 
-## Pendiente
-- ✅ Avisos (12 oct): globo chico del Grimorio en la esquina con «Entendido». **Primera vez en cada sección solo si saltaste el tutorial** (si lo hiciste completo no se repite). Novedades: lista con versión `NEWS` en `dist/tutorial/avisos.js` (el id sube de 1 en 1; cada aviso sale una vez en el Inicio). Estado en `state.tutorial.sections` y `.news`. Prueba: `tools/avisos-test.cjs`. Móvil (390) revisado: aviso y pasos del tutorial caben; se arregló el paso de elegir huevo (se salía del ancho).
-- Decidir qué pasa con el premio en cuentas con nube. Probar en móvil (390). Aprobar el tono del guion.
-- Revisar el filtro de nombres (palabras no permitidas) y los datos de estudio del guion.
+## REDISEÑO: recorrido por la app real (14 oct 2026, pedido de Niquito)
 
-- Aprobar la segunda tanda (expresiones, boca, marco).
+**Problema:** hoy el tutorial es una escena aparte con paneles de ejemplo. Niquito quiere que el Grimorio **explore la aplicación de verdad**: que te lleve a cada pantalla real y te explique lo que hay ahí.
 
-- Banco de frases de las mascotas y reglas del nombre: borrador en [FRASES.md](FRASES.md) (12 oct). Falta que Niquito corrija el tono.
-- Banco de frases del Grimorio: ya está dentro del [GUION.md](GUION.md).
-- Confirmar las monedas. **Propuesta: 150 ⚛.** Los 14 accesorios cuestan 60–260 ⚛ (`PRICES` en `dist/mascot/home-pet.js`, precios de ejemplo
-  aún no definitivos). 150 alcanza para uno de rango medio (bufanda, lupa, monóculo) pero no para los caros (corona 260, sombrero 200),
-  así que el premio se siente bien sin romper la economía. Si Niquito cambia los precios, se ajusta.
-- ✅ Paso 12 del guion ya tiene los 8 objetos tocables reales (ventana, báculo, sillón, mapa, pergamino, estantería, globo, escritorio).
-- Diseño de pixel art del Grimorio (sprites y expresiones) con `nexo-pixel-art`.
-- Skill propia `nexo-tutorial` cuando se implemente.
-- Conexión con el sistema de mascota existente (`dist/mascot/`, skill `nexo-mascota`) y con el Perfil.
+**Decisiones (Niquito, 14 oct):**
+- **Estilo mixto:** «foco + Siguiente» en casi todo (el Grimorio navega a la pantalla real, oscurece el resto y resalta con un halo el botón o tarjeta que explica) y **«hazlo tú»** solo en 3–4 momentos clave (esperar el toque real: abrir una clase, tocar un objeto del refugio, abrir el calendario).
+- **Inicio igual:** se mantiene la escena de huevos, nombre y nacimiento; justo después el Grimorio sale a recorrer la app real.
+- **Profundidad:** solo lo principal. 5 pantallas (Inicio, Aprender, Juegos/Entrenar, Organización, Perfil), 2–4 cosas resaltadas en cada una. ~4–5 min.
+- Los objetos del refugio **nunca bloquean** el avance (ya hecho).
+
+**Cómo (propuesta, a confirmar leyendo el código real):**
+- Motor nuevo `dist/tutorial/recorrido.js` (carga perezosa, como `avisos.js`): lista de pasos `{ ruta, objetivo (selector CSS), texto, pose, accion? }`. Hace `routeTo(ruta)`, espera a que exista el objetivo, lo resalta (halo + fondo oscurecido con recorte) y coloca al Grimorio en la esquina más cercana sin taparlo. Si el objetivo no existe, lo salta sin trabarse.
+- Selectores reales a usar (verificar): barra de navegación `.nav-btn[data-route=home|learn|train|games|profile]`, botones de cabecera (Bitácora/calendario, monedas, Tienda), objetos tocables del refugio (`NexoHomeScene`), tarjetas de cada pantalla.
+- Reutiliza los textos y datos del GUION (con su evidencia) pero cada uno **atado a algo visible**.
+- Móvil (390): barra de texto abajo; el halo sigue la barra de navegación móvil.
+- Los avisos por sección (`avisos.js`) siguen igual; se reemplazan los paneles falsos (pasos 14–27) por este recorrido.
+
+**Audio sincronizado (pedido explícito):** hoy hay un blip por letra a ~28 ms y se solapan. Cambiar a: **un blip por cada letra visible, con duración menor que el intervalo y programado con el reloj de audio** (no con `setTimeout`), pausa más larga en `. , ? !` (sin sonido, como Undertale), y el mismo ritmo para la boca y el salto del Grimorio. Probar que el sonido empieza justo cuando aparece cada letra y que termina cuando termina el texto (también al saltar el texto con clic).
+
+**Criterios de aceptación:** el recorrido pasa por las 5 pantallas reales y resalta elementos que existen; los 3–4 «hazlo tú» esperan el toque real y tienen salida si no pasa nada en ~10 s; nunca queda trabado; funciona en 1440 y 390; el audio coincide con las letras; se puede salir y repetir desde Ajustes → Tutoriales.
+
+## Ajustes tras probarlo (14 oct 2026, esperando aprobación de Niquito)
+- **Objetos del refugio**: ahora brillan (borde dorado, pulso y estrella ✦; verde con ✓ al tocarlos) y el botón **ya no bloquea**: dice «Seguir (faltan N)» y se puede avanzar sin tocarlos todos.
+- **Voz del texto** (estilo videojuego): un blip por letra, tono al azar en escala pentatónica, más grave en el Grimorio; suena **por defecto** (antes dependía del ajuste de sonido, que viene apagado). Botón ♪ arriba para silenciar (se recuerda en el navegador).
+- **Grimorio con más vida**: flota y respira siempre, salta al empezar cada palabra, rebota al cambiar de pose. Se apaga con «reducir movimiento».
+
+## Para terminar el tutorial (14 oct 2026)
+
+Niquito: «el tutorial ya está súper bueno»: se da por **aprobado el tono, la segunda tanda del Grimorio (expresiones, boca, marco) y los 150 ⚛**. Solo se cambia algo si él lo pide. Ya hecho: guion de 29 pasos, conexión real, avisos por sección y novedades, revisión en móvil (390).
+
+**Falta (en este orden):**
+1. **Premio en cuentas con nube** (única decisión abierta). Hoy se omite porque el saldo viene de la nube y `CLAUDE.md` prohíbe tocar cloud sin permiso. Opciones para preguntarle con `AskUserQuestion`: (a) dejarlo omitido; (b) darlo solo en local y marcarlo `rewarded`; (c) pedirle permiso para tocar la nube. Recomendado: (b) si no implica tocar Supabase.
+2. **Revisión final en 1440 y 390** de punta a punta (`#/tutorial/test`, una cuenta nueva simulada y una que salta el tutorial), con una sola captura al final.
+3. **Filtro de nombres y datos de estudio** del guion: leerlos una vez y confirmar que no hay datos dudosos (cada dato con su fuente).
+4. **Limpiar este SPEC**: quitar pendientes viejos ya resueltos y dejar solo lo que falte.
+5. **Cierre**: skill `nexo-cierre`, commit, push y republicar el Artifact (ver `CLAUDE.md`, sección «Dónde se ve la app»).
+
+**Criterios de aceptación:** cuenta nueva ve el tutorial sola; elegir mascota y nombre se guarda; el premio se da una sola vez (o la decisión de nube queda escrita); saltarlo no da monedas; Ajustes → Tutoriales lo repite sin premio; `npm test` sin fallas nuevas.
+
+## Pendiente (ideas a futuro, no bloquean)
+- Aparición y avisos ya hechos; las novedades nuevas se agregan en `NEWS` de `dist/tutorial/avisos.js`.
+- Si Niquito cambia los precios de la tienda (`PRICES` en `dist/mascot/home-pet.js`), revisar que 150 ⚛ siga sintiéndose bien.
