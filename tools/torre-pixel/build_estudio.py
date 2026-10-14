@@ -101,7 +101,7 @@ def meta():
         'w': CW, 'h': CH, 'fine': 2, 'floor': FL // 2, 'walk': [122, 144], 'home': [150, 132], 'objects': OBJECTS,
         'parallax': {'vista': 0.8, 'frente': 1.3}, 'dust': {},
         'window': {'x0': F.WIN['x0'], 'x1': F.WIN['x1'], 'y0': F.WIN['ytop'], 'y1': F.WIN['ysill']},       # finas
-        'clock': F.CLOCK, 'cork': F.CORK, 'bell': {'x': F.BELL['x'] - 18, 'y': F.BELL['y'], 'w': 36, 'h': 32},
+        'clock': F.CLOCK, 'cork': F.CORK, 'scale': {'cx': 599, 'y': 62, 'shelf': 98}, 'table': {'x0': 226, 'x1': 374, 'top': 184}, 'bell': {'x': F.BELL['x'] - 18, 'y': F.BELL['y'], 'w': 36, 'h': 32},
         'anim': {
             'fire': [[64, 211, 16], [72, 211, 22], [80, 211, 18], [86, 211, 12]],
             'candles': [[32, 133], [114, 137], [218, 173], [710, 160]],

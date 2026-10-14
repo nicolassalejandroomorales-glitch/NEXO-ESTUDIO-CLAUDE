@@ -80,7 +80,10 @@ const launch = () => fs.existsSync('/opt/pw-browsers/chromium') ? chromium.launc
       await page.locator('[data-nt-grade="official-ana-pep2"]').click();
       await page.fill('[data-nt-input]', '3,2'); await page.locator('[data-nt-nota-form] button[type=submit]').click();
       assert.equal(await page.locator('[data-nt-autopsy-form]').count(), 1, 'nota roja ofrece contar qué pasó');
-      await page.locator('[data-nt-autopsy-cancel-btn]').click();
+      await page.fill('[data-nt-autopsy-form] input[name=tipo]', 'titulaciones'); await page.selectOption('[data-nt-autopsy-form] select', 'calculo');
+      await page.locator('[data-nt-autopsy-form] button[type=submit]').click();
+      await page.evaluate(() => window.NexoStorage.flush());
+      assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('nexo-study-beta')).errors.filter(e => e.source === 'autopsia' && e.subject === 'analitica').length), 1, 'la autopsia entra a los errores abiertos');
       assert.match(await page.locator('.riesgos').innerText(), /sin eximición/);
       await page.locator('[data-nt-grade="official-ana-pep3"]').click();
       await page.fill('[data-nt-input]', '9'); await page.locator('[data-nt-nota-form] button[type=submit]').click();

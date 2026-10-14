@@ -1819,7 +1819,9 @@
   const org = () => { const s = bridge().state; s.organization = s.organization && typeof s.organization === 'object' ? s.organization : {}; return s.organization; };
   const maxes = () => { const o = org(); o.absenceMax = o.absenceMax && typeof o.absenceMax === 'object' ? o.absenceMax : {}; return o.absenceMax; };
   const cfg = id => bridge().gradeConfig(id);
-  const eventFor = id => (bridge().state.events || []).find(e => e.sourceId === id || e.id === id);
+  // Las pruebas de ciclo del laboratorio tienen id distinto en el calendario que en las notas.
+  const LINK = { 'grade-fq-lab-ciclo': 'official-fq-ciclo', 'grade-org-lab-ciclo1': 'official-org-ciclo1', 'grade-org-lab-ciclo2': 'official-org-ciclo2' };
+  const eventFor = id => (bridge().state.events || []).find(e => e.sourceId === id || e.id === id || e.id === LINK[id]);
   const num = v => R().num(v);
 
   function defaultSubject() {
@@ -2027,6 +2029,7 @@
     row.grade = n.toFixed(2); row.gradedOn = bridge().today();
     if (ev) ev.status = 'done';
     keep();
+    ctx.sound?.('pluma');
     const lv = R().level(n), est = row.estimate === undefined || row.estimate === '' ? NaN : num(row.estimate);
     ui.dialog = null; ui.fresh = { id, level: lv };
     if (lv === 'rojo') ui.autopsy = { id };
@@ -2038,6 +2041,18 @@
     });
     ctx.react(lv === 'verde' ? (n >= 6 ? 'deslumbrada' : 'baile') : lv === 'ambar' ? 'saludo' : 'idea',
       lv === 'verde' ? '¡Buena nota! Mira cuánto te queda por asegurar.' : lv === 'ambar' ? 'Anotada. Veamos cuánto necesitas en lo que queda.' : 'Una nota no te define. ¿Vemos qué falló?');
+  }
+
+  /* La autopsia de una nota baja entra al cuaderno de errores del ramo: sube su prioridad en el plan de Hoy ("errores abiertos"). */
+  const BLOCKER = { concepto: 'concept', calculo: 'formula', tiempo: 'attention', nervios: 'attention', estudio: 'first_step' };
+  function autopsyToError(row) {
+    const a = row.autopsy, list = bridge().state.errors; if (!list || !a.tipo && !a.causa) return;
+    const text = a.tipo || `Nota baja en ${row.name}`;
+    let err = row.autopsy.errorId && list.find(x => x.id === row.autopsy.errorId);
+    const body = { subject: ui.subject, blocker: BLOCKER[a.causa] || 'concept', observable: `${row.name}: ${text}`, reasoning: a.distinto || '',
+      diagnosis: a.distinto ? `Plan propio: ${a.distinto}` : 'Revisar el primer eslabón del razonamiento.', status: 'open', source: 'autopsia' };
+    if (err) Object.assign(err, body);
+    else { err = { id: bridge().uid('error'), date: bridge().today(), dueAt: bridge().today(), ...body }; list.unshift(err); row.autopsy.errorId = err.id; }
   }
 
   function click(e) {
@@ -2092,8 +2107,8 @@
     }
     if (f.matches('[data-nt-autopsy-form]')) {
       const row = cfg(ui.subject).components.find(c => c.id === ui.autopsy.id), fd = new FormData(f);
-      if (row) { row.autopsy = { tipo: String(fd.get('tipo') || '').trim(), causa: String(fd.get('causa') || ''), distinto: String(fd.get('distinto') || '').trim() }; keep(); }
-      ui.autopsy = null; refresh(); bridge().toast('Anotado. Con esto elegimos qué practicar.');
+      if (row) { row.autopsy = { tipo: String(fd.get('tipo') || '').trim(), causa: String(fd.get('causa') || ''), distinto: String(fd.get('distinto') || '').trim() }; autopsyToError(row); keep(); }
+      ui.autopsy = null; ctx.sound?.('pluma'); refresh(); bridge().toast('Anotado. Con esto elegimos qué practicar.');
       return ctx.react('idea', 'Gracias por contarlo: eso me ayuda a proponerte mejores bloques.');
     }
     if (f.matches('[data-nt-abs-form]')) {
@@ -2102,7 +2117,7 @@
       bridge().state.absences.push({ id: bridge().uid('absence'), subject: ui.subject, group: fd.get('group') === 'lab' ? 'lab' : 'theory', date });
       keep(); refresh();
       const a = R().attendance(bridge().state.absences, ui.subject, maxes())[fd.get('group') === 'lab' ? 'lab' : 'theory'];
-      bridge().toast('Falta anotada.');
+      ctx.sound?.('sello'); bridge().toast('Falta anotada.');
       if (a.state === 'queda-1') ctx.react('nerviosa', 'Ojo: te queda 1 falta en esta parte.');
       else if (a.state === 'limite' || a.state === 'pasado') ctx.react('nerviosa', 'Llegaste al límite de faltas. Hablemos con el profe si hace falta.');
     }
@@ -2147,6 +2162,114 @@
   }
 
   window.NexoNotas = Object.freeze({ panel, wire, pixelText, parseTyped });
+})();
+
+;
+
+/* planner/estudio-audio.js */
+/* Sonido del estudio de planos (UPDATE 02, SPEC "Sonido"): ambiente suave (fuego, lluvia real, tic-tac bajito) y sonidos al actuar
+   (pluma, sello, campana). Todo se sintetiza aquí con Web Audio: sin archivos ni red.
+   Respeta Ajustes: `sound` + `sfxVolume` para los efectos y `ambient` + `ambientVolume` para el ambiente. Nada suena sin un gesto de la persona. */
+(() => {
+  'use strict';
+  let ctx = null, master = null, amb = null, noiseBuf = null;
+  const Ctor = () => window.AudioContext || window.webkitAudioContext;
+
+  function ensure() {
+    const C = Ctor(); if (!C) return null;
+    if (!ctx) { ctx = new C(); master = ctx.createGain(); master.connect(ctx.destination); }
+    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+    return ctx;
+  }
+  function noise() {                       // 2 s de ruido blanco, repetible
+    if (noiseBuf) return noiseBuf;
+    noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    return noiseBuf;
+  }
+  const vol = (s, key, fallback) => { const v = Number(s?.[key]); return Number.isFinite(v) ? Math.max(0, Math.min(1, v)) : fallback; };
+
+  function burst(t0, { freq = 3000, q = 1, type = 'bandpass', dur = .08, gain = .2, sweep = 0 }) {
+    const src = ctx.createBufferSource(); src.buffer = noise(); src.loop = true;
+    const f = ctx.createBiquadFilter(); f.type = type; f.frequency.setValueAtTime(freq, t0); f.Q.value = q;
+    if (sweep) f.frequency.linearRampToValueAtTime(freq + sweep, t0 + dur);
+    const g = ctx.createGain(); g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(gain, t0 + .008); g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
+    src.connect(f).connect(g).connect(master); src.start(t0, Math.random()); src.stop(t0 + dur + .02);
+  }
+  function tone(t0, freq, dur, gain, type = 'sine', decay = true) {
+    const o = ctx.createOscillator(); o.type = type; o.frequency.value = freq;
+    const g = ctx.createGain(); g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(gain, t0 + .006);
+    if (decay) g.gain.exponentialRampToValueAtTime(.0001, t0 + dur); else g.gain.setValueAtTime(gain, t0 + dur);
+    o.connect(g).connect(master); o.start(t0); o.stop(t0 + dur + .03);
+  }
+
+  const SFX = {
+    pluma(t) { for (let i = 0; i < 5; i++) burst(t + i * .07, { freq: 3800 + i * 260, q: 2.5, dur: .09, gain: .09, sweep: 700 }); },   // rasguño de pluma sobre papel
+    sello(t) { tone(t, 120, .16, .5); tone(t, 62, .22, .45); burst(t, { freq: 700, type: 'lowpass', dur: .1, gain: .35 }); },      // golpe sordo de lacre
+    campana(t) { [[880, .5], [1320, .28], [1760, .16], [2640, .08]].forEach(([f, g], i) => tone(t, f * (i ? 1.002 : 1), 1.6, g * .35)); },
+    tinta(t) { for (let i = 0; i < 3; i++) burst(t + i * .06, { freq: 3200, q: 2, dur: .07, gain: .07, sweep: 500 }); },
+    pagina(t) { burst(t, { freq: 1800, q: .6, dur: .22, gain: .12, sweep: -900 }); }
+  };
+
+  /* Un efecto suelto. settings = state.settings. Devuelve true si sonó. */
+  function play(name, settings) {
+    if (!settings?.sound || !SFX[name] || document.hidden) return false;
+    if (!ensure()) return false;
+    master.gain.value = vol(settings, 'sfxVolume', .4);
+    SFX[name](ctx.currentTime + .01);
+    return true;
+  }
+
+  /* Ambiente de la sala: fuego siempre, tic-tac bajito, y lluvia si el clima real es de lluvia. */
+  function start(settings, weather) {
+    stop();
+    if (!settings?.ambient || document.hidden || !ensure()) return false;
+    const level = vol(settings, 'ambientVolume', .12);
+    const bus = ctx.createGain(); bus.gain.value = level * 2.2; bus.connect(ctx.destination);
+    const nodes = [], timers = [];
+    const loop = (freq, type, gain, q = .7) => {
+      const src = ctx.createBufferSource(); src.buffer = noise(); src.loop = true;
+      const f = ctx.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
+      const g = ctx.createGain(); g.gain.value = gain;
+      src.connect(f).connect(g).connect(bus); src.start(); nodes.push(src);
+    };
+    loop(420, 'lowpass', .5);                                          // rumor grave de las brasas
+    if (weather === 'lluvia' || weather === 'tormenta') { loop(5200, 'bandpass', .3, .5); loop(1800, 'highpass', .08); }
+    if (weather === 'nieve' || weather === 'niebla') loop(300, 'lowpass', .12);
+    const crackle = () => {                                            // chasquidos del fuego, a intervalos al azar
+      if (!ctx || ctx.state !== 'running') return;
+      const t = ctx.currentTime, n = 1 + Math.floor(Math.random() * 3);
+      for (let i = 0; i < n; i++) {
+        const o = ctx.createBufferSource(); o.buffer = noise();
+        const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1500 + Math.random() * 3500; f.Q.value = 3;
+        const g = ctx.createGain(); const at = t + i * .03; g.gain.setValueAtTime(.35 * Math.random() + .1, at); g.gain.exponentialRampToValueAtTime(.0001, at + .04);
+        o.connect(f).connect(g).connect(bus); o.start(at, Math.random()); o.stop(at + .06);
+      }
+      timers.push(setTimeout(crackle, 250 + Math.random() * 1400));
+    };
+    let beat = 0;
+    const tick = () => {                                               // tic-tac del reloj (dos tonos suaves)
+      if (!ctx || ctx.state !== 'running') return;
+      const t = ctx.currentTime, g = ctx.createGain(), o = ctx.createOscillator();
+      o.type = 'square'; o.frequency.value = beat++ % 2 ? 1250 : 1580;
+      g.gain.setValueAtTime(.05, t); g.gain.exponentialRampToValueAtTime(.0001, t + .03);
+      o.connect(g).connect(bus); o.start(t); o.stop(t + .04);
+    };
+    crackle(); timers.push(setInterval(tick, 1000));
+    amb = { bus, nodes, timers };
+    return true;
+  }
+  function stop() {
+    if (!amb) return;
+    amb.timers.forEach(t => { clearTimeout(t); clearInterval(t); });
+    amb.nodes.forEach(n => { try { n.stop(); } catch (_) { /* ya parado */ } });
+    try { amb.bus.disconnect(); } catch (_) { /* ya desconectado */ }
+    amb = null;
+  }
+  const playing = () => !!amb;
+  if (typeof document !== 'undefined') document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); });
+
+  window.NexoEstudioAudio = Object.freeze({ play, start, stop, playing, names: Object.keys(SFX) });
 })();
 
 ;
@@ -2226,7 +2349,21 @@
     const avisos = window.NexoOrgAvisos?.list(bridge) || [];
     const unseen = avisos.filter(a => a.nuevo).length;
     const highlight = unseen ? 'avisos' : next ? (next.event.type === 'lab' ? 'lab' : 'pruebas') : null;
-    return { today, crit, glasses, blocks, next, avisos, unseen, highlight };
+    // La balanza se inclina a verde si vas sobre 4,0 y a rojo si vas bajo; los platillos cargan tus frascos verdes y rojos.
+    let tilt = 0, reds = 0, greens = 0;
+    const GR = window.NexoGradeRules;
+    if (GR && bridge.gradeConfig) {
+      const evs = bridge.subjects.map(x => GR.evaluate(x.id, bridge.gradeConfig(x.id)));
+      const ov = GR.overall(evs);
+      tilt = ov.llevas === null ? 0 : Math.max(-1, Math.min(1, (ov.llevas - 4) / 2));
+      bridge.subjects.forEach(x => bridge.gradeConfig(x.id).components.forEach(c => {
+        const lv = GR.level(GR.known(c)); if (lv === 'rojo') reds++; else if (lv === 'verde') greens++;
+      }));
+    }
+    // La mesa se ordena si cumples el plan de hoy; con semana crítica hay papeles revueltos (sin culpa, es solo ambiente).
+    const done = blocks.filter(b => b.done).length;
+    const disorder = Math.max(0, Math.min(1, (blocks.length ? 1 - done / blocks.length : 0) * .7 + (crit?.active ? .3 : 0)));
+    return { today, crit, glasses, blocks, next, avisos, unseen, highlight, tilt, reds: Math.min(4, reds), greens: Math.min(4, greens), disorder };
   }
   function org() {
     const s = bridge.state;
@@ -2397,6 +2534,45 @@
     });
   }
 
+  // Balanza de latón: el travesaño se inclina por escalones según tus notas; cada platillo carga gemas (rojas = frascos rojos, verdes = verdes).
+  function drawScale(g, x1, t, S) {
+    const m = W.meta.scale, target = S.tilt * 7;
+    W.scaleD = W.reduced ? target : (W.scaleD ?? 0) + (target - (W.scaleD ?? 0)) * .05;
+    const d = Math.round(W.scaleD + (W.reduced ? 0 : Math.sin(t * 1.3) * .6));
+    const cx = x1 + m.cx, y = m.y;
+    for (let xx = -22; xx <= 22; xx++) {
+      const by = Math.round(y + d * xx / 22);
+      g.fillStyle = '#fbe08a'; g.fillRect(cx + xx, by - 1, 1, 1);
+      g.fillStyle = '#e2b850'; g.fillRect(cx + xx, by, 1, 1);
+      g.fillStyle = '#8a5c20'; g.fillRect(cx + xx, by + 1, 1, 1);
+    }
+    g.fillStyle = '#fff6c8'; g.fillRect(cx - 1, y - 3, 3, 3); g.fillStyle = '#ba8a30'; g.fillRect(cx - 2, y - 2, 5, 3);
+    [[-22, -d, S.reds, '#d87052', '#8c3234'], [22, d, S.greens, '#83ad42', '#30644a']].forEach(([ox, od, n, lite, dark]) => {
+      const ex = cx + ox, ey = y + od;
+      g.fillStyle = '#a8bab6'; for (let k = 0; k < 15; k++) { g.fillRect(ex - Math.round(k * .45), ey + k, 1, 1); g.fillRect(ex + Math.round(k * .45), ey + k, 1, 1); }
+      const py = ey + 15;
+      g.fillStyle = '#e2b850'; g.fillRect(ex - 9, py, 19, 2); g.fillStyle = '#8a5c20'; g.fillRect(ex - 7, py + 2, 15, 1);
+      for (let i = 0; i < n; i++) {
+        const gx = ex - 7 + (i % 3) * 5, gy = py - 4 - Math.floor(i / 3) * 4;
+        g.fillStyle = dark; g.fillRect(gx, gy, 4, 4); g.fillStyle = lite; g.fillRect(gx, gy, 3, 3); g.fillStyle = '#ffffff'; g.fillRect(gx, gy, 1, 1);
+      }
+    });
+  }
+
+  // Papeles sueltos sobre la mesa de planos: más si no has cumplido el plan o hay semana crítica.
+  function drawTable(g, x1, S) {
+    const tb = W.meta.table, n = Math.round(S.disorder * 8);
+    for (let i = 0; i < n; i++) {
+      const x = x1 + tb.x0 + 10 + ((i * 37 + 11) % (tb.x1 - tb.x0 - 30)), y = tb.top - 13 + (i * 5) % 5, lean = (i % 3) - 1;
+      for (let r = 0; r < 7; r++) {
+        const ox = Math.round(lean * r * .6);
+        g.fillStyle = r === 0 ? '#fff4d8' : r === 6 ? '#a69070' : '#e6d6b2'; g.fillRect(x + ox, y + r, 11, 1);
+        if (r === 2 || r === 4) { g.fillStyle = '#7a6650'; g.fillRect(x + ox + 2, y + r, 5 + (i % 3), 1); }
+      }
+      g.fillStyle = '#140c10'; g.fillRect(x - 1 + Math.round(lean * 3 * .6), y - 1, 1, 1);
+    }
+  }
+
   const PET_FILTER = { dia: 'none', tarde: 'brightness(.92) sepia(.18)', noche: 'brightness(.62) saturate(.8)' };
   function draw(t) {
     const g = W.vctx, m = W.meta, S = 2, L = W.L, Sx = W.sit;
@@ -2411,6 +2587,8 @@
     g.drawImage(L.fondo, x1, 0);
     drawClock(g, x1, t);
     drawCork(g, x1, Sx);
+    drawScale(g, x1, t, Sx);
+    drawTable(g, x1, Sx);
     if (!W.reduced) drawAnim(g, x1, t, Sx);
     drawBell(g, x1, t, Sx);
     drawHighlight(g, x1, t, Sx);
@@ -2423,7 +2601,7 @@
 
   function frame(now) {
     W.raf = 0;
-    if (!W.wrap.isConnected) { W.life.pause(true); return; }
+    if (!W.wrap.isConnected) { W.life.pause(true); window.NexoEstudioAudio?.stop(); return; }
     const dt = Math.min(.05, (now - W.last) / 1000); W.last = now; W.t += dt;
     const tod = timeOfDay();
     if (tod !== W.tod) { W.tod = tod; layers(tod).then(L => { if (W.tod === L.tod) W.L = L; }); }
@@ -2501,13 +2679,19 @@
     try { W.life.act(tone); } catch (_) { /* sin gesto */ }
     if (text) say(text, 4600);
   }
+  const sound = name => window.NexoEstudioAudio?.play(name, bridge.state.settings);
+  function ambient() {
+    const A = window.NexoEstudioAudio; if (!A || !bridge.state.settings.ambient || A.playing()) return;
+    if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return;     // sin gesto, el navegador no deja sonar
+    A.start(bridge.state.settings, W.weather);
+  }
   async function use(o) {
     W.lastInput = performance.now();
     const arrived = await W.life.walkTo(o.stand[0], o.stand[1]);
     if (!arrived) return;
     if (!o.view) { say(o.say); W.life.act('deslumbrada'); return; }
     say(o.say, 2200);
-    if (o.view === 'avisos') window.NexoOrgAvisos?.markSeen(bridge);
+    if (o.view === 'avisos') { sound('campana'); window.NexoOrgAvisos?.markSeen(bridge); }
     if (location.hash !== '#/planner/' + o.view) location.hash = '#/planner/' + o.view;
   }
   function idle(now) {
@@ -2639,7 +2823,7 @@
 
   // ——— Acciones del panel ———
   function wirePanel(root, view) {
-    if (view === 'notas') { window.NexoNotas.wire(root, { bridge, refresh: () => refresh('notas'), react }); return; }
+    if (view === 'notas') { window.NexoNotas.wire(root, { bridge, refresh: () => refresh('notas'), react, sound }); return; }
     root.onclick = e => {
       const b = e.target.closest('button'); if (!b) return;
       const S = W?.sit || situation();
@@ -2659,7 +2843,7 @@
         const m = marksToday(), id = b.dataset.orgDone || b.dataset.orgUndo;
         m.done = b.dataset.orgDone ? [...new Set([...m.done, id])] : m.done.filter(k => k !== id);
         bridge.save();
-        if (b.dataset.orgDone) { window.NexoAudio?.play?.('confirm', bridge.state.settings); W?.life.act('baile'); }
+        if (b.dataset.orgDone) { sound('tinta'); W?.life.act('baile'); }
         return refresh(view);
       }
       if (b.dataset.orgSkip) {
@@ -2687,7 +2871,7 @@
       if (!title || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
       bridge.state.events.push({ id: `org-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, title, subject: String(fd.get('subject')),
         type: String(fd.get('type')), date, time: '', status: 'planned', priority: fd.get('type') === 'exam' ? 3 : 2, source: 'manual', dependencies: [] });
-      bridge.save(); bridge.toast('Guardado en el calendario'); refresh(view);
+      bridge.save(); sound('sello'); bridge.toast('Guardado en el calendario'); refresh(view);
     };
   }
   function refresh(view) {
@@ -2743,7 +2927,10 @@
       const msg = S.unseen ? 'Sonó la campana: hay un aviso nuevo' : S.next ? `Hoy parto por: ${S.next.text.split(':')[0].toLowerCase()} (${bridge.subjectFor(S.next.subject).short})`
         : 'Todo en orden por hoy';
       setTimeout(() => W.wrap.isConnected && say(msg, 4200), 700);
+      if (S.unseen) setTimeout(() => sound('campana'), 500);
     }
+    if (!W.ambBound) { W.ambBound = true; addEventListener('pointerdown', () => { if (W?.wrap.isConnected) ambient(); }, { passive: true }); }
+    ambient();
   }
   addEventListener('resize', () => W?.wrap.isConnected && resize());
   window.NexoEstudio = Object.freeze({ render, views: VIEWS, legacy: LEGACY, react });

@@ -1148,7 +1148,7 @@
     const page = app.querySelector('.page');
     page.classList.add('rpg-inner', 'profile-page');
     page.insertAdjacentHTML('afterbegin', `<div class="profile-room-header" role="img" aria-label="Habitación de Nexo"></div><nav class="rpg-tabs" role="tablist" aria-label="Perfil">
-      ${[['mascot','Mascota'],['grades','Notas'],['absences','Inasistencias'],['stats','Estadísticas'],['settings','Ajustes']].map(([id,label]) => `<button role="tab" aria-selected="${active === id}" class="${active === id ? 'active' : ''}" data-profile-tab="${id}">${label}</button>`).join('')}
+      ${[['mascot','Mascota'],['stats','Estadísticas'],['settings','Ajustes']].map(([id,label]) => `<button role="tab" aria-selected="${active === id}" class="${active === id ? 'active' : ''}" data-profile-tab="${id}">${label}</button>`).join('')}
     </nav>`);
   }
 

@@ -72,7 +72,21 @@
     const avisos = window.NexoOrgAvisos?.list(bridge) || [];
     const unseen = avisos.filter(a => a.nuevo).length;
     const highlight = unseen ? 'avisos' : next ? (next.event.type === 'lab' ? 'lab' : 'pruebas') : null;
-    return { today, crit, glasses, blocks, next, avisos, unseen, highlight };
+    // La balanza se inclina a verde si vas sobre 4,0 y a rojo si vas bajo; los platillos cargan tus frascos verdes y rojos.
+    let tilt = 0, reds = 0, greens = 0;
+    const GR = window.NexoGradeRules;
+    if (GR && bridge.gradeConfig) {
+      const evs = bridge.subjects.map(x => GR.evaluate(x.id, bridge.gradeConfig(x.id)));
+      const ov = GR.overall(evs);
+      tilt = ov.llevas === null ? 0 : Math.max(-1, Math.min(1, (ov.llevas - 4) / 2));
+      bridge.subjects.forEach(x => bridge.gradeConfig(x.id).components.forEach(c => {
+        const lv = GR.level(GR.known(c)); if (lv === 'rojo') reds++; else if (lv === 'verde') greens++;
+      }));
+    }
+    // La mesa se ordena si cumples el plan de hoy; con semana crítica hay papeles revueltos (sin culpa, es solo ambiente).
+    const done = blocks.filter(b => b.done).length;
+    const disorder = Math.max(0, Math.min(1, (blocks.length ? 1 - done / blocks.length : 0) * .7 + (crit?.active ? .3 : 0)));
+    return { today, crit, glasses, blocks, next, avisos, unseen, highlight, tilt, reds: Math.min(4, reds), greens: Math.min(4, greens), disorder };
   }
   function org() {
     const s = bridge.state;
@@ -243,6 +257,45 @@
     });
   }
 
+  // Balanza de latón: el travesaño se inclina por escalones según tus notas; cada platillo carga gemas (rojas = frascos rojos, verdes = verdes).
+  function drawScale(g, x1, t, S) {
+    const m = W.meta.scale, target = S.tilt * 7;
+    W.scaleD = W.reduced ? target : (W.scaleD ?? 0) + (target - (W.scaleD ?? 0)) * .05;
+    const d = Math.round(W.scaleD + (W.reduced ? 0 : Math.sin(t * 1.3) * .6));
+    const cx = x1 + m.cx, y = m.y;
+    for (let xx = -22; xx <= 22; xx++) {
+      const by = Math.round(y + d * xx / 22);
+      g.fillStyle = '#fbe08a'; g.fillRect(cx + xx, by - 1, 1, 1);
+      g.fillStyle = '#e2b850'; g.fillRect(cx + xx, by, 1, 1);
+      g.fillStyle = '#8a5c20'; g.fillRect(cx + xx, by + 1, 1, 1);
+    }
+    g.fillStyle = '#fff6c8'; g.fillRect(cx - 1, y - 3, 3, 3); g.fillStyle = '#ba8a30'; g.fillRect(cx - 2, y - 2, 5, 3);
+    [[-22, -d, S.reds, '#d87052', '#8c3234'], [22, d, S.greens, '#83ad42', '#30644a']].forEach(([ox, od, n, lite, dark]) => {
+      const ex = cx + ox, ey = y + od;
+      g.fillStyle = '#a8bab6'; for (let k = 0; k < 15; k++) { g.fillRect(ex - Math.round(k * .45), ey + k, 1, 1); g.fillRect(ex + Math.round(k * .45), ey + k, 1, 1); }
+      const py = ey + 15;
+      g.fillStyle = '#e2b850'; g.fillRect(ex - 9, py, 19, 2); g.fillStyle = '#8a5c20'; g.fillRect(ex - 7, py + 2, 15, 1);
+      for (let i = 0; i < n; i++) {
+        const gx = ex - 7 + (i % 3) * 5, gy = py - 4 - Math.floor(i / 3) * 4;
+        g.fillStyle = dark; g.fillRect(gx, gy, 4, 4); g.fillStyle = lite; g.fillRect(gx, gy, 3, 3); g.fillStyle = '#ffffff'; g.fillRect(gx, gy, 1, 1);
+      }
+    });
+  }
+
+  // Papeles sueltos sobre la mesa de planos: más si no has cumplido el plan o hay semana crítica.
+  function drawTable(g, x1, S) {
+    const tb = W.meta.table, n = Math.round(S.disorder * 8);
+    for (let i = 0; i < n; i++) {
+      const x = x1 + tb.x0 + 10 + ((i * 37 + 11) % (tb.x1 - tb.x0 - 30)), y = tb.top - 13 + (i * 5) % 5, lean = (i % 3) - 1;
+      for (let r = 0; r < 7; r++) {
+        const ox = Math.round(lean * r * .6);
+        g.fillStyle = r === 0 ? '#fff4d8' : r === 6 ? '#a69070' : '#e6d6b2'; g.fillRect(x + ox, y + r, 11, 1);
+        if (r === 2 || r === 4) { g.fillStyle = '#7a6650'; g.fillRect(x + ox + 2, y + r, 5 + (i % 3), 1); }
+      }
+      g.fillStyle = '#140c10'; g.fillRect(x - 1 + Math.round(lean * 3 * .6), y - 1, 1, 1);
+    }
+  }
+
   const PET_FILTER = { dia: 'none', tarde: 'brightness(.92) sepia(.18)', noche: 'brightness(.62) saturate(.8)' };
   function draw(t) {
     const g = W.vctx, m = W.meta, S = 2, L = W.L, Sx = W.sit;
@@ -257,6 +310,8 @@
     g.drawImage(L.fondo, x1, 0);
     drawClock(g, x1, t);
     drawCork(g, x1, Sx);
+    drawScale(g, x1, t, Sx);
+    drawTable(g, x1, Sx);
     if (!W.reduced) drawAnim(g, x1, t, Sx);
     drawBell(g, x1, t, Sx);
     drawHighlight(g, x1, t, Sx);
@@ -269,7 +324,7 @@
 
   function frame(now) {
     W.raf = 0;
-    if (!W.wrap.isConnected) { W.life.pause(true); return; }
+    if (!W.wrap.isConnected) { W.life.pause(true); window.NexoEstudioAudio?.stop(); return; }
     const dt = Math.min(.05, (now - W.last) / 1000); W.last = now; W.t += dt;
     const tod = timeOfDay();
     if (tod !== W.tod) { W.tod = tod; layers(tod).then(L => { if (W.tod === L.tod) W.L = L; }); }
@@ -347,13 +402,19 @@
     try { W.life.act(tone); } catch (_) { /* sin gesto */ }
     if (text) say(text, 4600);
   }
+  const sound = name => window.NexoEstudioAudio?.play(name, bridge.state.settings);
+  function ambient() {
+    const A = window.NexoEstudioAudio; if (!A || !bridge.state.settings.ambient || A.playing()) return;
+    if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return;     // sin gesto, el navegador no deja sonar
+    A.start(bridge.state.settings, W.weather);
+  }
   async function use(o) {
     W.lastInput = performance.now();
     const arrived = await W.life.walkTo(o.stand[0], o.stand[1]);
     if (!arrived) return;
     if (!o.view) { say(o.say); W.life.act('deslumbrada'); return; }
     say(o.say, 2200);
-    if (o.view === 'avisos') window.NexoOrgAvisos?.markSeen(bridge);
+    if (o.view === 'avisos') { sound('campana'); window.NexoOrgAvisos?.markSeen(bridge); }
     if (location.hash !== '#/planner/' + o.view) location.hash = '#/planner/' + o.view;
   }
   function idle(now) {
@@ -485,7 +546,7 @@
 
   // ——— Acciones del panel ———
   function wirePanel(root, view) {
-    if (view === 'notas') { window.NexoNotas.wire(root, { bridge, refresh: () => refresh('notas'), react }); return; }
+    if (view === 'notas') { window.NexoNotas.wire(root, { bridge, refresh: () => refresh('notas'), react, sound }); return; }
     root.onclick = e => {
       const b = e.target.closest('button'); if (!b) return;
       const S = W?.sit || situation();
@@ -505,7 +566,7 @@
         const m = marksToday(), id = b.dataset.orgDone || b.dataset.orgUndo;
         m.done = b.dataset.orgDone ? [...new Set([...m.done, id])] : m.done.filter(k => k !== id);
         bridge.save();
-        if (b.dataset.orgDone) { window.NexoAudio?.play?.('confirm', bridge.state.settings); W?.life.act('baile'); }
+        if (b.dataset.orgDone) { sound('tinta'); W?.life.act('baile'); }
         return refresh(view);
       }
       if (b.dataset.orgSkip) {
@@ -533,7 +594,7 @@
       if (!title || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
       bridge.state.events.push({ id: `org-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, title, subject: String(fd.get('subject')),
         type: String(fd.get('type')), date, time: '', status: 'planned', priority: fd.get('type') === 'exam' ? 3 : 2, source: 'manual', dependencies: [] });
-      bridge.save(); bridge.toast('Guardado en el calendario'); refresh(view);
+      bridge.save(); sound('sello'); bridge.toast('Guardado en el calendario'); refresh(view);
     };
   }
   function refresh(view) {
@@ -589,7 +650,10 @@
       const msg = S.unseen ? 'Sonó la campana: hay un aviso nuevo' : S.next ? `Hoy parto por: ${S.next.text.split(':')[0].toLowerCase()} (${bridge.subjectFor(S.next.subject).short})`
         : 'Todo en orden por hoy';
       setTimeout(() => W.wrap.isConnected && say(msg, 4200), 700);
+      if (S.unseen) setTimeout(() => sound('campana'), 500);
     }
+    if (!W.ambBound) { W.ambBound = true; addEventListener('pointerdown', () => { if (W?.wrap.isConnected) ambient(); }, { passive: true }); }
+    ambient();
   }
   addEventListener('resize', () => W?.wrap.isConnected && resize());
   window.NexoEstudio = Object.freeze({ render, views: VIEWS, legacy: LEGACY, react });

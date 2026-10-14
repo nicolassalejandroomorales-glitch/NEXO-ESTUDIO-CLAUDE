@@ -36,7 +36,9 @@
   const org = () => { const s = bridge().state; s.organization = s.organization && typeof s.organization === 'object' ? s.organization : {}; return s.organization; };
   const maxes = () => { const o = org(); o.absenceMax = o.absenceMax && typeof o.absenceMax === 'object' ? o.absenceMax : {}; return o.absenceMax; };
   const cfg = id => bridge().gradeConfig(id);
-  const eventFor = id => (bridge().state.events || []).find(e => e.sourceId === id || e.id === id);
+  // Las pruebas de ciclo del laboratorio tienen id distinto en el calendario que en las notas.
+  const LINK = { 'grade-fq-lab-ciclo': 'official-fq-ciclo', 'grade-org-lab-ciclo1': 'official-org-ciclo1', 'grade-org-lab-ciclo2': 'official-org-ciclo2' };
+  const eventFor = id => (bridge().state.events || []).find(e => e.sourceId === id || e.id === id || e.id === LINK[id]);
   const num = v => R().num(v);
 
   function defaultSubject() {
@@ -244,6 +246,7 @@
     row.grade = n.toFixed(2); row.gradedOn = bridge().today();
     if (ev) ev.status = 'done';
     keep();
+    ctx.sound?.('pluma');
     const lv = R().level(n), est = row.estimate === undefined || row.estimate === '' ? NaN : num(row.estimate);
     ui.dialog = null; ui.fresh = { id, level: lv };
     if (lv === 'rojo') ui.autopsy = { id };
@@ -255,6 +258,18 @@
     });
     ctx.react(lv === 'verde' ? (n >= 6 ? 'deslumbrada' : 'baile') : lv === 'ambar' ? 'saludo' : 'idea',
       lv === 'verde' ? '¡Buena nota! Mira cuánto te queda por asegurar.' : lv === 'ambar' ? 'Anotada. Veamos cuánto necesitas en lo que queda.' : 'Una nota no te define. ¿Vemos qué falló?');
+  }
+
+  /* La autopsia de una nota baja entra al cuaderno de errores del ramo: sube su prioridad en el plan de Hoy ("errores abiertos"). */
+  const BLOCKER = { concepto: 'concept', calculo: 'formula', tiempo: 'attention', nervios: 'attention', estudio: 'first_step' };
+  function autopsyToError(row) {
+    const a = row.autopsy, list = bridge().state.errors; if (!list || !a.tipo && !a.causa) return;
+    const text = a.tipo || `Nota baja en ${row.name}`;
+    let err = row.autopsy.errorId && list.find(x => x.id === row.autopsy.errorId);
+    const body = { subject: ui.subject, blocker: BLOCKER[a.causa] || 'concept', observable: `${row.name}: ${text}`, reasoning: a.distinto || '',
+      diagnosis: a.distinto ? `Plan propio: ${a.distinto}` : 'Revisar el primer eslabón del razonamiento.', status: 'open', source: 'autopsia' };
+    if (err) Object.assign(err, body);
+    else { err = { id: bridge().uid('error'), date: bridge().today(), dueAt: bridge().today(), ...body }; list.unshift(err); row.autopsy.errorId = err.id; }
   }
 
   function click(e) {
@@ -309,8 +324,8 @@
     }
     if (f.matches('[data-nt-autopsy-form]')) {
       const row = cfg(ui.subject).components.find(c => c.id === ui.autopsy.id), fd = new FormData(f);
-      if (row) { row.autopsy = { tipo: String(fd.get('tipo') || '').trim(), causa: String(fd.get('causa') || ''), distinto: String(fd.get('distinto') || '').trim() }; keep(); }
-      ui.autopsy = null; refresh(); bridge().toast('Anotado. Con esto elegimos qué practicar.');
+      if (row) { row.autopsy = { tipo: String(fd.get('tipo') || '').trim(), causa: String(fd.get('causa') || ''), distinto: String(fd.get('distinto') || '').trim() }; autopsyToError(row); keep(); }
+      ui.autopsy = null; ctx.sound?.('pluma'); refresh(); bridge().toast('Anotado. Con esto elegimos qué practicar.');
       return ctx.react('idea', 'Gracias por contarlo: eso me ayuda a proponerte mejores bloques.');
     }
     if (f.matches('[data-nt-abs-form]')) {
@@ -319,7 +334,7 @@
       bridge().state.absences.push({ id: bridge().uid('absence'), subject: ui.subject, group: fd.get('group') === 'lab' ? 'lab' : 'theory', date });
       keep(); refresh();
       const a = R().attendance(bridge().state.absences, ui.subject, maxes())[fd.get('group') === 'lab' ? 'lab' : 'theory'];
-      bridge().toast('Falta anotada.');
+      ctx.sound?.('sello'); bridge().toast('Falta anotada.');
       if (a.state === 'queda-1') ctx.react('nerviosa', 'Ojo: te queda 1 falta en esta parte.');
       else if (a.state === 'limite' || a.state === 'pasado') ctx.react('nerviosa', 'Llegaste al límite de faltas. Hablemos con el profe si hace falta.');
     }

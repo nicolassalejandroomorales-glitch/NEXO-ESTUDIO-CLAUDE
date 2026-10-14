@@ -118,9 +118,10 @@ La pantalla sigue siendo la vieja: el rediseño (estudio de planos) no se ha pro
   Reglas por ramo implementadas: ORG (PEP roja → PF; cátedra < 3,4 reprueba; lab reprobado = final reprobada), FQ (cátedra < 4,0 → examen 40 %; prueba de ciclo roja → examen de lab),
   ANA (eximición con todas las PEP ≥ 4,0; examen entre 3,5 y 4,0), FISIO (eximición con 4,5 y cuánto necesitas). El umbral de aprobar es 3,95 (se redondea a 4,0).
   `#/profile/grades|absences` redirigen a `#/planner/notas`; las faltas "te queda 1" llegan a la campana (`avisos.js`). Pruebas: `tools/notas-test.cjs`, `tools/organizacion-test.cjs` y el E2E.
-- **Falta de esta fase**: el Perfil aún muestra sus pestañas Notas/Inasistencias (solo redirigen; las debe quitar el chat del Perfil); sonidos; la balanza del estudio aún no se inclina;
-  los eventos "prueba de ciclo" de FQ/ORG no se marcan hechos al poner la nota (sus ids no coinciden con la evaluación); la autopsia se guarda pero aún no alimenta el motor académico;
-  máximo de faltas de teoría: los programas no lo dicen, lo pone Niquito (lab de ORG y FQ = 100 % de asistencia).
+- **Cerrado después (14 oct, "pon todo")**: sonidos (`dist/planner/estudio-audio.js`, sintetizados con Web Audio, respetan Ajustes: fuego, lluvia real, tic-tac; pluma, sello, campana, tinta),
+  **balanza que se inclina** a verde/rojo según tu promedio (platillos con gemas por frascos verdes/rojos), **mesa con papeles sueltos** si no cumples el plan o hay semana crítica,
+  pruebas de ciclo ↔ notas enlazadas, **autopsia → errores abiertos** (sube la prioridad del ramo en Hoy) y **Perfil sin pestañas Notas/Inasistencias** (redirigen). `tools/profile-test.cjs` reescrita.
+- Sigue pendiente: máximo de faltas de teoría (lo pone Niquito; los programas no lo dicen).
 
 **Falta**: dudas de `DATOS-RAMOS.md` (programa ORG 2025, teoría FQ, lab ANA, Inglés IV);
 orden de las fases siguientes; cómo se ve Avisos (campana) y la vista Semestre en pixel; cómo se integra el viaje escalera/ascensor.
@@ -329,7 +330,7 @@ Orden pensado para que lo urgente (la semana del 19 oct) llegue primero:
 - Siguiente (Fase 1 ya aprobada): Calendario (mes/semana/semestre, mover con historial), Notas (balanza, frascos, simulador; mudar Notas e Inasistencias del Perfil), Lab completo, Avisos (campana).
 - Fase 1, falta: sonidos (fuego, lluvia, tic-tac, pluma, campana), balanza que se inclina según notas, mesa ordenada/desordenada según el plan, editar o borrar una fecha desde el estudio (hoy solo agregar),
   "¿cómo te fue?" después de rendir (llega con Notas), Inicio calmado el día de prueba, ritual del domingo.
-- Avisar al chat del Perfil: Notas e Inasistencias se mudan a Organización (pendiente desde la tanda 1).
+- Perfil: ya sin pestañas Notas/Inasistencias. Los objetos de la habitación (escritorio y calendario) siguen llevando a `#/profile/grades|absences`, que redirige a Organización.
 - Aprobación de este diseño y de la maqueta.
 - Decisiones abiertas de `AVISOS.md` (Classroom vs pegar texto).
 - Avisos fuera de la app (notificaciones del celular) quedan fuera de este cambio.

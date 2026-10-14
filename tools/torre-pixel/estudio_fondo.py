@@ -235,16 +235,11 @@ def draw_scale_book(ctx, c):
     c.rect(560, sh, 638, sh + 5, 'wood', 4.4); c.rect(560, sh, 638, sh + 1, 'wood', 6.2); c.rect(560, sh + 4, 638, sh + 5, 'wood', 1.6)
     for bx in (566, 628):
         c.sprite(bx, sh + 5, ["xxxx", "xxx.", "xx..", "x..."], 'wood', {'x': 3.0})
-    # balanza de latón (la app la puede inclinar más adelante)
+    # balanza de latón: base y columna fijas
     cx = 599
     c.rect(cx - 9, sh - 4, cx + 10, sh, 'brass', 3.6); c.rect(cx - 9, sh - 4, cx + 10, sh - 3, 'brass', 5.4)
     c.rect(cx - 1, sh - 34, cx + 2, sh - 4, 'brass', 4.0); c.rect(cx - 1, sh - 34, cx, sh - 4, 'brass', 5.6)
-    c.rect(cx - 22, sh - 36, cx + 23, sh - 34, 'brass', 4.6); c.rect(cx - 22, sh - 36, cx + 23, sh - 35, 'brass', 6)
-    ball(c, cx, sh - 37, 2, 'brass', 5)
-    for px_, col in ((cx - 20, 'red'), (cx + 21, 'green')):
-        c.line(px_, sh - 34, px_ - 6, sh - 18, 'steel', 4.4); c.line(px_, sh - 34, px_ + 6, sh - 18, 'steel', 4.4)
-        c.rect(px_ - 8, sh - 18, px_ + 9, sh - 16, 'brass', 4.8); c.rect(px_ - 6, sh - 16, px_ + 7, sh - 15, 'brass', 3.0)
-        c.sprite(px_ - 3, sh - 21, [".xx.", "xxxx"], col, {'x': 4.0})
+    # el travesaño y los platillos los dibuja la app (se inclinan según tus notas)
     # libros apilados a un lado del estante
     for i, (col, h) in enumerate([('blue', 16), ('red', 20), ('green', 14)]):
         lab_fondo.book(c, 616 + i * 6, sh, 6, h, col, det('nb', i))
