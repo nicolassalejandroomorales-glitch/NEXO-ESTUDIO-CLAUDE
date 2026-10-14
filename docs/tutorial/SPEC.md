@@ -167,19 +167,19 @@ hay que tocar los 8 (contador x/8, se guarda en `seen`) para habilitar Siguiente
 - `#/tutorial/test` = la prueba de antes (sin guardar nada). Avance real en `localStorage['nexo.tutorial.v1']`.
 - Filtro de nombres: palabras ofensivas por fragmento o exactas (ignora tildes y cambios tipo "l33t"); lista corta en `tutorial.js`, ampliable.
 
-## Pendiente
-- ✅ Avisos (12 oct): globo chico del Grimorio en la esquina con «Entendido». **Primera vez en cada sección solo si saltaste el tutorial** (si lo hiciste completo no se repite). Novedades: lista con versión `NEWS` en `dist/tutorial/avisos.js` (el id sube de 1 en 1; cada aviso sale una vez en el Inicio). Estado en `state.tutorial.sections` y `.news`. Prueba: `tools/avisos-test.cjs`. Móvil (390) revisado: aviso y pasos del tutorial caben; se arregló el paso de elegir huevo (se salía del ancho).
-- Decidir qué pasa con el premio en cuentas con nube. Probar en móvil (390). Aprobar el tono del guion.
-- Revisar el filtro de nombres (palabras no permitidas) y los datos de estudio del guion.
+## Para terminar el tutorial (14 oct 2026)
 
-- Aprobar la segunda tanda (expresiones, boca, marco).
+Niquito: «el tutorial ya está súper bueno»: se da por **aprobado el tono, la segunda tanda del Grimorio (expresiones, boca, marco) y los 150 ⚛**. Solo se cambia algo si él lo pide. Ya hecho: guion de 29 pasos, conexión real, avisos por sección y novedades, revisión en móvil (390).
 
-- Banco de frases de las mascotas y reglas del nombre: borrador en [FRASES.md](FRASES.md) (12 oct). Falta que Niquito corrija el tono.
-- Banco de frases del Grimorio: ya está dentro del [GUION.md](GUION.md).
-- Confirmar las monedas. **Propuesta: 150 ⚛.** Los 14 accesorios cuestan 60–260 ⚛ (`PRICES` en `dist/mascot/home-pet.js`, precios de ejemplo
-  aún no definitivos). 150 alcanza para uno de rango medio (bufanda, lupa, monóculo) pero no para los caros (corona 260, sombrero 200),
-  así que el premio se siente bien sin romper la economía. Si Niquito cambia los precios, se ajusta.
-- ✅ Paso 12 del guion ya tiene los 8 objetos tocables reales (ventana, báculo, sillón, mapa, pergamino, estantería, globo, escritorio).
-- Diseño de pixel art del Grimorio (sprites y expresiones) con `nexo-pixel-art`.
-- Skill propia `nexo-tutorial` cuando se implemente.
-- Conexión con el sistema de mascota existente (`dist/mascot/`, skill `nexo-mascota`) y con el Perfil.
+**Falta (en este orden):**
+1. **Premio en cuentas con nube** (única decisión abierta). Hoy se omite porque el saldo viene de la nube y `CLAUDE.md` prohíbe tocar cloud sin permiso. Opciones para preguntarle con `AskUserQuestion`: (a) dejarlo omitido; (b) darlo solo en local y marcarlo `rewarded`; (c) pedirle permiso para tocar la nube. Recomendado: (b) si no implica tocar Supabase.
+2. **Revisión final en 1440 y 390** de punta a punta (`#/tutorial/test`, una cuenta nueva simulada y una que salta el tutorial), con una sola captura al final.
+3. **Filtro de nombres y datos de estudio** del guion: leerlos una vez y confirmar que no hay datos dudosos (cada dato con su fuente).
+4. **Limpiar este SPEC**: quitar pendientes viejos ya resueltos y dejar solo lo que falte.
+5. **Cierre**: skill `nexo-cierre`, commit, push y republicar el Artifact (ver `CLAUDE.md`, sección «Dónde se ve la app»).
+
+**Criterios de aceptación:** cuenta nueva ve el tutorial sola; elegir mascota y nombre se guarda; el premio se da una sola vez (o la decisión de nube queda escrita); saltarlo no da monedas; Ajustes → Tutoriales lo repite sin premio; `npm test` sin fallas nuevas.
+
+## Pendiente (ideas a futuro, no bloquean)
+- Aparición y avisos ya hechos; las novedades nuevas se agregan en `NEWS` de `dist/tutorial/avisos.js`.
+- Si Niquito cambia los precios de la tienda (`PRICES` en `dist/mascot/home-pet.js`), revisar que 150 ⚛ siga sintiéndose bien.
