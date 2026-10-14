@@ -41,3 +41,24 @@ Historial de lo hecho por tema. Lo lee Claude solo cuando necesita contexto de o
 - **Bitácora viva** (5 oct 2026, chat propio, `docs/update-02-organizacion/SPEC.md` v2): diseño de organización, calendario, pruebas y notas
   en pixel art de madera (pestañas Hoy · Calendario · Pruebas · Notas · Avisos), avisos por urgencia en el Inicio, semana crítica (19–27 oct),
   notas en un solo lugar (frascos alquímicos) y mascota acompañando. Maqueta: `docs/update-02-organizacion/maqueta/`. **Solo diseño, sin programar**; esperando respuestas de Niquito.
+
+## 11 oct 2026 · Unión de ramas en master
+- Unidas a `master`: Clases (Analítica, Fisiopatología, Orgánica II, FQ II, ejercicios infinitos con regla de calidad, Torre del Sauce, `netlify.toml`),
+  Bitácora viva (diseño) y del prototipo de juegos solo `dist/games/prototipos/batalla-rey-amonio.html` + `docs/juegos-batalla/ENEMIGOS.md`.
+- Subido lo que estaba sin subir en el PC: mascota pixel (six seven, dab), juego PEP 1 (arte/audio nuevos) y capturas.
+- Reglas nuevas: `npm test` = `tools/run-tests.cjs` (encuentra las pruebas solo), `?v=` por hash (`tools/stamp-versions.cjs`), `docs/ESTADO.md merge=union`.
+
+## 11 oct 2026 · Mascota pixel en la app (Fase 6)
+- La mascota vive en el Inicio, barra lateral/móvil, Perfil › Mascota y Tienda (solo "Probar"); celebra al guardar sesión, duerme de noche y se pone nerviosa con tormenta. Motores en `dist/mascot/`. Detalle y pendiente (precios, oclusión, nube): `docs/mascota/SPEC.md`.
+
+## 11 oct 2026 · Mundo de la torre (fases 1 y 2)
+- Entrenar, Juegos y Perfil tienen escena pixel **de borde a borde** (como el Inicio) donde la mascota camina con clic/toque; cada objeto hace algo (elige modo, abre juego, cambia pestaña). Perfil = habitación de la mascota; Juegos = arcade v1 con portal a la campaña PEP 1.
+- Entrenar = **Laboratorio de Orgánica II** con calidad nueva: capas con parallax, luz por hora real, animaciones y 3 estados de progreso (provisorio). Diseño de la torre completa (pisos por ramo, escalera + ascensor) en `docs/mundo-torre/SPEC.md`.
+## 12 oct 2026 · Tutorial (diseño + Grimorio)
+- Diseño cerrado en `docs/tutorial/` (SPEC, GUION de 29 pasos, FRASES de las mascotas) y Grimorio v3 en pixel art aprobado: libro abombado con barba, atril con paño y 5 poses (`tools/tutorial-pixel/build_grimorio.py` → `dist/assets/tutorial/grimorio-v1.png`). Falta programar el tutorial.
+- Segunda tanda del Grimorio (15 poses × 3 bocas, `grimorio-hablar.png`), marco de diálogo RPG, y huevos de átomo/matraz/slime con nacimiento (9 cuadros) en pixel art, todo en `tools/tutorial-pixel/`.
+- **Tramo 1 programado** (pasos 1–10 del guion): `dist/tutorial/tutorial.js` + `.css`, ruta de PRUEBA `#/tutorial` (no toca la mascota ni las monedas). Skill `nexo-tutorial`. Siguiente: tramo 2 (Inicio y mascota) y conectar a cuentas nuevas/Ajustes/monedas. Ver `docs/tutorial/SPEC.md`.
+- **Tramos 2–5 y cierre programados** (pasos 11–29, guion completo en la ruta de prueba): refugio con los 8 objetos tocables (lee `NexoHomeScene.getProfile()`), paneles de Clases, Juegos, Organización y Perfil, paso de configurar (enlaces a calendario y perfil) y premio de +150 ⚛ solo visual. Siguiente: conectar de verdad (mascota/nombre reales, premio, primera vez, Ajustes → Tutoriales, filtro de nombres).
+- **Tutorial conectado**: cuenta nueva ve el tutorial sola (state.tutorial), guarda mascota y nombre reales, premio de 150 ⚛ una vez, repetir desde Ajustes → Tutoriales, filtro de nombres. Prueba sin guardar en `#/tutorial/test`. Pendiente: aparición por sección, premio con nube.
+- **Avisos del Grimorio** (12 oct): globo en la esquina, primera vez por sección solo si saltaste el tutorial, y novedades con versión (`dist/tutorial/avisos.js`, prueba `tools/avisos-test.cjs`). SPEC en `docs/tutorial/SPEC.md`. Falta móvil (390), premio con nube y tono del guion.
+- **Tutorial en móvil (390)** revisado (12 oct): se arregló el paso de elegir huevo, que se salía del ancho. Pendiente: premio con nube y tono del guion.

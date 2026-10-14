@@ -8,7 +8,7 @@ Lo que solo sirve para un tema vive en skills (`.claude/skills/`) y en `docs/`: 
 - Autor: **Niquito**, estudiante de 2º año de Química y Farmacia en la USACH (este semestre cursa, entre otros, Fisicoquímica y Orgánica II). Está **aprendiendo a programar sobre la marcha**.
   Hay que explicarle cada cambio en simple: qué es, por qué y qué comando ejecuta él.
 - Idioma: **español** (chileno, cercano). Respuestas directas, no muy largas.
-- Le gustan mucho las **imágenes ANTES/AHORA** de cada cambio visual: entrégalas siempre que algo cambie en pantalla.
+- Le gustan las **imágenes ANTES/AHORA**: solo en cambios visuales grandes o si las pide (11 oct 2026).
 - Le gustan las afirmaciones respaldadas por estudios o evidencia concreta.
 
 **Nexo** es una app de estudio con 3 objetivos (en este orden):
@@ -22,12 +22,13 @@ Lo que solo sirve para un tema vive en skills (`.claude/skills/`) y en `docs/`: 
 cd $HOME\Desktop\NEXO_APP_ACTUAL
 node tools/static-server.cjs        # luego abrir http://127.0.0.1:8765/#/home  (Ctrl+C para apagar)
 node tools/build-startup.cjs        # OBLIGATORIO después de editar módulos de dist/ que van en el bundle
-node smoke-test.cjs; node tools/room-test.cjs; node tools/update01-test.cjs   # pruebas rápidas
+npm test                            # todas las pruebas rápidas (tools/run-tests.cjs las encuentra solas)
 ```
 
 - No hay framework ni paso de compilación: **el código fuente vive directo en `dist/`**.
 - `dist/startup-bundle.js` es **generado**: nunca editarlo a mano. Edita los módulos y regenera.
-- Al cambiar CSS o JS, sube la versión `?v=` en `dist/index.html` para que el navegador no use la copia vieja.
+- Los `?v=` de `dist/index.html` y `dist/app.js` se ponen solos (hash del archivo) al correr `build-startup.cjs`: no editarlos a mano.
+- Prueba nueva = archivo `tools/<algo>-test.cjs`; entra sola a `npm test`. No editar la lista en `package.json`.
 
 ## Mapa del código (lo importante)
 
@@ -38,7 +39,7 @@ node smoke-test.cjs; node tools/room-test.cjs; node tools/update01-test.cjs   # 
 | `dist/platform/animation.js`, `dist/platform/audio.js` | Grimorio: intro, cambio de página, sonidos. Skill **`nexo-grimorio`**. |
 | `dist/classes/` | Aula "torre del alquimista" y clases. Antes de tocarlas: skill **`nexo-clase`**. |
 | `dist/academic/*` | Motor académico: conceptos, evidencia, estados de conocimiento y FSRS. Piloto: **org-01 / Aminas**. Skill **`nexo-motor`**. |
-| `dist/dev/pixelmascotas.js`, `dist/mascot/` | Mascotas en pixel art. Skill **`nexo-mascota`**. Cualquier arte en pixel: skill **`nexo-pixel-art`**. |
+| `dist/mascot/pixelmascotas.js`, `dist/mascot/` | Mascotas en pixel art. Skill **`nexo-mascota`**. Cualquier arte en pixel: skill **`nexo-pixel-art`**. |
 | `dist/games/` | Juegos (campaña "Camino a la PEP 1"). Antes de tocarlos: skill **`nexo-juegos`**. |
 | `dist/planner/` | Organización: calendario, notas, prioridades, labs (UPDATE 02). Skill **`nexo-organizacion`**. |
 | Perfil (`renderProfile` en `app.js`), `dist/academic/ranks.js` | Mascota, notas, inasistencias, estadísticas, ajustes, rangos. Skill **`nexo-perfil`**. |
@@ -58,9 +59,12 @@ node smoke-test.cjs; node tools/room-test.cjs; node tools/update01-test.cjs   # 
 
 ## Forma de trabajo (SDD liviano)
 
+00. **"Diseñar" = conversar** (11 oct 2026): cuando Niquito diga "diseñemos/sigamos diseñando", solo hablar: ideas, opciones y preguntas, **sin generar imágenes, GIF, pixel art ni código**.
+    Esas cosas se hacen solo cuando él diga "hazlo / dibújalo / implementa". Cuesta tokens y suele no ser lo que quiere.
+0. Si la instrucción es ambigua: máximo 3 preguntas cortas con opciones antes de programar. En cosas grandes, maqueta primero.
 1. Antes de programar, una página en `docs/<cambio>/SPEC.md`: **qué**, **decisiones**, **cómo**, **criterios de aceptación** y **pendiente**.
 2. Implementar en pasos chicos. Probar en desktop (1440) y en móvil (390), y correr las pruebas rápidas.
-3. Mostrar ANTES/AHORA y **esperar la aprobación visual** de Niquito.
+3. **Esperar la aprobación** de Niquito (con ANTES/AHORA si el cambio visual es grande).
 
 ## Varios chats, una sola memoria (reglas absolutas)
 
@@ -81,9 +85,10 @@ Los chats **no se acuerdan entre sí**: la única memoria compartida es este arc
 
 ## Git y sincronización (lo hace Claude, no Niquito)
 
-- Al empezar cada sesión local: git fetch y, si hay cambios nuevos en GitHub, git pull. Cuéntame en una línea qué llegó.
-- Cuando yo apruebe un cambio, haz el commit con un mensaje claro en español y súbelo (git push) sin que yo lo pida.
+- Todo chat parte desde `master` actualizado (git fetch + pull, contar en una línea qué llegó) y trae lo último de `master` antes de cerrar.
+- Cuando apruebe un cambio: commit claro en español, PR a `master` y merge, y aviso en una línea (permiso fijo, 11 oct 2026). Si ya se trabaja en `master`, basta commit + push.
 - Nunca uses force push, nunca subas .env ni claves.
+- Si `git status` muestra cambios de otro chat en módulos del bundle, regenerar `startup-bundle.js` en un worktree limpio antes del commit (11 oct 2026: casi se subió código a medias del Inicio).
 - Si hay un conflicto o algo raro, detente y explícamelo en simple antes de hacer nada.
 
 ## Límites (no hacer sin permiso explícito)

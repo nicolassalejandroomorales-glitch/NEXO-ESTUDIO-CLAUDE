@@ -9,3 +9,8 @@ Ideas o decisiones que aparecieron en un chat pero pertenecen a otro tema. Cada 
   A Niquito le encantó ("creo que esto era lo que quería").
 - Pendiente para otros temas: decidir si el **grimorio, las clases, la tienda y los juegos** también pasan a pixel art (fuentes, botones, paneles).
   Cada uno en su chat, reutilizando las rampas de `tools/home-pixel/pixel.py` para que todo se vea del mismo mundo.
+
+## Pruebas rotas desde antes (11 oct 2026, chat de unión de ramas)
+- `tools/run-tests.cjs` salta 4 pruebas que ya fallaban: `update01-test` (espera "Bloque del catálogo", la app dice "Evaluación"),
+  `update01-dom-test` (falta `jsdom`), `update01-integrity-test` (lee `Desktop/MANIFIESTO_SHA256.tsv`, fuera del repo) y `web-vitals-test` (navegador).
+  Arreglar cada una y sacarla de `SALTAR`.

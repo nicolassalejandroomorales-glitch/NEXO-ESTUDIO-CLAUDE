@@ -12,3 +12,7 @@ description: Crear o editar una clase de Nexo (aula "torre del alquimista", misi
 5. Objetivo de Nexo: **aprender de verdad**. Un punto de la prueba solo cuenta como demostrado al acertar sin ayuda la transferencia. Nada de falsa sensación de dominio.
 6. Contenido académico: verificar contra la fuente (PPT, pauta). Si algo no está en la fuente, decirlo; no inventar.
 7. Diseñar la estructura de una clase nueva o el motor (`dist/academic/*`, FSRS): recomendar **Opus**. Llenar contenido siguiendo la guía: **Sonnet**.
+8. Ejercicios infinitos: cada clase tiene un `dist/classes/<id>-gen.js` con generadores `{ id, title, mission, concepts, make(rng, level, want) }`
+   (`want` es opcional: pide una variante concreta). La clase se registra con una línea en `dist/classes/catalog.js`.
+9. **Regla de calidad** (`node tools/exercise-quality.cjs`, corre en `npm test`): por generador ≥ 60 ejercicios distintos y ≥ 3 moldes
+   (enunciados distintos al borrar los números), ≥ 3 alternativas por pregunta y nada de "ninguna/todas las anteriores".

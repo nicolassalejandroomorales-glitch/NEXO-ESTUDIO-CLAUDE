@@ -290,7 +290,7 @@
   const DRAW = { matraz: drawMatraz, atomo: drawAtomo, slime: drawSlime };
   function render(ctx, kind, st) {
     const f = new Frame();
-    f.save(); f.translate(0, -Math.round(st.hop || 0)); f.rotate(st.rootTilt || 0, 20, 43);
+    f.save(); f.scale(st.scale || 1, st.scale || 1, 20, 43.5); f.translate(0, -Math.round(st.hop || 0)); f.rotate(st.rootTilt || 0, 20, 43);   // scale: profundidad (se re-rasteriza)
     DRAW[kind](f, st);
     // Accesorios: siguen la pose del cuerpo (el ancla se transforma; el dibujo queda nítido).
     const sp = SPECS[kind];

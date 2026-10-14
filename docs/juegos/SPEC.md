@@ -67,3 +67,4 @@ que sea entretenido, pero que **cada partida deje evidencia real** en el motor a
 - ¿Hay otros juegos que quieras además de los 4 de las tarjetas?
 - ¿Recompensas cosméticas (monedas de tienda, marcos del grimorio) o nada por ahora?
 - Contenido: hay pocos casos de Aminas; ¿generamos más variantes para los juegos o partimos con lo que hay?
+- (11 oct, chat mundo-torre) El portal del Arcade y la tarjeta Boss Arena ya abren `games/pep1/index.html`, pero la campaña no tiene botón "Volver a Nexo".

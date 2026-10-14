@@ -11,7 +11,7 @@ description: Perfil de Nexo (#/profile: Mascota, Notas, Inasistencias, Estadíst
   - `renderProfileGrades`, `renderProfileAbsences` (`state.absences`), `renderStats`, `renderSettings`, `renderMascot`, `challengeDefinitions` / `renderChallenges`.
   - Se llega desde el sillón del refugio y con `data-profile-tab`.
 - Rangos: `dist/academic/ranks.js` (0–5, de Sin rango a Rey Mago), detalle en `docs/ARCANE_RANKS_1_0.md`. Tiempo activo: `dist/academic/active-time.js`.
-- Mascota: `docs/mascota/SPEC.md` (dirección actual: **pixel art**, `dist/dev/pixelmascotas.js`). Hoy Mascota y Tienda muestran "Disponible próximamente".
+- Mascota: `docs/mascota/SPEC.md` (dirección actual: **pixel art**, `dist/mascot/pixelmascotas.js`). Hoy Mascota y Tienda muestran "Disponible próximamente".
 - Pruebas: `node tools/profile-test.cjs`, `tools/rank-test.cjs`, `tools/active-time-test.cjs`.
 
 ## Reglas

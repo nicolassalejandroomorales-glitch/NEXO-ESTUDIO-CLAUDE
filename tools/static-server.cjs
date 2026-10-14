@@ -13,4 +13,4 @@ http.createServer((request, response) => {
     response.writeHead(200, { 'Content-Type': types[path.extname(target)] || 'application/octet-stream', 'Cache-Control': 'no-store' });
     response.end(data);
   });
-}).listen(8765, '127.0.0.1', () => console.log('Nexo preview: http://127.0.0.1:8765'));
+}).listen(Number(process.env.PORT) || 8765, '127.0.0.1', () => console.log(`Nexo preview: http://127.0.0.1:${Number(process.env.PORT) || 8765}`));

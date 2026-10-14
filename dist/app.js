@@ -137,6 +137,7 @@
       weeklyGoal: 300,
       inventory: [],
       mascot: { name: 'Nexo' },
+      tutorial: { status: 'pending', rewarded: false, sections: {}, news: 0 },
       boosts: { streakShields: 0, protectedDates: [] },
       settings: { background: 'studio', sound: false, volume: 0.4, sfxVolume: 0.4,
         music: false, musicVolume: 0.15, ambient: false, ambientVolume: 0.12,
@@ -324,8 +325,20 @@
     if (Array.isArray(raw.practiceCompleted)) {
       raw.practiceCompleted.forEach(id => { if (!next.practice[id]) next.practice[id] = { attempts: 1, checked: true, correct: true, lastAttempt: todayKey() }; });
     }
-    // Mascota nueva en preparación (docs/mascota/SPEC.md): sin especies ni cosméticos; solo se conserva el nombre.
-    next.mascot = { name: String(next.mascot?.name || '').trim().slice(0, 24) || 'Nexo' };
+    // Mascota pixel (docs/mascota/SPEC.md · Fase 6): nombre, especie y vestuario (4 ranuras). Solo local.
+    {
+      const m = next.mascot || {}, outfit = {};
+      ['cabeza', 'cara', 'cuello', 'mano'].forEach(slot => { if (typeof m.outfit?.[slot] === 'string' && /^\w{1,20}$/.test(m.outfit[slot])) outfit[slot] = m.outfit[slot]; });
+      next.mascot = { name: String(m.name || '').trim().slice(0, 24) || 'Nexo', kind: ['matraz', 'atomo', 'slime'].includes(m.kind) ? m.kind : 'matraz', outfit };
+    }
+    // Tutorial (docs/tutorial/SPEC.md): pending = lo verá solo; skipped/done = solo desde Ajustes. Datos viejos con progreso cuentan como ya vistos.
+    {
+      const tu = raw.tutorial && typeof raw.tutorial === 'object' ? raw.tutorial : null;
+      const hasProgress = (next.sessions?.length || 0) + (next.completedLessons?.length || 0) + Object.keys(next.practice || {}).length > 0;
+      const sections = {}; ['clases', 'juegos', 'organizacion', 'perfil'].forEach(k => { if (tu?.sections?.[k]) sections[k] = true; });
+      next.tutorial = tu && ['pending', 'skipped', 'done'].includes(tu.status) ? { status: tu.status, rewarded: !!tu.rewarded, sections, news: Math.max(0, Math.floor(Number(tu.news)) || 0) }
+        : hasProgress ? { status: 'done', rewarded: true, sections: {}, news: 0 } : { status: 'pending', rewarded: false, sections: {}, news: 0 };
+    }
     if (!DATA.backgrounds.some(item => item.id === next.settings.background)) next.settings.background = base.settings.background;
     next.lessonSession = null; // las clases se están rehaciendo: no hay avance de clase que conservar
     next.meta = { ...base.meta, ...next.meta };
@@ -464,9 +477,19 @@
   function reward(id) { return DATA.rewards.find(item => item.id === id); }
   // La mascota se está rehaciendo (docs/mascota/SPEC.md): por ahora no se dibuja en ninguna pantalla.
   function avatarMarkup() { return ''; }
+  function petBind() {
+    window.NexoPet?.bind({
+      get: () => state.mascot,
+      set: patch => { Object.assign(state.mascot, patch); saveState({ backup: false }); window.NexoPet.renderDock(document.getElementById('companionPresence')); },
+      motion: () => state.settings.mascotMotion,
+      studying: () => state.timer.status === 'running'
+    });
+  }
   function renderCompanionPresence() {
     const dock=document.getElementById('companionPresence');
-    if(dock){dock.hidden=true;dock.replaceChildren();}
+    if(!dock)return;
+    petBind();
+    if(window.NexoPet)window.NexoPet.renderDock(dock);else{dock.hidden=true;dock.replaceChildren();}
   }
 
   function statusChip(status) {
@@ -495,6 +518,17 @@
     const parts = raw.split('/').filter(Boolean).map(decodeURIComponent);
     return parts.length ? parts : ['home'];
   }
+  // La primera vez (cuenta nueva) el Inicio lleva al tutorial. Navegadores automatizados (pruebas) no lo ven.
+  const tutorialDue = () => state.tutorial?.status === 'pending' && !navigator.webdriver;
+  // Avisos del Grimorio (dist/tutorial/avisos.js, carga perezosa): primera vez en cada sección si saltaste el tutorial, y novedades.
+  const withAvisos = fn => {
+    if (window.NexoAvisos) return fn(window.NexoAvisos);
+    const sc = document.createElement('script'); sc.src = 'tutorial/avisos.js?v=1'; sc.onload = () => fn(window.NexoAvisos); document.head.append(sc);
+  };
+  const checkAvisos = route => {
+    if (navigator.webdriver || !state.tutorial || state.tutorial.status === 'pending' || route[0] === 'lesson') return;
+    withAvisos(a => { if (parseRoute().join('/') === route.join('/')) a.check(route, state.tutorial, () => saveState({ backup: false })); });
+  };
   function routeTo(...parts) {
     const target = `#/${parts.map(encodeURIComponent).join('/')}`;
     if (location.hash === target) renderRoute(); else location.hash = target;
@@ -520,6 +554,7 @@
     window.NexoWillowView?.cleanup();
     window.NexoAcademicTraining?.cleanup();
     window.NexoMascotController?.cleanup();
+    window.NexoPet?.cleanup();
     const route = parseRoute();
     const routeChanged=previousRoute!==route.join('/');
     const roomFamily=parts=>['subject','lesson','subjects','library','knowledge','inspector'].includes(parts[0])?'learn':
@@ -539,7 +574,7 @@
     setActiveNav(route);
     closeMore();
     const renderers = {
-      home: renderHome,
+      home: () => (tutorialDue() ? routeTo('tutorial') : renderHome()),
       learn: () => route[1] === 'course'
         ? (route[3] === 'lesson' ? (LESSONS[route[4]]?.subject===route[2] ? renderLesson(route[4]) : renderSubjects())
           : route[3] === 'concept' ? renderAcademicExplorer('knowledge',route[4])
@@ -574,7 +609,21 @@
       shop: renderShop,
       mascot: renderMascot,
       torre: () => renderTower(route[1] || 'organica'),
-      settings: renderSettings
+      settings: renderSettings,
+      tutorial: () => { // docs/tutorial/SPEC.md · #/tutorial/test = prueba sin guardar nada; se carga solo al abrirla
+        const mode = route[1] === 'test' ? 'test' : state.tutorial.status === 'pending' ? 'first' : 'replay';
+        const REWARD = 150, api = {
+          pet: () => ({ kind: state.mascot.kind, name: state.mascot.name }),
+          setPet: (kind, name) => { Object.assign(state.mascot, { kind, name }); saveState({ backup: false }); window.NexoPet?.renderDock?.(document.getElementById('companionPresence')); },
+          canReward: () => !cloud.authenticated && !state.tutorial.rewarded,
+          reward: () => { if (cloud.authenticated || state.tutorial.rewarded) return 0; state.coins += REWARD; state.tutorial.rewarded = true; saveState(); updateChrome(); return REWARD; },
+          reward_amount: REWARD,
+          skip: () => { if (state.tutorial.status === 'pending') { state.tutorial.status = 'skipped'; saveState({ backup: false }); withAvisos(a => { state.tutorial.news = a.VERSION; saveState({ backup: false }); }); } },
+          finish: () => { state.tutorial.status = 'done'; saveState({ backup: false }); withAvisos(a => { state.tutorial.news = Math.max(state.tutorial.news || 0, a.VERSION); saveState({ backup: false }); }); }
+        };
+        const go = () => { if (parseRoute()[0] === 'tutorial') window.NexoTutorial.render(app, { mode, api: mode === 'test' ? null : api, sound: () => !!state.settings?.sound, exit: () => routeTo('home') }); };
+        if (window.NexoTutorial) go(); else { const sc = document.createElement('script'); sc.src = 'tutorial/tutorial.js?v=4'; sc.onload = go; document.head.append(sc); }
+      }
     };
     try { (renderers[route[0]] || renderHome)(); app.dataset.renderedRoute = route.join('/'); }
     catch (error) {
@@ -585,6 +634,7 @@
     window.NexoAnimation?.navigate(app,previousRoute,route.join('/'));
     updateChrome();
     renderCompanionPresence(route);
+    if (routeChanged) checkAvisos(route);
     document.documentElement.classList.add('nexo-ready');
     if(routeChanged)window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     if (moveFocus) requestAnimationFrame(() => {
@@ -597,7 +647,8 @@
   function renderHome() { return renderHomeRpg(); }
 
   function renderGames() {
-    app.innerHTML = `<section class="page games-room">${pageHeader('ARCADE ARCANO','Juegos','Próximamente')}<div class="games-grid">${['Memory Lab','Error Hunter','Blitz','Boss Arena'].map(name=>`<article class="game-placeholder"><span aria-hidden="true">◇</span><h2>${name}</h2><p>Próximamente</p></article>`).join('')}</div></section>`;
+    // La escena del Arcade la pone world/torre-mundo.js; cada tarjeta tiene su máquina en la sala (data-game-card).
+    app.innerHTML = `<section class="page games-room">${pageHeader('ARCADE ARCANO','Juegos','Elige una máquina o cruza el portal')}<div class="games-grid">${[['memory','Memory Lab'],['hunter','Error Hunter'],['blitz','Blitz']].map(([id,name])=>`<article class="game-placeholder" data-game-card="${id}"><span aria-hidden="true">◇</span><h2>${name}</h2><p>Próximamente</p></article>`).join('')}<a class="game-placeholder game-ready" data-game-card="campaign" href="games/pep1/index.html"><span aria-hidden="true">♛</span><h2>Boss Arena · Camino a la PEP 1</h2><p>Jugar</p></a></div></section>`;
   }
 
   function rankedCommitments() {
@@ -662,6 +713,7 @@
       </div>
     </section>`;
     window.NexoHomeScene.enhancePan?.(app);
+    petBind(); window.NexoPet?.mountHome(app.querySelector('.home-art-plane')); window.NexoPet?.checkWeather();
   }
 
   function renderTimer() {
@@ -792,7 +844,7 @@
   let mascotAcademicSubscribed=false;
   function loadAcademicFoundation() {
     if(!academicFoundation)academicFoundation=['model','graph','diagnosis','knowledge','ranks','classifiers','sources','reviews','structured','engine','library','inspector','explorer','training','rescue']
-      .reduce((promise,name)=>promise.then(()=>window.NexoLoader.script(`./academic/${name}.js?v=14`)),Promise.resolve())
+      .reduce((promise,name)=>promise.then(()=>window.NexoLoader.script(`./academic/${name}.js?v=c503132d`)),Promise.resolve())
       .then(()=>{if(!mascotAcademicSubscribed){window.NexoAcademicEngine.subscribe(event=>
         window.NexoMascotController.react(event,app));mascotAcademicSubscribed=true;}})
       .catch(error=>{academicFoundation=null;throw error;});
@@ -834,7 +886,7 @@
     if (new URLSearchParams(location.search).get('nexoDev') !== '1') return renderHome();
     if(view==='ui-lab'&&!window.NexoArcaneRanks){
       app.innerHTML='<section class="page"><p role="status">Abriendo componentes…</p></section>';
-      Promise.all([loadAcademicFoundation(),window.NexoLoader.script('./dev/workbench.js?v=2')])
+      Promise.all([loadAcademicFoundation(),window.NexoLoader.script('./dev/workbench.js?v=32c5574c')])
         .then(()=>{if(parseRoute()[0]===view)renderRoute(false);})
         .catch(()=>{app.innerHTML='<section class="page"><h1>UI Lab no disponible</h1></section>';});
       return;
@@ -845,7 +897,7 @@
       return window.NexoWorkbench.renderReview(app);
     }
     app.innerHTML='<section class="page"><p role="status">Abriendo herramientas de revisión…</p></section>';
-    window.NexoLoader.script('./dev/workbench.js?v=2')
+    window.NexoLoader.script('./dev/workbench.js?v=32c5574c')
       .then(() => { if (parseRoute()[0] === view) renderRoute(false); })
       .catch(() => { if (parseRoute()[0] === view) app.innerHTML='<section class="page"><h1>Revisión no disponible</h1><button data-route="home">Volver al inicio</button></section>'; });
   }
@@ -853,16 +905,16 @@
   const classroomLoads = new Map();
   function loadClassroom(id) {
     if (classroomLoads.has(id)) return classroomLoads.get(id);
-    const promise = Promise.resolve(window.NexoClassCatalog || window.NexoLoader.script('./classes/catalog.js?v=5')).then(() => {
+    const promise = Promise.resolve(window.NexoClassCatalog || window.NexoLoader.script('./classes/catalog.js?v=8dec702d')).then(() => {
       const file = window.NexoClassCatalog?.[id];
       if (!file) return false;
-      return Promise.all([window.NexoLoader.style('./classes/classroom.css?v=23'), window.NexoLoader.script('./classes/tower-art.js?v=1').then(() => window.NexoLoader.script('./classes/player.js?v=25')),
-        window.NexoLoader.script('./classes/willow-tower.js?v=4').catch(() => null), // Torre del Sauce (etapa 10); sin ella, quedan las hojas en lista
+      return Promise.all([window.NexoLoader.style('./classes/classroom.css?v=f5f7c02d'), window.NexoLoader.script('./classes/tower-art.js?v=9099c2df').then(() => window.NexoLoader.script('./classes/player.js?v=4242bf88')),
+        window.NexoLoader.script('./classes/willow-tower.js?v=09c21b87').catch(() => null), // Torre del Sauce (etapa 10); sin ella, quedan las hojas en lista
         window.NexoLoader.script(`./classes/${file}?v=18`),
         // Motor de evidencia y repaso espaciado (FSRS); si no cargan, la clase funciona igual sin agendar repasos.
-        window.NexoLoader.script('./classes/evidence.js?v=5'), window.NexoLoader.script('./classes/molecule.js?v=2'), window.NexoLoader.script('./classes/editor.js?v=5'), window.NexoLoader.script('./academic/reviews.js?v=14').catch(() => null)])
-        .then(() => Promise.all([window.NexoLoader.script(`./classes/slides/${id}.js?v=1`).catch(() => null), // diapositivas reales, si ya se convirtieron
-          window.NexoLoader.script(`./classes/${id}-gen.js?v=5`).catch(() => null)])) // generadores de ejercicios (etapa 8), si la clase los tiene
+        window.NexoLoader.script('./classes/evidence.js?v=308f7a40'), window.NexoLoader.script('./classes/molecule.js?v=b3b2e5aa'), window.NexoLoader.script('./classes/editor.js?v=df0be94e'), window.NexoLoader.script('./academic/reviews.js?v=0273ea6c').catch(() => null)])
+        .then(() => Promise.all([window.NexoLoader.script(`./classes/slides/${id}.js?v=268941af`).catch(() => null), // diapositivas reales, si ya se convirtieron
+          window.NexoLoader.script(`./classes/${id}-gen.js?v=00c1b5a9`).catch(() => null)])) // generadores de ejercicios (etapa 8), si la clase los tiene
         .then(() => true);
     });
     promise.catch(() => classroomLoads.delete(id));
@@ -900,10 +952,10 @@
     if (!window.NexoWillowView) app.innerHTML = '<section class="page"><div class="app-loader" role="status"><span></span><p>Subiendo a la torre…</p></div></section>';
     // La torre junta las clases de la PEP 1 del ramo que ya existen (Orgánica: Aminas, Aromaticidad y SEA).
     const pepIds = (subject.peps?.[0]?.lessons || lessonIds);
-    Promise.resolve(window.NexoClassCatalog || window.NexoLoader.script('./classes/catalog.js?v=5')).then(() => {
+    Promise.resolve(window.NexoClassCatalog || window.NexoLoader.script('./classes/catalog.js?v=8dec702d')).then(() => {
       const ids = pepIds.filter(l => window.NexoClassCatalog?.[l]);
-      return Promise.all([window.NexoLoader.style('./classes/willow.css?v=4'), window.NexoLoader.script('./classes/willow-tower.js?v=4'), ...ids.map(loadClassroom)])
-        .then(() => window.NexoLoader.script('./classes/willow-view.js?v=5')).then(() => ids);
+      return Promise.all([window.NexoLoader.style('./classes/willow.css?v=5a60c6e7'), window.NexoLoader.script('./classes/willow-tower.js?v=09c21b87'), ...ids.map(loadClassroom)])
+        .then(() => window.NexoLoader.script('./classes/willow-view.js?v=291be729')).then(() => ids);
     }).then(ids => {
       const id = ids[0];
       const route = parseRoute(); if (route[0] !== 'torre' || (route[1] || 'organica') !== subjectId) return;
@@ -1291,13 +1343,25 @@
     return `<section class="empty-state" aria-labelledby="${id}"><span class="empty-state-mark" aria-hidden="true">✧</span><p class="eyebrow">${eyebrow}</p><h2 id="${id}">${title}</h2><p>${text}</p></section>`;
   }
   function renderShop() {
-    app.innerHTML=`<section class="page forge-page">${comingSoon('MERCADO ARCANO','shopSoon','Tienda · Disponible próximamente',
-      'Estamos rehaciendo la tienda junto con tu nuevo compañero. Tus átomos se siguen ganando al estudiar.')}</section>`+
+    petBind();
+    app.innerHTML=`<section class="page forge-page"><p class="eyebrow">MERCADO ARCANO</p><h2>Tienda de accesorios</h2>
+      <p>Pruébale los accesorios a tu compañero. Comprar se activa pronto; tus átomos se siguen ganando al estudiar (${state.coins} ⚛).</p>
+      <div style="display:flex;justify-content:center;background:radial-gradient(circle at 50% 40%,#f3e6c8,#d8c39a);border-radius:12px;margin:10px 0"><canvas id="petShopPreview" width="40" height="44" style="width:160px;height:176px;image-rendering:pixelated" aria-label="Vista previa de tu compañero"></canvas></div>
+      <div id="petShop" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px"></div></section>`+
       `<details class="forge-challenges"><summary>Desafíos de estudio</summary>${renderChallenges()}</details>`;
+    window.NexoPet?.wireShop(app);
   }
   function renderMascot() {
-    app.innerHTML=`<section class="page">${comingSoon('TU COMPAÑERO','mascotSoon','Mascota · Disponible próximamente',
-      'Estamos diseñando un compañero nuevo, propio de Nexo, que vivirá en tu refugio.')}</section>`;
+    petBind();
+    app.innerHTML=`<section class="page"><p class="eyebrow">TU COMPAÑERO</p><h2>Mascota</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px">
+        <div class="panel"><h3>Elige tu compañero</h3><div id="petPick" style="display:flex;gap:10px;flex-wrap:wrap"></div>
+          <p><label>Nombre <input id="petName" maxlength="20" autocomplete="off"></label></p>
+          <h3>Vestuario</h3><div id="petWardrobe" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+          <p><small>Cuatro ranuras (cabeza, cara, cuello, mano). Más accesorios en la Tienda.</small></p></div>
+        <div class="panel" style="display:flex;justify-content:center;align-items:center;background:radial-gradient(circle at 50% 40%,#f3e6c8,#d8c39a)"><canvas id="petBig" width="40" height="44" style="width:240px;height:264px;image-rendering:pixelated" aria-label="Así se ve tu compañero"></canvas></div>
+      </div></section>`;
+    window.NexoPet?.wireProfile(app);
   }
 
   function renderSettings() {
@@ -1334,6 +1398,7 @@
         <label class="toggle"><input type="checkbox" data-setting="music" ${state.settings.music ? 'checked' : ''}><span><b>Música</b><small>Pista instrumental opcional; se detiene durante las clases.</small></span></label>
         <label class="field"><span>Volumen de música</span><input type="range" min="0" max="100" step="5" data-setting-volume="musicVolume" value="${Math.round(state.settings.musicVolume * 100)}" aria-label="Volumen de música"></label>
         <label class="toggle"><input type="checkbox" data-setting="motion" ${state.settings.motion ? 'checked' : ''}><span><b>Animaciones suaves</b><small>Desactívalas si prefieres menos movimiento.</small></span></label><label class="toggle"><input type="checkbox" data-setting="focusMode" ${state.settings.focusMode ? 'checked' : ''} ${state.inventory.includes('focus-mode') ? '' : 'disabled'}><span><b>Modo sin distracciones</b><small>${state.inventory.includes('focus-mode') ? 'Oculta paneles secundarios mientras corre el cronómetro.' : 'Se desbloquea en Tienda.'}</small></span></label></section>
+      <section class="panel"><p class="eyebrow">TUTORIALES</p><h2>Vuelve a ver al Grimorio</h2><p>${state.tutorial?.status === 'done' ? 'Ya lo completaste.' : 'Aún no lo completas.'}${cloud.authenticated || state.tutorial?.rewarded ? '' : ' Al completarlo ganas monedas, una sola vez.'}</p><button class="secondary-btn" data-route="tutorial">Ver el tutorial</button></section>
       <section class="panel"><p class="eyebrow">PORTABILIDAD</p><h2>Respaldo manual</h2><p>El archivo incluye sesiones, errores, notas, inasistencias, clases, calendario y personalización. No contiene contraseñas.</p><div class="button-stack"><button class="primary-btn" data-action="export-data">Exportar progreso .json</button><button class="secondary-btn" data-action="import-data">Importar progreso</button><button class="secondary-btn" data-action="restore-backup" ${backup ? '' : 'disabled'}>Restaurar copia automática</button></div><small>Última copia automática: ${state.meta.lastBackupAt ? new Intl.DateTimeFormat('es-CL', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(state.meta.lastBackupAt)) : 'todavía no existe'}</small></section>
       <section class="panel danger-zone"><p class="eyebrow">ZONA DE CUIDADO</p><h2>Reiniciar la app</h2><p>${cloud.authenticated ? 'Para eliminar datos sincronizados usa la opción Eliminar mi cuenta.' : 'Antes de borrar todo, exporta un archivo. El reinicio exige una segunda confirmación y conserva una copia recuperable.'}</p><button class="text-btn danger" data-action="reset-app" ${cloud.authenticated ? 'disabled' : ''}>Borrar progreso y comenzar de nuevo</button></section></div>
       <section class="panel performance-settings"><p class="eyebrow">RENDIMIENTO</p><h2>Gráficos y movimiento</h2><div class="performance-settings-grid">
@@ -1414,7 +1479,7 @@
       }
       if (!cloud.authenticated) state.coins += rewardValue;
       state.timer = { status: 'idle', subject: state.timer.subject, startedAt: null, elapsedBeforeMs: 0 };
-      saveState(); playSuccess(); renderRoute(false);
+      saveState(); playSuccess(); renderRoute(false); window.NexoPet?.celebrate(rewardValue);
       showToast(`Sesión guardada · ${formatClock(confirmedSeconds * 1000)}${rewardValue ? ` · +${rewardValue} átomos` : ' · sin átomos pendientes'}`);
       cloud.track('study_session_completed',{subject_id:state.timer.subject,seconds:confirmedSeconds});
     };
