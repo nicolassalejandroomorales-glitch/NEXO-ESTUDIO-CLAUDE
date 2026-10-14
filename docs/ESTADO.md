@@ -62,3 +62,9 @@ Historial de lo hecho por tema. Lo lee Claude solo cuando necesita contexto de o
 - **Tutorial conectado**: cuenta nueva ve el tutorial sola (state.tutorial), guarda mascota y nombre reales, premio de 150 ⚛ una vez, repetir desde Ajustes → Tutoriales, filtro de nombres. Prueba sin guardar en `#/tutorial/test`. Pendiente: aparición por sección, premio con nube.
 - **Avisos del Grimorio** (12 oct): globo en la esquina, primera vez por sección solo si saltaste el tutorial, y novedades con versión (`dist/tutorial/avisos.js`, prueba `tools/avisos-test.cjs`). SPEC en `docs/tutorial/SPEC.md`. Falta móvil (390), premio con nube y tono del guion.
 - **Tutorial en móvil (390)** revisado (12 oct): se arregló el paso de elegir huevo, que se salía del ancho. Pendiente: premio con nube y tono del guion.
+
+## 14 oct 2026 · Organización: datos reales de los ramos
+- Leídos del Drive los programas de Orgánica II, Analítica, FQ II (lab y ejercicios), Fisiopatología y el horario. Cargados en `dist/semester-2026.js`:
+  ponderaciones con lab desglosado, reglas de examen/eximición, 14 fechas nuevas (labs, pruebas de ciclo, PEP 2 FISIO) y horario fijo.
+  Cuentas existentes se actualizan una vez sin pisar notas (`NEXO_SEMESTER.upgrade`, prueba `tools/semester-test.cjs`). Detalle y dudas: `docs/update-02-organizacion/DATOS-RAMOS.md`.
+- El rediseño de Organización (estudio de planos de la torre) sigue en diseño: decisiones de 3 tandas en `docs/update-02-organizacion/SPEC.md`.

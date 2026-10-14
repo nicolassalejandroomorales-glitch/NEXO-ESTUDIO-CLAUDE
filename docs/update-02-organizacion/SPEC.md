@@ -81,7 +81,12 @@ resolución mixta, hora real, clima real, alquimista excéntrico + naturaleza qu
 - **Horario**: Niquito manda foto, Claude lo carga, y él lo ajusta en Nexo.
 - **Orden de construcción**: primero **escena del estudio + Hoy + avisos en el Inicio**.
 
-**Falta**: los **PDF/fotos de los programas** (ponderaciones, lab, mínimos, recuperativas) y la **foto del horario**;
+**Hecho 14 oct 2026 — datos reales cargados** (ver `DATOS-RAMOS.md`): ponderaciones de los 4 ramos con el laboratorio desglosado,
+reglas de examen/eximición/PF por ramo (`rules`), 14 fechas nuevas (labs de ORG y FQ, pruebas de ciclo, PEP 2 de FISIO), horario fijo
+(`NEXO_SEMESTER.schedule`) y actualización segura de cuentas existentes (`NEXO_SEMESTER.upgrade`, nunca pisa notas). Prueba `tools/semester-test.cjs`.
+La pantalla sigue siendo la vieja: el rediseño (estudio de planos) no se ha programado.
+
+**Falta**: dudas de `DATOS-RAMOS.md` (programa ORG 2025, teoría FQ, lab ANA, Inglés IV);
 orden de las fases siguientes; cómo se ve Avisos (campana) y la vista Semestre en pixel; cómo se integra el viaje escalera/ascensor.
 
 ---
