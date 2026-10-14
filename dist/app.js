@@ -591,7 +591,7 @@
       games: renderGames,
       subjects: renderSubjects,
       hub: () => window.NexoEstudio && ['calendar','grades'].includes(route[1]) ? routeTo('planner', window.NexoEstudio.legacy[route[1]]) : renderHub(route[1] || 'timer'),
-      profile: () => renderProfile(({avatar:'mascot',collection:'mascot',progress:'stats'})[route[1]]||route[1]||'mascot'),
+      profile: () => window.NexoEstudio && ['grades','absences'].includes(route[1]) ? routeTo('planner','notas') : renderProfile(({avatar:'mascot',collection:'mascot',progress:'stats'})[route[1]]||route[1]||'mascot'),
       subject: () => renderSubject(route[1]),
       lesson: () => renderLesson(route[1]),
       practice: () => renderPractice(route[1] || 'exercises', route[2]),
@@ -668,7 +668,7 @@
 
   // Organización (UPDATE 02): planner/estudio.js y planner/avisos.js leen y guardan el estado por aquí.
   const orgBridge = () => ({ state, save: () => saveState({ backup: false }), today: () => todayKey(), ranked: rankedCommitments,
-    subjects: SUBJECTS, subjectFor, go: routeTo, toast: showToast });
+    subjects: SUBJECTS, subjectFor, go: routeTo, toast: showToast, uid, gradeConfig, syncGrade: syncGradeEvent });
 
   function todayStudyMinutes() {
     return Math.round(state.sessions.filter(session => session.date === todayKey())

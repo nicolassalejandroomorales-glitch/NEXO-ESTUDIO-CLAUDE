@@ -35,6 +35,15 @@
         out.push({ id: `fecha:${e.id}:${e.date}`, nivel: 'cambio', titulo: 'Cambio de fecha',
           texto: `${bridge.subjectFor(e.subject).short} ${e.title}: ${T().shortDate(before)} → ${T().shortDate(e.date)}` });
     }
+    // Inasistencias: aviso cuando te queda 1 falta (o ya llegaste al límite).
+    if (window.NexoGradeRules) for (const sub of bridge.subjects) {
+      const att = window.NexoGradeRules.attendance(state.absences, sub.id, o.absenceMax);
+      for (const g of ['theory', 'lab']) {
+        const a = att[g], parte = g === 'lab' ? 'laboratorio' : 'teoría';
+        if (a.state === 'queda-1') out.push({ id: `falta:${sub.id}:${g}:${a.count}`, nivel: 'brillo', titulo: `${sub.short} · ${parte}`, texto: 'Te queda 1 falta.' });
+        else if (a.state === 'limite' || a.state === 'pasado') out.push({ id: `falta:${sub.id}:${g}:${a.count}`, nivel: 'sello', titulo: `${sub.short} · ${parte}`, texto: a.state === 'limite' ? 'Llegaste al máximo de faltas.' : 'Pasaste el máximo de faltas.' });
+      }
+    }
     T().hourglasses(state.events, today, 14).forEach(h => {
       const s = bridge.subjectFor(h.event.subject);
       out.push({ id: `prueba:${h.event.id}:${h.urgency}`, nivel: h.urgency, event: h.event, days: h.days,

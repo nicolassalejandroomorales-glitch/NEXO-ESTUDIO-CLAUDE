@@ -24,7 +24,7 @@
   }
   function css() {
     if (cssDone) return; cssDone = true;
-    for (const href of ['world/torre-mundo.css?v=1', 'planner/estudio.css?v=' + V]) {
+    for (const href of ['world/torre-mundo.css?v=1', 'planner/estudio.css?v=' + V, 'planner/notas.css?v=' + V]) {
       if (document.querySelector(`link[href^="${href.split('?')[0]}"]`)) continue;
       const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href; document.head.append(l);
     }
@@ -341,6 +341,12 @@
     b.style.left = clamp((A.x - Math.round(W.camX)) * W.scale, 90, W.vw * W.scale - 90) + 'px';
     b.style.top = Math.max(2, (A.y - 50) * W.scale - b.offsetHeight) + 'px';
   }
+  // La mascota del estudio reacciona (notas nuevas, faltas). tone = nombre de un gesto de PixelVida.
+  function react(tone, text) {
+    if (!W) return;
+    try { W.life.act(tone); } catch (_) { /* sin gesto */ }
+    if (text) say(text, 4600);
+  }
   async function use(o) {
     W.lastInput = performance.now();
     const arrived = await W.life.walkTo(o.stand[0], o.stand[1]);
@@ -464,12 +470,7 @@
       <p class="pergamino-pronto">Próximamente: informes por entregar y notas de laboratorio aparte, con su mínimo.</p></article>`;
   }
 
-  function panelNotas() {
-    return `<article class="pergamino"><header class="pergamino-head"><p class="eyebrow">BALANZA Y LIBRO</p><h2>Notas</h2></header>
-      <p>La balanza y los frascos de notas (cuánto necesitas, simulador y riesgo) se construyen en la próxima fase.
-      Mientras tanto, tus notas siguen guardadas en el Perfil.</p>
-      <p><button type="button" class="pix-btn" data-route="profile" data-route-sub="grades">Abrir mis notas →</button></p></article>`;
-  }
+  const panelNotas = S => window.NexoNotas.panel(S, bridge);
 
   function panelAvisos(S) {
     return `<article class="pergamino"><header class="pergamino-head"><p class="eyebrow">LA CAMPANA</p><h2>Avisos</h2></header>
@@ -484,6 +485,7 @@
 
   // ——— Acciones del panel ———
   function wirePanel(root, view) {
+    if (view === 'notas') { window.NexoNotas.wire(root, { bridge, refresh: () => refresh('notas'), react }); return; }
     root.onclick = e => {
       const b = e.target.closest('button'); if (!b) return;
       const S = W?.sit || situation();
@@ -590,5 +592,5 @@
     }
   }
   addEventListener('resize', () => W?.wrap.isConnected && resize());
-  window.NexoEstudio = Object.freeze({ render, views: VIEWS, legacy: LEGACY });
+  window.NexoEstudio = Object.freeze({ render, views: VIEWS, legacy: LEGACY, react });
 })();
