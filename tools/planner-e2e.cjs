@@ -1,6 +1,5 @@
 // Organización E2E (UPDATE 02 · Fase 1): estudio de planos + Hoy + avisos del Inicio, en celular (390) y PC (1440).
 // El calendario y las ponderaciones viejas ya no se ven: #/planner, #/hub/calendar y #/hub/grades llevan al estudio nuevo.
-// (Las notas se vuelven a probar aquí cuando se haga la fase de Notas.)
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const http = require('node:http');
@@ -70,6 +69,37 @@ const launch = () => fs.existsSync('/opt/pw-browsers/chromium') ? chromium.launc
       await page.locator('[data-org-prelab="official-org-lab-1"]').click();
       await page.reload();
       assert.match(await page.locator('[data-org-prelab="official-org-lab-1"]').innerText(), /Pre-lab listo/);
+      // Notas: guardar con el teclado, roja → autopsia, deshacer, simulador, faltas con aviso, y #/profile/grades redirige.
+      await page.goto(origin + '#/planner/notas'); await page.locator('.frasco').first().waitFor();
+      await page.locator('[data-nt-subject="analitica"]').click();
+      await page.locator('[data-nt-grade="official-ana-pep1"]').click();
+      for (const k of ['5', '5']) await page.locator(`[data-nt-key="${k}"]`).click();
+      await page.locator('[data-nt-nota-form] button[type=submit]').click();
+      assert.equal(await page.locator('[data-nt-grade="official-ana-pep1"].lv-verde').count(), 1);
+      assert.match(await page.locator('.placa').first().innerText(), /Necesitas/);
+      await page.locator('[data-nt-grade="official-ana-pep2"]').click();
+      await page.fill('[data-nt-input]', '3,2'); await page.locator('[data-nt-nota-form] button[type=submit]').click();
+      assert.equal(await page.locator('[data-nt-autopsy-form]').count(), 1, 'nota roja ofrece contar qué pasó');
+      await page.fill('[data-nt-autopsy-form] input[name=tipo]', 'titulaciones'); await page.selectOption('[data-nt-autopsy-form] select', 'calculo');
+      await page.locator('[data-nt-autopsy-form] button[type=submit]').click();
+      await page.evaluate(() => window.NexoStorage.flush());
+      assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('nexo-study-beta')).errors.filter(e => e.source === 'autopsia' && e.subject === 'analitica').length), 1, 'la autopsia entra a los errores abiertos');
+      assert.match(await page.locator('.riesgos').innerText(), /sin eximición/);
+      await page.locator('[data-nt-grade="official-ana-pep3"]').click();
+      await page.fill('[data-nt-input]', '9'); await page.locator('[data-nt-nota-form] button[type=submit]').click();
+      assert.equal(await page.locator('.nt-error').isVisible(), true, 'nota fuera de rango'); await page.keyboard.press('Escape');
+      await page.locator('[data-nt-sim]').first().fill('6');
+      assert.match(await page.locator('[data-nt-simout]').first().innerText(), /sacas 6,0/);
+      await page.locator('[data-nt-max="theory"]').fill('2'); await page.locator('[data-nt-max="theory"]').press('Tab');
+      await page.locator('[data-nt-abs-form] button[type=submit]').click();
+      assert.match(await page.locator('.asis-msg').first().innerText(), /Te quedan 1 falta|Te queda 1 falta/);
+      await page.reload(); await page.locator('.frasco').first().waitFor();
+      assert.equal(await page.locator('[data-nt-grade="official-ana-pep1"].lv-verde').count(), 1, 'la nota sobrevive a recargar');
+      await page.locator('[data-nt-grade="official-ana-pep1"]').click(); await page.locator('[data-nt-clear]').click();
+      await page.locator('#toast button').click();
+      assert.equal(await page.locator('[data-nt-grade="official-ana-pep1"].lv-verde').count(), 1, 'deshacer devuelve la nota');
+      await page.goto(origin + '#/profile/grades'); await page.locator('.estudio-page').waitFor();
+      assert.equal(await page.evaluate(() => location.hash), '#/planner/notas');
       // Inicio: tablón por urgencia, cinta, calendario que brilla y plan con Empezar.
       await page.goto(origin + '#/home');
       await page.locator('.evaluation-note.u-hoy').waitFor();
@@ -81,6 +111,6 @@ const launch = () => fs.existsSync('/opt/pw-browsers/chromium') ? chromium.launc
       assert.equal(errors.length, 0, errors.join('\n'));
       await page.close();
     }
-    console.log('Organización E2E: rutas viejas → estudio, plan de hoy (listo/hoy no/tiempo), agregar, pre-lab, avisos del Inicio, 390 y 1440 OK');
+    console.log('Organización E2E: rutas viejas → estudio, plan de hoy, agregar, pre-lab, notas (teclado, roja, simulador, faltas, deshacer), avisos del Inicio, 390 y 1440 OK');
   } finally { await browser.close(); server.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; server.close(); });

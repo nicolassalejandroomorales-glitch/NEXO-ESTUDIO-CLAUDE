@@ -1324,6 +1324,164 @@
 
 ;
 
+/* planner/grade-rules.js */
+/* Organización · Notas (UPDATE 02, Fase 2). Módulo puro (sin pantalla): se prueba con node (tools/notas-test.cjs).
+   Usa NexoGrades.calculate para las cuentas y agrega: cuánto necesitas, simulador, riesgo de examen/reprobar según las reglas
+   de cada ramo (docs/update-02-organizacion/DATOS-RAMOS.md), promedio general simple e inasistencias.
+   Chile: la nota 3,95 se redondea a 4,0, por eso el umbral de aprobar es 3,95. Nunca declara dominio: solo hace cuentas. */
+(function (root) {
+  'use strict';
+  const PASS = 3.95;
+  const num = v => { const n = Number(String(v ?? '').trim().replace(',', '.')); return Number.isFinite(n) ? n : NaN; };
+  const known = c => { const n = num(c.grade); return c.grade !== '' && n >= 1 && n <= 7 ? n : null; };
+  const fmt = (n, d = 1) => Number.isFinite(n) ? n.toFixed(d).replace('.', ',') : '—';
+  const ceil1 = n => Math.ceil(n * 10 - 1e-9) / 10;                 // con ese número alcanza
+  const level = n => n === null || n === undefined ? 'vacio' : n < 3.95 ? 'rojo' : n < 5 ? 'ambar' : 'verde';
+  const G = () => root.NexoGrades;
+
+  // ——— Resultado por parte (teoría / lab) con lo que hace falta ———
+  function groups(config) {
+    const calc = G().calculate(config, 'theory');
+    const out = {};
+    for (const g of calc.groupResults) {
+      const comps = (config.components || []).filter(c => c.group === g.id && num(c.weight) > 0);
+      const done = comps.filter(c => known(c) !== null), pend = comps.filter(c => known(c) === null);
+      const full = Math.abs(g.totalWeight - 100) < .01;
+      const points = done.reduce((s, c) => s + num(c.weight) * known(c), 0);
+      const goal = Number(config.target) > 4 ? Number(config.target) : PASS;
+      const required = full && g.pendingWeight > .0001 ? (goal * 100 - points) / g.pendingWeight : null;
+      let status = 'sin-datos';
+      if (!full) status = 'falta-pesos';
+      else if (g.pendingWeight <= .0001) status = g.grade >= PASS ? 'aprobada' : 'reprobada';
+      else if (required > 7.0001) status = 'imposible';
+      else if (required <= 1) status = 'asegurada';
+      else if (required > 5.5) status = 'ajustado';
+      else status = done.length ? 'en-camino' : 'sin-datos';
+      out[g.id] = { id: g.id, name: g.name, courseWeight: g.courseWeight, minimum: g.minimum, total: g.totalWeight, knownWeight: g.knownWeight,
+        pendingWeight: g.pendingWeight, current: g.current, grade: g.grade, required, need: required === null ? null : ceil1(Math.max(1, required)),
+        goal, status, comps, done, pend };
+    }
+    return out;
+  }
+
+  // ——— Riesgo de examen / reprobar, según el programa de cada ramo ———
+  const chip = (tone, text) => ({ tone, text });
+  const names = list => list.map(c => c.name).join(', ');
+  const RULES = {
+    organica(g, cfg) {
+      const out = [], th = g.theory, lab = g.lab;
+      const red = th.comps.filter(c => /^PEP/i.test(c.name) && known(c) !== null && known(c) < PASS);
+      if (th.grade !== null) {
+        if (th.grade < 3.4) out.push(chip('risk', 'Cátedra bajo 3,4: se reprueba sin prueba final.'));
+        else if (th.grade < PASS || red.length) out.push(chip('warn', 'Cátedra en zona de prueba final (PF): reemplaza tu PEP más baja.'));
+        else out.push(chip('ok', 'Cátedra aprobada.'));
+      } else if (red.length) out.push(chip('warn', `${names(red)} bajo 4,0: rendirías la prueba final (PF), que reemplaza tu PEP más baja.`));
+      else if (th.status === 'imposible') out.push(chip('risk', 'Con lo que queda ya no se llega a 4,0 en cátedra: habría que ir a prueba final.'));
+      if (lab.grade !== null) out.push(lab.grade < PASS ? chip('risk', 'Laboratorio reprobado: la nota final del ramo sería la del laboratorio (no se promedia).') : chip('ok', 'Laboratorio aprobado.'));
+      else if (lab.status === 'imposible') out.push(chip('risk', 'Con lo que queda ya no se llega a 4,0 en laboratorio.'));
+      return out;
+    },
+    fisico(g) {
+      const out = [], th = g.theory, lab = g.lab;
+      if (th.grade !== null) out.push(th.grade < PASS ? chip('warn', 'Cátedra bajo 4,0: examen (vale 40 % de la nota final y entra todo).') : chip('ok', 'Cátedra aprobada, sin examen.'));
+      else if (th.status === 'imposible') out.push(chip('risk', 'Con lo que queda ya no se llega a 4,0 en cátedra: irías a examen.'));
+      const ciclo = lab.comps.find(c => /prueba de ciclo/i.test(c.name));
+      if (ciclo && known(ciclo) !== null && known(ciclo) < PASS) out.push(chip('warn', 'Prueba de ciclo roja: rindes examen de laboratorio (40 %, 13-01-2027).'));
+      else if (lab.grade !== null) out.push(lab.grade < PASS ? chip('risk', 'Laboratorio reprobado.') : chip('ok', 'Laboratorio aprobado.'));
+      return out;
+    },
+    analitica(g) {
+      const out = [], th = g.theory, lab = g.lab;
+      const peps = th.comps.filter(c => /^PEP/i.test(c.name)), kn = peps.filter(c => known(c) !== null);
+      const red = kn.filter(c => known(c) < PASS);
+      if (red.length) out.push(chip('warn', `${names(red)} bajo 4,0: sin eximición. Con promedio entre 3,5 y 4,0 tendrías derecho a examen (40 %).`));
+      else if (kn.length === peps.length && peps.length) out.push(chip('ok', 'Eximido: todas tus PEP son 4,0 o más.'));
+      else if (kn.length) out.push(chip('info', 'Para eximirte necesitas 4,0 o más en cada PEP.'));
+      if (th.grade !== null) {
+        if (th.grade < 3.5) out.push(chip('risk', 'Promedio bajo 3,5: sin derecho a examen.'));
+        else if (th.grade < PASS) out.push(chip('warn', 'Promedio entre 3,5 y 4,0: tienes derecho a examen (40 %).'));
+        else out.push(chip('ok', 'Teoría aprobada.'));
+      }
+      if (lab.grade !== null) out.push(lab.grade < PASS ? chip('risk', 'Laboratorio reprobado: se aprueba por separado.') : chip('ok', 'Laboratorio aprobado.'));
+      return out;
+    },
+    fisio(g, cfg) {
+      const out = [], th = g.theory;
+      const pts = th.done.reduce((s, c) => s + num(c.weight) * known(c), 0);
+      if (th.grade !== null) out.push(th.grade >= 4.5 ? chip('ok', 'Eximido del examen (4,5 o más).') : th.grade >= PASS ? chip('info', 'Cátedra aprobada, pero bajo 4,5: rindes el examen (15-01-2027).') : chip('risk', 'PEP bajo 4,0: la cátedra debe aprobarse para aprobar el curso.'));
+      else if (th.total > 99.99 && th.pendingWeight > 0) {
+        const n = (450 - pts) / th.pendingWeight;
+        out.push(n > 7 ? chip('info', 'Eximirte (4,5) ya no es posible: rendirías el examen.') : chip('info', `Para eximirte del examen necesitas ${fmt(ceil1(Math.max(1, n)))} en lo que queda de PEP.`));
+      }
+      return out;
+    }
+  };
+
+  /* Estado de un ramo: grupos, avisos de riesgo, "llevas" (con lo evaluado) y nota final si ya están todas. */
+  function evaluate(subjectId, config) {
+    const g = groups(config);
+    const chips = (RULES[subjectId] ? RULES[subjectId](g, config) : []).slice();
+    const gs = Object.values(g).filter(x => x.courseWeight !== null);
+    const withCur = gs.filter(x => x.current !== null);
+    const w = withCur.reduce((s, x) => s + x.courseWeight, 0);
+    const llevas = w ? withCur.reduce((s, x) => s + x.current * x.courseWeight, 0) / w : null;
+    const final = gs.length && gs.every(x => x.grade !== null) ? gs.reduce((s, x) => s + x.grade * x.courseWeight, 0) / gs.reduce((s, x) => s + x.courseWeight, 0) : null;
+    const worst = chips.some(c => c.tone === 'risk') ? 'risk' : chips.some(c => c.tone === 'warn') ? 'warn' : chips.some(c => c.tone === 'ok') ? 'ok' : 'none';
+    return { groups: g, chips, llevas, final, worst };
+  }
+
+  /* ¿Y si me saco X en todo lo que falta de esta parte? (no toca tus datos: trabaja sobre una copia) */
+  function simulate(subjectId, config, groupId, x) {
+    const copy = JSON.parse(JSON.stringify(config));
+    const val = Math.max(1, Math.min(7, num(x)));
+    copy.components.forEach(c => { if (c.group === groupId && num(c.weight) > 0 && known(c) === null) c.grade = val.toFixed(2); });
+    const r = evaluate(subjectId, copy);
+    return { value: val, group: r.groups[groupId], chips: r.chips, llevas: r.llevas, final: r.final };
+  }
+
+  /* Promedio general del semestre: simple (todos los ramos valen igual). `ramos` = [{id, ev}] con ev = evaluate(). */
+  function overall(evals) {
+    const withFinal = evals.filter(e => e.final !== null), withLlevas = evals.filter(e => e.llevas !== null);
+    const avg = list => list.length ? list.reduce((s, v) => s + v, 0) / list.length : null;
+    return { llevas: avg(withLlevas.map(e => e.llevas)), final: withFinal.length === evals.length && evals.length ? avg(withFinal.map(e => e.final)) : null,
+      ramos: withLlevas.length };
+  }
+
+  /* Inasistencias: cuántas llevas y cuántas te quedan contra el máximo que tú pones.
+     strict = "100 % de asistencia" (labs de Orgánica y FQ): cada falta se recupera con justificación. */
+  const STRICT = { organica: { lab: true }, fisico: { lab: true } };
+  function attendance(absences, subjectId, maxes = {}) {
+    const out = {};
+    for (const gid of ['theory', 'lab']) {
+      const count = (absences || []).filter(a => a.subject === subjectId && (a.group === 'lab' ? 'lab' : 'theory') === gid).length;
+      const raw = maxes?.[subjectId]?.[gid];
+      const max = raw === undefined || raw === '' || raw === null ? null : Math.max(0, Math.floor(Number(raw)));
+      const strict = !!STRICT[subjectId]?.[gid];
+      let state = 'sin-maximo', left = null;
+      if (strict && max === null) state = count ? 'estricto-falta' : 'estricto';
+      else if (max !== null) { left = max - count; state = left < 0 ? 'pasado' : left === 0 ? 'limite' : left === 1 ? 'queda-1' : 'ok'; }
+      out[gid] = { group: gid, count, max, left, strict, state };
+    }
+    return out;
+  }
+
+  /* Calibración: ¿qué tan cerca estimas tu nota? (promedio de |estimada − real| con las que tienen ambas) */
+  function calibration(configs) {
+    const pairs = [];
+    for (const cfg of configs) for (const c of cfg.components || []) {
+      const e = num(c.estimate), r = known(c);
+      if (c.estimate !== undefined && c.estimate !== '' && Number.isFinite(e) && r !== null) pairs.push({ name: c.name, estimate: e, real: r, diff: e - r });
+    }
+    const mean = pairs.length ? pairs.reduce((s, p) => s + p.diff, 0) / pairs.length : null;
+    return { pairs, mean };
+  }
+
+  root.NexoGradeRules = Object.freeze({ PASS, num, known, fmt, ceil1, level, groups, evaluate, simulate, overall, attendance, calibration });
+  if (typeof module !== 'undefined') module.exports = root.NexoGradeRules;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+;
+
 /* planner/today-plan.js */
 /* Organización · plan de hoy (UPDATE 02, Fase 1). Módulo puro: sin pantalla ni estado propio, se prueba con node.
    Nexo PROPONE (orden + duración + razón); Niquito acepta, salta o marca listo. Reparte TIEMPO, nunca declara dominio.
@@ -1500,6 +1658,15 @@
         out.push({ id: `fecha:${e.id}:${e.date}`, nivel: 'cambio', titulo: 'Cambio de fecha',
           texto: `${bridge.subjectFor(e.subject).short} ${e.title}: ${T().shortDate(before)} → ${T().shortDate(e.date)}` });
     }
+    // Inasistencias: aviso cuando te queda 1 falta (o ya llegaste al límite).
+    if (window.NexoGradeRules) for (const sub of bridge.subjects) {
+      const att = window.NexoGradeRules.attendance(state.absences, sub.id, o.absenceMax);
+      for (const g of ['theory', 'lab']) {
+        const a = att[g], parte = g === 'lab' ? 'laboratorio' : 'teoría';
+        if (a.state === 'queda-1') out.push({ id: `falta:${sub.id}:${g}:${a.count}`, nivel: 'brillo', titulo: `${sub.short} · ${parte}`, texto: 'Te queda 1 falta.' });
+        else if (a.state === 'limite' || a.state === 'pasado') out.push({ id: `falta:${sub.id}:${g}:${a.count}`, nivel: 'sello', titulo: `${sub.short} · ${parte}`, texto: a.state === 'limite' ? 'Llegaste al máximo de faltas.' : 'Pasaste el máximo de faltas.' });
+      }
+    }
     T().hourglasses(state.events, today, 14).forEach(h => {
       const s = bridge.subjectFor(h.event.subject);
       out.push({ id: `prueba:${h.event.id}:${h.urgency}`, nivel: h.urgency, event: h.event, days: h.days,
@@ -1613,6 +1780,500 @@
 
 ;
 
+/* planner/notas.js */
+/* Organización · Notas e inasistencias (UPDATE 02, Fase 2). Balanza y libro del estudio de planos.
+   Lomos de libro por ramo, repisas de Teoría y Laboratorio, un frasco por evaluación (ancho = peso, líquido = nota por escalones),
+   "Necesitas X,X" tallado, simulador con palanca, riesgo de examen, promedio general e inasistencias.
+   Las cuentas son de NexoGrades / NexoGradeRules; los datos son state.grades (gradeConfig) y state.absences. Se pinta desde estudio.js. */
+(() => {
+  'use strict';
+  const R = () => window.NexoGradeRules;
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sept', 'oct', 'nov', 'dic'];
+  const dateLabel = d => { const x = new Date(`${d}T12:00:00`); return `${x.getDate()} ${MONTHS[x.getMonth()]}`; };
+  const GROUPS = ['theory', 'lab'];
+  const ui = { subject: null, edit: false, sim: {}, dialog: null, autopsy: null, fresh: null, absForm: false };
+  let ctx = null;
+
+  // ——— Números en pixel (5×7), para "Necesitas 4,6" ———
+  const GL = {
+    '0': ['01110', '10001', '10011', '10101', '11001', '10001', '01110'], '1': ['00100', '01100', '00100', '00100', '00100', '00100', '01110'],
+    '2': ['01110', '10001', '00001', '00010', '00100', '01000', '11111'], '3': ['11110', '00001', '00001', '01110', '00001', '00001', '11110'],
+    '4': ['10010', '10010', '10010', '11111', '00010', '00010', '00010'], '5': ['11111', '10000', '10000', '11110', '00001', '00001', '11110'],
+    '6': ['01111', '10000', '10000', '11110', '10001', '10001', '01110'], '7': ['11111', '00001', '00010', '00100', '01000', '01000', '01000'],
+    '8': ['01110', '10001', '10001', '01110', '10001', '10001', '01110'], '9': ['01110', '10001', '10001', '01111', '00001', '00001', '11110'],
+    ',': ['00', '00', '00', '00', '01', '01', '10'], '?': ['01110', '10001', '00001', '00110', '00100', '00000', '00100'], '—': ['00000', '00000', '00000', '11111', '00000', '00000', '00000']
+  };
+  function pixelText(text, cls = '') {
+    let x = 0, rects = '';
+    for (const ch of String(text)) {
+      const rows = GL[ch] || GL['?'];
+      rows.forEach((row, y) => [...row].forEach((b, dx) => { if (b === '1') rects += `<rect x="${x + dx}" y="${y}" width="1" height="1"/>`; }));
+      x += rows[0].length + 1;
+    }
+    return `<svg class="pix-num ${cls}" viewBox="0 0 ${Math.max(1, x - 1)} 7" shape-rendering="crispEdges" aria-hidden="true" focusable="false">${rects}</svg>`;
+  }
+
+  // ——— Datos ———
+  const bridge = () => ctx.bridge;
+  const org = () => { const s = bridge().state; s.organization = s.organization && typeof s.organization === 'object' ? s.organization : {}; return s.organization; };
+  const maxes = () => { const o = org(); o.absenceMax = o.absenceMax && typeof o.absenceMax === 'object' ? o.absenceMax : {}; return o.absenceMax; };
+  const cfg = id => bridge().gradeConfig(id);
+  // Las pruebas de ciclo del laboratorio tienen id distinto en el calendario que en las notas.
+  const LINK = { 'grade-fq-lab-ciclo': 'official-fq-ciclo', 'grade-org-lab-ciclo1': 'official-org-ciclo1', 'grade-org-lab-ciclo2': 'official-org-ciclo2' };
+  const eventFor = id => (bridge().state.events || []).find(e => e.sourceId === id || e.id === id || e.id === LINK[id]);
+  const num = v => R().num(v);
+
+  function defaultSubject() {
+    const next = (bridge().ranked() || []).find(x => ['exam', 'Prueba', 'control'].includes(x.event.type));
+    return next?.event.subject || bridge().subjects[0].id;
+  }
+  function current() {
+    if (!ui.subject || !bridge().subjects.some(s => s.id === ui.subject)) ui.subject = org().notasSubject || defaultSubject();
+    return bridge().subjectFor(ui.subject);
+  }
+  const evalAll = () => bridge().subjects.map(s => ({ s, ev: R().evaluate(s.id, cfg(s.id)) }));
+  const w1 = w => String(Number(num(w).toFixed(1))).replace('.', ',');
+  const gname = (c, g) => c.groups?.[g]?.name || (g === 'lab' ? 'Laboratorio' : 'Teoría');
+
+  // ——— Piezas ———
+  const STATUS_WORD = { risk: 'En riesgo', warn: 'Ojo', ok: 'Vas bien', none: '' };
+  function lomos(evs) {
+    return `<nav class="lomos" role="tablist" aria-label="Ramo">${evs.map(({ s, ev }) => `<button role="tab" type="button" class="lomo lomo-${ev.worst}" style="--ramo:${esc(s.color)}"
+      aria-selected="${s.id === ui.subject}" data-nt-subject="${esc(s.id)}"><b>${esc(s.short)}</b><small>${ev.llevas === null ? '—' : R().fmt(ev.llevas, 1)}</small>${ev.worst === 'risk' || ev.worst === 'warn' ? `<i class="lomo-marca" aria-label="${STATUS_WORD[ev.worst]}"></i>` : ''}</button>`).join('')}</nav>`;
+  }
+  function frasco(c, config, today) {
+    const g = R().known(c), lv = R().level(g), steps = g === null ? 0 : Math.max(1, Math.round((g - 1) / 6 * 8));
+    const tier = num(c.weight) < 6 ? 1 : num(c.weight) < 15 ? 2 : num(c.weight) < 30 ? 3 : 4;
+    const date = c.date || eventFor(c.id)?.date || '';
+    const past = g === null && date && date < today;
+    const est = c.estimate === undefined || c.estimate === '' ? NaN : num(c.estimate);
+    const fresh = ui.fresh && ui.fresh.id === c.id;
+    const label = g === null ? (past ? '¿cómo te fue?' : '?') : R().fmt(g, 2);
+    return `<li class="frasco-wrap">
+      <button type="button" class="frasco t${tier} lv-${lv}${past ? ' pasada' : ''}${fresh ? ' fresco' : ''}" style="--n:${steps}" data-nt-grade="${esc(c.id)}"
+        aria-label="${esc(c.name)}, ${w1(c.weight)} %, ${g === null ? 'sin nota' : 'nota ' + R().fmt(g, 2)}. Tocar para ${g === null ? 'escribir' : 'cambiar'} la nota">
+        <span class="liq"><i></i><i></i><i></i></span>
+        <b class="fr-nota${g === null ? ' vacia' : ''}">${g === null ? (past ? '¿?' : '?') : R().fmt(g, 1)}</b>
+        ${g === null && Number.isFinite(est) ? `<small class="fr-est">estimé ${R().fmt(est, 1)}</small>` : ''}
+        ${fresh ? `<span class="chispas lv-${lv}" aria-hidden="true">${'<i></i>'.repeat(8)}</span>` : ''}
+      </button>
+      <span class="fr-tag"><span>${esc(c.name)}</span><small>${w1(c.weight)} %${date ? ` · ${esc(dateLabel(date))}` : ''}</small></span>
+      ${fresh ? '<span class="pluma-ok" role="status">guardado</span>' : ''}
+      ${c.autopsy ? '<span class="fr-auto" title="Ya contaste qué pasó">✎</span>' : ''}</li>`;
+  }
+
+  function need(group, simOut) {
+    const g = group;
+    if (g.status === 'falta-pesos') return `<p class="placa-texto">Faltan ponderaciones: esta parte suma ${w1(g.total)} %. Usa “Ajustar ramo”.</p>`;
+    if (g.status === 'aprobada' || g.status === 'reprobada') return `<div class="placa ${g.status}"><span class="placa-eti">${g.status === 'aprobada' ? 'Quedó en' : 'Quedó en'}</span>${pixelText(R().fmt(g.grade, 1), 'grande')}</div>
+      <p class="placa-texto">${g.status === 'aprobada' ? 'Parte aprobada.' : 'Parte reprobada: mira las reglas de abajo.'}</p>`;
+    if (g.status === 'asegurada') return `<div class="placa aprobada"><span class="placa-eti">Ya aprobaste</span></div><p class="placa-texto">Aunque saques 1,0 en lo que queda (${w1(g.pendingWeight)} %), esta parte se aprueba.</p>`;
+    if (g.status === 'imposible') {
+      const best = (g.current * g.knownWeight + 7 * g.pendingWeight) / 100;
+      return `<div class="placa reprobada"><span class="placa-eti">Con 7,0 llegas a</span>${pixelText(R().fmt(best, 1), 'grande')}</div>
+        <p class="placa-texto">Ya no alcanza el 4,0 en esta parte, ni sacando 7,0 en lo que queda. Veamos qué reglas te quedan abajo.</p>`;
+    }
+    const goal = g.goal > 4 ? `para llegar a ${R().fmt(g.goal, 1)}` : 'para aprobar';
+    return `<div class="placa ${g.status}"><span class="placa-eti">Necesitas</span>${pixelText(R().fmt(g.need, 1), 'grande')}</div>
+      <p class="placa-texto">de promedio en lo que queda (${w1(g.pendingWeight)} % de ${esc(g.name.toLowerCase())}) ${goal}.${g.current !== null ? ` Hasta ahora llevas <b>${R().fmt(g.current, 2)}</b>.` : ''}</p>`;
+  }
+
+  function simulador(subject, config, g) {
+    if (!g || g.pendingWeight <= .0001 || g.status === 'falta-pesos') return '';
+    const key = `${subject.id}:${g.id}`, v = ui.sim[key] ?? Math.min(7, Math.max(1, g.need ?? 5));
+    const out = simText(subject.id, config, g.id, v);
+    return `<div class="simulador"><p class="sim-pregunta">¿Y si me saco…</p>
+      <div class="palanca"><input type="range" min="1" max="7" step="0.1" value="${v}" data-nt-sim="${esc(g.id)}" aria-label="Nota que sacarías en lo que queda de ${esc(g.name)}">
+        <output class="sim-valor" data-nt-simvalor>${R().fmt(v, 1)}</output></div>
+      <p class="sim-out" data-nt-simout aria-live="polite">${out}</p></div>`;
+  }
+  function simText(sid, config, gid, v) {
+    const r = R().simulate(sid, config, gid, v);
+    const lines = [`En lo que queda sacas <b>${R().fmt(r.value, 1)}</b> → ${esc(r.group.name.toLowerCase())} queda en <b class="lv-${R().level(r.group.grade)}">${R().fmt(r.group.grade, 2)}</b>.`];
+    if (r.final !== null) lines.push(`Nota final del ramo: <b>${R().fmt(r.final, 2)}</b>.`);
+    r.chips.filter(c => c.tone !== 'info').slice(0, 2).forEach(c => lines.push(`<span class="chip chip-${c.tone}">${esc(c.text)}</span>`));
+    return lines.join(' ');
+  }
+
+  function repisa(subject, config, ev, gid, today) {
+    const g = ev.groups[gid]; if (!g) return '';
+    const comps = g.comps.length ? g.comps : (config.components || []).filter(c => c.group === gid);
+    return `<section class="repisa" aria-label="${esc(gname(config, gid))}">
+      <header class="repisa-head"><h3>${gid === 'lab' ? '⚗' : '▤'} ${esc(gname(config, gid))}</h3>
+        <small>${g.courseWeight !== null ? `${w1(g.courseWeight)} % del ramo` : ''}${g.minimum ? ` · mínimo ${R().fmt(g.minimum, 1)}` : ''}</small></header>
+      <ul class="frascos">${comps.map(c => frasco(c, config, today)).join('') || '<li class="repisa-vacia">Sin evaluaciones: agrégalas en “Ajustar ramo”.</li>'}</ul>
+      <div class="repisa-tabla"></div>
+      <div class="repisa-info">${need(g)}</div>${simulador(subject, config, g)}</section>`;
+  }
+
+  function editor(subject, config) {
+    return `<section class="ajuste" aria-label="Ajustar ramo">
+      <p class="ajuste-ayuda">Cambia el porcentaje y la fecha de cada evaluación, agrega o borra. Cada parte debería sumar 100 %.</p>
+      ${GROUPS.map(gid => {
+        const rows = (config.components || []).filter(c => c.group === gid), total = rows.reduce((s, c) => s + (num(c.weight) || 0), 0);
+        return `<fieldset class="ajuste-grupo"><legend>${esc(gname(config, gid))} <span class="${Math.abs(total - 100) < .01 ? 'ok' : 'warn'}">suma ${w1(total)} %</span></legend>
+          ${rows.map(c => `<div class="ajuste-fila"><input aria-label="Nombre" maxlength="80" value="${esc(c.name)}" data-nt-edit="${esc(c.id)}" data-nt-field="name">
+            <input aria-label="Porcentaje de ${esc(c.name)}" type="text" inputmode="decimal" value="${esc(c.weight === '' ? '' : Number(num(c.weight).toFixed(2)))}" data-nt-edit="${esc(c.id)}" data-nt-field="weight">
+            <input aria-label="Fecha de ${esc(c.name)}" type="date" value="${esc(c.date || '')}" data-nt-edit="${esc(c.id)}" data-nt-field="date">
+            <button type="button" class="pix-btn suave mini" data-nt-del="${esc(c.id)}" aria-label="Borrar ${esc(c.name)}">×</button></div>`).join('')}
+          <button type="button" class="pix-btn suave" data-nt-add="${gid}">+ Agregar evaluación</button></fieldset>`;
+      }).join('')}
+      <button type="button" class="pix-btn" data-nt-edit-done>Terminar</button></section>`;
+  }
+
+  function dialogNota(config) {
+    const d = ui.dialog; if (!d) return '';
+    const c = config.components.find(x => x.id === d.id); if (!c) return '';
+    const g = R().known(c), date = c.date || eventFor(c.id)?.date || '', past = date && date < bridge().today();
+    return `<div class="nt-fondo" data-nt-cancel><form class="nt-dialog" role="dialog" aria-modal="true" aria-labelledby="ntTit" data-nt-nota-form>
+      <h3 id="ntTit">${esc(c.name)} · ${w1(c.weight)} %</h3>
+      ${past && g === null || d.mode === 'estimate' ? `<div class="nt-modo" role="tablist"><button type="button" role="tab" aria-selected="${d.mode !== 'estimate'}" data-nt-mode="real">Nota real</button>
+        <button type="button" role="tab" aria-selected="${d.mode === 'estimate'}" data-nt-mode="estimate">¿Cómo te fue? (estimada)</button></div>` : ''}
+      <p class="nt-ayuda">${d.mode === 'estimate' ? 'Tu estimación se guarda aparte. Cuando llegue la nota real, Nexo las compara: así aprendes a calibrarte.' : 'Escribe la nota (1,0 a 7,0). Con “55” entiendo 5,5.'}</p>
+      <input class="nt-input" name="nota" type="text" inputmode="decimal" autocomplete="off" maxlength="4" value="${esc(d.value)}" aria-label="Nota" data-nt-input>
+      <div class="nt-teclas" role="group" aria-label="Teclado">${['1', '2', '3', '4', '5', '6', '7', '8', '9', ',', '0', '⌫'].map(k => `<button type="button" class="pix-btn" data-nt-key="${k}">${k}</button>`).join('')}</div>
+      <p class="nt-error" role="alert" hidden></p>
+      <div class="nt-acciones"><button type="submit" class="pix-btn">Guardar</button><button type="button" class="pix-btn suave" data-nt-cancel-btn>Cancelar</button>
+        ${d.mode !== 'estimate' && g !== null ? '<button type="button" class="pix-btn suave" data-nt-clear>Borrar nota</button>' : ''}</div></form></div>`;
+  }
+
+  function dialogAutopsia(config) {
+    const a = ui.autopsy; if (!a) return '';
+    const c = config.components.find(x => x.id === a.id); if (!c) return '';
+    const o = c.autopsy || {};
+    const opt = (list, cur) => list.map(([v, t]) => `<option value="${v}"${cur === v ? ' selected' : ''}>${t}</option>`).join('');
+    return `<div class="nt-fondo" data-nt-autopsy-cancel><form class="nt-dialog" role="dialog" aria-modal="true" aria-labelledby="ntAu" data-nt-autopsy-form>
+      <h3 id="ntAu">¿Qué pasó en ${esc(c.name)}?</h3>
+      <p class="nt-ayuda">Tres preguntas rápidas, sin culpa: sirven para elegir qué practicar. Puedes saltarlas.</p>
+      <label>¿Qué tipo de pregunta te costó? <input name="tipo" maxlength="120" value="${esc(o.tipo || '')}" placeholder="Ej.: basicidad de aminas, gráficos…"></label>
+      <label>¿Fue un error de… <select name="causa"><option value="">elige</option>${opt([['concepto', 'concepto (no lo entendía)'], ['calculo', 'cálculo o desarrollo'], ['tiempo', 'tiempo'], ['nervios', 'nervios o lectura'], ['estudio', 'no alcancé a estudiar eso']], o.causa)}</select></label>
+      <label>¿Qué harías distinto la próxima vez? <input name="distinto" maxlength="160" value="${esc(o.distinto || '')}" placeholder="Ej.: ensayo cronometrado antes"></label>
+      <div class="nt-acciones"><button type="submit" class="pix-btn">Guardar</button><button type="button" class="pix-btn suave" data-nt-autopsy-cancel-btn>Saltar</button></div></form></div>`;
+  }
+
+  // ——— Inasistencias ———
+  function asistencia(subject) {
+    const att = R().attendance(bridge().state.absences, subject.id, maxes());
+    const rows = (bridge().state.absences || []).filter(a => a.subject === subject.id).sort((a, b) => b.date.localeCompare(a.date));
+    const MSG = {
+      'sin-maximo': a => `Faltas: ${a.count}. Pon el máximo que permite el ramo para ver cuántas te quedan.`,
+      estricto: () => 'Laboratorio con 100 % de asistencia: no se puede faltar (una falta se recupera con justificación).',
+      'estricto-falta': a => `Faltaste ${a.count} ${a.count === 1 ? 'vez' : 'veces'} al laboratorio: avisa al profe y recupera con justificación.`,
+      ok: a => `Te quedan ${a.left} ${a.left === 1 ? 'falta' : 'faltas'}.`,
+      'queda-1': () => 'Te queda 1 falta: cuídala.',
+      limite: () => 'Estás en el límite: no puedes faltar más.',
+      pasado: a => `Pasaste el máximo por ${-a.left}.`
+    };
+    const tone = { 'queda-1': 'warn', limite: 'risk', pasado: 'risk', 'estricto-falta': 'risk', ok: 'ok' };
+    return `<article class="pergamino asistencia" style="--ramo:${esc(subject.color)}" aria-labelledby="asisTit">
+      <header class="pergamino-head"><p class="eyebrow">LIBRO DE ASISTENCIA</p><h2 id="asisTit">Inasistencias · ${esc(subject.name)}</h2></header>
+      <div class="asis-partes">${GROUPS.map(gid => {
+        const a = att[gid], cells = a.max !== null ? Math.min(a.max, 24) : 0;
+        return `<div class="asis-parte asis-${a.state}"><div class="asis-top"><b>${gid === 'lab' ? 'Laboratorio' : 'Teoría'}</b>
+          <label class="asis-max">Máximo de faltas <input type="number" min="0" max="40" inputmode="numeric" data-nt-max="${gid}" value="${a.max === null ? '' : a.max}" placeholder="${a.strict ? '0' : '—'}"></label></div>
+          ${a.max !== null ? `<div class="asis-barra" role="img" aria-label="${a.count} de ${a.max} faltas">${Array.from({ length: cells }, (_, i) => `<i class="${i < a.count ? 'cae' : ''}${a.count > a.max ? ' roja' : ''}"></i>`).join('')}</div>` : ''}
+          <p class="asis-msg ${tone[a.state] ? 'chip chip-' + tone[a.state] : ''}">${MSG[a.state](a)}</p></div>`;
+      }).join('')}</div>
+      <form class="asis-form" data-nt-abs-form><label>Fecha <input type="date" name="date" value="${esc(bridge().today())}" required></label>
+        <label>Clase <select name="group"><option value="theory">Teoría</option><option value="lab">Laboratorio</option></select></label>
+        <button type="submit" class="pix-btn">+ Anotar falta</button></form>
+      ${rows.length ? `<ul class="asis-lista">${rows.map(a => `<li><time datetime="${esc(a.date)}">${esc(dateLabel(a.date))}</time><span>${a.group === 'lab' ? 'Laboratorio' : 'Teoría'}</span>
+        <button type="button" class="pix-btn suave mini" data-nt-abs-del="${esc(a.id)}" aria-label="Borrar la falta del ${esc(dateLabel(a.date))}">×</button></li>`).join('')}</ul>` : '<p class="pergamino-vacio">Sin faltas anotadas.</p>'}
+    </article>`;
+  }
+
+  // ——— Pantalla ———
+  function panel(S, b) {
+    ctx = ctx ? { ...ctx, bridge: b } : { bridge: b };
+    const subject = current(), config = cfg(subject.id), evs = evalAll();
+    const ev = evs.find(x => x.s.id === subject.id).ev, ov = R().overall(evs.map(x => x.ev));
+    const cal = R().calibration(bridge().subjects.map(s => cfg(s.id)));
+    const today = bridge().today();
+    return `<article class="pergamino notas" style="--ramo:${esc(subject.color)}" aria-labelledby="notasTit">
+      <header class="pergamino-head"><div><p class="eyebrow">BALANZA Y LIBRO</p><h2 id="notasTit">Notas</h2></div>
+        <div class="promedio" title="Promedio simple: todos los ramos valen igual"><small>Promedio general</small>
+          <b>${ov.final !== null ? R().fmt(ov.final, 2) : ov.llevas !== null ? R().fmt(ov.llevas, 2) : '—'}</b><small>${ov.final !== null ? 'final del semestre' : ov.llevas !== null ? `llevas · ${ov.ramos} ${ov.ramos === 1 ? 'ramo' : 'ramos'}` : 'sin notas aún'}</small></div></header>
+      ${lomos(evs)}
+      <div class="ramo-cabecera"><h3>${esc(subject.name)}</h3>
+        <p>${ev.final !== null ? `Nota final: <b>${R().fmt(ev.final, 2)}</b>` : ev.llevas !== null ? `Llevas <b>${R().fmt(ev.llevas, 2)}</b> con lo evaluado` : 'Aún sin notas'}</p>
+        <button type="button" class="pix-btn suave" data-nt-edit-toggle aria-pressed="${ui.edit}">${ui.edit ? 'Volver a los frascos' : 'Ajustar ramo'}</button></div>
+      ${ev.chips.length ? `<ul class="riesgos" aria-label="Reglas del ramo según tus notas">${ev.chips.map(c => `<li class="chip chip-${c.tone}">${esc(c.text)}</li>`).join('')}</ul>` : ''}
+      ${ui.edit ? editor(subject, config) : GROUPS.map(g => repisa(subject, config, ev, g, today)).join('')}
+      ${cal.pairs.length ? `<p class="calibra">Calibración: en ${cal.pairs.length} ${cal.pairs.length === 1 ? 'evaluación' : 'evaluaciones'} tu estimación fue ${Math.abs(cal.mean) < .05 ? 'justa' : `${R().fmt(Math.abs(cal.mean), 1)} ${cal.mean > 0 ? 'más alta' : 'más baja'} que la real, en promedio`}.</p>` : ''}
+      ${(config.rules || []).length ? `<details class="reglas"><summary>Reglas del ramo (del programa)</summary><ul>${config.rules.map(r => `<li>${esc(r)}</li>`).join('')}</ul>${config.source ? `<p class="fuente">Fuente: ${esc(config.source)}</p>` : ''}</details>` : ''}
+      ${dialogNota(config)}${dialogAutopsia(config)}
+    </article>${asistencia(subject)}`;
+  }
+
+  // ——— Acciones ———
+  function parseTyped(raw) {
+    let t = String(raw || '').trim().replace('.', ',');
+    if (/^\d{2}$/.test(t)) t = `${t[0]},${t[1]}`;
+    else if (/^\d{3}$/.test(t)) t = `${t[0]},${t.slice(1)}`;
+    const n = Number(t.replace(',', '.'));
+    return Number.isFinite(n) && n >= 1 && n <= 7 && /^\d(,\d{1,2})?$/.test(t) ? n : null;
+  }
+  const refresh = (focus) => { ctx.refresh(); if (focus) setTimeout(() => document.querySelector(focus)?.focus(), 30); };
+  const keep = () => bridge().save();
+
+  function saveGrade(id, n, mode) {
+    const config = cfg(ui.subject), row = config.components.find(c => c.id === id); if (!row) return;
+    if (mode === 'estimate') {
+      const prev = row.estimate; row.estimate = n.toFixed(2); keep(); ui.dialog = null; refresh();
+      bridge().toast(`Estimaste ${R().fmt(n, 1)} para ${row.name}. Cuando llegue la nota real, las comparo.`, 'Deshacer', () => { row.estimate = prev ?? ''; keep(); refresh(); });
+      ctx.react('idea', 'Anotado. Cuando llegue la nota real vemos qué tan cerca estabas.');
+      return;
+    }
+    const prev = { grade: row.grade, gradedOn: row.gradedOn }, ev = eventFor(id), prevStatus = ev?.status;
+    row.grade = n.toFixed(2); row.gradedOn = bridge().today();
+    if (ev) ev.status = 'done';
+    keep();
+    ctx.sound?.('pluma');
+    const lv = R().level(n), est = row.estimate === undefined || row.estimate === '' ? NaN : num(row.estimate);
+    ui.dialog = null; ui.fresh = { id, level: lv };
+    if (lv === 'rojo') ui.autopsy = { id };
+    refresh();
+    setTimeout(() => { if (ui.fresh?.id === id) { ui.fresh = null; } }, 3500);
+    const cmp = Number.isFinite(est) ? ` Estimabas ${R().fmt(est, 1)}: ${est > n + .04 ? `${R().fmt(est - n, 1)} menos de lo esperado` : est < n - .04 ? `${R().fmt(n - est, 1)} más de lo esperado` : 'justo lo que esperabas'}.` : '';
+    bridge().toast(`Guardado: ${row.name} ${R().fmt(n, 1)}.${cmp}`, 'Deshacer', () => {
+      row.grade = prev.grade; row.gradedOn = prev.gradedOn; if (ev) ev.status = prevStatus || 'planned'; ui.fresh = null; ui.autopsy = null; keep(); refresh();
+    });
+    ctx.react(lv === 'verde' ? (n >= 6 ? 'deslumbrada' : 'baile') : lv === 'ambar' ? 'saludo' : 'idea',
+      lv === 'verde' ? '¡Buena nota! Mira cuánto te queda por asegurar.' : lv === 'ambar' ? 'Anotada. Veamos cuánto necesitas en lo que queda.' : 'Una nota no te define. ¿Vemos qué falló?');
+  }
+
+  /* La autopsia de una nota baja entra al cuaderno de errores del ramo: sube su prioridad en el plan de Hoy ("errores abiertos"). */
+  const BLOCKER = { concepto: 'concept', calculo: 'formula', tiempo: 'attention', nervios: 'attention', estudio: 'first_step' };
+  function autopsyToError(row) {
+    const a = row.autopsy, list = bridge().state.errors; if (!list || !a.tipo && !a.causa) return;
+    const text = a.tipo || `Nota baja en ${row.name}`;
+    let err = row.autopsy.errorId && list.find(x => x.id === row.autopsy.errorId);
+    const body = { subject: ui.subject, blocker: BLOCKER[a.causa] || 'concept', observable: `${row.name}: ${text}`, reasoning: a.distinto || '',
+      diagnosis: a.distinto ? `Plan propio: ${a.distinto}` : 'Revisar el primer eslabón del razonamiento.', status: 'open', source: 'autopsia' };
+    if (err) Object.assign(err, body);
+    else { err = { id: bridge().uid('error'), date: bridge().today(), dueAt: bridge().today(), ...body }; list.unshift(err); row.autopsy.errorId = err.id; }
+  }
+
+  function click(e) {
+    const t = e.target.closest('button, [data-nt-cancel], [data-nt-autopsy-cancel]'); if (!t) return;
+    const d = t.dataset;
+    if (d.ntSubject) { ui.subject = d.ntSubject; org().notasSubject = ui.subject; keep(); ui.edit = false; return refresh(); }
+    if (d.ntEditToggle !== undefined) { ui.edit = !ui.edit; return refresh(); }
+    if (d.ntEditDone !== undefined) { ui.edit = false; return refresh(); }
+    if (d.ntGrade) {
+      const row = cfg(ui.subject).components.find(c => c.id === d.ntGrade); if (!row) return;
+      const g = R().known(row);
+      ui.dialog = { id: d.ntGrade, mode: 'real', value: g === null ? '' : R().fmt(g, 2).replace(/,?0$/, '') };
+      return refresh('[data-nt-input]');
+    }
+    if (d.ntCancel !== undefined || d.ntCancelBtn !== undefined) { if (e.target.closest('.nt-dialog') && d.ntCancelBtn === undefined) return; ui.dialog = null; return refresh(); }
+    if (d.ntMode) { ui.dialog.mode = d.ntMode; const row = cfg(ui.subject).components.find(c => c.id === ui.dialog.id); ui.dialog.value = d.ntMode === 'estimate' && row?.estimate ? R().fmt(num(row.estimate), 1) : ''; return refresh('[data-nt-input]'); }
+    if (d.ntKey) {
+      const inp = document.querySelector('[data-nt-input]'); if (!inp) return;
+      if (d.ntKey === '⌫') inp.value = inp.value.slice(0, -1); else if (inp.value.length < 4 && !(d.ntKey === ',' && inp.value.includes(','))) inp.value += d.ntKey;
+      ui.dialog.value = inp.value; inp.focus(); return;
+    }
+    if (d.ntClear !== undefined) {
+      const row = cfg(ui.subject).components.find(c => c.id === ui.dialog.id), prev = { grade: row.grade, gradedOn: row.gradedOn }, ev = eventFor(row.id), ps = ev?.status;
+      row.grade = ''; row.gradedOn = ''; if (ev && ev.status === 'done') ev.status = 'planned'; keep(); ui.dialog = null; refresh();
+      return bridge().toast(`Nota de ${row.name} borrada.`, 'Deshacer', () => { row.grade = prev.grade; row.gradedOn = prev.gradedOn; if (ev) ev.status = ps || 'planned'; keep(); refresh(); });
+    }
+    if (d.ntAutopsy) { ui.autopsy = { id: d.ntAutopsy }; return refresh(); }
+    if (d.ntAutopsyCancel !== undefined || d.ntAutopsyCancelBtn !== undefined) { if (e.target.closest('.nt-dialog') && d.ntAutopsyCancelBtn === undefined) return; ui.autopsy = null; return refresh(); }
+    if (d.ntAdd) {
+      const c = cfg(ui.subject); c.components.push({ id: bridge().uid('grade'), name: 'Nueva evaluación', group: d.ntAdd, weight: '', grade: '', date: '' });
+      keep(); return refresh();
+    }
+    if (d.ntDel) {
+      const rows = cfg(ui.subject).components, i = rows.findIndex(c => c.id === d.ntDel); if (i < 0) return;
+      const [row] = rows.splice(i, 1), linked = (bridge().state.events || []).filter(x => x.sourceId === row.id);
+      bridge().state.events = bridge().state.events.filter(x => x.sourceId !== row.id); keep(); refresh();
+      return bridge().toast('Evaluación eliminada.', 'Deshacer', () => { rows.splice(i, 0, row); bridge().state.events.push(...linked); keep(); refresh(); });
+    }
+    if (d.ntAbsDel) {
+      const list = bridge().state.absences, i = list.findIndex(a => a.id === d.ntAbsDel); if (i < 0) return;
+      const [a] = list.splice(i, 1); keep(); refresh();
+      return bridge().toast('Falta borrada.', 'Deshacer', () => { list.splice(Math.min(i, list.length), 0, a); keep(); refresh(); });
+    }
+  }
+
+  function submit(e) {
+    const f = e.target; e.preventDefault();
+    if (f.matches('[data-nt-nota-form]')) {
+      const n = parseTyped(f.elements.nota.value), err = f.querySelector('.nt-error');
+      if (n === null) { err.textContent = 'Escribe una nota entre 1,0 y 7,0 (por ejemplo 5,5).'; err.hidden = false; return; }
+      return saveGrade(ui.dialog.id, n, ui.dialog.mode);
+    }
+    if (f.matches('[data-nt-autopsy-form]')) {
+      const row = cfg(ui.subject).components.find(c => c.id === ui.autopsy.id), fd = new FormData(f);
+      if (row) { row.autopsy = { tipo: String(fd.get('tipo') || '').trim(), causa: String(fd.get('causa') || ''), distinto: String(fd.get('distinto') || '').trim() }; autopsyToError(row); keep(); }
+      ui.autopsy = null; ctx.sound?.('pluma'); refresh(); bridge().toast('Anotado. Con esto elegimos qué practicar.');
+      return ctx.react('idea', 'Gracias por contarlo: eso me ayuda a proponerte mejores bloques.');
+    }
+    if (f.matches('[data-nt-abs-form]')) {
+      const fd = new FormData(f), date = String(fd.get('date') || '');
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
+      bridge().state.absences.push({ id: bridge().uid('absence'), subject: ui.subject, group: fd.get('group') === 'lab' ? 'lab' : 'theory', date });
+      keep(); refresh();
+      const a = R().attendance(bridge().state.absences, ui.subject, maxes())[fd.get('group') === 'lab' ? 'lab' : 'theory'];
+      ctx.sound?.('sello'); bridge().toast('Falta anotada.');
+      if (a.state === 'queda-1') ctx.react('nerviosa', 'Ojo: te queda 1 falta en esta parte.');
+      else if (a.state === 'limite' || a.state === 'pasado') ctx.react('nerviosa', 'Llegaste al límite de faltas. Hablemos con el profe si hace falta.');
+    }
+  }
+
+  function input(e) {
+    const t = e.target;
+    if (t.dataset.ntSim) {
+      const subject = current(), config = cfg(subject.id), v = Number(t.value);
+      ui.sim[`${subject.id}:${t.dataset.ntSim}`] = v;
+      const box = t.closest('.simulador');
+      box.querySelector('[data-nt-simvalor]').textContent = R().fmt(v, 1);
+      box.querySelector('[data-nt-simout]').innerHTML = simText(subject.id, config, t.dataset.ntSim, v);
+    }
+    if (t.dataset.ntInput !== undefined && ui.dialog) { ui.dialog.value = t.value; t.closest('form').querySelector('.nt-error').hidden = true; }
+  }
+
+  function change(e) {
+    const t = e.target;
+    if (t.dataset.ntEdit) {
+      const config = cfg(ui.subject), row = config.components.find(c => c.id === t.dataset.ntEdit); if (!row) return;
+      const f = t.dataset.ntField;
+      if (f === 'name') row.name = t.value.trim() || 'Nueva evaluación';
+      else if (f === 'weight') { const n = num(t.value); row.weight = t.value.trim() === '' || !Number.isFinite(n) ? '' : Math.max(0, Math.min(100, n)); }
+      else if (f === 'date') row.date = /^\d{4}-\d{2}-\d{2}$/.test(t.value) ? t.value : '';
+      bridge().syncGrade(row, ui.subject); keep(); refresh();
+    }
+    if (t.dataset.ntMax) {
+      const m = maxes(); m[ui.subject] = m[ui.subject] || {};
+      m[ui.subject][t.dataset.ntMax] = t.value === '' ? '' : Math.max(0, Math.min(40, Math.floor(Number(t.value) || 0)));
+      keep(); refresh();
+    }
+  }
+
+  function keydown(e) {
+    if (e.key === 'Escape' && (ui.dialog || ui.autopsy)) { ui.dialog = null; ui.autopsy = null; refresh(); }
+  }
+
+  function wire(root, c) {
+    ctx = { ...ctx, ...c };
+    root.onclick = click; root.onsubmit = submit; root.oninput = input; root.onchange = change; root.onkeydown = keydown;
+  }
+
+  window.NexoNotas = Object.freeze({ panel, wire, pixelText, parseTyped });
+})();
+
+;
+
+/* planner/estudio-audio.js */
+/* Sonido del estudio de planos (UPDATE 02, SPEC "Sonido"): ambiente suave (fuego, lluvia real, tic-tac bajito) y sonidos al actuar
+   (pluma, sello, campana). Todo se sintetiza aquí con Web Audio: sin archivos ni red.
+   Respeta Ajustes: `sound` + `sfxVolume` para los efectos y `ambient` + `ambientVolume` para el ambiente. Nada suena sin un gesto de la persona. */
+(() => {
+  'use strict';
+  let ctx = null, master = null, amb = null, noiseBuf = null;
+  const Ctor = () => window.AudioContext || window.webkitAudioContext;
+
+  function ensure() {
+    const C = Ctor(); if (!C) return null;
+    if (!ctx) { ctx = new C(); master = ctx.createGain(); master.connect(ctx.destination); }
+    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+    return ctx;
+  }
+  function noise() {                       // 2 s de ruido blanco, repetible
+    if (noiseBuf) return noiseBuf;
+    noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    return noiseBuf;
+  }
+  const vol = (s, key, fallback) => { const v = Number(s?.[key]); return Number.isFinite(v) ? Math.max(0, Math.min(1, v)) : fallback; };
+
+  function burst(t0, { freq = 3000, q = 1, type = 'bandpass', dur = .08, gain = .2, sweep = 0 }) {
+    const src = ctx.createBufferSource(); src.buffer = noise(); src.loop = true;
+    const f = ctx.createBiquadFilter(); f.type = type; f.frequency.setValueAtTime(freq, t0); f.Q.value = q;
+    if (sweep) f.frequency.linearRampToValueAtTime(freq + sweep, t0 + dur);
+    const g = ctx.createGain(); g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(gain, t0 + .008); g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
+    src.connect(f).connect(g).connect(master); src.start(t0, Math.random()); src.stop(t0 + dur + .02);
+  }
+  function tone(t0, freq, dur, gain, type = 'sine', decay = true) {
+    const o = ctx.createOscillator(); o.type = type; o.frequency.value = freq;
+    const g = ctx.createGain(); g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(gain, t0 + .006);
+    if (decay) g.gain.exponentialRampToValueAtTime(.0001, t0 + dur); else g.gain.setValueAtTime(gain, t0 + dur);
+    o.connect(g).connect(master); o.start(t0); o.stop(t0 + dur + .03);
+  }
+
+  const SFX = {
+    pluma(t) { for (let i = 0; i < 5; i++) burst(t + i * .07, { freq: 3800 + i * 260, q: 2.5, dur: .09, gain: .09, sweep: 700 }); },   // rasguño de pluma sobre papel
+    sello(t) { tone(t, 120, .16, .5); tone(t, 62, .22, .45); burst(t, { freq: 700, type: 'lowpass', dur: .1, gain: .35 }); },      // golpe sordo de lacre
+    campana(t) { [[880, .5], [1320, .28], [1760, .16], [2640, .08]].forEach(([f, g], i) => tone(t, f * (i ? 1.002 : 1), 1.6, g * .35)); },
+    tinta(t) { for (let i = 0; i < 3; i++) burst(t + i * .06, { freq: 3200, q: 2, dur: .07, gain: .07, sweep: 500 }); },
+    pagina(t) { burst(t, { freq: 1800, q: .6, dur: .22, gain: .12, sweep: -900 }); }
+  };
+
+  /* Un efecto suelto. settings = state.settings. Devuelve true si sonó. */
+  function play(name, settings) {
+    if (!settings?.sound || !SFX[name] || document.hidden) return false;
+    if (!ensure()) return false;
+    master.gain.value = vol(settings, 'sfxVolume', .4);
+    SFX[name](ctx.currentTime + .01);
+    return true;
+  }
+
+  /* Ambiente de la sala: fuego siempre, tic-tac bajito, y lluvia si el clima real es de lluvia. */
+  function start(settings, weather) {
+    stop();
+    if (!settings?.ambient || document.hidden || !ensure()) return false;
+    const level = vol(settings, 'ambientVolume', .12);
+    const bus = ctx.createGain(); bus.gain.value = level * 2.2; bus.connect(ctx.destination);
+    const nodes = [], timers = [];
+    const loop = (freq, type, gain, q = .7) => {
+      const src = ctx.createBufferSource(); src.buffer = noise(); src.loop = true;
+      const f = ctx.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
+      const g = ctx.createGain(); g.gain.value = gain;
+      src.connect(f).connect(g).connect(bus); src.start(); nodes.push(src);
+    };
+    loop(420, 'lowpass', .5);                                          // rumor grave de las brasas
+    if (weather === 'lluvia' || weather === 'tormenta') { loop(5200, 'bandpass', .3, .5); loop(1800, 'highpass', .08); }
+    if (weather === 'nieve' || weather === 'niebla') loop(300, 'lowpass', .12);
+    const crackle = () => {                                            // chasquidos del fuego, a intervalos al azar
+      if (!ctx || ctx.state !== 'running') return;
+      const t = ctx.currentTime, n = 1 + Math.floor(Math.random() * 3);
+      for (let i = 0; i < n; i++) {
+        const o = ctx.createBufferSource(); o.buffer = noise();
+        const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1500 + Math.random() * 3500; f.Q.value = 3;
+        const g = ctx.createGain(); const at = t + i * .03; g.gain.setValueAtTime(.35 * Math.random() + .1, at); g.gain.exponentialRampToValueAtTime(.0001, at + .04);
+        o.connect(f).connect(g).connect(bus); o.start(at, Math.random()); o.stop(at + .06);
+      }
+      timers.push(setTimeout(crackle, 250 + Math.random() * 1400));
+    };
+    let beat = 0;
+    const tick = () => {                                               // tic-tac del reloj (dos tonos suaves)
+      if (!ctx || ctx.state !== 'running') return;
+      const t = ctx.currentTime, g = ctx.createGain(), o = ctx.createOscillator();
+      o.type = 'square'; o.frequency.value = beat++ % 2 ? 1250 : 1580;
+      g.gain.setValueAtTime(.05, t); g.gain.exponentialRampToValueAtTime(.0001, t + .03);
+      o.connect(g).connect(bus); o.start(t); o.stop(t + .04);
+    };
+    crackle(); timers.push(setInterval(tick, 1000));
+    amb = { bus, nodes, timers };
+    return true;
+  }
+  function stop() {
+    if (!amb) return;
+    amb.timers.forEach(t => { clearTimeout(t); clearInterval(t); });
+    amb.nodes.forEach(n => { try { n.stop(); } catch (_) { /* ya parado */ } });
+    try { amb.bus.disconnect(); } catch (_) { /* ya desconectado */ }
+    amb = null;
+  }
+  const playing = () => !!amb;
+  if (typeof document !== 'undefined') document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); });
+
+  window.NexoEstudioAudio = Object.freeze({ play, start, stop, playing, names: Object.keys(SFX) });
+})();
+
+;
+
 /* planner/estudio.js */
 /* Organización = estudio de planos de la torre (docs/update-02-organizacion/SPEC.md · Fase 1).
    Escena pixel de borde a borde (arte: tools/torre-pixel/build_estudio.py) con la mascota caminando, y debajo el pergamino sobre madera.
@@ -1640,7 +2301,7 @@
   }
   function css() {
     if (cssDone) return; cssDone = true;
-    for (const href of ['world/torre-mundo.css?v=1', 'planner/estudio.css?v=' + V]) {
+    for (const href of ['world/torre-mundo.css?v=1', 'planner/estudio.css?v=' + V, 'planner/notas.css?v=' + V]) {
       if (document.querySelector(`link[href^="${href.split('?')[0]}"]`)) continue;
       const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href; document.head.append(l);
     }
@@ -1688,7 +2349,21 @@
     const avisos = window.NexoOrgAvisos?.list(bridge) || [];
     const unseen = avisos.filter(a => a.nuevo).length;
     const highlight = unseen ? 'avisos' : next ? (next.event.type === 'lab' ? 'lab' : 'pruebas') : null;
-    return { today, crit, glasses, blocks, next, avisos, unseen, highlight };
+    // La balanza se inclina a verde si vas sobre 4,0 y a rojo si vas bajo; los platillos cargan tus frascos verdes y rojos.
+    let tilt = 0, reds = 0, greens = 0;
+    const GR = window.NexoGradeRules;
+    if (GR && bridge.gradeConfig) {
+      const evs = bridge.subjects.map(x => GR.evaluate(x.id, bridge.gradeConfig(x.id)));
+      const ov = GR.overall(evs);
+      tilt = ov.llevas === null ? 0 : Math.max(-1, Math.min(1, (ov.llevas - 4) / 2));
+      bridge.subjects.forEach(x => bridge.gradeConfig(x.id).components.forEach(c => {
+        const lv = GR.level(GR.known(c)); if (lv === 'rojo') reds++; else if (lv === 'verde') greens++;
+      }));
+    }
+    // La mesa se ordena si cumples el plan de hoy; con semana crítica hay papeles revueltos (sin culpa, es solo ambiente).
+    const done = blocks.filter(b => b.done).length;
+    const disorder = Math.max(0, Math.min(1, (blocks.length ? 1 - done / blocks.length : 0) * .7 + (crit?.active ? .3 : 0)));
+    return { today, crit, glasses, blocks, next, avisos, unseen, highlight, tilt, reds: Math.min(4, reds), greens: Math.min(4, greens), disorder };
   }
   function org() {
     const s = bridge.state;
@@ -1859,6 +2534,45 @@
     });
   }
 
+  // Balanza de latón: el travesaño se inclina por escalones según tus notas; cada platillo carga gemas (rojas = frascos rojos, verdes = verdes).
+  function drawScale(g, x1, t, S) {
+    const m = W.meta.scale, target = S.tilt * 7;
+    W.scaleD = W.reduced ? target : (W.scaleD ?? 0) + (target - (W.scaleD ?? 0)) * .05;
+    const d = Math.round(W.scaleD + (W.reduced ? 0 : Math.sin(t * 1.3) * .6));
+    const cx = x1 + m.cx, y = m.y;
+    for (let xx = -22; xx <= 22; xx++) {
+      const by = Math.round(y + d * xx / 22);
+      g.fillStyle = '#fbe08a'; g.fillRect(cx + xx, by - 1, 1, 1);
+      g.fillStyle = '#e2b850'; g.fillRect(cx + xx, by, 1, 1);
+      g.fillStyle = '#8a5c20'; g.fillRect(cx + xx, by + 1, 1, 1);
+    }
+    g.fillStyle = '#fff6c8'; g.fillRect(cx - 1, y - 3, 3, 3); g.fillStyle = '#ba8a30'; g.fillRect(cx - 2, y - 2, 5, 3);
+    [[-22, -d, S.reds, '#d87052', '#8c3234'], [22, d, S.greens, '#83ad42', '#30644a']].forEach(([ox, od, n, lite, dark]) => {
+      const ex = cx + ox, ey = y + od;
+      g.fillStyle = '#a8bab6'; for (let k = 0; k < 15; k++) { g.fillRect(ex - Math.round(k * .45), ey + k, 1, 1); g.fillRect(ex + Math.round(k * .45), ey + k, 1, 1); }
+      const py = ey + 15;
+      g.fillStyle = '#e2b850'; g.fillRect(ex - 9, py, 19, 2); g.fillStyle = '#8a5c20'; g.fillRect(ex - 7, py + 2, 15, 1);
+      for (let i = 0; i < n; i++) {
+        const gx = ex - 7 + (i % 3) * 5, gy = py - 4 - Math.floor(i / 3) * 4;
+        g.fillStyle = dark; g.fillRect(gx, gy, 4, 4); g.fillStyle = lite; g.fillRect(gx, gy, 3, 3); g.fillStyle = '#ffffff'; g.fillRect(gx, gy, 1, 1);
+      }
+    });
+  }
+
+  // Papeles sueltos sobre la mesa de planos: más si no has cumplido el plan o hay semana crítica.
+  function drawTable(g, x1, S) {
+    const tb = W.meta.table, n = Math.round(S.disorder * 8);
+    for (let i = 0; i < n; i++) {
+      const x = x1 + tb.x0 + 10 + ((i * 37 + 11) % (tb.x1 - tb.x0 - 30)), y = tb.top - 13 + (i * 5) % 5, lean = (i % 3) - 1;
+      for (let r = 0; r < 7; r++) {
+        const ox = Math.round(lean * r * .6);
+        g.fillStyle = r === 0 ? '#fff4d8' : r === 6 ? '#a69070' : '#e6d6b2'; g.fillRect(x + ox, y + r, 11, 1);
+        if (r === 2 || r === 4) { g.fillStyle = '#7a6650'; g.fillRect(x + ox + 2, y + r, 5 + (i % 3), 1); }
+      }
+      g.fillStyle = '#140c10'; g.fillRect(x - 1 + Math.round(lean * 3 * .6), y - 1, 1, 1);
+    }
+  }
+
   const PET_FILTER = { dia: 'none', tarde: 'brightness(.92) sepia(.18)', noche: 'brightness(.62) saturate(.8)' };
   function draw(t) {
     const g = W.vctx, m = W.meta, S = 2, L = W.L, Sx = W.sit;
@@ -1873,6 +2587,8 @@
     g.drawImage(L.fondo, x1, 0);
     drawClock(g, x1, t);
     drawCork(g, x1, Sx);
+    drawScale(g, x1, t, Sx);
+    drawTable(g, x1, Sx);
     if (!W.reduced) drawAnim(g, x1, t, Sx);
     drawBell(g, x1, t, Sx);
     drawHighlight(g, x1, t, Sx);
@@ -1885,7 +2601,7 @@
 
   function frame(now) {
     W.raf = 0;
-    if (!W.wrap.isConnected) { W.life.pause(true); return; }
+    if (!W.wrap.isConnected) { W.life.pause(true); window.NexoEstudioAudio?.stop(); return; }
     const dt = Math.min(.05, (now - W.last) / 1000); W.last = now; W.t += dt;
     const tod = timeOfDay();
     if (tod !== W.tod) { W.tod = tod; layers(tod).then(L => { if (W.tod === L.tod) W.L = L; }); }
@@ -1957,13 +2673,25 @@
     b.style.left = clamp((A.x - Math.round(W.camX)) * W.scale, 90, W.vw * W.scale - 90) + 'px';
     b.style.top = Math.max(2, (A.y - 50) * W.scale - b.offsetHeight) + 'px';
   }
+  // La mascota del estudio reacciona (notas nuevas, faltas). tone = nombre de un gesto de PixelVida.
+  function react(tone, text) {
+    if (!W) return;
+    try { W.life.act(tone); } catch (_) { /* sin gesto */ }
+    if (text) say(text, 4600);
+  }
+  const sound = name => window.NexoEstudioAudio?.play(name, bridge.state.settings);
+  function ambient() {
+    const A = window.NexoEstudioAudio; if (!A || !bridge.state.settings.ambient || A.playing()) return;
+    if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return;     // sin gesto, el navegador no deja sonar
+    A.start(bridge.state.settings, W.weather);
+  }
   async function use(o) {
     W.lastInput = performance.now();
     const arrived = await W.life.walkTo(o.stand[0], o.stand[1]);
     if (!arrived) return;
     if (!o.view) { say(o.say); W.life.act('deslumbrada'); return; }
     say(o.say, 2200);
-    if (o.view === 'avisos') window.NexoOrgAvisos?.markSeen(bridge);
+    if (o.view === 'avisos') { sound('campana'); window.NexoOrgAvisos?.markSeen(bridge); }
     if (location.hash !== '#/planner/' + o.view) location.hash = '#/planner/' + o.view;
   }
   function idle(now) {
@@ -2080,12 +2808,7 @@
       <p class="pergamino-pronto">Próximamente: informes por entregar y notas de laboratorio aparte, con su mínimo.</p></article>`;
   }
 
-  function panelNotas() {
-    return `<article class="pergamino"><header class="pergamino-head"><p class="eyebrow">BALANZA Y LIBRO</p><h2>Notas</h2></header>
-      <p>La balanza y los frascos de notas (cuánto necesitas, simulador y riesgo) se construyen en la próxima fase.
-      Mientras tanto, tus notas siguen guardadas en el Perfil.</p>
-      <p><button type="button" class="pix-btn" data-route="profile" data-route-sub="grades">Abrir mis notas →</button></p></article>`;
-  }
+  const panelNotas = S => window.NexoNotas.panel(S, bridge);
 
   function panelAvisos(S) {
     return `<article class="pergamino"><header class="pergamino-head"><p class="eyebrow">LA CAMPANA</p><h2>Avisos</h2></header>
@@ -2100,6 +2823,7 @@
 
   // ——— Acciones del panel ———
   function wirePanel(root, view) {
+    if (view === 'notas') { window.NexoNotas.wire(root, { bridge, refresh: () => refresh('notas'), react, sound }); return; }
     root.onclick = e => {
       const b = e.target.closest('button'); if (!b) return;
       const S = W?.sit || situation();
@@ -2119,7 +2843,7 @@
         const m = marksToday(), id = b.dataset.orgDone || b.dataset.orgUndo;
         m.done = b.dataset.orgDone ? [...new Set([...m.done, id])] : m.done.filter(k => k !== id);
         bridge.save();
-        if (b.dataset.orgDone) { window.NexoAudio?.play?.('confirm', bridge.state.settings); W?.life.act('baile'); }
+        if (b.dataset.orgDone) { sound('tinta'); W?.life.act('baile'); }
         return refresh(view);
       }
       if (b.dataset.orgSkip) {
@@ -2147,7 +2871,7 @@
       if (!title || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
       bridge.state.events.push({ id: `org-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, title, subject: String(fd.get('subject')),
         type: String(fd.get('type')), date, time: '', status: 'planned', priority: fd.get('type') === 'exam' ? 3 : 2, source: 'manual', dependencies: [] });
-      bridge.save(); bridge.toast('Guardado en el calendario'); refresh(view);
+      bridge.save(); sound('sello'); bridge.toast('Guardado en el calendario'); refresh(view);
     };
   }
   function refresh(view) {
@@ -2203,10 +2927,13 @@
       const msg = S.unseen ? 'Sonó la campana: hay un aviso nuevo' : S.next ? `Hoy parto por: ${S.next.text.split(':')[0].toLowerCase()} (${bridge.subjectFor(S.next.subject).short})`
         : 'Todo en orden por hoy';
       setTimeout(() => W.wrap.isConnected && say(msg, 4200), 700);
+      if (S.unseen) setTimeout(() => sound('campana'), 500);
     }
+    if (!W.ambBound) { W.ambBound = true; addEventListener('pointerdown', () => { if (W?.wrap.isConnected) ambient(); }, { passive: true }); }
+    ambient();
   }
   addEventListener('resize', () => W?.wrap.isConnected && resize());
-  window.NexoEstudio = Object.freeze({ render, views: VIEWS, legacy: LEGACY });
+  window.NexoEstudio = Object.freeze({ render, views: VIEWS, legacy: LEGACY, react });
 })();
 
 ;

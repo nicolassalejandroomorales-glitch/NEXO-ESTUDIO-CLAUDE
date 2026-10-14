@@ -57,9 +57,10 @@ for (const tod of ['dia', 'tarde', 'noche']) for (const n of ['vista', 'fondo', 
   assert.ok(fs.existsSync(dist(`assets/torre/estudio/${tod}-${n}.png`)), `${tod}-${n}.png`);
 
 // Avisos: la primera vez solo toma la foto; un cambio de fecha después sí avisa.
+require(dist('planner/grades.js')); require(dist('planner/grade-rules.js'));
 require(dist('planner/avisos.js'));
-const state = { events: events.map(e => ({ ...e })), settings: { dailyGoalMinutes: 120 }, sessions: [] };
-const bridge = { state, today: () => today, save() {}, subjectFor: id => ({ id, short: id.slice(0, 3).toUpperCase(), color: '#fff' }), ranked: () => ranked };
+const state = { events: events.map(e => ({ ...e })), settings: { dailyGoalMinutes: 120 }, sessions: [], absences: [], organization: {} };
+const bridge = { state, today: () => today, save() {}, subjects: [{ id: 'analitica', short: 'ANA', color: '#fff' }], subjectFor: id => ({ id, short: id.slice(0, 3).toUpperCase(), color: '#fff' }), ranked: () => ranked };
 window.NexoOrgAvisos.snapshot(bridge);
 assert.strictEqual(window.NexoOrgAvisos.list(bridge).filter(a => a.nuevo).length, 0, 'primera vez: la campana no suena por todo');
 state.events.find(e => e.id === 'official-fq-c1').date = '2026-10-28';
@@ -67,4 +68,8 @@ const nuevos = window.NexoOrgAvisos.list(bridge).filter(a => a.nuevo);
 assert.ok(nuevos.some(a => a.nivel === 'cambio' && /26 oct → 28 oct/.test(a.texto)), 'cambio de fecha avisa');
 window.NexoOrgAvisos.markSeen(bridge);
 assert.strictEqual(window.NexoOrgAvisos.list(bridge).filter(a => a.nuevo).length, 0);
+// Inasistencias: con máximo 2 y 1 falta, la campana avisa "te queda 1 falta".
+state.organization.absenceMax = { analitica: { theory: 2 } };
+state.absences.push({ id: 'a1', subject: 'analitica', group: 'theory', date: '2026-10-13' });
+assert.ok(window.NexoOrgAvisos.list(bridge).some(a => /Te queda 1 falta/.test(a.texto)));
 console.log('organizacion-test: ok');

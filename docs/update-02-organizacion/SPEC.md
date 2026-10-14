@@ -103,6 +103,26 @@ La pantalla sigue siendo la vieja: el rediseño (estudio de planos) no se ha pro
 - Estado nuevo (local, sin nube nueva): `state.organization = { minutes: {díaSemana: min}, marks: {fecha: {done, skip}}, seen: {avisos, dates, started}, lastSaid… }`.
 - Pruebas: `tools/organizacion-test.cjs` (nueva) y `tools/planner-e2e.cjs` reescrita para el estudio (390 y 1440). `npm test`: 27/29 (fallan `academic-test` y `database-test` por paquetes npm que no están en el contenedor; fallan igual sin estos cambios).
 
+**Fase 2 · Notas e inasistencias (14 oct 2026, programada; esperando aprobación visual).** Orden que pidió Niquito: **Notas → Calendario → Lab → Avisos** (Avisos: "quiero que haya una buena parte de avisos").
+- Notas = objeto balanza/libro. Lomos de libro por ramo; **repisas** de Teoría y Laboratorio; cada evaluación es un **frasco** (ancho = peso, líquido = nota 1–7 por escalones,
+  rojo < 4,0 · ámbar 4,0–4,9 · verde ≥ 5,0; sin nota = vacío con "?"). Tocar un frasco = teclado grande con coma decimal.
+- **"Necesitas X,X"** grande tallado (se redondea hacia arriba: con ese número alcanza), **simulador "¿y si me saco…?"** con palanca de latón (usa las mismas reglas), 
+  **riesgo de examen/reprobar** desde las reglas de cada ramo (`dist/planner/grade-rules.js`, puro, con prueba) y **promedio general simple** de los ramos.
+- Al guardar: el frasco se llena por escalones, la pluma escribe "guardado" con **Deshacer**, chispas de color, la **mascota reacciona** (roja → "¿vemos qué falló?" y ofrece la autopsia de 3 preguntas);
+  la evaluación se marca hecha en el calendario y el plan de Hoy se recalcula solo.
+- Después de rendir sin nota: **"¿cómo te fue?" + nota estimada**; al llegar la real se compara (calibración).
+- **Ajustar ramo** (modo aparte): % y fecha de cada evaluación, agregar y borrar. Notas e Inasistencias **salen del Perfil** (esas pestañas redirigen aquí).
+- **Inasistencias** en la misma pantalla: por ramo, teoría y lab, barra contra el máximo (lo pone Niquito: los programas solo dicen "lab 100 % de asistencia"), aviso cuando **queda 1**.
+- Datos nuevos (local): en cada evaluación `estimate`, `autopsy {tipo, causa, distinto}` y `gradedOn`; `state.organization.absenceMax`.
+- **Hecho**: `dist/planner/grade-rules.js` (cuentas y reglas, puro), `dist/planner/notas.js` + `notas.css` (pantalla), `ui-frasco.png` (`tools/torre-pixel/estudio_ui.py`).
+  Reglas por ramo implementadas: ORG (PEP roja → PF; cátedra < 3,4 reprueba; lab reprobado = final reprobada), FQ (cátedra < 4,0 → examen 40 %; prueba de ciclo roja → examen de lab),
+  ANA (eximición con todas las PEP ≥ 4,0; examen entre 3,5 y 4,0), FISIO (eximición con 4,5 y cuánto necesitas). El umbral de aprobar es 3,95 (se redondea a 4,0).
+  `#/profile/grades|absences` redirigen a `#/planner/notas`; las faltas "te queda 1" llegan a la campana (`avisos.js`). Pruebas: `tools/notas-test.cjs`, `tools/organizacion-test.cjs` y el E2E.
+- **Cerrado después (14 oct, "pon todo")**: sonidos (`dist/planner/estudio-audio.js`, sintetizados con Web Audio, respetan Ajustes: fuego, lluvia real, tic-tac; pluma, sello, campana, tinta),
+  **balanza que se inclina** a verde/rojo según tu promedio (platillos con gemas por frascos verdes/rojos), **mesa con papeles sueltos** si no cumples el plan o hay semana crítica,
+  pruebas de ciclo ↔ notas enlazadas, **autopsia → errores abiertos** (sube la prioridad del ramo en Hoy) y **Perfil sin pestañas Notas/Inasistencias** (redirigen). `tools/profile-test.cjs` reescrita.
+- Sigue pendiente: máximo de faltas de teoría (lo pone Niquito; los programas no lo dicen).
+
 **Falta**: dudas de `DATOS-RAMOS.md` (programa ORG 2025, teoría FQ, lab ANA, Inglés IV);
 orden de las fases siguientes; cómo se ve Avisos (campana) y la vista Semestre en pixel; cómo se integra el viaje escalera/ascensor.
 
@@ -310,7 +330,7 @@ Orden pensado para que lo urgente (la semana del 19 oct) llegue primero:
 - Siguiente (Fase 1 ya aprobada): Calendario (mes/semana/semestre, mover con historial), Notas (balanza, frascos, simulador; mudar Notas e Inasistencias del Perfil), Lab completo, Avisos (campana).
 - Fase 1, falta: sonidos (fuego, lluvia, tic-tac, pluma, campana), balanza que se inclina según notas, mesa ordenada/desordenada según el plan, editar o borrar una fecha desde el estudio (hoy solo agregar),
   "¿cómo te fue?" después de rendir (llega con Notas), Inicio calmado el día de prueba, ritual del domingo.
-- Avisar al chat del Perfil: Notas e Inasistencias se mudan a Organización (pendiente desde la tanda 1).
+- Perfil: ya sin pestañas Notas/Inasistencias. Los objetos de la habitación (escritorio y calendario) siguen llevando a `#/profile/grades|absences`, que redirige a Organización.
 - Aprobación de este diseño y de la maqueta.
 - Decisiones abiertas de `AVISOS.md` (Classroom vs pegar texto).
 - Avisos fuera de la app (notificaciones del celular) quedan fuera de este cambio.

@@ -138,7 +138,27 @@ def ribbon():
     save(c, 'ui-cinta.png')
 
 
+def frasco():
+    """Marco de frasco para border-image (12x16, cortes de 4): tapa de madera arriba, vidrio a los lados y abajo. El centro es transparente
+    (ahí va el líquido, que pone el CSS por escalones). Se estira al ancho de cada evaluación."""
+    c = Canvas(12, 16)
+    for y in range(16):
+        for x in range(12):
+            if y < 4:                                              # tapa: contorno, luz, madera, sombra
+                c.px(x, y, 'ink', 0) if (y == 0 or x in (0, 11)) else c.px(x, y, 'wood', [0, 6.2, 4.4, 2.4][y])
+            elif x in (0, 11) or y == 15:
+                c.px(x, y, 'ink', 0)                              # contorno exterior
+            elif x in (1, 10) or y == 14:
+                c.px(x, y, 'glass', 2.2 if x == 10 or y == 14 else 4.6)
+            elif x in (2, 9) or y == 13:
+                c.px(x, y, 'glass', 1.4 if x == 9 or y == 13 else 3.2)
+    for (x, y) in [(0, 15), (11, 15), (0, 4), (11, 4)]:
+        c.mat[y, x] = 0                                            # esquinas redondeadas
+    c.px(2, 6, 'glass', 6.6); c.px(2, 7, 'glass', 6.6)             # brillo del vidrio
+    save(c, 'ui-frasco.png')
+
+
 if __name__ == '__main__':
     OUT.mkdir(parents=True, exist_ok=True)
-    wood(); paper(); roll(); hourglass_sheet(); ribbon()
+    wood(); paper(); roll(); hourglass_sheet(); ribbon(); frasco()
     print('ok ui')
