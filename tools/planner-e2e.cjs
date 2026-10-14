@@ -56,14 +56,61 @@ const launch = () => fs.existsSync('/opt/pw-browsers/chromium') ? chromium.launc
       // Tiempo de hoy (−/+) cambia el plan y se guarda por día de la semana.
       await page.locator('[data-org-min="-15"]').click();
       assert.match(await page.locator('.hoy-tiempo b').innerText(), /105 min/);
-      // Calendario: agregar rápido (qué, ramo, tipo, fecha).
-      await page.goto(origin + '#/planner/calendario');
-      await page.locator('[data-org-add]').click();
-      await page.fill('[data-org-form] input[name=title]', 'Informe P-2');
-      await page.selectOption('[data-org-form] select[name=type]', 'deadline');
-      await page.fill('[data-org-form] input[name=date]', '2026-10-20');
-      await page.locator('[data-org-form] button[type=submit]').click();
-      assert.equal(await page.locator('.semana li', { hasText: 'Informe P-2' }).count(), 1);
+      // Calendario: mes con sellos, hoja del día, agregar rápido, mover con historial y deshacer, editar, borrar, tareas.
+      await page.goto(origin + '#/planner/calendario'); await page.locator('.mes-dias').waitFor();
+      assert.equal(await page.locator('[data-cal-day="2026-10-21"] .ico-px').count(), 2, 'PEP 1 FQ (sello) + Lab 2 FQ (matraz)');
+      assert.equal(await page.locator('.dia.hoy').count(), 1);
+      await page.locator('[data-cal-add]').click();
+      await page.fill('.cal-form input[name=title]', 'Informe P-2');
+      await page.locator('.cal-form summary').click(); await page.selectOption('.cal-form select[name=type]', 'deadline');
+      await page.fill('.cal-form input[name=date]', '2026-10-20'); await page.selectOption('.cal-form select[name=difficulty]', '4');
+      await page.locator('.cal-form button[type=submit]').click();
+      assert.match(await page.locator('.hoja-dia').innerText(), /Informe P-2/, 'al guardar se abre la hoja de ese día');
+      await page.locator('[data-cal-estado$=":progreso"]').click();
+      assert.equal(await page.locator('.hoja-dia [data-cal-estado$=":progreso"]').getAttribute('aria-pressed'), 'true');
+      await page.locator('.hoja-dia [data-cal-estado$=":hecha"]').click();
+      assert.match(await page.locator('.hoja-dia .evento').innerText(), /Hecha|Informe/);
+      await page.locator('.hoja-dia [data-cal-estado$=":pendiente"]').click();
+      await page.locator('.hoja-dia .ev-mover input[name=date]').fill('2026-10-23'); await page.locator('.hoja-dia .ev-mover button').click();
+      assert.equal(await page.locator('[data-cal-day="2026-10-23"] .ico-px').count(), 1, 'la fecha se movió');
+      await page.locator('[data-cal-day="2026-10-23"]').click();
+      await page.locator('.historial summary').click(); assert.match(await page.locator('.historial').innerText(), /20 oct → 23 oct/);
+      await page.locator('[data-cal-deshacer]').click();
+      assert.equal(await page.locator('[data-cal-day="2026-10-20"] .ico-px').count(), 1, 'deshacer devuelve la fecha');
+      await page.locator('[data-cal-day="2026-10-20"]').click();
+      await page.locator('[data-cal-editar]').click(); await page.fill('.hoja-dia .cal-form input[name=title]', 'Informe P-2 (editado)');
+      await page.locator('.hoja-dia .cal-form button[type=submit]').click();
+      assert.match(await page.locator('.hoja-dia').innerText(), /editado/);
+      await page.locator('[data-cal-borrar]').click(); await page.locator('#toast button').click();
+      assert.match(await page.locator('.hoja-dia').innerText(), /editado/, 'borrar se puede deshacer');
+      // Receso: el plan de esos días es liviano.
+      await page.locator('[data-cal-add-aqui]').click();
+      await page.fill('.cal-form input[name=title]', 'Receso de invierno'); await page.locator('.cal-form summary').click();
+      await page.selectOption('.cal-form select[name=type]', 'recess'); await page.fill('.cal-form input[name=date]', '2026-10-17'); await page.fill('.cal-form input[name=until]', '2026-10-18');
+      await page.locator('.cal-form button[type=submit]').click();
+      assert.equal(await page.locator('[data-cal-day="2026-10-18"].receso').count(), 1);
+      // Mes siguiente (se enrolla) y vuelta.
+      await page.locator('[data-cal-mes="1"]').click(); assert.match(await page.locator('.cal-nav h3').innerText(), /noviembre de 2026/i);
+      await page.locator('[data-cal-hoy]').click();
+      // Semana: horario fijo, bloques y "Mover a…".
+      await page.locator('[data-cal-view="semana"]').click();
+      assert.ok(await page.locator('.tablilla').count() >= 10, 'clases del horario fijo');
+      const bloque = page.locator('.sem-bloque:not(.hecho) .mover').first();
+      const from = await page.locator('.sem-bloque:not(.hecho)').first().getAttribute('data-from');
+      await bloque.selectOption({ index: 1 });
+      assert.equal(await page.evaluate(() => { window.NexoStorage.flush(); return Object.keys(JSON.parse(localStorage.getItem('nexo-study-beta')).organization.pins || {}).length; }), 1, 'el bloque movido queda anclado a otro día');
+      await page.locator('#toast button').click().catch(() => {});
+      await page.locator('.horario summary').click(); await page.locator('[data-cal-sch-add]').click();
+      assert.equal(await page.locator('.hor-fila').count(), 17, 'se agregó una clase al horario');
+      // Semestre y Lista.
+      await page.locator('[data-cal-view="semestre"]').click();
+      assert.equal(await page.locator('.sem-fila').count(), 4); assert.ok(await page.locator('.banda').count() >= 1); assert.equal(await page.locator('.linea-hoy').count(), 1);
+      await page.locator('.marca[data-cal-day="2026-10-27"]').click(); assert.equal(await page.locator('.hoja-dia').count(), 1);
+      await page.locator('[data-cal-view="lista"]').click();
+      assert.ok(await page.locator('.semana li').count() >= 6);
+      const [descarga] = await Promise.all([page.waitForEvent('download', { timeout: 3000 }).catch(() => null), page.locator('[data-cal-ics]').click()]);
+      assert.ok(descarga === null || /\.ics$/.test(descarga.suggestedFilename()), 'exporta .ics');
+      assert.equal(errors.length, 0, errors.join('\n'));
       // Lab: marcar pre-lab listo queda guardado.
       await page.goto(origin + '#/planner/lab');
       await page.locator('[data-org-prelab="official-org-lab-1"]').click();
@@ -111,6 +158,6 @@ const launch = () => fs.existsSync('/opt/pw-browsers/chromium') ? chromium.launc
       assert.equal(errors.length, 0, errors.join('\n'));
       await page.close();
     }
-    console.log('Organización E2E: rutas viejas → estudio, plan de hoy, agregar, pre-lab, notas (teclado, roja, simulador, faltas, deshacer), avisos del Inicio, 390 y 1440 OK');
+    console.log('Organización E2E: rutas viejas → estudio, plan de hoy, calendario (mes, semana, semestre, lista; agregar, mover con historial, editar, borrar, tareas, receso, horario), pre-lab, notas (teclado, roja, simulador, faltas, deshacer), avisos del Inicio, 390 y 1440 OK');
   } finally { await browser.close(); server.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; server.close(); });

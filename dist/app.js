@@ -652,12 +652,12 @@
     app.innerHTML = `<section class="page games-room">${pageHeader('ARCADE ARCANO','Juegos','Elige una máquina o cruza el portal')}<div class="games-grid">${[['memory','Memory Lab'],['hunter','Error Hunter'],['blitz','Blitz']].map(([id,name])=>`<article class="game-placeholder" data-game-card="${id}"><span aria-hidden="true">◇</span><h2>${name}</h2><p>Próximamente</p></article>`).join('')}<a class="game-placeholder game-ready" data-game-card="campaign" href="games/pep1/index.html"><span aria-hidden="true">♛</span><h2>Boss Arena · Camino a la PEP 1</h2><p>Jugar</p></a></div></section>`;
   }
 
-  function rankedCommitments() {
+  function rankedCommitments(day) {
     const weaknesses = Object.fromEntries(SUBJECTS.map(subject => [subject.id,
       state.errors.filter(error => error.subject === subject.id && error.status !== 'resolved').length]));
     const prerequisites = Object.fromEntries(state.events.map(event => [event.id,
       (event.dependencies || []).filter(id => !LESSONS[id] || !understood(id)).length]));
-    return window.NexoPriority.rank(state.events, { today: todayKey(), weaknesses, prerequisites });
+    return window.NexoPriority.rank(state.events, { today: typeof day === 'string' ? day : todayKey(), weaknesses, prerequisites });
   }
 
   function priorityCard(item) {
@@ -667,8 +667,8 @@
   }
 
   // Organización (UPDATE 02): planner/estudio.js y planner/avisos.js leen y guardan el estado por aquí.
-  const orgBridge = () => ({ state, save: () => saveState({ backup: false }), today: () => todayKey(), ranked: rankedCommitments,
-    subjects: SUBJECTS, subjectFor, go: routeTo, toast: showToast, uid, gradeConfig, syncGrade: syncGradeEvent });
+  const orgBridge = () => ({ state, save: () => saveState({ backup: false }), today: () => todayKey(), ranked: day => rankedCommitments(day),
+    subjects: SUBJECTS, subjectFor, go: routeTo, toast: showToast, uid, gradeConfig, syncGrade: syncGradeEvent, exportIcs });
 
   function todayStudyMinutes() {
     return Math.round(state.sessions.filter(session => session.date === todayKey())

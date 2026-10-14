@@ -7,7 +7,7 @@ const root = path.join(__dirname, '..');
 const startupModules = [
   'cloud/foundation.js', 'core/storage.js', 'core/migrations.js',
   'design-system/home-scene.js', 'design-system/rooms.js', 'design-system/preparation.js', 'ambient/time.js', 'ambient/events.js',
-  'planner/priority.js', 'planner/labs.js', 'planner/grades.js', 'planner/grade-rules.js', 'planner/today-plan.js', 'planner/avisos.js', 'planner/notas.js', 'planner/estudio-audio.js', 'planner/estudio.js',
+  'planner/priority.js', 'planner/labs.js', 'planner/grades.js', 'planner/grade-rules.js', 'planner/calendar-model.js', 'planner/today-plan.js', 'planner/avisos.js', 'planner/notas.js', 'planner/calendario.js', 'planner/estudio-audio.js', 'planner/estudio.js',
   'study/economy.js', 'academic/amine-mastery.js', 'academic/active-time.js',
   'academic/history.js', 'platform/loader.js', 'platform/performance.js',
   'platform/animation.js', 'platform/audio.js', 'game/manager.js',

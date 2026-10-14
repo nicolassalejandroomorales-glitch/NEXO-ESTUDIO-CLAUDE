@@ -37,7 +37,7 @@
   const maxes = () => { const o = org(); o.absenceMax = o.absenceMax && typeof o.absenceMax === 'object' ? o.absenceMax : {}; return o.absenceMax; };
   const cfg = id => bridge().gradeConfig(id);
   // Las pruebas de ciclo del laboratorio tienen id distinto en el calendario que en las notas.
-  const LINK = { 'grade-fq-lab-ciclo': 'official-fq-ciclo', 'grade-org-lab-ciclo1': 'official-org-ciclo1', 'grade-org-lab-ciclo2': 'official-org-ciclo2' };
+  const LINK = window.NexoCalendarModel?.GRADE_EVENT || { 'grade-fq-lab-ciclo': 'official-fq-ciclo', 'grade-org-lab-ciclo1': 'official-org-ciclo1', 'grade-org-lab-ciclo2': 'official-org-ciclo2' };
   const eventFor = id => (bridge().state.events || []).find(e => e.sourceId === id || e.id === id || e.id === LINK[id]);
   const num = v => R().num(v);
 

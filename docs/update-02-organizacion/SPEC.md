@@ -123,6 +123,20 @@ La pantalla sigue siendo la vieja: el rediseño (estudio de planos) no se ha pro
   pruebas de ciclo ↔ notas enlazadas, **autopsia → errores abiertos** (sube la prioridad del ramo en Hoy) y **Perfil sin pestañas Notas/Inasistencias** (redirigen). `tools/profile-test.cjs` reescrita.
 - Sigue pendiente: máximo de faltas de teoría (lo pone Niquito; los programas no lo dicen).
 
+**Fase 3 · Calendario (14 oct 2026, programada; esperando aprobación visual).** Objeto: mesa de planos. Lo decidido por Niquito en las tandas 1-3, aterrizado:
+- **4 vistas**: **Mes** (pergamino desplegado en la mesa; se enrolla al cambiar de mes; sellos de lacre del color del ramo por prueba, matraz = lab, pluma = entrega; hoy brilla y respira),
+  **Semana** (horario fijo en tablillas de madera + bloques de estudio del plan + tareas; los bloques se **mueven arrastrando** o con "Mover a…" en celular), **Semestre** (línea de tiempo: una fila por ramo,
+  semanas críticas, notas que caen y marca de hoy) y **Lista** (por semana). Tocar un día abre su hoja (al costado en PC, desde abajo en celular).
+- **Mover una fecha**: queda **historial** (antes → ahora, cuándo), **Deshacer**, aviso en el Inicio (ya sale por la campana) y el plan se reacomoda solo. Editar y borrar con deshacer.
+- **Agregar rápido** (qué, ramo, fecha) y "Más detalles" plegado (hora, tipo, importancia, **dificultad 1-5**, notas, repetir 8 semanas). Tipos: prueba/control, laboratorio, entrega, tarea/lectura y **receso** (vacaciones/paro: plan liviano).
+- **Tareas**: pendiente / en progreso / hecha. **Horario fijo** (clases y labs, de `NEXO_SEMESTER.schedule`) editable por Niquito; el plan semanal no pisa clases.
+- **Dificultad**: Niquito parte con 1-5 y Nexo suma por errores abiertos del ramo y notas rojas; entra al orden del plan de Hoy con su razón.
+- **Exportar a .ics** (celular) desde el calendario. Sonidos: sello al guardar/mover, página al cambiar de mes, tinta al terminar.
+- **Hecho**: las 4 vistas, hoja del día, agregar/editar/mover/borrar con deshacer e historial, tareas con estado, receso, horario fijo editable, bloques arrastrables (o "Mover a…" en celular),
+  semanas críticas, dificultad en el plan y exportar .ics. Íconos pixel en SVG (sello, matraz, pluma, bandera). Imágenes en `docs/update-02-organizacion/fase3/`.
+- Código nuevo: `dist/planner/calendar-model.js` (puro, prueba `tools/calendario-test.cjs`), `calendario.js` + `calendario.css` (pantalla). Datos nuevos (local): `event.dateHistory[]`, `event.difficulty`, `event.taskState`, `event.until` (receso),
+  `state.organization.schedule` (copia editable del horario), `state.organization.pins` (bloques movidos a otro día).
+
 **Falta**: dudas de `DATOS-RAMOS.md` (programa ORG 2025, teoría FQ, lab ANA, Inglés IV);
 orden de las fases siguientes; cómo se ve Avisos (campana) y la vista Semestre en pixel; cómo se integra el viaje escalera/ascensor.
 
@@ -327,7 +341,7 @@ Orden pensado para que lo urgente (la semana del 19 oct) llegue primero:
 
 ## Pendiente
 
-- Siguiente (Fase 1 ya aprobada): Calendario (mes/semana/semestre, mover con historial), Notas (balanza, frascos, simulador; mudar Notas e Inasistencias del Perfil), Lab completo, Avisos (campana).
+- Siguiente: aprobación visual del Calendario; luego **Lab** completo y **Avisos** ("una buena parte de avisos": bandeja de la campana, cambios de fecha, Inicio calmado el día de prueba, ritual del domingo, resumen del semestre).
 - Fase 1, falta: sonidos (fuego, lluvia, tic-tac, pluma, campana), balanza que se inclina según notas, mesa ordenada/desordenada según el plan, editar o borrar una fecha desde el estudio (hoy solo agregar),
   "¿cómo te fue?" después de rendir (llega con Notas), Inicio calmado el día de prueba, ritual del domingo.
 - Perfil: ya sin pestañas Notas/Inasistencias. Los objetos de la habitación (escritorio y calendario) siguen llevando a `#/profile/grades|absences`, que redirige a Organización.

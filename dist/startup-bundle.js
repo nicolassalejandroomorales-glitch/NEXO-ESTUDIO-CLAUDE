@@ -1482,6 +1482,139 @@
 
 ;
 
+/* planner/calendar-model.js */
+/* Organización · Calendario (UPDATE 02, Fase 3). Módulo puro: sin pantalla ni estado propio, se prueba con node (tools/calendario-test.cjs).
+   Cuadrícula del mes y la semana, mover una fecha con historial y deshacer, borrar con deshacer, línea de tiempo del semestre,
+   semanas críticas y el horario fijo de cada día. Las fechas son 'AAAA-MM-DD' (hora local de Chile, sin zonas horarias). */
+(function (root) {
+  'use strict';
+  const DAY = 86400000;
+  const pad = n => String(n).padStart(2, '0');
+  const parse = d => new Date(`${d}T12:00:00`);
+  const iso = x => `${x.getFullYear()}-${pad(x.getMonth() + 1)}-${pad(x.getDate())}`;
+  const valid = d => /^\d{4}-\d{2}-\d{2}$/.test(String(d || '')) && iso(parse(d)) === d;
+  const addDays = (d, n) => { const x = parse(d); x.setDate(x.getDate() + n); return iso(x); };
+  const daysBetween = (a, b) => Math.round((parse(b) - parse(a)) / DAY);
+  const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+  const MON = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sept', 'oct', 'nov', 'dic'];
+  const WEEKDAYS = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
+  const EVAL = ['exam', 'Prueba', 'control'];
+  const isEval = e => EVAL.includes(e?.type);
+  // Las pruebas de ciclo del laboratorio tienen id distinto en el calendario que en las notas.
+  const GRADE_EVENT = { 'grade-fq-lab-ciclo': 'official-fq-ciclo', 'grade-org-lab-ciclo1': 'official-org-ciclo1', 'grade-org-lab-ciclo2': 'official-org-ciclo2' };
+
+  // ——— Fechas ———
+  const monthKey = d => d.slice(0, 7);
+  const shiftMonth = (key, n) => { const [y, m] = key.split('-').map(Number); const x = new Date(y, m - 1 + n, 1); return `${x.getFullYear()}-${pad(x.getMonth() + 1)}`; };
+  const monthLabel = key => { const [y, m] = key.split('-').map(Number); return `${MONTHS[m - 1]} de ${y}`; };
+  const shortDate = d => { const x = parse(d); return `${x.getDate()} ${MON[x.getMonth()]}`; };
+  const weekdayName = d => WEEKDAYS[(parse(d).getDay() + 6) % 7];
+  const weekdayIndex = d => { const g = parse(d).getDay(); return g === 0 ? 7 : g; };      // lunes = 1 … domingo = 7 (como NEXO_SEMESTER.schedule)
+  const mondayOf = d => addDays(d, -((parse(d).getDay() + 6) % 7));
+  const weekOf = d => { const m = mondayOf(d); return Array.from({ length: 7 }, (_, i) => addDays(m, i)); };
+
+  /* Cuadrícula del mes: semanas de 7 casillas (lunes a domingo); null = casilla fuera del mes. */
+  function monthGrid(key) {
+    const [y, m] = key.split('-').map(Number), days = new Date(y, m, 0).getDate();
+    const offset = (new Date(y, m - 1, 1).getDay() + 6) % 7, cells = [];
+    for (let i = 0; i < Math.ceil((offset + days) / 7) * 7; i++) { const n = i - offset + 1; cells.push(n >= 1 && n <= days ? `${key}-${pad(n)}` : null); }
+    return { key, label: monthLabel(key), cells, weeks: Array.from({ length: cells.length / 7 }, (_, i) => cells.slice(i * 7, i * 7 + 7)) };
+  }
+
+  // ——— Eventos ———
+  const timeOf = e => String(e.time || '99:99');
+  const eventsOn = (events, date) => (events || []).filter(e => e.date === date).sort((a, b) => timeOf(a).localeCompare(timeOf(b)) || String(a.title).localeCompare(String(b.title)));
+  /* Qué ícono pixel lleva: sello de lacre (pruebas), matraz (lab), pluma (entregas y tareas), bandera (receso). */
+  function kind(e) {
+    if (e.type === 'lab') return 'matraz';
+    if (isEval(e)) return 'sello';
+    if (e.type === 'recess') return 'receso';
+    return 'pluma';
+  }
+  /* Receso (vacaciones, paro) que cubre una fecha: event.type = 'recess', de event.date a event.until. */
+  const recessOn = (events, date) => (events || []).find(e => e.type === 'recess' && e.status !== 'done' && e.date <= date && date <= (valid(e.until) ? e.until : e.date)) || null;
+  const nextState = s => s === 'pendiente' ? 'progreso' : s === 'progreso' ? 'hecha' : 'pendiente';
+  const taskState = e => e.status === 'done' ? 'hecha' : ['pendiente', 'progreso', 'hecha'].includes(e.taskState) ? e.taskState : 'pendiente';
+  function setTaskState(e, s) { e.taskState = s; e.status = s === 'hecha' ? 'done' : 'planned'; }
+
+  // ——— Mover una fecha: historial + deshacer ———
+  function syncGradeDate(state, event, date) {
+    for (const plan of Object.values(state.grades || {})) for (const row of plan.components || []) {
+      if (row.id === event.sourceId || row.id === event.id || GRADE_EVENT[row.id] === event.id) row.date = date;
+    }
+  }
+  function moveEvent(state, id, date, { today = iso(new Date()), by = 'tú', undo = false } = {}) {
+    const e = (state.events || []).find(x => x.id === id);
+    if (!e || !valid(date) || date === e.date) return { ok: false };
+    const entry = { from: e.date, to: date, on: today, by };
+    if (undo) entry.undo = true;
+    const hadHistory = Array.isArray(e.dateHistory);
+    e.dateHistory = hadHistory ? e.dateHistory : [];
+    e.dateHistory.push(entry);
+    const prev = { date: e.date, dateNote: e.dateNote, weekdayUncertain: e.weekdayUncertain, source: e.source };
+    e.date = date;
+    if (!undo) { delete e.weekdayUncertain; delete e.dateNote; }
+    syncGradeDate(state, e, date);
+    return { ok: true, entry, revert() { e.dateHistory.pop(); if (!hadHistory) delete e.dateHistory; Object.assign(e, prev); if (prev.dateNote === undefined) delete e.dateNote; if (prev.weekdayUncertain === undefined) delete e.weekdayUncertain; syncGradeDate(state, e, prev.date); } };
+  }
+  /* Deshacer el último cambio de fecha (queda anotado en el historial como "deshecho"). */
+  function undoLastMove(state, id, opts = {}) {
+    const e = (state.events || []).find(x => x.id === id);
+    const last = [...(e?.dateHistory || [])].reverse().find(h => !h.undo && h.to === e.date);
+    return last ? moveEvent(state, id, last.from, { ...opts, undo: true, by: 'deshacer' }) : { ok: false };
+  }
+  function removeEvent(state, id) {
+    const i = (state.events || []).findIndex(x => x.id === id); if (i < 0) return { ok: false };
+    const [e] = state.events.splice(i, 1);
+    return { ok: true, event: e, revert() { state.events.splice(Math.min(i, state.events.length), 0, e); } };
+  }
+
+  // ——— Semestre: línea de tiempo ———
+  /* Bandas de semanas críticas: ventanas de `span` días con `min` o más evaluaciones (las que se traslapan se unen). */
+  function criticalBands(events, { span = 9, min = 3 } = {}) {
+    const list = (events || []).filter(e => isEval(e) && valid(e.date) && e.status !== 'done').sort((a, b) => a.date.localeCompare(b.date));
+    const wins = [];
+    list.forEach((first, i) => {
+      const end = addDays(first.date, span - 1), inside = list.slice(i).filter(x => x.date <= end);
+      if (inside.length >= min) wins.push({ from: first.date, to: inside[inside.length - 1].date, count: inside.length });
+    });
+    // Ventanas que se traslapan = una sola banda: se queda la de más evaluaciones (a igualdad, la más cercana).
+    const bands = []; let reach = '';
+    wins.forEach(w => {
+      const last = bands[bands.length - 1];
+      if (last && w.from <= reach) { if (w.count > last.count) bands[bands.length - 1] = w; reach = w.to > reach ? w.to : reach; }
+      else { bands.push(w); reach = w.to; }
+    });
+    return bands;
+  }
+  /* Datos de la línea de tiempo: una fila por ramo con sus pruebas, labs y entregas; bandas críticas; marca de hoy. */
+  function semester(events, subjects, today) {
+    const dated = (events || []).filter(e => valid(e.date) && e.type !== 'recess');
+    if (!dated.length) return null;
+    const dates = dated.map(e => e.date).concat(today).sort();
+    const from = addDays(mondayOf(dates[0]), 0), to = addDays(mondayOf(dates[dates.length - 1]), 6), total = Math.max(1, daysBetween(from, to));
+    const pct = d => Math.max(0, Math.min(100, daysBetween(from, d) / total * 100));
+    const months = []; let cur = from.slice(0, 7);
+    while (cur <= to.slice(0, 7)) { const first = `${cur}-01`; months.push({ key: cur, label: MONTHS[Number(cur.slice(5)) - 1].slice(0, 3), left: pct(first < from ? from : first) }); cur = shiftMonth(cur, 1); }
+    return {
+      from, to, months, today: pct(today),
+      rows: subjects.map(s => ({ subject: s, items: dated.filter(e => e.subject === s.id).sort((a, b) => a.date.localeCompare(b.date)).map(e => ({ event: e, left: pct(e.date), kind: kind(e) })) })),
+      bands: criticalBands(events).map(b => ({ ...b, left: pct(b.from), width: Math.max(1.2, pct(addDays(b.to, 1)) - pct(b.from)) }))
+    };
+  }
+
+  // ——— Horario fijo ———
+  /* Clases y labs de una fecha, ordenados por hora (schedule[].day: 1 = lunes … 7 = domingo). */
+  const scheduleFor = (schedule, date) => (schedule || []).filter(b => Number(b.day) === weekdayIndex(date)).slice().sort((a, b) => String(a.start).localeCompare(String(b.start)));
+  const validTime = t => /^([01]\d|2[0-3]):[0-5]\d$/.test(String(t || ''));
+
+  root.NexoCalendarModel = Object.freeze({ GRADE_EVENT, valid, addDays, daysBetween, monthKey, shiftMonth, monthLabel, shortDate, weekdayName, weekdayIndex, mondayOf, weekOf,
+    monthGrid, eventsOn, kind, isEval, recessOn, taskState, nextState, setTaskState, moveEvent, undoLastMove, removeEvent, criticalBands, semester, scheduleFor, validTime, WEEKDAYS });
+  if (typeof module !== 'undefined') module.exports = root.NexoCalendarModel;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+;
+
 /* planner/today-plan.js */
 /* Organización · plan de hoy (UPDATE 02, Fase 1). Módulo puro: sin pantalla ni estado propio, se prueba con node.
    Nexo PROPONE (orden + duración + razón); Niquito acepta, salta o marca listo. Reparte TIEMPO, nunca declara dominio.
@@ -1567,15 +1700,20 @@
 
   const round5 = n => Math.round(n / 5) * 5;
 
-  /* plan({ ranked, today, minutes, sessions, marks, critical })
+  /* plan({ ranked, today, minutes, sessions, marks, critical, pins, recess, weak })
+     pins: ids de eventos que Niquito movió a este día (van primero) · recess: día de receso (plan liviano) · weak: errores abiertos por ramo.
      ranked: salida de NexoPriority.rank · minutes: tiempo de hoy · sessions: state.sessions · marks: { done:[], skip:[] } de hoy. */
-  function plan({ ranked = [], today, minutes = 120, sessions = [], marks = {}, critical: crit = null } = {}) {
+  function plan({ ranked = [], today, minutes = 120, sessions = [], marks = {}, critical: crit = null, pins = [], recess = false, weak = {} } = {}) {
     const skip = new Set(marks.skip || []), doneIds = new Set(marks.done || []);
     const pool = ranked.filter(candidate).filter(x => !skip.has(x.event.id));
     const flash = pool.filter(x => isEval(x.event) && x.days === 0);
     // Las evaluaciones van antes que el lab (salvo el pre-lab de mañana): el rank les da la misma importancia a todos.
-    const lift = x => x.score + (isEval(x.event) ? 10 : x.event.type === 'lab' && x.days <= 1 ? 6 : 0);
-    const rest = pool.filter(x => !flash.includes(x)).sort((a, b) => lift(b) - lift(a));
+    // Dificultad: Niquito parte con 1–5 y Nexo suma si el ramo tiene 3 o más errores abiertos (entra al orden con su razón).
+    const diff = x => { const d = Number(x.event.difficulty) || 0; return d ? Math.min(5, d + ((weak[x.event.subject] || 0) >= 3 ? 1 : 0)) : 0; };
+    const lift = x => x.score + (isEval(x.event) ? 10 : x.event.type === 'lab' && x.days <= 1 ? 6 : 0) + (diff(x) ? (diff(x) - 3) * 2 : 0);
+    const pinned = ranked.filter(x => (pins || []).includes(x.event.id) && !skip.has(x.event.id) && !flash.includes(x));
+    const rest = pool.filter(x => !flash.includes(x) && !pinned.includes(x)).sort((a, b) => lift(b) - lift(a));
+    rest.unshift(...pinned);
     const picked = [...flash.slice(0, 1)];
     const kind = x => `${x.event.subject}:${x.event.type === 'lab' ? 'lab' : 'teoria'}`;     // un bloque por ramo (el lab cuenta aparte)
     const seen = new Set(picked.map(kind));
@@ -1596,8 +1734,13 @@
     (sessions || []).filter(s => s.date === today).forEach(s => {
       studied[s.subject] = (studied[s.subject] || 0) + (Number(s.seconds) || Number(s.minutes || 0) * 60) / 60;
     });
-    return blocks.map(({ item, minutes: m }, i) => {
-      const a = action(item), e = item.event;
+    if (recess) {                                                      // receso (vacaciones, paro): un repaso liviano para mantener lo aprendido
+      const first = blocks.find(b => !flash.includes(b.item)) || blocks[0];
+      if (!first) return [];
+      blocks.length = 0; blocks.push({ item: first.item, minutes: 20, recess: true });
+    }
+    return blocks.map(({ item, minutes: m, recess: rc }, i) => {
+      const a = rc ? { text: 'Repaso liviano de lo visto: 3 ejercicios sin apuntes', why: 'En un receso basta con mantener lo aprendido: repasar espaciado rinde más que estudiar mucho un solo día (Cepeda et al. 2006)' } : action(item), e = item.event;
       const id = `${today}:${e.id}`;
       const left = studied[e.subject] || 0;
       const auto = left >= m;
@@ -1605,15 +1748,29 @@
       const when = item.days === 0 ? 'hoy' : item.days === 1 ? 'mañana' : `en ${item.days} días`;
       const inCrit = crit && isEval(e) && e.date >= crit.from && e.date <= crit.to;
       const extra = item.reasons.filter(r => /error|base|compromisos/.test(r)).slice(0, 1);
+      const dd = diff(item); if (dd >= 4) extra.push(`dificultad ${dd}/5`);
+      if ((pins || []).includes(e.id)) extra.push('lo moviste a hoy');
       return {
         id, order: i + 1, event: e, subject: e.subject, minutes: m, text: a.text, why: a.why, flash: !!a.flash,
-        reason: [`${e.title} ${when}`, ...(inCrit ? ['semana crítica'] : []), ...extra].join(' · '),
+        recess: !!rc, reason: [`${e.title} ${when}`, ...(rc ? ['receso'] : []), ...(inCrit ? ['semana crítica'] : []), ...extra].join(' · '),
         done: doneIds.has(id) || auto, auto: auto && !doneIds.has(id)
       };
     });
   }
 
-  const api = Object.freeze({ plan, critical, hourglasses, urgency, action, daysBetween, addDays, shortDate, range });
+  /* Plan de cualquier día con todo lo que Niquito configuró: minutos de ese día de la semana, bloques movidos (pins), "hoy no" (marks),
+     receso y errores abiertos. bridge = el puente de app.js (state, ranked(día)). Lo usan Hoy, la semana del calendario y el Inicio. */
+  function planDay(bridge, day, crit = null) {
+    const st = bridge.state, o = st.organization || {}, v = o.minutes?.[parse(day).getDay()];
+    const minutes = v !== undefined && v !== '' && Number.isFinite(Number(v)) ? Number(v) : (st.settings?.dailyGoalMinutes || 120);
+    if (minutes <= 0) return [];
+    const weak = {}; (st.errors || []).filter(e => e.status !== 'resolved').forEach(e => { weak[e.subject] = (weak[e.subject] || 0) + 1; });
+    const recess = !!root.NexoCalendarModel?.recessOn(st.events, day);
+    return plan({ ranked: bridge.ranked(day), today: day, minutes, sessions: st.sessions, marks: o.marks?.[day] || {}, critical: crit,
+      pins: o.pins?.[day] || [], recess, weak });
+  }
+
+  const api = Object.freeze({ plan, planDay, critical, hourglasses, urgency, action, daysBetween, addDays, shortDate, range });
   root.NexoTodayPlan = api;
   if (typeof module !== 'undefined') module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -1722,8 +1879,7 @@
     app.querySelector('[data-scene-hotspot="map-logbook"]')?.setAttribute('data-route-sub', 'hoy');
     // Plan de hoy en la hoja del día, con "Empezar".
     const paper = app.querySelector('.day-paper .day-goal');
-    const blocks = window.NexoTodayPlan.plan({ ranked, today, minutes: minutes(bridge), sessions: state.sessions,
-      marks: state.organization?.marks?.[today] || {}, critical: T().critical(state.events, today) });
+    const blocks = window.NexoTodayPlan.planDay(bridge, today, T().critical(state.events, today));
     if (paper && blocks.length) {
       paper.insertAdjacentHTML('afterend', `<ol class="home-plan" aria-label="Plan de hoy">${blocks.map(b => {
         const s = bridge.subjectFor(b.subject);
@@ -1820,7 +1976,7 @@
   const maxes = () => { const o = org(); o.absenceMax = o.absenceMax && typeof o.absenceMax === 'object' ? o.absenceMax : {}; return o.absenceMax; };
   const cfg = id => bridge().gradeConfig(id);
   // Las pruebas de ciclo del laboratorio tienen id distinto en el calendario que en las notas.
-  const LINK = { 'grade-fq-lab-ciclo': 'official-fq-ciclo', 'grade-org-lab-ciclo1': 'official-org-ciclo1', 'grade-org-lab-ciclo2': 'official-org-ciclo2' };
+  const LINK = window.NexoCalendarModel?.GRADE_EVENT || { 'grade-fq-lab-ciclo': 'official-fq-ciclo', 'grade-org-lab-ciclo1': 'official-org-ciclo1', 'grade-org-lab-ciclo2': 'official-org-ciclo2' };
   const eventFor = id => (bridge().state.events || []).find(e => e.sourceId === id || e.id === id || e.id === LINK[id]);
   const num = v => R().num(v);
 
@@ -2166,6 +2322,334 @@
 
 ;
 
+/* planner/calendario.js */
+/* Organización · Calendario (UPDATE 02, Fase 3). Mesa de planos del estudio: 4 vistas (Mes, Semana, Semestre, Lista), hoja del día,
+   agregar rápido, editar, mover fechas con historial y deshacer, tareas con estado, receso, horario fijo editable y exportar .ics.
+   La lógica es de NexoCalendarModel (puro, con prueba); los planes de cada día, de NexoTodayPlan.planDay. Se pinta desde estudio.js. */
+(() => {
+  'use strict';
+  const M = () => window.NexoCalendarModel;
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const VIEWS = [['mes', 'Mes'], ['semana', 'Semana'], ['semestre', 'Semestre'], ['lista', 'Lista']];
+  const TYPES = [['exam', 'Prueba o control'], ['lab', 'Laboratorio'], ['deadline', 'Entrega'], ['task', 'Tarea o lectura'], ['recess', 'Receso (vacaciones, paro)']];
+  const KIND_NAME = { theory: 'Teoría', exercises: 'Ejercicios', lab: 'Laboratorio', seminar: 'Seminario' };
+  const TASK_WORD = { pendiente: 'Pendiente', progreso: 'En progreso', hecha: 'Hecha' };
+  const ui = { view: 'mes', month: null, week: null, day: null, add: false, addDate: null, edit: null, roll: false, schSettings: false, showPast: false, drag: null };
+  let ctx = null;
+  const bridge = () => ctx.bridge;
+  const today = () => bridge().today();
+  const org = () => { const s = bridge().state; s.organization = s.organization && typeof s.organization === 'object' ? s.organization : {}; return s.organization; };
+  const keep = () => bridge().save();
+  const refresh = () => ctx.refresh();
+
+  // ——— Íconos pixel (9 de ancho): el color del ramo va en las celdas "x"; luces y sombras fijas ———
+  const ICONS = {
+    sello: ['..ooooo..', '.oxxxxxo.', 'oxllxxxxo', 'oxlxddxxo', 'oxxxxdxxo', 'oxxddxxdo', '.oxxxxxdo', '..ooooo..'],
+    matraz: ['...ooo...', '...owo...', '...ogo...', '...ogo...', '..ogggo..', '.ogxxxgo.', 'ogxlxxxgo', 'ogxxxxxgo', '.ooooooo.'],
+    pluma: ['......ooo', '.....oxxo', '....oxxlo', '...oxxxo.', '..oxxxo..', '.oxxo....', 'odxo.....', 'od.......', 'o........'],
+    receso: ['oooooooo.', 'oxxxxxxo.', 'oxlxxxxo.', 'oxxxxxxo.', 'oooooooo.', 'o........', 'o........', 'o........']
+  };
+  function icon(kind, color) {
+    const rows = ICONS[kind] || ICONS.pluma;
+    let r = ''; rows.forEach((row, y) => [...row].forEach((ch, x) => { if (ch !== '.') r += `<rect class="px-${ch}" x="${x}" y="${y}" width="1" height="1"/>`; }));
+    return `<svg class="ico-px ico-${kind}" viewBox="0 0 9 ${rows.length}" style="--ramo:${esc(color)}" shape-rendering="crispEdges" aria-hidden="true" focusable="false">${r}</svg>`;
+  }
+
+  // ——— Datos ———
+  const subj = id => bridge().subjectFor(id);
+  const subjColor = e => e.type === 'recess' ? '#7494bc' : subj(e.subject).color;
+  const tag = e => e.type === 'recess' ? '<span class="ramo" style="--ramo:#7494bc">RECESO</span>' : `<span class="ramo" style="--ramo:${esc(subj(e.subject).color)}">${esc(subj(e.subject).short)}</span>`;
+  const schedule = () => { const o = org(); return Array.isArray(o.schedule) ? o.schedule : (typeof NEXO_SEMESTER !== 'undefined' ? NEXO_SEMESTER.schedule : []); };
+  const critical = () => window.NexoTodayPlan.critical(bridge().state.events, today());
+  const dayNum = d => Number(d.slice(8));
+  const longDate = d => new Intl.DateTimeFormat('es-CL', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(`${d}T12:00:00`));
+  function gradeOf(e) {
+    const GR = window.NexoGradeRules; if (!GR) return null;
+    for (const s of bridge().subjects) {
+      const c = bridge().gradeConfig(s.id).components.find(x => x.id === e.id || x.id === e.sourceId || M().GRADE_EVENT[x.id] === e.id);
+      if (c) return GR.known(c);
+    }
+    return null;
+  }
+  const inCritical = d => (critical() && d >= critical().from && d <= critical().to);
+
+  // ——— Pantalla ———
+  function panel(S, b) {
+    ctx = ctx ? { ...ctx, bridge: b } : { bridge: b };
+    ui.month = ui.month || M().monthKey(today());
+    ui.week = ui.week || M().mondayOf(today());
+    const body = ui.view === 'mes' ? vistaMes() : ui.view === 'semana' ? vistaSemana() : ui.view === 'semestre' ? vistaSemestre() : vistaLista();
+    return `<div class="cal-layout${ui.day ? ' con-hoja' : ''}">
+      <article class="pergamino cal" aria-labelledby="calTit">
+        <header class="pergamino-head"><div><p class="eyebrow">MESA DE PLANOS</p><h2 id="calTit">Calendario</h2></div>
+          <div class="cal-acciones"><button type="button" class="pix-btn" data-cal-add aria-expanded="${ui.add}">+ Agregar</button>
+            <button type="button" class="pix-btn suave" data-cal-ics title="Llévalo al calendario del celular">Exportar .ics</button></div></header>
+        ${ui.add && !ui.edit ? formulario(null, ui.addDate || today()) : ''}
+        <nav class="cal-vistas" role="tablist" aria-label="Vista del calendario">${VIEWS.map(([id, t]) => `<button type="button" role="tab" aria-selected="${ui.view === id}" data-cal-view="${id}">${t}</button>`).join('')}</nav>
+        ${body}
+        ${leyenda()}
+      </article>${ui.day ? hojaDia() : ''}</div>`;
+  }
+  const leyenda = () => `<p class="cal-leyenda" aria-label="Leyenda">${icon('sello', '#e2b850')} prueba o control · ${icon('matraz', '#e2b850')} laboratorio · ${icon('pluma', '#e2b850')} entrega o tarea · <span class="leyenda-banda"></span> semana crítica</p>`;
+
+  // ——— Mes: pergamino desplegado en la mesa ———
+  function celda(d, evs) {
+    const rec = M().recessOn(bridge().state.events, d), icons = evs.filter(e => e.type !== 'recess');
+    const names = icons.map(e => e.title).join(', ');
+    return `<button type="button" class="dia${d === today() ? ' hoy' : ''}${d === ui.day ? ' sel' : ''}${inCritical(d) ? ' critica' : ''}${rec ? ' receso' : ''}${d < today() ? ' pasado' : ''}" data-cal-day="${d}"
+      aria-label="${esc(longDate(d))}: ${icons.length ? icons.length + (icons.length === 1 ? ' evento' : ' eventos') + ': ' + esc(names) : 'sin eventos'}${rec ? '; receso' : ''}">
+      <b>${dayNum(d)}</b><span class="dia-ico">${icons.slice(0, 3).map(e => icon(M().kind(e), subjColor(e))).join('')}${icons.length > 3 ? `<small>+${icons.length - 3}</small>` : ''}</span></button>`;
+  }
+  function vistaMes() {
+    const g = M().monthGrid(ui.month), evs = bridge().state.events;
+    const roll = ui.roll; ui.roll = false;
+    return `<div class="mes"><div class="cal-nav"><button type="button" class="pix-btn mini" data-cal-mes="-1" aria-label="Mes anterior">‹</button><h3>${esc(g.label)}</h3>
+      <button type="button" class="pix-btn mini" data-cal-mes="1" aria-label="Mes siguiente">›</button><button type="button" class="pix-btn suave" data-cal-hoy>Hoy</button></div>
+      <div class="mes-papel${roll ? ' enrollar' : ''}"><div class="mes-sem" aria-hidden="true">${['L', 'M', 'M', 'J', 'V', 'S', 'D'].map(x => `<b>${x}</b>`).join('')}</div>
+      <div class="mes-dias">${g.cells.map(d => d ? celda(d, M().eventsOn(evs, d)) : '<span class="vacio" aria-hidden="true"></span>').join('')}</div></div></div>`;
+  }
+
+  // ——— Semana: horario fijo + eventos + bloques de estudio (arrastrables) ———
+  function bloquesDe(d) {
+    if (d < today()) return [];
+    return window.NexoTodayPlan.planDay(bridge(), d, critical());
+  }
+  function vistaSemana() {
+    const days = M().weekOf(ui.week), st = bridge().state;
+    const label = `${M().shortDate(days[0])} – ${M().shortDate(days[6])}`;
+    return `<div class="semana-vista"><div class="cal-nav"><button type="button" class="pix-btn mini" data-cal-sem="-1" aria-label="Semana anterior">‹</button><h3>Semana del ${esc(label)}</h3>
+      <button type="button" class="pix-btn mini" data-cal-sem="1" aria-label="Semana siguiente">›</button><button type="button" class="pix-btn suave" data-cal-hoy>Esta semana</button></div>
+      <div class="sem-dias">${days.map(d => {
+        const evs = M().eventsOn(st.events, d), clases = M().scheduleFor(schedule(), d), bl = bloquesDe(d), rec = M().recessOn(st.events, d);
+        return `<section class="sem-dia${d === today() ? ' hoy' : ''}${d < today() ? ' pasado' : ''}${inCritical(d) ? ' critica' : ''}${rec ? ' receso' : ''}" data-cal-drop="${d}" aria-label="${esc(longDate(d))}">
+          <header><button type="button" data-cal-day="${d}"><b>${esc(M().weekdayName(d).slice(0, 3))}</b> ${dayNum(d)}</button>${rec ? '<small>receso</small>' : ''}</header>
+          <ul class="tablillas">${clases.map(c => `<li class="tablilla" style="--ramo:${esc(subj(c.subject).color)}" title="${esc(c.room || '')}"><b>${esc(c.start)}</b> ${esc(c.name || subj(c.subject).short)} <small>${esc(KIND_NAME[c.kind] || '')}</small></li>`).join('')}</ul>
+          <ul class="sem-evs">${evs.filter(e => e.type !== 'recess').map(e => `<li class="sem-ev"><button type="button" data-cal-day="${d}" style="--ramo:${esc(subjColor(e))}">${icon(M().kind(e), subjColor(e))}<span>${esc(subj(e.subject).short)} ${esc(e.title)}${e.time ? ` <small>${esc(e.time)}</small>` : ''}</span></button></li>`).join('')}</ul>
+          ${bl.length ? `<ul class="sem-bloques" aria-label="Estudio propuesto">${bl.map(b => `<li class="sem-bloque${b.done ? ' hecho' : ''}" draggable="${b.done ? 'false' : 'true'}" data-cal-drag="${esc(b.event.id)}" data-from="${d}" style="--ramo:${esc(subj(b.subject).color)}">
+            <span class="ramo" style="--ramo:${esc(subj(b.subject).color)}">${esc(subj(b.subject).short)}</span> <b>${b.minutes} min</b> <span class="tinta">${esc(b.text)}</span>
+            ${b.done ? '' : `<select class="mover" data-cal-mover="${esc(b.event.id)}" data-from="${d}" aria-label="Mover este bloque a otro día"><option value="">Mover a…</option>${days.filter(x => x !== d && x >= today()).map(x => `<option value="${x}">${esc(M().weekdayName(x))} ${dayNum(x)}</option>`).join('')}</select>`}</li>`).join('')}</ul>` : ''}
+        </section>`;
+      }).join('')}</div>
+      <details class="horario"${ui.schSettings ? ' open' : ''}><summary data-cal-sch-toggle>Ajustar mi horario fijo</summary>${editorHorario()}</details></div>`;
+  }
+  function editorHorario() {
+    const sch = schedule();
+    const sOpt = id => bridge().subjects.map(s => `<option value="${esc(s.id)}"${s.id === id ? ' selected' : ''}>${esc(s.name)}</option>`).join('') + `<option value="ingles"${id === 'ingles' ? ' selected' : ''}>Otro (ej. Inglés)</option>`;
+    return `<div class="hor-lista">${sch.map((b, i) => `<div class="hor-fila">
+      <select aria-label="Día" data-cal-sch="${i}:day">${M().WEEKDAYS.map((n, k) => `<option value="${k + 1}"${Number(b.day) === k + 1 ? ' selected' : ''}>${n}</option>`).join('')}</select>
+      <input type="time" aria-label="Desde" value="${esc(b.start)}" data-cal-sch="${i}:start"><input type="time" aria-label="Hasta" value="${esc(b.end)}" data-cal-sch="${i}:end">
+      <select aria-label="Ramo" data-cal-sch="${i}:subject">${sOpt(b.subject)}</select>
+      <select aria-label="Tipo" data-cal-sch="${i}:kind">${Object.entries(KIND_NAME).map(([k, n]) => `<option value="${k}"${b.kind === k ? ' selected' : ''}>${n}</option>`).join('')}</select>
+      <button type="button" class="pix-btn suave mini" data-cal-sch-del="${i}" aria-label="Quitar este bloque">×</button></div>`).join('')}
+      <button type="button" class="pix-btn suave" data-cal-sch-add>+ Agregar clase</button></div>`;
+  }
+
+  // ——— Semestre: línea de tiempo ———
+  function vistaSemestre() {
+    const sem = M().semester(bridge().state.events, bridge().subjects, today());
+    if (!sem) return '<p class="pergamino-vacio">Aún no hay fechas para dibujar el semestre.</p>';
+    return `<div class="semestre"><div class="sem-scroll"><div class="sem-ancho"><div class="sem-eje" aria-hidden="true">${sem.months.map(m => `<span style="--p:${m.left / 100}">${esc(m.label)}</span>`).join('')}</div>
+      <div class="sem-pista">${sem.bands.map(b => `<i class="banda" style="--p:${b.left / 100};--w:${b.width / 100}" title="Semana crítica: ${b.count} evaluaciones"></i>`).join('')}
+        <i class="linea-hoy" style="--p:${sem.today / 100}" title="Hoy"></i>
+        ${sem.rows.map(r => `<div class="sem-fila" style="--ramo:${esc(r.subject.color)}"><span class="sem-nombre">${esc(r.subject.short)}</span><div class="sem-carril">${r.items.map((i, k, arr) => {
+          const g = gradeOf(i.event), done = i.event.status === 'done';
+          // Fechas muy cercanas se escalonan en vertical para que no se tapen.
+          i.nivel = k && i.left - arr[k - 1].left < 3 ? 1 - arr[k - 1].nivel : 0;
+          return `<button type="button" class="marca${done ? ' hecha' : ''}" style="left:${i.left}%;top:${i.nivel ? 72 : 34}%" data-cal-day="${i.event.date}" title="${esc(subj(i.event.subject).short + ' ' + i.event.title + ' · ' + M().shortDate(i.event.date))}"
+            aria-label="${esc(i.event.title)}, ${esc(M().shortDate(i.event.date))}">${icon(i.kind, r.subject.color)}${g !== null ? `<small class="nota nota-${window.NexoGradeRules.level(g)}">${window.NexoGradeRules.fmt(g, 1)}</small>` : ''}</button>`;
+        }).join('')}</div></div>`).join('')}</div></div></div>
+      ${sem.bands.length ? `<p class="sem-criticas">Semanas críticas: ${sem.bands.map(b => `<b>${esc(window.NexoTodayPlan.range(b.from, b.to))}</b> (${b.count} evaluaciones)`).join(' · ')}.</p>` : ''}</div>`;
+  }
+
+  // ——— Lista: por semana ———
+  function vistaLista() {
+    const st = bridge().state, t = today();
+    const list = (st.events || []).filter(e => M().valid(e.date) && (ui.showPast || e.date >= t || e.status !== 'done' && e.date >= M().addDays(t, -7))).sort((a, b) => a.date.localeCompare(b.date) || String(a.time || '').localeCompare(String(b.time || '')));
+    const weeks = new Map();
+    list.forEach(e => { const k = M().mondayOf(e.date); if (!weeks.has(k)) weeks.set(k, []); weeks.get(k).push(e); });
+    return `<div class="lista"><label class="lista-pasadas"><input type="checkbox" data-cal-pasadas ${ui.showPast ? 'checked' : ''}> Ver también las ya pasadas</label>
+      ${[...weeks].map(([k, evs]) => `<section class="semana"><h3>Semana del ${esc(M().shortDate(k))}${inCritical(k) ? ' <span class="chip chip-warn">semana crítica</span>' : ''}</h3><ul>${evs.map(e => `<li class="${e.status === 'done' ? 'hecho' : ''}">
+        ${icon(M().kind(e), subjColor(e))}<time datetime="${esc(e.date)}">${esc(M().shortDate(e.date))}${e.time ? ' · ' + esc(e.time) : ''}</time> ${tag(e)}
+        <span>${esc(e.title)}${e.topic ? ` <small>${esc(e.topic)}</small>` : ''}${e.dateHistory?.length ? ' <small class="movida">(movida)</small>' : ''}</span>
+        <button type="button" class="pix-btn suave mini" data-cal-day="${e.date}" aria-label="Abrir ${esc(e.title)}">Abrir</button></li>`).join('')}</ul></section>`).join('') || '<p class="pergamino-vacio">Sin fechas por delante.</p>'}</div>`;
+  }
+
+  function tiposOpt(e) {
+    const cur = M().isEval(e) ? 'exam' : (e.type || 'exam'), known = TYPES.some(([v]) => v === cur);
+    return TYPES.map(([v, t]) => `<option value="${v}"${cur === v ? ' selected' : ''}>${t}</option>`).join('') + (known ? '' : `<option value="${esc(cur)}" selected>${esc(cur)}</option>`);
+  }
+
+  // ——— Formulario: rápido (qué, ramo, fecha) + "Más detalles" ———
+  function formulario(ev, date) {
+    const e = ev || {};
+    const subjects = bridge().subjects.map(s => `<option value="${esc(s.id)}"${(e.subject || ui.lastSubject || '') === s.id ? ' selected' : ''}>${esc(s.name)}</option>`).join('');
+    return `<form class="cal-form" data-cal-form="${esc(e.id || '')}"><h3>${ev ? 'Editar' : 'Agregar a la mesa'}</h3>
+      <div class="cal-form-rapido">
+        <label>Qué <input name="title" required maxlength="80" value="${esc(e.title || '')}" placeholder="Control 2, informe P-2…" ${ev ? '' : 'autofocus'}></label>
+        <label>Ramo <select name="subject">${subjects}</select></label>
+        <label>Fecha <input name="date" type="date" required value="${esc(e.date || date)}"></label>
+      </div>
+      <details class="mas"${ev ? ' open' : ''}><summary>Más detalles</summary><div class="cal-form-mas">
+        <label>Tipo <select name="type">${tiposOpt(e)}</select></label>
+        <label>Hora <input name="time" type="time" value="${esc(e.time || '')}"></label>
+        <label>Importancia <select name="priority">${[[1, 'Normal'], [2, 'Alta'], [3, 'Muy alta']].map(([v, t]) => `<option value="${v}"${Number(e.priority || (ev ? 2 : 3)) === v ? ' selected' : ''}>${t}</option>`).join('')}</select></label>
+        <label>Dificultad (1 fácil – 5 difícil) <select name="difficulty"><option value="">Sin definir</option>${[1, 2, 3, 4, 5].map(v => `<option value="${v}"${Number(e.difficulty) === v ? ' selected' : ''}>${v}</option>`).join('')}</select></label>
+        <label>Hasta (solo receso) <input name="until" type="date" value="${esc(e.until || '')}"></label>
+        <label class="ancho">Notas <input name="notes" maxlength="200" value="${esc(e.notes || '')}"></label>
+        ${ev ? '' : '<label class="check"><input name="weekly" type="checkbox"> Repetir cada semana (8 veces)</label>'}
+      </div></details>
+      <div class="cal-form-acc"><button type="submit" class="pix-btn">Guardar</button><button type="button" class="pix-btn suave" data-cal-cancel>Cancelar</button></div></form>`;
+  }
+
+  // ——— Hoja del día (al costado en PC, desde abajo en celular) ———
+  function hojaDia() {
+    const d = ui.day, st = bridge().state, evs = M().eventsOn(st.events, d), clases = M().scheduleFor(schedule(), d), bl = bloquesDe(d);
+    const rec = M().recessOn(st.events, d);
+    return `<aside class="hoja-dia" role="dialog" aria-modal="false" aria-labelledby="hojaTit">
+      <header><h3 id="hojaTit">${esc(longDate(d))}</h3><button type="button" class="pix-btn suave mini" data-cal-cerrar aria-label="Cerrar la hoja del día">×</button></header>
+      ${d === today() ? '<p class="hoja-hoy">Es hoy. <button type="button" class="pix-btn mini" data-route="planner" data-route-sub="hoy">Ver el plan →</button></p>' : ''}
+      ${rec ? `<p class="chip chip-info">Receso: ${esc(rec.title)}. El plan de estos días es liviano.</p>` : ''}
+      ${clases.length ? `<ul class="tablillas">${clases.map(c => `<li class="tablilla" style="--ramo:${esc(subj(c.subject).color)}"><b>${esc(c.start)}–${esc(c.end)}</b> ${esc(c.name || subj(c.subject).name)} <small>${esc(KIND_NAME[c.kind] || '')}${c.room ? ' · ' + esc(c.room) : ''}</small></li>`).join('')}</ul>` : ''}
+      ${evs.map(e => eventoHoja(e)).join('') || '<p class="pergamino-vacio">Nada anotado este día.</p>'}
+      ${bl.length ? `<div class="hoja-plan"><h4>Estudio propuesto</h4><ul>${bl.map(b => `<li class="${b.done ? 'hecho' : ''}">${b.minutes} min · <span class="tinta">${esc(b.text)}</span> <small>(${esc(subj(b.subject).short)})</small></li>`).join('')}</ul></div>` : ''}
+      <button type="button" class="pix-btn" data-cal-add-aqui="${d}">+ Agregar aquí</button>
+    </aside>`;
+  }
+  function eventoHoja(e) {
+    if (ui.edit === e.id) return `<div class="evento editando">${formulario(e, e.date)}</div>`;
+    const isTask = ['task', 'deadline'].includes(e.type), ts = M().taskState(e), g = gradeOf(e);
+    const hist = e.dateHistory || [];
+    return `<div class="evento${e.status === 'done' ? ' hecho' : ''}" style="--ramo:${esc(subjColor(e))}">
+      <div class="evento-cab">${icon(M().kind(e), subjColor(e))}<div><b>${esc(e.title)}</b>${e.time ? ` <small>${esc(e.time)}</small>` : ''}<br>${tag(e)} ${e.type === 'recess' && e.until ? `<small>hasta ${esc(M().shortDate(e.until))}</small>` : ''}${e.difficulty ? ` <small>dificultad ${esc(e.difficulty)}/5</small>` : ''}</div></div>
+      ${e.topic ? `<p class="ev-tema">${esc(e.topic)}</p>` : ''}${e.dateNote ? `<p class="ev-nota">${esc(e.dateNote)}</p>` : ''}${e.notes ? `<p class="ev-tema">${esc(e.notes)}</p>` : ''}
+      ${g !== null ? `<p class="ev-nota">Nota: <b>${window.NexoGradeRules.fmt(g, 1)}</b></p>` : ''}
+      ${isTask ? `<div class="ev-estado" role="group" aria-label="Estado">${['pendiente', 'progreso', 'hecha'].map(s => `<button type="button" class="pix-btn${ts === s ? '' : ' suave'}" aria-pressed="${ts === s}" data-cal-estado="${esc(e.id)}:${s}">${TASK_WORD[s]}</button>`).join('')}</div>`
+        : `<div class="ev-estado"><button type="button" class="pix-btn suave" data-cal-hecho="${esc(e.id)}" aria-pressed="${e.status === 'done'}">${e.status === 'done' ? 'Hecha ✓ (deshacer)' : 'Marcar como hecha'}</button></div>`}
+      <form class="ev-mover" data-cal-mover-form="${esc(e.id)}"><label>Mover a <input type="date" name="date" value="${esc(e.date)}" required></label><button type="submit" class="pix-btn suave">Mover</button></form>
+      <div class="ev-acc"><button type="button" class="pix-btn suave" data-cal-editar="${esc(e.id)}">Editar</button><button type="button" class="pix-btn suave" data-cal-borrar="${esc(e.id)}">Borrar</button></div>
+      ${hist.length ? `<details class="historial"><summary>Historial de fechas (${hist.length})</summary><ol>${hist.map(h => `<li>${esc(M().shortDate(h.from))} → <b>${esc(M().shortDate(h.to))}</b> <small>${h.undo ? 'deshecho' : 'movida'} el ${esc(M().shortDate(h.on))}</small></li>`).join('')}</ol>
+        <button type="button" class="pix-btn suave" data-cal-deshacer="${esc(e.id)}">Deshacer el último cambio</button></details>` : ''}
+    </div>`;
+  }
+
+  // ——— Acciones ———
+  function mover(id, date, from) {
+    const m = M().moveEvent(bridge().state, id, date, { today: today() });
+    if (!m.ok) return false;
+    keep(); ctx.sound?.('sello');
+    const e = bridge().state.events.find(x => x.id === id);
+    ui.month = date.slice(0, 7);
+    refresh();
+    bridge().toast(`${e.title}: ${M().shortDate(m.entry.from)} → ${M().shortDate(date)}. Reacomodé tu plan.`, 'Deshacer', () => { m.revert(); keep(); refresh(); });
+    ctx.react?.('nerviosa', `Fecha movida al ${M().shortDate(date)}. Ya reacomodé tu plan.`);
+    return true;
+  }
+  function moverBloque(eventId, from, to) {
+    if (!to || to === from) return;
+    const o = org(); o.marks = o.marks || {}; o.pins = o.pins || {};
+    const mk = o.marks[from] = o.marks[from] || { done: [], skip: [] };
+    const hadPinFrom = (o.pins[from] || []).includes(eventId), prevSkip = [...mk.skip], prevPinsTo = [...(o.pins[to] || [])], prevPinsFrom = [...(o.pins[from] || [])];
+    if (hadPinFrom) o.pins[from] = o.pins[from].filter(x => x !== eventId); else mk.skip = [...new Set([...mk.skip, eventId])];
+    o.pins[to] = [...new Set([...(o.pins[to] || []), eventId])];
+    keep(); refresh();
+    bridge().toast(`Bloque movido al ${M().weekdayName(to)} ${dayNum(to)}.`, 'Deshacer', () => { mk.skip = prevSkip; o.pins[from] = prevPinsFrom; o.pins[to] = prevPinsTo; keep(); refresh(); });
+  }
+
+  function click(e) {
+    const t = e.target.closest('button, [data-cal-cerrar]'); if (!t) return;
+    const d = t.dataset;
+    if (d.route) return bridge().go(d.route, d.routeSub);
+    if (d.calView) { ui.view = d.calView; ui.day = ui.view === 'mes' || ui.view === 'semana' ? ui.day : null; return refresh(); }
+    if (d.calMes) { ui.month = M().shiftMonth(ui.month, Number(d.calMes)); ui.roll = true; ctx.sound?.('pagina'); return refresh(); }
+    if (d.calSem) { ui.week = M().addDays(ui.week, 7 * Number(d.calSem)); return refresh(); }
+    if (d.calHoy !== undefined) { ui.month = M().monthKey(today()); ui.week = M().mondayOf(today()); ui.roll = ui.view === 'mes'; return refresh(); }
+    if (d.calDay) { ui.day = d.calDay; ui.edit = null; ui.add = false; if (ui.view === 'mes') ui.month = d.calDay.slice(0, 7); if (ui.view === 'semestre' || ui.view === 'lista') { /* la hoja se ve igual */ } refresh(); return setTimeout(() => document.querySelector('.hoja-dia')?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' }), 40); }
+    if (d.calCerrar !== undefined) { ui.day = null; ui.edit = null; return refresh(); }
+    if (d.calAdd !== undefined) { ui.add = !ui.add; ui.addDate = null; ui.edit = null; return refresh(); }
+    if (d.calAddAqui) { ui.add = true; ui.addDate = d.calAddAqui; ui.edit = null; ui.day = null; refresh(); return setTimeout(() => document.querySelector('.cal-form input[name=title]')?.focus(), 40); }
+    if (d.calCancel !== undefined) { ui.add = false; ui.edit = null; return refresh(); }
+    if (d.calIcs !== undefined) return bridge().exportIcs();
+    if (d.calEditar) { ui.edit = d.calEditar; return refresh(); }
+    if (d.calEstado) {
+      const [id, s] = d.calEstado.split(':'), ev = bridge().state.events.find(x => x.id === id); if (!ev) return;
+      const prev = { taskState: ev.taskState, status: ev.status }; M().setTaskState(ev, s); keep(); if (s === 'hecha') ctx.sound?.('tinta'); refresh();
+      return bridge().toast(`${ev.title}: ${TASK_WORD[s].toLowerCase()}.`, 'Deshacer', () => { ev.taskState = prev.taskState; ev.status = prev.status; keep(); refresh(); });
+    }
+    if (d.calHecho) {
+      const ev = bridge().state.events.find(x => x.id === d.calHecho); if (!ev) return;
+      const prev = ev.status; ev.status = prev === 'done' ? 'planned' : 'done'; keep(); if (ev.status === 'done') ctx.sound?.('tinta'); refresh();
+      return bridge().toast(ev.status === 'done' ? `${ev.title}: hecha.` : `${ev.title}: de nuevo pendiente.`, 'Deshacer', () => { ev.status = prev; keep(); refresh(); });
+    }
+    if (d.calBorrar) {
+      const r = M().removeEvent(bridge().state, d.calBorrar); if (!r.ok) return;
+      keep(); refresh(); return bridge().toast(`“${r.event.title}” borrada.`, 'Deshacer', () => { r.revert(); keep(); refresh(); });
+    }
+    if (d.calDeshacer) {
+      const r = M().undoLastMove(bridge().state, d.calDeshacer, { today: today() }); if (!r.ok) return bridge().toast('No hay un cambio de fecha para deshacer.');
+      keep(); ctx.sound?.('sello'); refresh(); return bridge().toast('Fecha devuelta. Reacomodé tu plan.');
+    }
+    if (d.calSchAdd !== undefined) { const o = org(); o.schedule = schedule().map(b => ({ ...b })); o.schedule.push({ day: 1, start: '08:15', end: '09:35', subject: bridge().subjects[0].id, kind: 'theory' }); ui.schSettings = true; keep(); return refresh(); }
+    if (d.calSchDel !== undefined) { const o = org(); o.schedule = schedule().map(b => ({ ...b })); o.schedule.splice(Number(d.calSchDel), 1); ui.schSettings = true; keep(); return refresh(); }
+  }
+
+  function guardarForm(f) {
+    const fd = new FormData(f), id = f.dataset.calForm, st = bridge().state;
+    const title = String(fd.get('title') || '').trim(), date = String(fd.get('date') || ''), type = String(fd.get('type') || 'exam');
+    if (!title || !M().valid(date)) return bridge().toast('Revisa el nombre y la fecha.');
+    const until = String(fd.get('until') || '');
+    const det = { title, subject: String(fd.get('subject')), type, time: String(fd.get('time') || ''), priority: Math.max(1, Math.min(3, Number(fd.get('priority')) || 2)),
+      difficulty: Number(fd.get('difficulty')) || undefined, notes: String(fd.get('notes') || '').trim().slice(0, 200), until: type === 'recess' && M().valid(until) && until >= date ? until : undefined };
+    ui.lastSubject = det.subject;
+    if (id) {
+      const ev = st.events.find(x => x.id === id); if (!ev) return;
+      const old = ev.date; Object.assign(ev, det); if (det.difficulty === undefined) delete ev.difficulty; if (det.until === undefined) delete ev.until;
+      if (old !== date) M().moveEvent(st, id, date, { today: today() });
+      ui.edit = null; keep(); ctx.sound?.('sello'); refresh(); return bridge().toast('Cambios guardados.');
+    }
+    const dates = [date]; if (fd.get('weekly')) for (let i = 1; i < 8; i++) dates.push(M().addDays(date, 7 * i));
+    dates.forEach((dd, i) => st.events.push({ id: bridge().uid('event'), ...det, title: i ? `${title} · semana ${i + 1}` : title, date: dd, status: 'planned', source: 'manual', dependencies: [],
+      series: fd.get('weekly') ? `serie-${date}` : undefined, lab: type === 'lab' && window.NexoLabPlan ? window.NexoLabPlan.normalize({}) : undefined }));
+    ui.add = false; ui.month = date.slice(0, 7); ui.day = date; keep(); ctx.sound?.('sello'); refresh();
+    bridge().toast(dates.length > 1 ? 'Serie de 8 fechas guardada.' : 'Guardado en el calendario.');
+    ctx.react?.('saludo', 'Anotado. Ya cuenta para tu plan.');
+  }
+
+  function submit(e) {
+    const f = e.target; e.preventDefault();
+    if (f.matches('[data-cal-form]')) return guardarForm(f);
+    if (f.matches('[data-cal-mover-form]')) { const date = String(new FormData(f).get('date')); if (!mover(f.dataset.calMoverForm, date)) bridge().toast('Esa es la misma fecha, o no es válida.'); }
+  }
+  function change(e) {
+    const t = e.target;
+    if (t.matches('[data-cal-pasadas]')) { ui.showPast = t.checked; return refresh(); }
+    if (t.dataset.calMover) return moverBloque(t.dataset.calMover, t.dataset.from, t.value);
+    if (t.dataset.calSch) {
+      const [i, field] = t.dataset.calSch.split(':'), o = org(); o.schedule = schedule().map(b => ({ ...b }));
+      const b = o.schedule[Number(i)]; if (!b) return;
+      if ((field === 'start' || field === 'end') && !M().validTime(t.value)) return refresh();
+      b[field] = field === 'day' ? Number(t.value) : t.value; ui.schSettings = true; keep(); refresh();
+    }
+  }
+  // Arrastrar un bloque de estudio a otro día (PC). En celular se usa "Mover a…".
+  function dragstart(e) { const li = e.target.closest?.('[data-cal-drag]'); if (!li) return; ui.drag = { id: li.dataset.calDrag, from: li.dataset.from }; e.dataTransfer?.setData('text/plain', li.dataset.calDrag); e.dataTransfer && (e.dataTransfer.effectAllowed = 'move'); }
+  function dragover(e) { const z = e.target.closest?.('[data-cal-drop]'); if (z && ui.drag && z.dataset.calDrop >= today()) { e.preventDefault(); z.classList.add('suelta'); } }
+  function dragleave(e) { e.target.closest?.('[data-cal-drop]')?.classList.remove('suelta'); }
+  function drop(e) {
+    const z = e.target.closest?.('[data-cal-drop]'); if (!z || !ui.drag) return;
+    e.preventDefault(); const dr = ui.drag; ui.drag = null; moverBloque(dr.id, dr.from, z.dataset.calDrop);
+  }
+  function keydown(e) { if (e.key === 'Escape' && (ui.day || ui.edit)) { ui.day = null; ui.edit = null; refresh(); } }
+
+  function wire(root, c) {
+    ctx = { ...ctx, ...c };
+    root.onclick = click; root.onsubmit = submit; root.onchange = change; root.onkeydown = keydown;
+    root.ondragstart = dragstart; root.ondragover = dragover; root.ondragleave = dragleave; root.ondrop = drop;
+  }
+  window.NexoCalendario = Object.freeze({ panel, wire, icon });
+})();
+
+;
+
 /* planner/estudio-audio.js */
 /* Sonido del estudio de planos (UPDATE 02, SPEC "Sonido"): ambiente suave (fuego, lluvia real, tic-tac bajito) y sonidos al actuar
    (pluma, sello, campana). Todo se sintetiza aquí con Web Audio: sin archivos ni red.
@@ -2301,7 +2785,7 @@
   }
   function css() {
     if (cssDone) return; cssDone = true;
-    for (const href of ['world/torre-mundo.css?v=1', 'planner/estudio.css?v=' + V, 'planner/notas.css?v=' + V]) {
+    for (const href of ['world/torre-mundo.css?v=1', 'planner/estudio.css?v=' + V, 'planner/notas.css?v=' + V, 'planner/calendario.css?v=' + V]) {
       if (document.querySelector(`link[href^="${href.split('?')[0]}"]`)) continue;
       const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href; document.head.append(l);
     }
@@ -2386,12 +2870,7 @@
     o.marks[t] = o.marks[t] || { done: [], skip: [] };
     return o.marks[t];
   }
-  function todayPlan(crit) {
-    const T = window.NexoTodayPlan;
-    if (minutesToday() <= 0) return [];
-    return T.plan({ ranked: bridge.ranked(), today: bridge.today(), minutes: minutesToday(), sessions: bridge.state.sessions,
-      marks: marksToday(), critical: crit });
-  }
+  const todayPlan = crit => window.NexoTodayPlan.planDay(bridge, bridge.today(), crit);
 
   // ——— Escena ———
   function createWorld() {
@@ -2767,33 +3246,7 @@
       <p class="pergamino-pronto">Próximamente: temario y material, preparación con evidencia y plan hacia atrás en cada ficha.</p></article>`;
   }
 
-  function panelCalendario(S) {
-    const evs = (bridge.state.events || []).filter(e => e.status !== 'done' && /^\d{4}-\d{2}-\d{2}$/.test(e.date) && e.date >= S.today)
-      .sort((a, b) => a.date.localeCompare(b.date) || String(a.time || '').localeCompare(String(b.time || '')));
-    const weeks = new Map();
-    evs.forEach(e => {
-      const d = new Date(`${e.date}T12:00:00`), monday = new Date(d); monday.setDate(d.getDate() - ((d.getDay() + 6) % 7));
-      const k = window.NexoTodayPlan.shortDate(`${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`);
-      if (!weeks.has(k)) weeks.set(k, []);
-      weeks.get(k).push(e);
-    });
-    const icon = e => e.type === 'lab' ? 'matraz' : ['exam', 'Prueba', 'control'].includes(e.type) ? 'sello' : 'pluma';
-    const subjects = bridge.subjects.map(s => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('');
-    return `<article class="pergamino"><header class="pergamino-head"><p class="eyebrow">MESA DE PLANOS · LISTA</p><h2>Calendario</h2>
-        <button type="button" class="pix-btn" data-org-add aria-expanded="false">+ Agregar</button></header>
-      <form class="org-agregar" data-org-form hidden>
-        <label>Qué <input name="title" required maxlength="80" placeholder="Control 2, informe P-2…"></label>
-        <label>Ramo <select name="subject">${subjects}</select></label>
-        <label>Tipo <select name="type"><option value="exam">Prueba o control</option><option value="lab">Laboratorio</option><option value="deadline">Entrega</option><option value="task">Tarea o lectura</option></select></label>
-        <label>Fecha <input name="date" type="date" required value="${esc(S.today)}"></label>
-        <button type="submit" class="pix-btn">Guardar</button></form>
-      ${[...weeks].map(([k, list]) => `<section class="semana"><h3>Semana del ${esc(k)}</h3><ul>${list.map(e => {
-        const s = bridge.subjectFor(e.subject);
-        return `<li><span class="ico ico-${icon(e)}" aria-hidden="true"></span><time datetime="${esc(e.date)}">${shortDate(e.date)}${e.time ? ' · ' + esc(e.time) : ''}</time>
-          ${tag(s)} <span>${esc(e.title)}${e.topic ? ` <small>${esc(e.topic)}</small>` : ''}</span></li>`;
-      }).join('')}</ul></section>`).join('') || '<p class="pergamino-vacio">Sin fechas por delante.</p>'}
-      <p class="pergamino-pronto">Próximamente en la mesa: vista mes (pergamino con sellos de lacre), semana con tu horario, semestre y mover fechas con historial.</p></article>`;
-  }
+  const panelCalendario = S => window.NexoCalendario.panel(S, bridge);
 
   function panelLab(S) {
     const labs = (bridge.state.events || []).filter(e => e.type === 'lab' && e.status !== 'done' && e.date >= S.today)
@@ -2824,6 +3277,7 @@
   // ——— Acciones del panel ———
   function wirePanel(root, view) {
     if (view === 'notas') { window.NexoNotas.wire(root, { bridge, refresh: () => refresh('notas'), react, sound }); return; }
+    if (view === 'calendario') { window.NexoCalendario.wire(root, { bridge, refresh: () => refresh('calendario'), react, sound }); return; }
     root.onclick = e => {
       const b = e.target.closest('button'); if (!b) return;
       const S = W?.sit || situation();
@@ -2859,19 +3313,6 @@
         ev.lab.prelab = { ...(ev.lab.prelab || {}), done: !ev.lab.prelab?.done };
         bridge.save(); return refresh(view);
       }
-      if (b.hasAttribute('data-org-add')) {
-        const f = root.querySelector('[data-org-form]'); f.hidden = !f.hidden; b.setAttribute('aria-expanded', String(!f.hidden));
-        if (!f.hidden) f.querySelector('input').focus();
-      }
-    };
-    const form = root.querySelector('[data-org-form]');
-    if (form) form.onsubmit = e => {
-      e.preventDefault();
-      const fd = new FormData(form), title = String(fd.get('title') || '').trim(), date = String(fd.get('date') || '');
-      if (!title || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
-      bridge.state.events.push({ id: `org-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, title, subject: String(fd.get('subject')),
-        type: String(fd.get('type')), date, time: '', status: 'planned', priority: fd.get('type') === 'exam' ? 3 : 2, source: 'manual', dependencies: [] });
-      bridge.save(); sound('sello'); bridge.toast('Guardado en el calendario'); refresh(view);
     };
   }
   function refresh(view) {

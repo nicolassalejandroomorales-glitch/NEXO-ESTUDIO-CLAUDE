@@ -24,7 +24,7 @@
   }
   function css() {
     if (cssDone) return; cssDone = true;
-    for (const href of ['world/torre-mundo.css?v=1', 'planner/estudio.css?v=' + V, 'planner/notas.css?v=' + V]) {
+    for (const href of ['world/torre-mundo.css?v=1', 'planner/estudio.css?v=' + V, 'planner/notas.css?v=' + V, 'planner/calendario.css?v=' + V]) {
       if (document.querySelector(`link[href^="${href.split('?')[0]}"]`)) continue;
       const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href; document.head.append(l);
     }
@@ -109,12 +109,7 @@
     o.marks[t] = o.marks[t] || { done: [], skip: [] };
     return o.marks[t];
   }
-  function todayPlan(crit) {
-    const T = window.NexoTodayPlan;
-    if (minutesToday() <= 0) return [];
-    return T.plan({ ranked: bridge.ranked(), today: bridge.today(), minutes: minutesToday(), sessions: bridge.state.sessions,
-      marks: marksToday(), critical: crit });
-  }
+  const todayPlan = crit => window.NexoTodayPlan.planDay(bridge, bridge.today(), crit);
 
   // ——— Escena ———
   function createWorld() {
@@ -490,33 +485,7 @@
       <p class="pergamino-pronto">Próximamente: temario y material, preparación con evidencia y plan hacia atrás en cada ficha.</p></article>`;
   }
 
-  function panelCalendario(S) {
-    const evs = (bridge.state.events || []).filter(e => e.status !== 'done' && /^\d{4}-\d{2}-\d{2}$/.test(e.date) && e.date >= S.today)
-      .sort((a, b) => a.date.localeCompare(b.date) || String(a.time || '').localeCompare(String(b.time || '')));
-    const weeks = new Map();
-    evs.forEach(e => {
-      const d = new Date(`${e.date}T12:00:00`), monday = new Date(d); monday.setDate(d.getDate() - ((d.getDay() + 6) % 7));
-      const k = window.NexoTodayPlan.shortDate(`${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`);
-      if (!weeks.has(k)) weeks.set(k, []);
-      weeks.get(k).push(e);
-    });
-    const icon = e => e.type === 'lab' ? 'matraz' : ['exam', 'Prueba', 'control'].includes(e.type) ? 'sello' : 'pluma';
-    const subjects = bridge.subjects.map(s => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('');
-    return `<article class="pergamino"><header class="pergamino-head"><p class="eyebrow">MESA DE PLANOS · LISTA</p><h2>Calendario</h2>
-        <button type="button" class="pix-btn" data-org-add aria-expanded="false">+ Agregar</button></header>
-      <form class="org-agregar" data-org-form hidden>
-        <label>Qué <input name="title" required maxlength="80" placeholder="Control 2, informe P-2…"></label>
-        <label>Ramo <select name="subject">${subjects}</select></label>
-        <label>Tipo <select name="type"><option value="exam">Prueba o control</option><option value="lab">Laboratorio</option><option value="deadline">Entrega</option><option value="task">Tarea o lectura</option></select></label>
-        <label>Fecha <input name="date" type="date" required value="${esc(S.today)}"></label>
-        <button type="submit" class="pix-btn">Guardar</button></form>
-      ${[...weeks].map(([k, list]) => `<section class="semana"><h3>Semana del ${esc(k)}</h3><ul>${list.map(e => {
-        const s = bridge.subjectFor(e.subject);
-        return `<li><span class="ico ico-${icon(e)}" aria-hidden="true"></span><time datetime="${esc(e.date)}">${shortDate(e.date)}${e.time ? ' · ' + esc(e.time) : ''}</time>
-          ${tag(s)} <span>${esc(e.title)}${e.topic ? ` <small>${esc(e.topic)}</small>` : ''}</span></li>`;
-      }).join('')}</ul></section>`).join('') || '<p class="pergamino-vacio">Sin fechas por delante.</p>'}
-      <p class="pergamino-pronto">Próximamente en la mesa: vista mes (pergamino con sellos de lacre), semana con tu horario, semestre y mover fechas con historial.</p></article>`;
-  }
+  const panelCalendario = S => window.NexoCalendario.panel(S, bridge);
 
   function panelLab(S) {
     const labs = (bridge.state.events || []).filter(e => e.type === 'lab' && e.status !== 'done' && e.date >= S.today)
@@ -547,6 +516,7 @@
   // ——— Acciones del panel ———
   function wirePanel(root, view) {
     if (view === 'notas') { window.NexoNotas.wire(root, { bridge, refresh: () => refresh('notas'), react, sound }); return; }
+    if (view === 'calendario') { window.NexoCalendario.wire(root, { bridge, refresh: () => refresh('calendario'), react, sound }); return; }
     root.onclick = e => {
       const b = e.target.closest('button'); if (!b) return;
       const S = W?.sit || situation();
@@ -582,19 +552,6 @@
         ev.lab.prelab = { ...(ev.lab.prelab || {}), done: !ev.lab.prelab?.done };
         bridge.save(); return refresh(view);
       }
-      if (b.hasAttribute('data-org-add')) {
-        const f = root.querySelector('[data-org-form]'); f.hidden = !f.hidden; b.setAttribute('aria-expanded', String(!f.hidden));
-        if (!f.hidden) f.querySelector('input').focus();
-      }
-    };
-    const form = root.querySelector('[data-org-form]');
-    if (form) form.onsubmit = e => {
-      e.preventDefault();
-      const fd = new FormData(form), title = String(fd.get('title') || '').trim(), date = String(fd.get('date') || '');
-      if (!title || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
-      bridge.state.events.push({ id: `org-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, title, subject: String(fd.get('subject')),
-        type: String(fd.get('type')), date, time: '', status: 'planned', priority: fd.get('type') === 'exam' ? 3 : 2, source: 'manual', dependencies: [] });
-      bridge.save(); sound('sello'); bridge.toast('Guardado en el calendario'); refresh(view);
     };
   }
   function refresh(view) {

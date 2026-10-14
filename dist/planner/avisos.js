@@ -99,8 +99,7 @@
     app.querySelector('[data-scene-hotspot="map-logbook"]')?.setAttribute('data-route-sub', 'hoy');
     // Plan de hoy en la hoja del día, con "Empezar".
     const paper = app.querySelector('.day-paper .day-goal');
-    const blocks = window.NexoTodayPlan.plan({ ranked, today, minutes: minutes(bridge), sessions: state.sessions,
-      marks: state.organization?.marks?.[today] || {}, critical: T().critical(state.events, today) });
+    const blocks = window.NexoTodayPlan.planDay(bridge, today, T().critical(state.events, today));
     if (paper && blocks.length) {
       paper.insertAdjacentHTML('afterend', `<ol class="home-plan" aria-label="Plan de hoy">${blocks.map(b => {
         const s = bridge.subjectFor(b.subject);
