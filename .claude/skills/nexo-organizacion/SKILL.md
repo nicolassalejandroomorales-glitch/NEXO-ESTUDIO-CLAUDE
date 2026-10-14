@@ -15,6 +15,7 @@ description: Área de Organización de Nexo (UPDATE 02: plan semanal, calendario
 - Plan, relojes, semana crítica y urgencia: `dist/planner/today-plan.js` (puro, `tools/organizacion-test.cjs`). Avisos e Inicio: `dist/planner/avisos.js` (`window.NexoOrgAvisos`; ¡`NexoAvisos` es del tutorial!).
 - Arte: `python tools/torre-pixel/build_estudio.py` (escena) y `estudio_ui.py` (kit). Objetos en `estudio.json` (coordenadas gruesas 360×150).
 - Notas (Fase 2): `dist/planner/notas.js` + `notas.css` (pantalla) y `grade-rules.js` (puro: reglas de examen por ramo, simulador, asistencia; `tools/notas-test.cjs`). Las notas viven en `gradeConfig()` (`state.grades`) y las faltas en `state.absences`.
+- Calendario (Fase 3): `dist/planner/calendar-model.js` (puro: mes, semana, mover con historial, semestre; `tools/calendario-test.cjs`) y `calendario.js` + `.css` (pantalla). El plan de cualquier día sale de `NexoTodayPlan.planDay(bridge, día)` (minutos del día, bloques movidos, receso, dificultad).
 - Sonido: `dist/planner/estudio-audio.js` (`NexoEstudioAudio.play(nombre, state.settings)` / `start` / `stop`; prueba `tools/estudio-audio-test.cjs`). Perfil ya no tiene Notas/Inasistencias.
 - Estado: `state.organization` (minutos por día, marcas del plan, avisos vistos). Los tres módulos van en el bundle (`node tools/build-startup.cjs`).
 

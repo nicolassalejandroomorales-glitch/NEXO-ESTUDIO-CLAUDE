@@ -45,6 +45,15 @@ assert.ok(auto[0].done && auto[0].auto, '10 min de Orgánica tachan el repaso fl
 // Nunca declara dominio: el texto habla de tiempo y acciones, no de "dominas".
 assert.ok(plan.every(b => !/domin/i.test(b.text + b.why)));
 
+// Calendario → plan: bloque movido a otro día (pin), receso (plan liviano) y dificultad.
+const r20 = NexoPriority.rank(events, { today: '2026-10-20' });
+const pin = T.plan({ ranked: r20, today: '2026-10-20', minutes: 120, pins: ['official-ana-c2'] });
+assert.ok(pin[0].event.id === 'official-ana-c2' && /lo moviste a hoy/.test(pin[0].reason), 'el bloque anclado va primero con su razón');
+const rec = T.plan({ ranked: r20, today: '2026-10-20', minutes: 120, recess: true });
+assert.strictEqual(rec.length, 1); assert.strictEqual(rec[0].minutes, 20); assert.ok(/receso/.test(rec[0].reason) && /liviano/i.test(rec[0].text));
+const hard = events.map(e => e.id === 'official-org-pep1' ? { ...e, difficulty: 5 } : e);
+const dh = T.plan({ ranked: NexoPriority.rank(hard, { today: '2026-10-20' }), today: '2026-10-20', minutes: 120, weak: { organica: 4 } });
+assert.ok(dh.some(b => /dificultad 5\/5/.test(b.reason)), 'la dificultad entra al plan con su razón');
 // Escena: objetos dentro del arte y con su vista.
 const meta = JSON.parse(fs.readFileSync(dist('assets/torre/estudio/estudio.json'), 'utf8'));
 const views = ['hoy', 'calendario', 'pruebas', 'notas', 'lab', 'avisos'];
