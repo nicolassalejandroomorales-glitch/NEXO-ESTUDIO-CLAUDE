@@ -1,7 +1,116 @@
 # UPDATE 02 — La Bitácora viva (organización, calendario, pruebas y notas)
 
-Estado: **diseño v2 para aprobación de Niquito (5 oct 2026). Nada programado.**
-Reemplaza el borrador v1 de este mismo archivo (sus decisiones siguen abajo). Los avisos de Classroom siguen en `AVISOS.md`.
+Estado: **Fase 1 aprobada por Niquito (14 oct 2026).** Siguen Calendario, Notas, Lab y Avisos. Diseño en `## Decisiones de Niquito`.
+Los avisos de Classroom siguen en `AVISOS.md`.
+
+## Decisiones de Niquito · tandas de preguntas (11 oct 2026)
+
+Mandan sobre todo lo de más abajo (diseño v2 del 5 oct). Donde choquen, gana esta sección.
+
+**Lugar y estilo**
+- La Organización es el **estudio de planos de la torre** (`docs/mundo-torre/SPEC.md`): escena pixel de borde a borde, la mascota camina
+  y cada objeto abre una parte; el contenido va debajo como **pergamino sobre madera**. La Bitácora vieja y la maqueta del 5 oct "cortan la continuidad".
+- Objetos: **mesa de planos = Calendario** · **tablero de corcho = Pruebas** · **balanza/libro = Notas** (con inasistencias) ·
+  **banco con matraces = Laboratorio** · **reloj de pared = Hoy** · **campana = Avisos**.
+- Se llega desde el **calendario de la pared del refugio** (abre Hoy) y por la **escalera/ascensor de la torre**. (El mapa del suelo no se eligió.)
+- De la maqueta se rescatan: **relojes de arena, cinta "semana crítica", sellos de lacre y frascos de notas**.
+- **Notas e Inasistencias se mudan del Perfil a Organización** (una sola casa). → Avisar al chat del Perfil (`docs/mundo-torre/SPEC.md`: escritorio y calendario de la habitación).
+
+**Qué hace**
+- Lo más importante: **qué estudiar hoy** (y en qué orden). Luego calendario, notas y no olvidar nada.
+- Organiza: **pruebas y controles, laboratorio, tareas y lecturas, horario de clases**.
+- Plan del día: **Nexo propone, Niquito acepta/mueve**. Prioridad = **mezcla equilibrada** (cercanía + dificultad + ponderación + cómo va en el ramo + errores abiertos).
+- Dificultad: **Niquito parte con 1–5, Nexo ajusta** con errores y notas reales.
+- Tiempo de estudio: **distinto por día de la semana** (lo configura él).
+- Si no cumple: **reprograma sin culpa** y avisa si ya no alcanza.
+- Cambio de fecha: **historial + deshacer + aviso en Inicio + reacomoda el plan**.
+- Calendario con 4 vistas: **mes, semana, semestre (línea de tiempo) y lista**.
+- Agregar cosas: **botón rápido (qué, ramo, fecha)**, **desde la escena** y **conectar Classroom** (requiere terminar la prueba de factibilidad OAuth de `AVISOS.md`, Fase 0 pendiente).
+
+**Avisos**
+- **Solo dentro de Nexo** (sin nube). Primer aviso **2 semanas antes**.
+- En el Inicio, todo: **tablón que cambia por urgencia**, **la mascota lo dice**, **el calendario de la pared brilla** (≤ 7 días) y **plan de hoy visible con "Empezar"**.
+
+**Notas**
+- Las publican en **Classroom** o **el profe las dice/envía** → se ingresan a mano (o Classroom si se conecta).
+- Al caer una nota: **recalcula cuánto necesita**, **ajusta prioridades**, **3 preguntas de qué falló** y **la mascota reacciona**.
+- Después de rendir (sin nota aún): **"¿cómo te fue?" + nota estimada**; al llegar la real se compara (calibración).
+- Pantalla de Notas: **cuánto necesito**, **simulador "¿y si me saco…?"**, **riesgo de examen/reprobar** y **promedio general del semestre**.
+- Laboratorio hoy está mal en todo: **% no reales, no se ve si aprueba, confuso/feo y falta desglose**.
+  Partes del lab: **pre-lab / control de entrada, informes y prueba de laboratorio**.
+- Ponderaciones reales: Niquito pasa **foto o PDF del programa** de cada ramo y Claude las carga.
+- Inasistencias: **cuántas quedan** (barra vs máximo, teoría y lab) y **aviso cuando queda 1**.
+
+**Mascota en el estudio**: camina al objeto que tocas, **señala qué toca hoy** (objeto que brilla), reacciona a notas y pruebas, da consejos con evidencia. Nunca culpa.
+
+**Extras elegidos**: ritual del domingo, modo día de prueba, exportar al calendario del celular (.ics), resumen del semestre.
+
+**Urgencia**: diseñar todo con calma antes de programar (no se hace nada mínimo antes del 19 oct).
+
+**Tanda 2 (11 oct)**
+- Bloque del plan: **qué hacer + duración + la razón + botón Empezar + se tacha con tinta** al terminar (suma a la meta).
+  **Orden y duración; la hora es opcional** (la pone Niquito si quiere).
+- Reglas de evaluación conocidas: **PEP roja → examen** y **prueba recuperativa** si falta. El resto, desde los PDF de cada ramo.
+- Recesos (vacaciones, paro): **plan liviano de repaso**.
+- **Ritual del domingo**: ver la semana que viene, confirmar fechas, aceptar el plan semanal y mirar lo cumplido (sin culpa).
+- **Modo día de prueba**: repaso flash de 10 min (lo clave + errores típicos, sin materia nueva) e Inicio calmado.
+- **Mascota habla** 1 vez al entrar y cuando pasa algo (nota nueva, cambio de fecha).
+- **Banco del lab**: próxima sesión y su práctico, pre-lab pendiente, informes por entregar (estado) y notas de lab aparte con mínimo.
+- **Promedio general: simple** (todos los ramos valen igual).
+- **Tareas: pendiente / en progreso / hecha**.
+- **Vista semestre**: PEPs y controles por ramo (una fila cada uno), semanas críticas, notas que van cayendo y marca de "hoy".
+
+**Tanda 3 (11 oct) — regla: todo en pixel art y con la ambientación de la torre** (rampas de `tools/home-pixel/pixel.py`,
+resolución mixta, hora real, clima real, alquimista excéntrico + naturaleza que invade, sin runas nuevas).
+- **Escena del estudio**: ventanal con vista exterior (hora y clima reales), mapas y planos colgando (mini historias de un cartógrafo
+  excéntrico: compases, reglas, tinteros), hiedra y hongos que brillan, chimenea o caldero (luz cálida de noche).
+- **Objetos con vida**: reloj con péndulo (hora real), campana que se mece y suena con aviso nuevo, matraces que burbujean (más si hay pre-lab
+  pendiente), velas y polvo en la luz.
+- **La escena refleja la situación real**: el corcho se llena de fichas (rojas si están cerca), la balanza se inclina a verde/rojo según notas,
+  ambiente algo más cálido y papeles revueltos en semana crítica (sin ansiedad), mesa ordenada si se cumple el plan (desordenada si no, sin culpa).
+- **Ficha de prueba**: reloj de arena + días, temario y material (Biblioteca, clases, PEPs antiguas), preparación con evidencia (no minutos) y plan hacia atrás.
+- **Vista Mes**: pergamino desplegado en la mesa (se enrolla al cambiar de mes), sellos de lacre por prueba + iconos pixel (matraz = lab,
+  pluma = entrega), hoy con brillo que respira, tocar un día abre su hoja (al costado en PC, desde abajo en celular).
+- **Vista Semana**: horario fijo (tablillas de madera), bloques de estudio del plan, tareas con estado y **mover bloques arrastrando**.
+- **Vista Lista**: por fecha, agrupada por semana.
+- **Sonido**: ambiente suave (fuego, lluvia real, tic-tac bajito) y sonidos al actuar (pluma, sello, campana). Respeta silencio/ajustes.
+- **Notas en pixel**: frascos en un estante (teoría y lab en repisas distintas), número grande tallado ("Necesitas 4,6"),
+  simulador con **palanca de latón**, lomos de libro por ramo.
+- **Al guardar una nota**: el frasco se llena por escalones, la pluma escribe "guardado" (con deshacer), la mascota reacciona
+  (roja → "¿vemos qué falló?") y chispas de color según la nota.
+- **Horario**: Niquito manda foto, Claude lo carga, y él lo ajusta en Nexo.
+- **Orden de construcción**: primero **escena del estudio + Hoy + avisos en el Inicio**.
+
+**Hecho 14 oct 2026 — datos reales cargados** (ver `DATOS-RAMOS.md`): ponderaciones de los 4 ramos con el laboratorio desglosado,
+reglas de examen/eximición/PF por ramo (`rules`), 14 fechas nuevas (labs de ORG y FQ, pruebas de ciclo, PEP 2 de FISIO), horario fijo
+(`NEXO_SEMESTER.schedule`) y actualización segura de cuentas existentes (`NEXO_SEMESTER.upgrade`, nunca pisa notas). Prueba `tools/semester-test.cjs`.
+La pantalla sigue siendo la vieja: el rediseño (estudio de planos) no se ha programado.
+
+**Hecho 14 oct 2026 — Fase 1: estudio de planos + Hoy + avisos en el Inicio** (aprobada por Niquito; ANTES/AHORA en `fase1/`).
+- Escena pixel de borde a borde: `tools/torre-pixel/build_estudio.py` (+ `estudio_fondo.py`, `estudio_frente.py`; reutiliza el piso, la ventana y las piezas del laboratorio)
+  → `dist/assets/torre/estudio/` (vista, fondo, frente y campana por hora + `estudio.json`). Kit de la vista Hoy: `tools/torre-pixel/estudio_ui.py` (madera, pergamino, rollos, relojes de arena, cinta).
+  Chimenea, reloj de péndulo con la **hora real**, ventanal con hora y **clima real** (lluvia, nieve, nubes, niebla, tormenta encima de la vista), mapas, hiedra, hongos que brillan, velas, polvo en la luz.
+  La escena refleja la situación: **fichas en el corcho** (rojas a ≤ 7 días, con los días), **más burbujas** si hay pre-lab pendiente, **campana que se mece** con aviso nuevo,
+  objeto recomendado con chispas, luz algo más cálida en semana crítica. Para probar: `?hora=dia|tarde|noche&clima=lluvia|nieve|nubes|niebla|tormenta`.
+- Código: `dist/planner/today-plan.js` (puro: plan, relojes, semana crítica, urgencia), `dist/planner/estudio.js` + `estudio.css` (pantalla), `dist/planner/avisos.js` (`NexoOrgAvisos`: avisos e Inicio).
+  En `app.js` solo: `orgBridge()`, la ruta `planner` y la redirección de `#/hub/calendar|grades`, y una línea en el Inicio. En `home-pet.js` una línea (`homeSpot`, para el globo).
+- Hoy: plan propuesto (orden + duración + razón + "por qué" con evidencia), **Empezar** (abre el cronómetro con el ramo), **Listo** (se tacha con tinta; también solo si el cronómetro
+  ya sumó esos minutos del ramo), **Hoy no** (sale sin culpa, con deshacer), **tiempo por día de la semana** (−/+), modo día de prueba (repaso flash de 10 min), relojes de arena y cinta.
+- Inicio: notas del tablón por urgencia (calma/ámbar/brillo/sello/HOY), cinta de semana crítica, calendario de la pared que brilla (≤ 7 días) y lleva a Hoy, plan de hoy con Empezar,
+  la mascota avisa 1 vez al día y cuando aparece algo nuevo (cambio de fecha, semana crítica, cambio de urgencia).
+- Las otras partes ya usan el diseño nuevo pero en versión mínima: Calendario = **lista por semana + agregar rápido**; Pruebas = fichas con reloj, temario y nota;
+  Lab = próximos prácticos con "pre-lab listo"; Avisos = lista; Notas = enlace al Perfil (la balanza llega en su fase). El diseño viejo ya no se ve.
+- Estado nuevo (local, sin nube nueva): `state.organization = { minutes: {díaSemana: min}, marks: {fecha: {done, skip}}, seen: {avisos, dates, started}, lastSaid… }`.
+- Pruebas: `tools/organizacion-test.cjs` (nueva) y `tools/planner-e2e.cjs` reescrita para el estudio (390 y 1440). `npm test`: 27/29 (fallan `academic-test` y `database-test` por paquetes npm que no están en el contenedor; fallan igual sin estos cambios).
+
+**Falta**: dudas de `DATOS-RAMOS.md` (programa ORG 2025, teoría FQ, lab ANA, Inglés IV);
+orden de las fases siguientes; cómo se ve Avisos (campana) y la vista Semestre en pixel; cómo se integra el viaje escalera/ascensor.
+
+---
+
+# Diseño v2 (5 oct 2026) — referencia
+
+Reemplazó el borrador v1 (sus decisiones siguen al final).
 
 - ANTES (capturas reales de hoy): `antes/` (Inicio, Calendario, Ponderaciones y Perfil → Notas, en 1440 y 390 px).
 - PROPUESTA (maqueta estática, no es la app): `maqueta/maqueta.html` y sus capturas `maqueta/propuesta-*.png`.
@@ -198,6 +307,10 @@ Orden pensado para que lo urgente (la semana del 19 oct) llegue primero:
 
 ## Pendiente
 
+- Siguiente (Fase 1 ya aprobada): Calendario (mes/semana/semestre, mover con historial), Notas (balanza, frascos, simulador; mudar Notas e Inasistencias del Perfil), Lab completo, Avisos (campana).
+- Fase 1, falta: sonidos (fuego, lluvia, tic-tac, pluma, campana), balanza que se inclina según notas, mesa ordenada/desordenada según el plan, editar o borrar una fecha desde el estudio (hoy solo agregar),
+  "¿cómo te fue?" después de rendir (llega con Notas), Inicio calmado el día de prueba, ritual del domingo.
+- Avisar al chat del Perfil: Notas e Inasistencias se mudan a Organización (pendiente desde la tanda 1).
 - Aprobación de este diseño y de la maqueta.
 - Decisiones abiertas de `AVISOS.md` (Classroom vs pegar texto).
 - Avisos fuera de la app (notificaciones del celular) quedan fuera de este cambio.

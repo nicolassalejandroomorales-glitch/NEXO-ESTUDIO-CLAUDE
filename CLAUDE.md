@@ -25,6 +25,7 @@ node tools/build-startup.cjs        # OBLIGATORIO después de editar módulos de
 npm test                            # todas las pruebas rápidas (tools/run-tests.cjs las encuentra solas)
 ```
 
+- **Un clic**: doble clic en `Abrir Nexo.bat` (carpeta del proyecto) prende el servidor y abre `#/home`; se apaga cerrando la ventana "Servidor de Nexo".
 - No hay framework ni paso de compilación: **el código fuente vive directo en `dist/`**.
 - `dist/startup-bundle.js` es **generado**: nunca editarlo a mano. Edita los módulos y regenera.
 - Los `?v=` de `dist/index.html` y `dist/app.js` se ponen solos (hash del archivo) al correr `build-startup.cjs`: no editarlos a mano.
@@ -99,6 +100,7 @@ Los chats **no se acuerdan entre sí**: la única memoria compartida es este arc
 - No borrar archivos del usuario. No reescribir la app desde cero.
 - No copiar arte de otros artistas ni objetos o personajes de series conocidas: solo diseños propios.
 - Mascotas y arte: nada de diseños "planos"; siempre volumen, material y detalle. Estilo actual: **pixel art** con las rampas de `tools/home-pixel/pixel.py`.
+- Toda pantalla nueva o rehecha va en **pixel art y con la ambientación de la torre** (hora y clima reales, alquimista excéntrico + naturaleza que invade, sin runas nuevas). Nada de pantallas "de formulario" sueltas (Niquito, 11 oct 2026).
 
 ## Estado
 
