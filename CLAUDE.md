@@ -25,6 +25,7 @@ node tools/build-startup.cjs        # OBLIGATORIO después de editar módulos de
 npm test                            # todas las pruebas rápidas (tools/run-tests.cjs las encuentra solas)
 ```
 
+- **Un clic**: doble clic en `Abrir Nexo.bat` (carpeta del proyecto) prende el servidor y abre `#/home`; se apaga cerrando la ventana "Servidor de Nexo".
 - No hay framework ni paso de compilación: **el código fuente vive directo en `dist/`**.
 - `dist/startup-bundle.js` es **generado**: nunca editarlo a mano. Edita los módulos y regenera.
 - Los `?v=` de `dist/index.html` y `dist/app.js` se ponen solos (hash del archivo) al correr `build-startup.cjs`: no editarlos a mano.
