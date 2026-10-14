@@ -590,12 +590,12 @@
               : route[1] ? renderPractice(route[1],route[2]) : renderAcademicTraining(),
       games: renderGames,
       subjects: renderSubjects,
-      hub: () => renderHub(route[1] || 'timer'),
+      hub: () => window.NexoEstudio && ['calendar','grades'].includes(route[1]) ? routeTo('planner', window.NexoEstudio.legacy[route[1]]) : renderHub(route[1] || 'timer'),
       profile: () => renderProfile(({avatar:'mascot',collection:'mascot',progress:'stats'})[route[1]]||route[1]||'mascot'),
       subject: () => renderSubject(route[1]),
       lesson: () => renderLesson(route[1]),
       practice: () => renderPractice(route[1] || 'exercises', route[2]),
-      planner: () => renderPlanner(route[1] || 'calendar'),
+      planner: () => window.NexoEstudio ? window.NexoEstudio.render(app, route[1], orgBridge()) : renderPlanner(route[1] || 'calendar'),
       timer: renderTimer,
       stats: renderStats,
       history: () => window.NexoHistory.render(app,cloud,state),
@@ -666,6 +666,10 @@
     return `<article class="priority-card" style="--course:${subject.color}"><div class="priority-card-top"><span>${esc(subject.short)}</span><time datetime="${esc(event.date)}">${formatDate(event.date)}</time></div><h3>${esc(event.title)}</h3><p>${reasons.map(esc).join(' · ')}</p><button data-route="planner" data-route-sub="calendar">Ver en calendario →</button></article>`;
   }
 
+  // Organización (UPDATE 02): planner/estudio.js y planner/avisos.js leen y guardan el estado por aquí.
+  const orgBridge = () => ({ state, save: () => saveState({ backup: false }), today: () => todayKey(), ranked: rankedCommitments,
+    subjects: SUBJECTS, subjectFor, go: routeTo, toast: showToast });
+
   function todayStudyMinutes() {
     return Math.round(state.sessions.filter(session => session.date === todayKey())
       .reduce((sum, session) => sum + sessionSeconds(session), 0) / 60);
@@ -715,6 +719,7 @@
     </section>`;
     window.NexoHomeScene.enhancePan?.(app);
     petBind(); window.NexoPet?.mountHome(app.querySelector('.home-art-plane')); window.NexoPet?.checkWeather();
+    window.NexoOrgAvisos?.home(app, orgBridge());
   }
 
   function renderTimer() {

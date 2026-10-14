@@ -1,6 +1,6 @@
 # UPDATE 02 — La Bitácora viva (organización, calendario, pruebas y notas)
 
-Estado: **diseño en tandas de preguntas (11 oct 2026). Nada programado.**
+Estado: **Fase 1 programada (14 oct 2026), esperando aprobación visual de Niquito.** Diseño en `## Decisiones de Niquito`.
 Los avisos de Classroom siguen en `AVISOS.md`.
 
 ## Decisiones de Niquito · tandas de preguntas (11 oct 2026)
@@ -85,6 +85,23 @@ resolución mixta, hora real, clima real, alquimista excéntrico + naturaleza qu
 reglas de examen/eximición/PF por ramo (`rules`), 14 fechas nuevas (labs de ORG y FQ, pruebas de ciclo, PEP 2 de FISIO), horario fijo
 (`NEXO_SEMESTER.schedule`) y actualización segura de cuentas existentes (`NEXO_SEMESTER.upgrade`, nunca pisa notas). Prueba `tools/semester-test.cjs`.
 La pantalla sigue siendo la vieja: el rediseño (estudio de planos) no se ha programado.
+
+**Hecho 14 oct 2026 — Fase 1: estudio de planos + Hoy + avisos en el Inicio** (esperando aprobación; ANTES/AHORA en `fase1/`).
+- Escena pixel de borde a borde: `tools/torre-pixel/build_estudio.py` (+ `estudio_fondo.py`, `estudio_frente.py`; reutiliza el piso, la ventana y las piezas del laboratorio)
+  → `dist/assets/torre/estudio/` (vista, fondo, frente y campana por hora + `estudio.json`). Kit de la vista Hoy: `tools/torre-pixel/estudio_ui.py` (madera, pergamino, rollos, relojes de arena, cinta).
+  Chimenea, reloj de péndulo con la **hora real**, ventanal con hora y **clima real** (lluvia, nieve, nubes, niebla, tormenta encima de la vista), mapas, hiedra, hongos que brillan, velas, polvo en la luz.
+  La escena refleja la situación: **fichas en el corcho** (rojas a ≤ 7 días, con los días), **más burbujas** si hay pre-lab pendiente, **campana que se mece** con aviso nuevo,
+  objeto recomendado con chispas, luz algo más cálida en semana crítica. Para probar: `?hora=dia|tarde|noche&clima=lluvia|nieve|nubes|niebla|tormenta`.
+- Código: `dist/planner/today-plan.js` (puro: plan, relojes, semana crítica, urgencia), `dist/planner/estudio.js` + `estudio.css` (pantalla), `dist/planner/avisos.js` (`NexoOrgAvisos`: avisos e Inicio).
+  En `app.js` solo: `orgBridge()`, la ruta `planner` y la redirección de `#/hub/calendar|grades`, y una línea en el Inicio. En `home-pet.js` una línea (`homeSpot`, para el globo).
+- Hoy: plan propuesto (orden + duración + razón + "por qué" con evidencia), **Empezar** (abre el cronómetro con el ramo), **Listo** (se tacha con tinta; también solo si el cronómetro
+  ya sumó esos minutos del ramo), **Hoy no** (sale sin culpa, con deshacer), **tiempo por día de la semana** (−/+), modo día de prueba (repaso flash de 10 min), relojes de arena y cinta.
+- Inicio: notas del tablón por urgencia (calma/ámbar/brillo/sello/HOY), cinta de semana crítica, calendario de la pared que brilla (≤ 7 días) y lleva a Hoy, plan de hoy con Empezar,
+  la mascota avisa 1 vez al día y cuando aparece algo nuevo (cambio de fecha, semana crítica, cambio de urgencia).
+- Las otras partes ya usan el diseño nuevo pero en versión mínima: Calendario = **lista por semana + agregar rápido**; Pruebas = fichas con reloj, temario y nota;
+  Lab = próximos prácticos con "pre-lab listo"; Avisos = lista; Notas = enlace al Perfil (la balanza llega en su fase). El diseño viejo ya no se ve.
+- Estado nuevo (local, sin nube nueva): `state.organization = { minutes: {díaSemana: min}, marks: {fecha: {done, skip}}, seen: {avisos, dates, started}, lastSaid… }`.
+- Pruebas: `tools/organizacion-test.cjs` (nueva) y `tools/planner-e2e.cjs` reescrita para el estudio (390 y 1440). `npm test`: 27/29 (fallan `academic-test` y `database-test` por paquetes npm que no están en el contenedor; fallan igual sin estos cambios).
 
 **Falta**: dudas de `DATOS-RAMOS.md` (programa ORG 2025, teoría FQ, lab ANA, Inglés IV);
 orden de las fases siguientes; cómo se ve Avisos (campana) y la vista Semestre en pixel; cómo se integra el viaje escalera/ascensor.
@@ -290,6 +307,10 @@ Orden pensado para que lo urgente (la semana del 19 oct) llegue primero:
 
 ## Pendiente
 
+- **Aprobación visual de la Fase 1** (Niquito). Después: Calendario (mes/semana/semestre, mover con historial), Notas (balanza, frascos, simulador; mudar Notas e Inasistencias del Perfil), Lab completo, Avisos (campana).
+- Fase 1, falta: sonidos (fuego, lluvia, tic-tac, pluma, campana), balanza que se inclina según notas, mesa ordenada/desordenada según el plan, editar o borrar una fecha desde el estudio (hoy solo agregar),
+  "¿cómo te fue?" después de rendir (llega con Notas), Inicio calmado el día de prueba, ritual del domingo.
+- Avisar al chat del Perfil: Notas e Inasistencias se mudan a Organización (pendiente desde la tanda 1).
 - Aprobación de este diseño y de la maqueta.
 - Decisiones abiertas de `AVISOS.md` (Classroom vs pegar texto).
 - Avisos fuera de la app (notificaciones del celular) quedan fuera de este cambio.
