@@ -167,6 +167,11 @@ hay que tocar los 8 (contador x/8, se guarda en `seen`) para habilitar Siguiente
 - `#/tutorial/test` = la prueba de antes (sin guardar nada). Avance real en `localStorage['nexo.tutorial.v1']`.
 - Filtro de nombres: palabras ofensivas por fragmento o exactas (ignora tildes y cambios tipo "l33t"); lista corta en `tutorial.js`, ampliable.
 
+## Ajustes tras probarlo (14 oct 2026, esperando aprobación de Niquito)
+- **Objetos del refugio**: ahora brillan (borde dorado, pulso y estrella ✦; verde con ✓ al tocarlos) y el botón **ya no bloquea**: dice «Seguir (faltan N)» y se puede avanzar sin tocarlos todos.
+- **Voz del texto** (estilo videojuego): un blip por letra, tono al azar en escala pentatónica, más grave en el Grimorio; suena **por defecto** (antes dependía del ajuste de sonido, que viene apagado). Botón ♪ arriba para silenciar (se recuerda en el navegador).
+- **Grimorio con más vida**: flota y respira siempre, salta al empezar cada palabra, rebota al cambiar de pose. Se apaga con «reducir movimiento».
+
 ## Para terminar el tutorial (14 oct 2026)
 
 Niquito: «el tutorial ya está súper bueno»: se da por **aprobado el tono, la segunda tanda del Grimorio (expresiones, boca, marco) y los 150 ⚛**. Solo se cambia algo si él lo pide. Ya hecho: guion de 29 pasos, conexión real, avisos por sección y novedades, revisión en móvil (390).

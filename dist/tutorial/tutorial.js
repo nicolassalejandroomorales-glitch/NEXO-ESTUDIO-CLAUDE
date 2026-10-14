@@ -96,7 +96,7 @@
 
   function ensureCss() {
     if (cssLoaded) return; cssLoaded = true;
-    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = new URL('./tutorial.css?v=4', HERE).href; document.head.append(l);
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = new URL('./tutorial.css?v=5', HERE).href; document.head.append(l);
   }
   function ensurePixel() {
     if (window.PixelMascotas) return Promise.resolve(window.PixelMascotas);
@@ -122,7 +122,7 @@
     const root = el('section', 'tut');
     root.innerHTML = `
       <div class="tut-top"><div class="tut-bar" role="progressbar" aria-label="Avance del tutorial" aria-valuemin="0" aria-valuemax="100"><i></i></div>
-        <button class="tut-skip secondary-btn" type="button">Salir</button></div>
+        <button class="tut-mute secondary-btn" type="button" aria-label="Silenciar voces" title="Voces">♪</button><button class="tut-skip secondary-btn" type="button">Salir</button></div>
       <div class="tut-scene"></div>
       <div class="tut-talk">
         <div class="tut-grim" aria-hidden="true"></div>
@@ -143,19 +143,32 @@
     const later = (ms, fn) => { const t = setTimeout(() => { if (alive()) fn(); }, ms); timers.push(t); return t; };
     const clearAll = () => { timers.forEach(clearTimeout); timers = []; clearTimeout(typeTimer); typing = false; };
 
-    // ——— Sonido: bips de 8 bits (respetan el ajuste de sonido de la app) ———
+    // ——— Sonido: voz de videojuego (un "blip" por letra, tono al azar en escala pentatónica) ———
+    // El tutorial suena por defecto (la voz es parte de la experiencia); se apaga con el botón ♪ (se recuerda en este navegador).
     let ac = null;
-    const beep = hz => {
-      if (!sound()) return;
+    const MUTE = 'nexo.tutorial.mute';
+    const muted = () => { try { return localStorage.getItem(MUTE) === '1'; } catch (_) { return false; } };
+    const STEPS_UP = [-5, -3, 0, 2, 4, 7];
+    const beep = (hz, big = false) => {
+      if (muted()) return;
       try {
         ac = ac || new (window.AudioContext || window.webkitAudioContext)();
-        const o = ac.createOscillator(), g = ac.createGain(); o.type = 'square'; o.frequency.value = hz * (0.92 + Math.random() * 0.16);
-        g.gain.value = 0.025; o.connect(g); g.connect(ac.destination); o.start(); o.stop(ac.currentTime + 0.04);
+        if (ac.state === 'suspended') ac.resume();
+        const t = ac.currentTime, f = hz * 2 ** (STEPS_UP[Math.floor(Math.random() * STEPS_UP.length)] / 12) * (big ? 1.5 : 1);
+        const out = ac.createGain(); out.connect(ac.destination);
+        out.gain.setValueAtTime(0.0001, t); out.gain.linearRampToValueAtTime(big ? 0.16 : 0.1, t + 0.006); out.gain.exponentialRampToValueAtTime(0.0001, t + (big ? 0.16 : 0.075));
+        [['square', f, 0.55], ['triangle', f / 2, 0.9]].forEach(([type, fr, v]) => {
+          const o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.value = fr; g.gain.value = v;
+          o.connect(g); g.connect(out); o.start(t); o.stop(t + (big ? 0.18 : 0.09));
+        });
       } catch (_) { /* sin audio */ }
     };
 
     // ——— Grimorio ———
+    const px = () => parseFloat(root.style.getPropertyValue('--s')) || 4;
+    const hop = () => grim.animate([{ translate: '0 0' }, { translate: `0 ${-2 * px()}px` }, { translate: '0 0' }], { duration: 150, easing: 'ease-out' });
     function drawGrim(name, col = 0) {
+      if (name !== pose && !reduced()) { grim.classList.remove('pop'); void grim.offsetWidth; grim.classList.add('pop'); }
       pose = name;
       if (name === 'dormido') {
         grim.style.backgroundImage = `url(${asset('grimorio-v1.png')})`;
@@ -176,12 +189,13 @@
       tagEl.textContent = who === 'M' ? (s.name || INFO[s.kind]?.nombre || '') : 'Grimorio';
       box.classList.remove('done');
       let k = 0; typing = true; textEl.textContent = '';
-      const hz = who === 'M' ? INFO[s.kind].tono : 380;
+      const hz = who === 'M' ? INFO[s.kind].tono / 2 : 210;
       const tick = () => {
         if (!alive()) return;
         k++; textEl.textContent = text.slice(0, k);
         if (who === 'G' && pose !== 'dormido') drawGrim(pose, [1, 2, 1, 0][k % 4]);
-        if (k % 2 === 0 && /\S/.test(text[k - 1])) beep(hz);
+        if (/[\p{L}\p{N}]/u.test(text[k - 1])) beep(hz);
+        if (who === 'G' && !reduced() && (k === 1 || text[k - 2] === ' ') && /\S/.test(text[k - 1])) hop();
         if (k >= text.length) { finishType(); if (then) then(); return; }
         typeTimer = setTimeout(tick, /[.,…?!]/.test(text[k - 1]) ? 150 : 28);
       };
@@ -271,7 +285,7 @@
       const stage = el('div', 'tut-stage'); stage.style.backgroundImage = `url(${new URL(prof.backgroundAsset, document.baseURI).href})`;
       const objetos = !!steps[s.i].objetos, pc = el('div', 'tut-stage-pet'), p = petCanvas(s.kind, 'feliz');
       const anc = prof.mascotAnchors.rest.point; pc.style.left = anc[0] * 100 + '%'; pc.style.top = anc[1] * 100 + '%'; pc.append(p.c); stage.append(pc);
-      const counter = el('div', 'tut-count'); const upd = () => { counter.textContent = `${s.seen.length}/${Object.keys(OBJETOS).length} objetos`; };
+      const counter = el('div', 'tut-count'); const upd = () => { counter.textContent = `${s.seen.length}/${Object.keys(OBJETOS).length} objetos · toca los que brillan ✦ (puedes seguir cuando quieras)`; };
       prof.hotspots.forEach(h => {
         const info = OBJETOS[h.id]; if (!info) return;
         let [x, y, w, hh] = h.bounds || [0, 0, 1, 1];
@@ -305,7 +319,7 @@
       later(5200, () => { shake = 0; frame(4); egg.classList.add('hard'); });
       later(6700, () => { frame(5); drawGrim('importante'); say('¡NO SÉ SI ES NORMAL!'); });
       later(8300, () => { frame(6); drawGrim('espiral'); });
-      later(9800, () => { shake = 0; egg.classList.remove('shake', 'hard'); frame(7); flash.className = 'tut-flash on big'; drawGrim('sorprendido'); beep(900); });
+      later(9800, () => { shake = 0; egg.classList.remove('shake', 'hard'); frame(7); flash.className = 'tut-flash on big'; drawGrim('sorprendido'); beep(500, true); });
       later(10500, () => {
         flash.className = 'tut-flash'; frame(8); m.hidden = false; mascot.hop = 3;
         const t0 = performance.now(); const hop = () => { if (!alive()) return; const d = (performance.now() - t0) / 1000; mascot.hop = d < 1.6 ? Math.abs(Math.sin(d * 6)) * 5 : 0; if (d < 1.6) requestAnimationFrame(hop); };
@@ -318,9 +332,10 @@
     function textOf(step) { return typeof step.text === 'function' ? step.text(s) : step.text; }
     function refresh() {
       const step = steps[s.i];
-      const needOk = !step.needs || (step.needs === 'kind' ? !!s.kind : step.needs === 'seen' ? Object.keys(OBJETOS).every(k => s.seen.includes(k)) : !nameError(s.draft));
+      const needOk = !step.needs || (step.needs === 'kind' ? !!s.kind : step.needs === 'seen' ? true : !nameError(s.draft));
       nextBtn.disabled = busy || !needOk;
       nextBtn.textContent = step.next || (s.i === steps.length - 1 ? (mode === 'test' ? 'Reiniciar prueba' : 'Terminar') : 'Siguiente');
+      if (step.needs === 'seen') { const left = Object.keys(OBJETOS).length - s.seen.length; nextBtn.textContent = left ? `Seguir (faltan ${left})` : 'Listo, seguir'; }
       backBtn.disabled = busy || s.i === 0 || !!step.noBack;
       backBtn.textContent = step.back || 'Atrás';
       barEl.firstElementChild.style.width = Math.round(s.i / (steps.length - 1) * 100) + '%';
@@ -351,6 +366,9 @@
     });
     backBtn.addEventListener('click', () => { if (s.i > 0) show(s.i - 1); });
     box.addEventListener('click', () => { if (typing && !busy) skipType(curText); });
+    const muteBtn = $('.tut-mute'), paintMute = () => { muteBtn.classList.toggle('off', muted()); muteBtn.setAttribute('aria-pressed', muted() ? 'true' : 'false'); };
+    muteBtn.addEventListener('click', () => { try { localStorage.setItem(MUTE, muted() ? '0' : '1'); } catch (_) {} paintMute(); if (!muted()) beep(300, true); });
+    paintMute();
     $('.tut-skip').addEventListener('click', () => { clearAll(); if (mode === 'first') api.skip(); if (opts.exit) opts.exit(); else location.hash = '#/home'; });
     show(s.i);
   }
