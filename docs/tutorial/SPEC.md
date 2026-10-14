@@ -167,6 +167,27 @@ hay que tocar los 8 (contador x/8, se guarda en `seen`) para habilitar Siguiente
 - `#/tutorial/test` = la prueba de antes (sin guardar nada). Avance real en `localStorage['nexo.tutorial.v1']`.
 - Filtro de nombres: palabras ofensivas por fragmento o exactas (ignora tildes y cambios tipo "l33t"); lista corta en `tutorial.js`, ampliable.
 
+## REDISEÑO: recorrido por la app real (14 oct 2026, pedido de Niquito)
+
+**Problema:** hoy el tutorial es una escena aparte con paneles de ejemplo. Niquito quiere que el Grimorio **explore la aplicación de verdad**: que te lleve a cada pantalla real y te explique lo que hay ahí.
+
+**Decisiones (Niquito, 14 oct):**
+- **Estilo mixto:** «foco + Siguiente» en casi todo (el Grimorio navega a la pantalla real, oscurece el resto y resalta con un halo el botón o tarjeta que explica) y **«hazlo tú»** solo en 3–4 momentos clave (esperar el toque real: abrir una clase, tocar un objeto del refugio, abrir el calendario).
+- **Inicio igual:** se mantiene la escena de huevos, nombre y nacimiento; justo después el Grimorio sale a recorrer la app real.
+- **Profundidad:** solo lo principal. 5 pantallas (Inicio, Aprender, Juegos/Entrenar, Organización, Perfil), 2–4 cosas resaltadas en cada una. ~4–5 min.
+- Los objetos del refugio **nunca bloquean** el avance (ya hecho).
+
+**Cómo (propuesta, a confirmar leyendo el código real):**
+- Motor nuevo `dist/tutorial/recorrido.js` (carga perezosa, como `avisos.js`): lista de pasos `{ ruta, objetivo (selector CSS), texto, pose, accion? }`. Hace `routeTo(ruta)`, espera a que exista el objetivo, lo resalta (halo + fondo oscurecido con recorte) y coloca al Grimorio en la esquina más cercana sin taparlo. Si el objetivo no existe, lo salta sin trabarse.
+- Selectores reales a usar (verificar): barra de navegación `.nav-btn[data-route=home|learn|train|games|profile]`, botones de cabecera (Bitácora/calendario, monedas, Tienda), objetos tocables del refugio (`NexoHomeScene`), tarjetas de cada pantalla.
+- Reutiliza los textos y datos del GUION (con su evidencia) pero cada uno **atado a algo visible**.
+- Móvil (390): barra de texto abajo; el halo sigue la barra de navegación móvil.
+- Los avisos por sección (`avisos.js`) siguen igual; se reemplazan los paneles falsos (pasos 14–27) por este recorrido.
+
+**Audio sincronizado (pedido explícito):** hoy hay un blip por letra a ~28 ms y se solapan. Cambiar a: **un blip por cada letra visible, con duración menor que el intervalo y programado con el reloj de audio** (no con `setTimeout`), pausa más larga en `. , ? !` (sin sonido, como Undertale), y el mismo ritmo para la boca y el salto del Grimorio. Probar que el sonido empieza justo cuando aparece cada letra y que termina cuando termina el texto (también al saltar el texto con clic).
+
+**Criterios de aceptación:** el recorrido pasa por las 5 pantallas reales y resalta elementos que existen; los 3–4 «hazlo tú» esperan el toque real y tienen salida si no pasa nada en ~10 s; nunca queda trabado; funciona en 1440 y 390; el audio coincide con las letras; se puede salir y repetir desde Ajustes → Tutoriales.
+
 ## Ajustes tras probarlo (14 oct 2026, esperando aprobación de Niquito)
 - **Objetos del refugio**: ahora brillan (borde dorado, pulso y estrella ✦; verde con ✓ al tocarlos) y el botón **ya no bloquea**: dice «Seguir (faltan N)» y se puede avanzar sin tocarlos todos.
 - **Voz del texto** (estilo videojuego): un blip por letra, tono al azar en escala pentatónica, más grave en el Grimorio; suena **por defecto** (antes dependía del ajuste de sonido, que viene apagado). Botón ♪ arriba para silenciar (se recuerda en el navegador).
