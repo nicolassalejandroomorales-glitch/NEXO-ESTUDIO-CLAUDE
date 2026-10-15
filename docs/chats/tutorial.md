@@ -1,6 +1,6 @@
 # Tutorial (Grimorio guía)
 - modelo: Sonnet 5.5 · medio
-- estado: conectado a la app, falta pulir
+- estado: conectado a la app; Niquito pidió rehacer su aspecto y animación (crítica del 15 oct)
 - prioridad: 2
 - spec: docs/tutorial/SPEC.md
 
@@ -11,9 +11,13 @@
 - Objetos del refugio resaltados, voz por letra con botón de silencio.
 
 ## Falta
+- Leer `docs/tutorial/FEEDBACK-15OCT.md` (crítica de Niquito, por sección) y conversar con él el orden antes de programar.
+- Animación fluida del Grimorio, el libro, el altar con velas y la nube de diálogo (hoy parecen PNG).
+- Fondo con runas y magia que se mueve (el azul liso no le gusta); huevos con textura y movimiento.
+- Mascota que habla con la personalidad de su especie y hace un "dab" al nacer (confirmar).
+- Texto con personalidad (hoy "NPC") y cambiar la voz del mago; revisar el salto de la pantalla hacia arriba.
+- Hacer el tutorial **modular por secciones**, porque Aprender y otras pantallas van a cambiar.
 - Premio con nube (necesita permiso explícito, hoy no se toca Supabase).
-- Rediseño propuesto: recorrido por la app real con audio sincronizado (ver SPEC).
-- Que Niquito corrija el tono del guion y de FRASES.md.
 - Revisar que 150 ⚛ siga bien si cambian los precios de la tienda.
 
 ## Ideas
@@ -22,14 +26,14 @@
 
 ## Prompt de inicio
 ```
-Chat: Tutorial. Lee CLAUDE.md, la skill nexo-tutorial y docs/tutorial/SPEC.md.
-Contexto: el tutorial ya está conectado a la app. Lo que sigue es el rediseño (recorrido por la app real con audio sincronizado) y corregir el tono del guion.
-Tarea: dime en una línea qué entendiste y propón con selección múltiple por cuál empezar. Implementa en pasos chicos, probando en 1440 y 390.
-No te salgas del tema. Al terminar, usa nexo-cierre y actualiza docs/chats/tutorial.md.
+Chat: Tutorial (solo conversar primero). Lee CLAUDE.md, la skill nexo-tutorial, docs/tutorial/SPEC.md y docs/tutorial/FEEDBACK-15OCT.md.
+Contexto: el tutorial funciona, pero quiero rehacer su aspecto y animación; mi crítica está en FEEDBACK-15OCT.md, ordenada por sección.
+Tarea: dime en una línea qué entendiste y hazme máximo 3 preguntas de selección múltiple para decidir por qué sección empezamos y cómo se debe ver la animación. No escribas código ni dibujes hasta que yo diga "hazlo".
+Al terminar, usa nexo-cierre y actualiza docs/chats/tutorial.md.
 ```
 
 ## Prompt de continuación
 ```
-Chat: Tutorial. Lee CLAUDE.md, la skill nexo-tutorial y docs/chats/tutorial.md.
-Parte desde "Falta" y pregúntame qué sigue.
+Chat: Tutorial. Lee CLAUDE.md, la skill nexo-tutorial, docs/tutorial/FEEDBACK-15OCT.md y docs/chats/tutorial.md.
+Parte desde "Falta" y pregúntame qué sección sigue.
 ```

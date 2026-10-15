@@ -16,6 +16,7 @@ const EXCLUDE = [
   'assets/classes/org-01/slides', // diapositivas reales del PPT de Aminas
   'classes/slides',               // mapa de esas diapositivas (la clase ya lo ignora si falta)
   'dev',                          // demos y hojas de revisión internas
+  'games/prototipos',             // prototipos sueltos, no hacen falta en la beta
   'vendor/pdfjs', 'vendor/posthog', 'vendor/supabase', 'vendor/rive'
 ];
 const isExcluded = rel => EXCLUDE.some(e => rel === e || rel.startsWith(e + '/')) || rel.endsWith('.riv');
@@ -30,9 +31,13 @@ function copy(dir, rel = '') {
   }
 }
 
-fs.rmSync(out, { recursive: true, force: true });
+// Se vacía el contenido (no la carpeta misma): así no falla si el Explorador o el terminal la tienen abierta.
 fs.mkdirSync(out, { recursive: true });
+for (const name of fs.readdirSync(out)) fs.rmSync(path.join(out, name), { recursive: true, force: true });
 copy(src);
+
+// GitHub Pages pasa todo por Jekyll y se salta carpetas que empiezan con "_"; este archivo vacío lo apaga (no estorba en otros hosting).
+fs.writeFileSync(path.join(out, '.nojekyll'), '');
 
 // "Pruebas antiguas" apunta a las pautas y PDFs: en la beta la lista va vacía.
 const dataPath = path.join(out, 'data.js');

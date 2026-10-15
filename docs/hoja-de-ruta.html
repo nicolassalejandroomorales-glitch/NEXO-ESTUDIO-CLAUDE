@@ -26,7 +26,7 @@ ul{margin:0;padding-left:18px;font-size:14px}li{margin-bottom:4px}.vacio{color:v
 </style></head><body><main>
 <h1>Hoja de ruta de Nexo</h1>
 <p class="sub">Generada el 2026-10-15 desde docs/chats/. Un chat = un tema = un modelo.</p>
-<div class="totales"><div><b>33</b>hecho</div><div><b>42</b>falta</div><div><b>30</b>ideas</div><div><b>12</b>chats</div></div>
+<div class="totales"><div><b>33</b>hecho</div><div><b>49</b>falta</div><div><b>30</b>ideas</div><div><b>12</b>chats</div></div>
 <div class="filtros"><button class="on" data-f="0">Todos</button><button data-f="1">Urgente</button><button data-f="2">Pronto</button><button data-f="3">Después</button><button data-f="4">Ideas</button></div>
 
 <article class="card p1" data-prio="1">
@@ -91,6 +91,28 @@ No te salgas del tema. Al terminar, usa nexo-cierre y actualiza docs/chats/organ
     <button data-copy="Chat: Organización (Bitácora viva). Lee CLAUDE.md, docs/update-02-organizacion/SPEC.md y docs/chats/organizacion.md.
 Aún no se ha trabajado en este chat nuevo: parte desde &quot;Falta&quot; del archivo de chat y pregúntame cuál fase sigue.">Copiar prompt de continuación</button>
     <span class="spec">docs/update-02-organizacion/SPEC.md</span>
+  </div>
+</article>
+
+<article class="card p2" data-prio="2">
+  <header>
+    <span class="tag prio">Pronto</span>
+    <h2>Aspecto y navegación de toda la app</h2>
+    <p class="meta"><span class="tag">Sonnet 5.5 · alto (solo conversar y diseñar al inicio)</span> <span class="tag">crítica recibida el 15 oct, sin decisiones</span></p>
+  </header>
+  <div class="cols">
+    <section><h3>Hecho (2)</h3><ul><li>Refugio y mascotas ya en pixel art con las rampas de `tools/home-pixel/pixel.py`.</li><li>Grimorio del tutorial, marcos de diálogo y huevos en pixel art.</li></ul></section>
+    <section><h3>Falta (5)</h3><ul><li>Decidir la **navegación**: la barra lateral convive con las escenas tocables; Niquito duda de que haga falta.</li><li>Diseñar **botones y paneles con personalidad** (hoy &quot;feos, sin personalidad&quot;) como un kit compartido en `tools/pixel-ui/`.</li><li>Mejorar la **versión de computador**, que no le gusta.</li><li>Rehacer **Aprender** (su grimorio es &quot;antiestético&quot;) y preguntar a qué se refiere con &quot;la biblioteca Nexo&quot;.</li><li>Decidir si grimorio, clases, tienda y juegos pasan a pixel art con el mismo kit.</li></ul></section>
+    <section><h3>Ideas (3)</h3><ul><li>Una sola fuente y un solo set de botones para toda la app.</li><li>Íconos de la barra lateral en pixel art.</li><li>Transiciones entre pantallas con el mismo lenguaje del grimorio.</li></ul></section>
+  </div>
+  <div class="prompts">
+    <button data-copy="Chat: Aspecto y navegación de toda la app (solo diseño). Lee CLAUDE.md, la skill nexo-pixel-art y docs/ux-app/FEEDBACK-15OCT.md.
+Contexto: no me gusta la versión de computador, los botones ni la navegación; mi crítica está en ese archivo.
+Tarea: conversemos, sin dibujar ni programar. Dime en una línea qué entendiste y hazme máximo 3 preguntas de selección múltiple, empezando por la navegación (¿se queda la barra lateral?) y por cómo debe verse un botón de Nexo. Revisa si ya existe tools/pixel-ui/ para reutilizarlo.
+Al terminar, usa nexo-cierre y actualiza docs/chats/pixel-ui.md.">Copiar prompt de inicio</button>
+    <button data-copy="Chat: Aspecto y navegación de toda la app. Lee CLAUDE.md, la skill nexo-pixel-art y docs/chats/pixel-ui.md.
+Parte desde &quot;Falta&quot; y pregúntame qué decisión toca primero.">Copiar prompt de continuación</button>
+    <span class="spec">docs/ux-app/FEEDBACK-15OCT.md</span>
   </div>
 </article>
 
@@ -163,20 +185,20 @@ Parte desde &quot;Falta&quot; y pregúntame qué sigue.">Copiar prompt de contin
   <header>
     <span class="tag prio">Pronto</span>
     <h2>Tutorial (Grimorio guía)</h2>
-    <p class="meta"><span class="tag">Sonnet 5.5 · medio</span> <span class="tag">conectado a la app, falta pulir</span></p>
+    <p class="meta"><span class="tag">Sonnet 5.5 · medio</span> <span class="tag">conectado a la app; Niquito pidió rehacer su aspecto y animación (crítica del 15 oct)</span></p>
   </header>
   <div class="cols">
     <section><h3>Hecho (4)</h3><ul><li>Diseño cerrado (SPEC, GUION de 29 pasos, FRASES) y arte pixel: Grimorio (15 poses × 3 bocas), huevos con nacimiento, marcos.</li><li>Guion completo programado y conectado: cuenta nueva lo ve sola, guarda mascota y nombre reales, premio de 150 ⚛ una vez, Ajustes › Tutoriales, filtro de nombres.</li><li>Avisos del Grimorio (primera vez por sección y novedades con versión) y revisión en móvil (390).</li><li>Objetos del refugio resaltados, voz por letra con botón de silencio.</li></ul></section>
-    <section><h3>Falta (4)</h3><ul><li>Premio con nube (necesita permiso explícito, hoy no se toca Supabase).</li><li>Rediseño propuesto: recorrido por la app real con audio sincronizado (ver SPEC).</li><li>Que Niquito corrija el tono del guion y de FRASES.md.</li><li>Revisar que 150 ⚛ siga bien si cambian los precios de la tienda.</li></ul></section>
+    <section><h3>Falta (8)</h3><ul><li>Leer `docs/tutorial/FEEDBACK-15OCT.md` (crítica de Niquito, por sección) y conversar con él el orden antes de programar.</li><li>Animación fluida del Grimorio, el libro, el altar con velas y la nube de diálogo (hoy parecen PNG).</li><li>Fondo con runas y magia que se mueve (el azul liso no le gusta); huevos con textura y movimiento.</li><li>Mascota que habla con la personalidad de su especie y hace un &quot;dab&quot; al nacer (confirmar).</li><li>Texto con personalidad (hoy &quot;NPC&quot;) y cambiar la voz del mago; revisar el salto de la pantalla hacia arriba.</li><li>Hacer el tutorial **modular por secciones**, porque Aprender y otras pantallas van a cambiar.</li><li>Premio con nube (necesita permiso explícito, hoy no se toca Supabase).</li><li>Revisar que 150 ⚛ siga bien si cambian los precios de la tienda.</li></ul></section>
     <section><h3>Ideas (2)</h3><ul><li>Mini tutoriales por sección que se activan la primera vez que entras.</li><li>El Grimorio recuerda tus preferencias y sugiere la primera sesión.</li></ul></section>
   </div>
   <div class="prompts">
-    <button data-copy="Chat: Tutorial. Lee CLAUDE.md, la skill nexo-tutorial y docs/tutorial/SPEC.md.
-Contexto: el tutorial ya está conectado a la app. Lo que sigue es el rediseño (recorrido por la app real con audio sincronizado) y corregir el tono del guion.
-Tarea: dime en una línea qué entendiste y propón con selección múltiple por cuál empezar. Implementa en pasos chicos, probando en 1440 y 390.
-No te salgas del tema. Al terminar, usa nexo-cierre y actualiza docs/chats/tutorial.md.">Copiar prompt de inicio</button>
-    <button data-copy="Chat: Tutorial. Lee CLAUDE.md, la skill nexo-tutorial y docs/chats/tutorial.md.
-Parte desde &quot;Falta&quot; y pregúntame qué sigue.">Copiar prompt de continuación</button>
+    <button data-copy="Chat: Tutorial (solo conversar primero). Lee CLAUDE.md, la skill nexo-tutorial, docs/tutorial/SPEC.md y docs/tutorial/FEEDBACK-15OCT.md.
+Contexto: el tutorial funciona, pero quiero rehacer su aspecto y animación; mi crítica está en FEEDBACK-15OCT.md, ordenada por sección.
+Tarea: dime en una línea qué entendiste y hazme máximo 3 preguntas de selección múltiple para decidir por qué sección empezamos y cómo se debe ver la animación. No escribas código ni dibujes hasta que yo diga &quot;hazlo&quot;.
+Al terminar, usa nexo-cierre y actualiza docs/chats/tutorial.md.">Copiar prompt de inicio</button>
+    <button data-copy="Chat: Tutorial. Lee CLAUDE.md, la skill nexo-tutorial, docs/tutorial/FEEDBACK-15OCT.md y docs/chats/tutorial.md.
+Parte desde &quot;Falta&quot; y pregúntame qué sección sigue.">Copiar prompt de continuación</button>
     <span class="spec">docs/tutorial/SPEC.md</span>
   </div>
 </article>
@@ -264,27 +286,6 @@ No toques Supabase. Al terminar, usa nexo-cierre y actualiza docs/chats/mascota.
     <button data-copy="Chat: Mascota. Lee CLAUDE.md, la skill nexo-mascota y docs/chats/mascota.md.
 Parte desde &quot;Falta&quot; y pregúntame qué sigue.">Copiar prompt de continuación</button>
     <span class="spec">docs/mascota/SPEC.md</span>
-  </div>
-</article>
-
-<article class="card p4" data-prio="4">
-  <header>
-    <span class="tag prio">Idea</span>
-    <h2>Pixel art en toda la app</h2>
-    <p class="meta"><span class="tag">Sonnet 5.5 · medio</span> <span class="tag">idea, sin decidir</span></p>
-  </header>
-  <div class="cols">
-    <section><h3>Hecho (2)</h3><ul><li>Refugio y mascotas ya en pixel art con las rampas de `tools/home-pixel/pixel.py`.</li><li>Grimorio del tutorial, marcos de diálogo y huevos en pixel art.</li></ul></section>
-    <section><h3>Falta (2)</h3><ul><li>Decidir si grimorio (portada y páginas), clases, tienda y juegos pasan a pixel art (fuentes, botones, paneles).</li><li>Kit compartido `tools/pixel-ui/` (lo crea la Fase 0 del chat organizacion; reutilizar, no duplicar).</li></ul></section>
-    <section><h3>Ideas (3)</h3><ul><li>Una sola fuente y un solo set de botones para toda la app.</li><li>Íconos de la barra lateral en pixel art.</li><li>Transiciones entre pantallas con el mismo lenguaje del grimorio.</li></ul></section>
-  </div>
-  <div class="prompts">
-    <button data-copy="Chat: Pixel art en toda la app (solo diseño). Lee CLAUDE.md, la skill nexo-pixel-art y la sección &quot;Estilo visual&quot; de docs/pendientes.md.
-Tarea: conversemos, sin dibujar. Dime en una línea qué entendiste y hazme máximo 3 preguntas de selección múltiple sobre qué pantallas pasan primero a pixel art. Revisa si ya existe tools/pixel-ui/ del chat organizacion para reutilizarlo.
-Al terminar, usa nexo-cierre y actualiza docs/chats/pixel-ui.md.">Copiar prompt de inicio</button>
-    <button data-copy="Chat: Pixel art en toda la app. Lee CLAUDE.md, la skill nexo-pixel-art y docs/chats/pixel-ui.md.
-Parte desde &quot;Falta&quot; y pregúntame qué sigue.">Copiar prompt de continuación</button>
-    <span class="spec">docs/pendientes.md (sección Estilo visual)</span>
   </div>
 </article>
 <section class="guia"><h2>Cuándo abrir un chat nuevo</h2>

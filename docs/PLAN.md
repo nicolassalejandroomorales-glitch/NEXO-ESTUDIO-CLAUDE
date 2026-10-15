@@ -17,15 +17,17 @@ La PEP 1 ya no es el eje: Niquito estudia con su propio chat personalizado; Nexo
 
 ## Propuesta (por confirmar)
 
-- **Hosting**: Cloudflare Pages con *Direct Upload* de una carpeta `beta/` ya preparada. Repo principal sigue privado. GitHub Pages es el plan B (exige repo público en el plan gratis, así que iría en un repo aparte solo con la beta).
-  Verificado en la documentación oficial (15 oct): acepta repos privados, 20.000 archivos y 25 MB por archivo (la app tiene 388 archivos y el mayor pesa 15 MB). Sin confirmar: tope de tráfico y si pide tarjeta.
+- **Hosting: POR DECIDIR por Niquito** entre GitHub Pages y Cloudflare Pages (ambas gratis y suficientes; comparación en el chat del 15 oct). Niquito pidió tener GitHub presente toda la sesión por su interés en el código abierto; Claude no debe dar una por elegida.
+  - **GitHub Pages** (doc oficial): el plan gratis solo da Pages en repos **públicos**; publica desde una rama en la raíz o `/docs`, o con un workflow de GitHub Actions; el sitio es público en internet aunque el repo sea privado (si el plan lo permite). Iría en un **repo público aparte con solo la beta ya construida**; el principal sigue privado.
+  - **Cloudflare Pages** (doc oficial): acepta repos privados, 20.000 archivos y 25 MB por archivo, y se puede subir una carpeta a mano (*Direct Upload*). Sin confirmar: tope de tráfico y si pide tarjeta.
+  - La app tiene 296 archivos en la beta y el mayor pesa 14 MB: cabe en ambas.
 - **Ensayo de publicación** antes de tener la beta lista, con una dirección que no se comparte con nadie, para descubrir problemas con tiempo.
 - **Feedback**: botón dentro de la app que lleve a un formulario simple.
 
 ## Pasos
 
 1. Preparar la carpeta `beta/` con un script (`tools/build-beta.cjs`) que excluya el material de profesores, `dev/` y lo que no corresponda. Probarla en 1440 y 390.
-2. Ensayo de publicación en Cloudflare (Niquito crea la cuenta; Claude prepara la carpeta y las instrucciones).
+2. Ensayo de publicación en el hosting que elija Niquito (él crea la cuenta o el repo y sube; Claude prepara la carpeta y las instrucciones; nada se publica sin su permiso).
 3. Dejar lista para extraños: tutorial, una clase por ramo, Organización (revisar Calendario y Notas), todo bien en celular.
 4. Botón de feedback y aviso de "esto es una prueba y tu progreso queda solo en este navegador".
 5. Compartir con un grupo chico primero y después con el curso.
@@ -43,9 +45,31 @@ La PEP 1 ya no es el eje: Niquito estudia con su propio chat personalizado; Nexo
 - El Inicio muestra **tus fechas reales** (PEP 1 21 oct, semana crítica 19–27 oct): revisar si valen para compañeros de otra sección.
 - El recorrido guiado de la clase ("Bienvenido a la torre") quizá nombre la pizarra: revisar sus pasos en la beta.
 
+## RESUELTO (15 oct 2026): el repositorio principal ya es PRIVADO
+
+Niquito lo puso en privado ese mismo día. Verificado sin sesión: la página, el contenido crudo y la API de GitHub responden 404; con su sesión de Git el `fetch` sigue funcionando. Lo que sigue es el historial de lo que estuvo público (abajo).
+
+### Lo que estuvo público antes (hasta ese momento)
+
+- Se verificó en `github.com/nicolassalejandroomorales-glitch/NEXO-ESTUDIO`: muestra la etiqueta **Public** (128 commits, 0 estrellas, 0 forks). Se había dado por privado sin comprobarlo.
+- Contiene hoy: 17 archivos de pruebas, pautas y PDFs (`dist/assets/exams`), 50 diapositivas del PPT (`dist/assets/classes/org-01/slides`), el correo de Niquito en 54 commits, `dist/config.js` con la dirección y la clave pública de Supabase, y las transcripciones de chats de `docs/contexto/`.
+- Hecho por Niquito: pasarlo a **privado**. La beta se publica desde un repo aparte.
+- Quitar el material del **historial** (reescribirlo) es otra cosa, más delicada; solo si Niquito lo pide y entiende el riesgo.
+
+## Flujo de Git deseado por Niquito (por diseñar)
+
+- Todo avance sube al repo **privado**; nada se publica solo.
+- Ahí se **audita** (pruebas, revisión de código, que no viaje material de profesores) y se ordena la estructura.
+- Publicar la beta es un paso aparte y manual, a un repo/hosting público distinto.
+
+## Después de la beta (crítica del 15 oct)
+
+- Aspecto y navegación de la app: `docs/ux-app/FEEDBACK-15OCT.md`. Tutorial (animación, personalidad, modular): `docs/tutorial/FEEDBACK-15OCT.md`.
+- Tensión por resolver con Niquito: quiere compartir la beta lo antes posible, pero también criticó mucho el aspecto actual. Decidir si la primera beta sale como está o tras pulir lo más visible.
+
 ## Falta decidir
 
 - Si los profesores permiten usar su material (solo lo sabe Niquito); define si algún día vuelve.
 - Qué ramos incluir en la primera tanda (hay clases de Orgánica II, Analítica, Fisiopatología y FQ II).
-- Si Cloudflare pide tarjeta al crear la cuenta; si la pide, ver GitHub Pages.
+- Cuál hosting usar (GitHub Pages o Cloudflare Pages); si Cloudflare pide tarjeta al crear la cuenta.
 - Qué pasa con los 2 tests que fallan en un worktree limpio (`academic-test`, `database-test`) y las 4 que se saltan: revisarlas antes de la beta.
