@@ -39,7 +39,7 @@ La PEP 1 ya no es el eje: Niquito estudia con su propio chat personalizado; Nexo
 
 - **Arreglado**: error `hydrateAvatars is not defined` (era un resto de las mascotas viejas; afectaba también a la app normal).
 - **Arreglado en la beta**: sin pestaña ni botón de "Pruebas antiguas", sin botón "Diapositivas", sin el objeto "Pizarra" y sin los recuadros de diapositivas. Lo activa `config.js` de la beta (`beta: true` y clase `nexo-beta`); la app normal sigue igual.
-- **Ojo, decisión tuya**: el **texto** de las diapositivas (títulos y viñetas de la clase de Aminas, crédito al Dr. Echeverría) sigue dentro de `dist/classes/org-01.js`. Ya no se ve en la beta, pero el archivo viaja y se podría leer. Si quieres que no viaje, hay que quitarlo o reescribirlo con palabras propias.
+- **Hecho**: la beta ya no lleva el texto de las diapositivas. `build-beta.cjs` vacía `slides: {...}` en las 11 clases (12 bloques). Quedan solo las citas de fuente (por ejemplo "Dr. Javier Echeverría, USACH 2025-2S") y los números de diapositiva que cita cada ejercicio. Probado: las 11 clases cargan sin errores y la misión de Aminas corre en 1440 y 390.
 - El Inicio muestra **tus fechas reales** (PEP 1 21 oct, semana crítica 19–27 oct): revisar si valen para compañeros de otra sección.
 - El recorrido guiado de la clase ("Bienvenido a la torre") quizá nombre la pizarra: revisar sus pasos en la beta.
 
