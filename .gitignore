@@ -13,3 +13,6 @@ rive/mascotas/build/
 
 # PDFs de cátedra (material del curso; se convierten con tools/classroom-art/slides.py)
 art-source/pdfs/
+
+# Carpeta generada por tools/build-beta.cjs (versión para compartir)
+beta/
