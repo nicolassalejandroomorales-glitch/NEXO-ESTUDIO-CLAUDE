@@ -72,3 +72,10 @@ Historial de lo hecho por tema. Lo lee Claude solo cuando necesita contexto de o
 - **Organización Fase 2 · Notas e inasistencias** (14 oct, esperando aprobación): frascos por evaluación, "Necesitas X,X", simulador, riesgo de examen por ramo, promedio general, autopsia, estimación y faltas con aviso. Perfil → Notas/Inasistencias ya redirigen. SPEC: `docs/update-02-organizacion/SPEC.md`; pruebas `tools/notas-test.cjs`. Siguen: Calendario, Lab, Avisos.
 - **Organización Fase 1 y 2 aprobadas (14 oct)** y cerradas con todo: sonidos del estudio, balanza que se inclina, mesa que se desordena, pruebas de ciclo enlazadas, autopsia → errores del plan, Perfil sin Notas/Inasistencias. Sigue el Calendario.
 - **Organización Fase 3 · Calendario** (14 oct, esperando aprobación): mes (pergamino con sellos), semana (horario + bloques arrastrables), semestre (línea de tiempo con semanas críticas), lista; hoja del día; mover fechas con historial y deshacer; tareas, receso, dificultad, .ics. `tools/calendario-test.cjs`. Siguen: Lab y Avisos.
+
+## 15 oct 2026 · Orden del desarrollo y beta para compañeros
+- **Organización del trabajo**: un archivo por tema en `docs/chats/` (modelo, hecho, falta, ideas y prompts) y vista `docs/hoja-de-ruta.html` (`node tools/build-hoja.cjs`). Regla 5b en `CLAUDE.md`: ningún chat termina sin prompt de continuación.
+- **Limpieza**: regla en `CLAUDE.md` (Forma de trabajo, 4) y `node tools/limpieza.cjs` (solo lee, sin tokens). Borradas 8 imágenes sin uso. Chat `docs/chats/limpieza.md`.
+- **Beta para compañeros** (`docs/PLAN.md`, `docs/chats/beta.md`): `node tools/build-beta.cjs` arma `beta/` sin material de profesores ni nube; probada en 1440, 390 y en subcarpeta. Hosting por decidir (GitHub Pages en repo aparte o Cloudflare); nada publicado.
+- **Repo principal pasado a privado** (estaba público con pruebas, diapositivas y correo). Arreglado `hydrateAvatars`. Inicio con clima y escenas por luz subido a master.
+- **Críticas de Niquito por sección**: `docs/tutorial/FEEDBACK-15OCT.md` y `docs/ux-app/FEEDBACK-15OCT.md` (animación, personalidad, botones, navegación). Sin implementar.

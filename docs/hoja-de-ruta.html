@@ -26,8 +26,30 @@ ul{margin:0;padding-left:18px;font-size:14px}li{margin-bottom:4px}.vacio{color:v
 </style></head><body><main>
 <h1>Hoja de ruta de Nexo</h1>
 <p class="sub">Generada el 2026-10-15 desde docs/chats/. Un chat = un tema = un modelo.</p>
-<div class="totales"><div><b>36</b>hecho</div><div><b>58</b>falta</div><div><b>32</b>ideas</div><div><b>13</b>chats</div></div>
+<div class="totales"><div><b>41</b>hecho</div><div><b>66</b>falta</div><div><b>34</b>ideas</div><div><b>14</b>chats</div></div>
 <div class="filtros"><button class="on" data-f="0">Todos</button><button data-f="1">Urgente</button><button data-f="2">Pronto</button><button data-f="3">Después</button><button data-f="4">Ideas</button></div>
+
+<article class="card p1" data-prio="1">
+  <header>
+    <span class="tag prio">Urgente</span>
+    <h2>Beta para compañeros</h2>
+    <p class="meta"><span class="tag">Sonnet 5.5 · medio</span> <span class="tag">carpeta beta lista y probada; falta elegir hosting y publicar el ensayo</span></p>
+  </header>
+  <div class="cols">
+    <section><h3>Hecho (5)</h3><ul><li>Meta decidida: beta para 10 a 30 compañeros, sin cuentas ni nube, con tutorial, una clase por ramo y Organización.</li><li>`node tools/build-beta.cjs` arma `beta/` (296 archivos, 52 MB): sin diapositivas, pautas ni PDFs de profes, sin el texto de las diapositivas dentro de las clases, sin pestaña de Pruebas antiguas, con la nube apagada y con `.nojekyll`.</li><li>Probada en 1440 y 390 y dentro de una subcarpeta (`/nexo-beta/`), como la verá GitHub Pages: sin rutas rotas.</li><li>Repo principal pasado a privado (15 oct) y flujo deseado anotado en PLAN.md.</li><li>Se investigaron GitHub Pages y Cloudflare Pages con la documentación oficial (comparación en PLAN.md).</li></ul></section>
+    <section><h3>Falta (8)</h3><ul><li>**Elegir hosting**: Niquito pidió tener GitHub presente; se inclinó por GitHub Pages con un repo público aparte (`nexo-beta`). Claude no debe darlo por elegido.</li><li>Crear el repo público vacío `nexo-beta` (lo hace Niquito) y pasar su correo **noreply** de GitHub (Settings › Emails) para firmar el commit sin mostrar su Gmail.</li><li>Publicar la beta (Claude solo con permiso explícito) y revisarla ya publicada en 1440 y 390.</li><li>Decidir si la beta sale como está o tras pulir lo más visible (tutorial, botones, navegación).</li><li>Botón de feedback dentro de la app y aviso &quot;es una prueba, tu progreso queda solo en este navegador&quot;.</li><li>Revisar si las fechas del Inicio (PEP 1 21 oct, etc.) valen para compañeros de otra sección.</li><li>Revisar que el recorrido guiado de la clase no nombre la Pizarra (quitada en la beta).</li><li>Revisor automático en el repo privado (pruebas, limpieza y &quot;no viaja material de profes&quot;) antes de cada publicación.</li></ul></section>
+    <section><h3>Ideas (2)</h3><ul><li>Un script `tools/publish-beta.cjs` que arme y suba la beta al repo público con un solo comando y pida confirmación antes.</li><li>Formulario de feedback con preguntas fijas (qué entendiste, qué se rompió, qué te gustó).</li></ul></section>
+  </div>
+  <div class="prompts">
+    <button data-copy="Chat: Beta para compañeros. Lee CLAUDE.md y docs/PLAN.md (secciones Propuesta, Avance, Hallazgos y Falta decidir).
+Contexto: tengo una carpeta beta/ lista (node tools/build-beta.cjs) para compartir con 10 a 30 compañeros, sin cuentas ni material de profesores. Mi repo principal es privado. Quiero publicar en GitHub Pages con un repo público aparte, pero la decisión final es mía.
+Tarea: dime en una línea qué entendiste. Pregúntame con selección múltiple qué decido primero (hosting, feedback, o pulir antes). Nada se publica sin que yo lo autorice en el momento.
+Al terminar, usa nexo-cierre y actualiza docs/chats/beta.md.">Copiar prompt de inicio</button>
+    <button data-copy="Chat: Beta para compañeros. Lee CLAUDE.md, docs/PLAN.md y docs/chats/beta.md.
+Parte desde &quot;Falta&quot; y pregúntame qué sigue. Recuerda: nada se publica sin mi permiso explícito.">Copiar prompt de continuación</button>
+    <span class="spec">docs/PLAN.md</span>
+  </div>
+</article>
 
 <article class="card p1" data-prio="1">
   <header>
