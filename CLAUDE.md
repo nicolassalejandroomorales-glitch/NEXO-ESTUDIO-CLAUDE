@@ -58,6 +58,15 @@ npm test                            # todas las pruebas rápidas (tools/run-test
 - Una sesión = un cambio. Delegar a Haiku: búsquedas en el código → agente `nexo-explorador`; correr pruebas → agente `nexo-tester` (solo devuelve lo que falló).
 - Medir el costo por tarea terminada, no por mensaje. Revisar el gasto real cada pocas sesiones y recalibrar.
 
+### Ahorro de tokens (11 oct 2026: 24 h gastaron ~80 % con contexto >150k y 89 % en Opus)
+
+- **Avisar el tamaño de la sesión**: si la conversación ya es larga (muchas capturas, muchos archivos leídos), decirle a Niquito en una línea "conviene compactar o abrir chat nuevo" y ofrecer `nexo-cierre`. No esperar a que él lo note.
+- **Capturas y verificación**: verificar con texto (`read_page`, consola, pruebas) y sacar **una sola captura al final**, no una por ajuste. Usar `scale` bajo (0.5) salvo que haga falta detalle.
+- **Pixel art en lotes**: hacer varios ajustes, generar el PNG y mirarlo **una vez**; no ciclos de "dibujar → mirar → corregir un píxel".
+- **Archivos grandes**: nunca leer `dist/app.js`, `startup-bundle.js` ni SPEC de más de ~10 KB enteros; buscar con `Grep` o `nexo-explorador` y leer solo el tramo con `offset`/`limit`.
+- **Subagentes**: solo `nexo-explorador` y `nexo-tester` (Haiku). No lanzar agentes `general-purpose`/`Explore`/`Plan` si basta un `Grep` o una lectura corta.
+- Si Niquito está en Opus y la tarea es de Sonnet (refugio, mascota, perfil, grimorio, arreglos), decírselo al inicio.
+
 ## Forma de trabajo (SDD liviano)
 
 00. **"Diseñar" = conversar** (11 oct 2026): cuando Niquito diga "diseñemos/sigamos diseñando", solo hablar: ideas, opciones y preguntas, **sin generar imágenes, GIF, pixel art ni código**.
@@ -107,3 +116,9 @@ Los chats **no se acuerdan entre sí**: la única memoria compartida es este arc
 
 Historial completo en **`docs/ESTADO.md`**. Lo más importante pendiente: **una clase completa que se sienta increíble**
 (Orgánica II → PEP 1 → Aminas → Basicidad), con corrección real y actividades variadas.
+
+## Dónde se ve la app (14 oct 2026)
+
+- Niquito **no usa Netlify** (se paga). La app se ve en un **Artifact privado de Claude**: https://claude.ai/artifact/KGcGV5EDNqJMgtQCmMAYbh
+- Para actualizarlo: publicar **desde un worktree limpio de `origin/master`** (nunca la carpeta de trabajo: queda desactualizada), correr `node tools/build-startup.cjs`, copiar `dist/` (sin `vendor/ketcher`, `dev`, `supabase`, `posthog`, `.riv`, `pdfjs`) y publicar con la herramienta Artifact a esa misma URL, en 2 tandas (máx. 255 archivos por publicación). `index.html` se publica como fragmento `nexo.html` sin `<head>`/`<body>`.
+- Al cerrar un chat con cambios aprobados, republicar el Artifact para que Niquito vea todo unido.
