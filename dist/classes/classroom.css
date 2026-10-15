@@ -867,3 +867,6 @@ body[data-nexo-ambient-motion="reduced"] .cr-beast-svg.is-wild, body[data-nexo-a
 .cr-num-fixed { font-weight: 600; }
 .cr-num-steps { margin: 6px 0 0; padding-left: 1.3em; }
 .cr-num-steps li { margin: 2px 0; }
+
+/* Beta (tools/build-beta.cjs): sin diapositivas del PPT; config.js pone la clase nexo-beta en <html>. */
+.nexo-beta [data-cr="slides"], .nexo-beta .cr-object[data-spot="board"], .nexo-beta .cr-slides-btn { display: none !important; }

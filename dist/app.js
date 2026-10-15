@@ -914,7 +914,7 @@
     const promise = Promise.resolve(window.NexoClassCatalog || window.NexoLoader.script('./classes/catalog.js?v=8dec702d')).then(() => {
       const file = window.NexoClassCatalog?.[id];
       if (!file) return false;
-      return Promise.all([window.NexoLoader.style('./classes/classroom.css?v=f5f7c02d'), window.NexoLoader.script('./classes/tower-art.js?v=9099c2df').then(() => window.NexoLoader.script('./classes/player.js?v=4242bf88')),
+      return Promise.all([window.NexoLoader.style('./classes/classroom.css?v=a1358874'), window.NexoLoader.script('./classes/tower-art.js?v=9099c2df').then(() => window.NexoLoader.script('./classes/player.js?v=4242bf88')),
         window.NexoLoader.script('./classes/willow-tower.js?v=09c21b87').catch(() => null), // Torre del Sauce (etapa 10); sin ella, quedan las hojas en lista
         window.NexoLoader.script(`./classes/${file}?v=18`),
         // Motor de evidencia y repaso espaciado (FSRS); si no cargan, la clase funciona igual sin agendar repasos.
@@ -934,7 +934,7 @@
     const subject = subjectFor(source.subject);
     if (window.NexoClassroom && window.NexoClasses?.[id]) {
       return window.NexoClassroom.render(id, { app, getState: () => state, saveState: () => saveState({ backup: false }),
-        avatarMarkup, hydrate: () => requestAnimationFrame(() => hydrateAvatars(app)), track: (...args) => cloud.track(...args),
+        avatarMarkup, hydrate: () => {}, // sin avatares (se borraron en la Fase 0 de la mascota) track: (...args) => cloud.track(...args),
         subject: { id: subject.id, name: subject.name, color: subject.color }, exit: () => { if (lessonReturnHash) location.hash = lessonReturnHash; else routeTo('learn', 'course', subject.id); } });
     }
     if (!classroomLoads.has(id)) {
@@ -1000,7 +1000,7 @@
   function renderPractice(tab = 'exercises', detailId = '') {
     const tabs = [
       ['exercises', 'Ejercicios'], ['guides', 'Guías'], ['errors', 'Errores'], ['exams', 'Pruebas antiguas'], ['labs', 'Laboratorio']
-    ];
+    ].filter(([id]) => !(id === 'exams' && window.NEXO_PUBLIC_CONFIG?.beta)); // la beta no lleva pautas ni pruebas de profes
     const validTab = tabs.some(([id]) => id === tab) ? tab : 'exercises';
     app.innerHTML = `<section class="page practice-page">${pageHeader('CENTRO DE ESTUDIO', 'Practicar con una razón', 'Ejercicios progresivos, guías reconstruibles, errores reintentables y pruebas reales sin fingir que lo histórico es el calendario actual.')}
       <nav class="tabs" role="tablist" aria-label="Secciones de estudio">${tabs.map(([id, label]) => `<button role="tab" aria-selected="${validTab === id}" class="${validTab === id ? 'active' : ''}" data-practice-tab="${id}">${label}${id === 'errors' && state.errors.filter(e => e.status !== 'resolved').length ? `<span>${state.errors.filter(e => e.status !== 'resolved').length}</span>` : ''}</button>`).join('')}</nav>
@@ -1013,7 +1013,7 @@
   }
 
   function renderExercises() {
-    return `<section class="empty-state" aria-labelledby="exercisesSoon"><span class="empty-state-mark" aria-hidden="true">✧</span><p class="eyebrow">EJERCICIOS</p><h2 id="exercisesSoon">Disponible próximamente</h2><p>Estamos escribiendo ejercicios nuevos junto con cada clase, para que midan si aprendiste de verdad. Mientras tanto puedes revisar tus guías, errores y pruebas antiguas.</p><div class="button-row"><button class="primary-btn" data-practice-tab="guides">Ver guías</button><button class="secondary-btn" data-practice-tab="exams">Pruebas antiguas</button></div></section>`;
+    return `<section class="empty-state" aria-labelledby="exercisesSoon"><span class="empty-state-mark" aria-hidden="true">✧</span><p class="eyebrow">EJERCICIOS</p><h2 id="exercisesSoon">Disponible próximamente</h2><p>Estamos escribiendo ejercicios nuevos junto con cada clase, para que midan si aprendiste de verdad. Mientras tanto puedes revisar tus guías y errores${window.NEXO_PUBLIC_CONFIG?.beta ? '' : ' y pruebas antiguas'}.</p><div class="button-row"><button class="primary-btn" data-practice-tab="guides">Ver guías</button>${window.NEXO_PUBLIC_CONFIG?.beta ? '' : '<button class="secondary-btn" data-practice-tab="exams">Pruebas antiguas</button>'}</div></section>`;
   }
 
   function exerciseCard(item) {

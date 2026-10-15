@@ -47,7 +47,9 @@ if (!Array.isArray(ctx.__d.exams) || ctx.__d.exams.length) throw new Error('La l
 
 // Sin nube: la beta no apunta a ningún proyecto de Supabase (cada persona guarda su progreso en su navegador).
 fs.writeFileSync(path.join(out, 'config.js'),
-  '/* Beta: sin nube ni cuentas. */\nwindow.NEXO_PUBLIC_CONFIG = Object.freeze({"supabaseUrl":"","supabaseAnonKey":"","googleOAuthEnabled":false});\n');
+  '/* Beta: sin nube ni cuentas, sin diapositivas ni pruebas de profes (el código lee `beta` y la clase nexo-beta). */\n' +
+  'window.NEXO_PUBLIC_CONFIG = Object.freeze({"supabaseUrl":"","supabaseAnonKey":"","googleOAuthEnabled":false,"beta":true});\n' +
+  'document.documentElement.classList.add("nexo-beta");\n');
 
 // Revisión final: nada de material de profesores en la carpeta.
 const bad = [];

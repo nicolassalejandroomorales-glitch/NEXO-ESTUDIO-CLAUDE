@@ -35,12 +35,13 @@ La PEP 1 ya no es el eje: Niquito estudia con su propio chat personalizado; Nexo
 - **Paso 1 hecho**: `node tools/build-beta.cjs` genera `beta/` (296 archivos, 51,6 MB, el mayor 14 MB; carpeta ignorada por git). Excluye diapositivas, pautas, PDFs de pruebas, `dev/` y librerías de nube; deja la lista "Pruebas antiguas" vacía; **apaga la nube** (`config.js` sin Supabase) y el script revisa que no quede material de profes ni la dirección/clave del proyecto.
 - Probada en 1440 y 390: tutorial de cuenta nueva, Inicio, clase de Aminas y "Pruebas antiguas" cargan sin romperse y sin desbordar el ancho. No se publicó nada.
 
-## Falta pulir antes de compartir (hallado en la prueba)
+## Hallazgos de la prueba (15 oct 2026)
 
-- Error `hydrateAvatars is not defined` (`dist/app.js:937`, al abrir la clase): resto de las mascotas viejas. Ya existe en master, no es de la beta. Arreglar en el chat de Clases.
-- La pestaña **"Pruebas antiguas"** aparece vacía y la clase muestra el botón **"Diapositivas"** (abre solo el texto). Conviene ocultarlas en modo beta.
+- **Arreglado**: error `hydrateAvatars is not defined` (era un resto de las mascotas viejas; afectaba también a la app normal).
+- **Arreglado en la beta**: sin pestaña ni botón de "Pruebas antiguas", sin botón "Diapositivas", sin el objeto "Pizarra" y sin los recuadros de diapositivas. Lo activa `config.js` de la beta (`beta: true` y clase `nexo-beta`); la app normal sigue igual.
+- **Ojo, decisión tuya**: el **texto** de las diapositivas (títulos y viñetas de la clase de Aminas, crédito al Dr. Echeverría) sigue dentro de `dist/classes/org-01.js`. Ya no se ve en la beta, pero el archivo viaja y se podría leer. Si quieres que no viaje, hay que quitarlo o reescribirlo con palabras propias.
 - El Inicio muestra **tus fechas reales** (PEP 1 21 oct, semana crítica 19–27 oct): revisar si valen para compañeros de otra sección.
-- La página pide Google login solo si hay nube; en la beta ese botón ya no aparece (bien).
+- El recorrido guiado de la clase ("Bienvenido a la torre") quizá nombre la pizarra: revisar sus pasos en la beta.
 
 ## Falta decidir
 
