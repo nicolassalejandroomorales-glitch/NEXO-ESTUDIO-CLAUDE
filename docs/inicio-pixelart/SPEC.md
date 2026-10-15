@@ -44,6 +44,38 @@ pero dibujado píxel por píxel con paleta propia, contornos y sombreado. Despu�
 - Ojo: agrandar pixel art no agrega detalle. Cada zona con zoom necesita su **propia escena de detalle** dibujada
   a más resolución (mismo estilo, mismas rampas), con su ancla de mascota. Planificarlo como un cambio aparte.
 
+## Fase de diseño (11 oct): primero el diseño, después el movimiento real
+- Niquito: "primero hagamos bien el diseño y luego lo implementamos". El GIF ya muestra el movimiento pensado.
+- 11 oct: sillón rehecho como sillón de orejas (respaldo capitoné con ribete, orejas, brazos enrollados, cojín ladeado, asiento con tapa y frente),
+  túnica con pliegues que nacen de los hombros, báculo movido a x≈313 (antes quedaba tapado por el poste).
+- **Mapa de movimiento** (cada pieza será una capa propia al implementar): hiedra y guirnalda (ola lenta), cortina y manta (vaivén),
+  túnica y sombrero (balanceo mínimo), llamas (3 cuadros, cada 4), runas (ola de luz lenta), velas flotantes, lucecitas, mariposas,
+  pájaros y nubes por la ventana, vapor de la taza, estrellas del cuadro, globo que gira, chispas del báculo, polvo en el haz.
+
+## Cambio: ventana viva + clima real + noche cálida (11 oct 2026)
+**Qué (pedido de Niquito):** en la ventana se mueven claramente pájaros, nubes y rayos de sol; el clima de Nexo sigue al real
+(sol, nublado, lluvia, noche); la noche deja de verse fea: ambiente **cálido** y las velas/faroles iluminan de verdad.
+Arreglos de diseño: piso del escritorio con volumen, sombrero separado de la túnica, botas de mago con más detalle.
+
+**Decisiones**
+- La luz se **pinta en Python con las rampas**, no con filtros CSS: `build_refugio.py` genera 4 fondos con la misma sala
+  y distinta luz: `refugio-pixel.png` (sol), `-nublado`, `-tarde` y `-noche`. En la noche: sala en penumbra azulada,
+  charcos de luz cálida alrededor de cada vela, farol, lámpara y estrella del báculo. CSS los funde con `--w-*` y `--w-cloud`.
+- Lo que se mueve va en **un `<canvas>` de 418×235** sobre el fondo (`dist/ambient/refugio-vida.js`), escalado ×4 nítido:
+  cielo de la ventana según hora y clima (nubes que avanzan, pájaros, sol, luna y estrellas, lluvia y gotas en el vidrio,
+  relámpago suave y raro), rayos de sol que se desplazan dentro del haz y llamas que titilan con su halo.
+  Python exporta `refugio-pixel-mapa.json` (ventana, máscara del vidrio, haz de sol, posición de cada llama): una sola fuente.
+- Clima: módulo nuevo `dist/ambient/weather.js` (Open-Meteo autorizado: Santiago fijo, máx. cada 30 min, solo con la pestaña
+  visible, caché en localStorage, sin red = despejado). Escribe `--w-cloud`, `--w-rain`, `--w-storm` y `body[data-nexo-weather]`.
+  Consola: `NexoWeather.preview('rain')` / `NexoWeather.stopPreview()`.
+- Animación a ~10 cuadros/s (estética pixel y bajo consumo); se detiene con la pestaña oculta, `ambient-paused`,
+  reduced-motion o `data-nexo-quality="low"` (en esos casos queda un cuadro fijo, con el clima y la hora correctos).
+
+**Criterios de aceptación**
+- `NexoWeather.preview('rain')`: cielo gris, lluvia y gotas bajando por el vidrio; `'cloudy'`: nubes grises, sin haz de sol.
+- `NexoAmbientTime.preview(22)`: cielo nocturno con luna y estrellas, sala cálida y cada vela con su charco de luz.
+- De día soleado se ven nubes avanzar, pájaros cruzar y los rayos moverse. Sin errores en consola. 1440 y 390 px.
+
 ## Pendiente
 - [x] Muestra de la ventana → aprobación del estilo (v3).
 - [x] Aprobación visual de la sala completa (v2, 5 oct: "súbela").

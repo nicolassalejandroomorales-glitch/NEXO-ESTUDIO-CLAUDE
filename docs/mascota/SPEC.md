@@ -259,6 +259,7 @@ Es puro ambiente: no da recompensas ni toca el motor académico.
 - [ ] Las pruebas rápidas y la prueba nueva pasan.
 
 ## Pendiente / ideas fuera de este cambio
+- (11 oct, desde el chat del Inicio) Ya existe `dist/ambient/weather.js` (`NexoWeather`, evento `nexo:weather`, `body[data-nexo-weather]`). `home-pet.js` hace su propia consulta a Open-Meteo: conviene que lea `NexoWeather.current().kind === 'storm'` y así hay una sola consulta.
 
 - Poses dibujadas por código: cerdito dormido y asustado (mejora sobre los emotes).
 - Hueco en la estantería cuando saca el libro (técnica de "plate" como las enredaderas).

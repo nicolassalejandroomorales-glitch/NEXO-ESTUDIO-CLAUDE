@@ -63,7 +63,7 @@
       slots:[{id:'window',type:'window',zone:'window-area',bounds:[72/1672,64/941,280/1672,344/941],layer:'modularObjects',renderMode:'baked',asset:null,foregroundAsset:null,replacementReady:false}],
       hotspots:[
         {id:'window-focus',slot:'window',inset:[.08,.06,.84,.86],action:'focus-light',accessibleLabel:'Ventana: resaltar suavemente la luz de entrada'},
-        {id:'staff-shop',bounds:[1160/1672,192/941,112/1672,448/941],action:'route',route:'shop',accessibleLabel:'Báculo estelar: abrir la Tienda'},
+        {id:'staff-shop',bounds:[1196/1672,192/941,104/1672,448/941],action:'route',route:'shop',accessibleLabel:'Báculo estelar: abrir la Tienda'},
         {id:'armchair-profile',bounds:[1264/1672,368/941,264/1672,296/941],action:'route',route:'profile',accessibleLabel:'Sillón: abrir tu Perfil'},
         {id:'map-logbook',bounds:[616/1672,620/941,176/1672,60/941],action:'route',route:'planner',routeSub:'grades',accessibleLabel:'Mapa enrollado: abrir la Bitácora'},
         {id:'parchment-calendar',bounds:[852/1672,172/941,128/1672,188/941],action:'route',route:'planner',routeSub:'calendar',accessibleLabel:'Pergamino de la pared: abrir el calendario'},
@@ -78,9 +78,11 @@
         rest:{zone:'rest-area',bounds:[.76,.40,.21,.32],point:[.87,.70],layer:'mascotBack',active:false}
       },
       ambientLayers:[
-        {id:'tint-dawn',className:'home-light-layer home-tint-dawn',bounds:[0,0,1,1],depth:1},
-        {id:'tint-dusk',className:'home-light-layer home-tint-dusk',bounds:[0,0,1,1],depth:1},
-        {id:'tint-night',className:'home-light-layer home-tint-night',bounds:[0,0,1,1],depth:1}
+        // La misma sala pintada con 4 luces (sol / nublado / tarde / noche); se funden con --w-* y --w-cloud.
+        // Lo que se mueve (cielo, lluvia, rayos, llamas) lo pinta ambient/refugio-vida.js en un canvas encima.
+        {id:'px-nublado',className:'home-light-layer home-px-light home-px-nublado',bounds:[0,0,1,1],depth:1},
+        {id:'px-tarde',className:'home-light-layer home-px-light home-px-tarde',bounds:[0,0,1,1],depth:1},
+        {id:'px-noche',className:'home-light-layer home-px-light home-px-noche',bounds:[0,0,1,1],depth:1}
       ],
       lightingProfile:{sourceSlot:'window',driver:'NexoAmbientTime',states:['dawn','day','dusk','night'],continuous:true,feedback:{duration:600,peakBrightness:1.12}}
     }

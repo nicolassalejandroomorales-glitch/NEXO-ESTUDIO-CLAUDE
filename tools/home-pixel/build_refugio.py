@@ -44,13 +44,15 @@ STAR = ["...a...", "...a...", "..aba..", "aabcbaa", "..aba..", "...a...", "...a.
 _static = {}
 
 
-def draw(t):
+def draw(t, mode='sol'):
     rnd = random.Random(21)
     ph = 2 * math.pi * t / FRAMES
     c = Canvas(W, H)
     c.dither = {'wall': 0.35}                     # yeso más limpio, casi sin puntillado
     yy, xx = c.grid()
     glows = []
+    lights = []                                  # (x, y, radio, fuerza) fuentes cálidas: iluminan de noche
+    flames = []                                  # (x, y, tipo) donde la app dibuja la llama que titila
 
     # ------------------------------------------------------------------ ayudantes
     def leaf_lv(b):
@@ -144,6 +146,8 @@ def draw(t):
         c.px(x + 1, base_y - h - 1, 'void', 0)
         c.sprite(x, base_y - h - 4, SMALL_FLAMES[(t // 4 + off) % 3], 'flame', {'h': 2, 'w': 5, 'f': 3})
         glows.append((x + 1, base_y - h - 3, 10, '#ffb440', 0.5 + 0.15 * math.sin(ph * 3 + off), 1))
+        flames.append((int(x), int(round(base_y - h - 4)), 'small'))
+        lights.append((x + 1, base_y - h - 3, 24, 1.3))
 
     def post_wood(x0, x1, y0, y1):
         c.rect(x0, y0, x1, y1, 'wood', 3)
@@ -362,6 +366,8 @@ def draw(t):
             c.px(bx + 1, by - (1 if up else 0), 'stone', 1.2)
             if not up:
                 c.px(bx - 2, by + 1, 'stone', 1.6); c.px(bx + 2, by + 1, 'stone', 1.6)
+    snap_mat, snap_lvl = c.mat.copy(), c.lvl.copy()
+    land = view & (yy >= mtn)                    # cerros, árboles y prado (el cielo lo pinta la app)
     fr = (xx >= FX0) & (xx < FX1) & (yy >= FY0) & (yy < FY1) & ~view
     c.mask(fr, 'wood', 4)
     c.rect(FX0, FY0, FX0 + 1, FY1, 'wood', 2)
@@ -471,17 +477,35 @@ def draw(t):
         c.px(76 + i * 0.55, DY - 7 - i, 'petal', 2 if i < 9 else 3)
     candle(16, DY, 8, 0)
     c.rect(14, DY - 1, 22, DY, 'brass', 4)
-    # pisito redondo delante del escritorio
+    # piso redondo de madera delante del escritorio: asiento visto un poco desde arriba, canto, 3 patas abiertas y aro
     SX, SY = 66, 136
-    c.rect(SX - 12, SY, SX + 12, SY + 4, 'wood', 5)
-    c.rect(SX - 12, SY, SX + 12, SY + 1, 'wood', 6.5)
-    c.rect(SX - 11, SY + 4, SX + 11, SY + 5, 'wood', 2)
-    for lx in (SX - 10, SX + 7):
-        c.rect(lx, SY + 5, lx + 3, SY + 26, 'wood', 3.2)
-        c.px(lx, SY + 8, 'wood', 5)
-        c.rect(lx, SY + 5, lx + 1, SY + 26, 'wood', 4.5)
-    c.rect(SX - 2, SY + 5, SX + 1, SY + 22, 'wood', 2)
-    c.rect(SX - 9, SY + 16, SX + 9, SY + 18, 'wood', 2.6)
+    for (x0, y0, x1, y1, lv) in [(SX + 1, SY + 6, SX + 1, SY + 23, 2.0)]:              # pata de atrás (en sombra)
+        c.rect(x0 - 1, y0, x0 + 2, y1, 'wood', lv)
+    for k in range(18):                                                                 # aro que une las patas
+        a = math.pi * k / 17
+        c.px(SX - 9 * math.cos(a), SY + 17 + 2.2 * math.sin(a), 'wood', 2.6 + 1.2 * math.sin(a))
+    for (xa, xb, lit) in [(SX - 9, SX - 13, True), (SX + 9, SX + 13, False)]:          # patas delanteras abiertas
+        for y in range(SY + 5, SY + 27):
+            tt = (y - SY - 5) / 21
+            x = xa + (xb - xa) * tt
+            c.rect(x - 1, y, x + 2, y + 1, 'wood', 3.4 if lit else 2.8)
+            c.px(x - 1, y, 'wood', 5 if lit else 3.6); c.px(x + 1, y, 'wood', 1.6)
+        c.rect(xb - 1, SY + 26, xb + 2, SY + 27, 'wood', 1.2)
+    for y in range(SY - 1, SY + 7):                                                     # asiento: tapa elíptica + canto
+        for x in range(SX - 13, SX + 14):
+            dx, dy = (x - SX) / 12.5, (y - (SY + 1.5)) / 3.2
+            dd = dx * dx + dy * dy
+            if dd <= 1:
+                ring = (math.sqrt(dd) * 5) % 1 < 0.22
+                c.px(x, y, 'wood', 5.6 - (0.7 if ring else 0) + (0.6 if dx < -0.3 and dy < 0 else 0))
+            elif y > SY + 1.5 and abs(dx) <= 1 and y <= SY + 1.5 + 3.2 * math.sqrt(max(0, 1 - dx * dx)) + 3:
+                c.px(x, y, 'wood', 3.2 - abs(dx) * 0.8 + (0.8 if dx < -0.5 else 0))
+    for x in range(SX - 12, SX + 13):                                                   # filo claro y borde oscuro del canto
+        dx = (x - SX) / 12.5
+        ye = SY + 1.5 + 3.2 * math.sqrt(max(0, 1 - dx * dx))
+        c.px(x, ye + 0.5, 'wood', 6.4)
+        c.px(x, ye + 3.5, 'wood', 1.4)
+    c.px(SX - 5, SY, 'wood', 7); c.px(SX - 4, SY, 'wood', 6.6)                          # brillo del barniz
 
     # ================================================================== ESTANTERÍA CON RUNAS (Biblioteca)
     SX0, SX1 = 104, 168
@@ -581,7 +605,27 @@ def draw(t):
     c.rect(GX - 5, GY + GR + 5, GX + 6, GY + GR + 7, 'brass', 4)
     c.rect(GX - 6, GY + GR + 7, GX + 7, AY - 3, 'brass', 2.5)
     glows.append((GX, GY, 18, '#ffd860', 0.25 + 0.1 * math.sin(ph), 1))
-    candle(234, AY - 3, 7, 2)
+    # sombrero de mago apoyado en el aparador (separado de la túnica): ala en elipse y punta que cae hacia un lado
+    HX, HB = 237, AY - 4                       # centro y línea del ala
+    for y in range(HB - 23, HB - 2):
+        tt = (y - (HB - 23)) / 21
+        half = 0.6 + tt * 6.6
+        cx_ = HX + 7 * (1 - tt) ** 2.4
+        for x in range(int(round(cx_ - half)), int(round(cx_ + half)) + 1):
+            u = (x - (cx_ - half)) / max(1, 2 * half)
+            c.px(x, y, 'blue', 1.6 + 1.6 * math.cos((u - 0.28) * math.pi))
+        c.px(round(cx_ + half), y, 'blue', 0.8)
+    c.px(HX + 8, HB - 24, 'blue', 2.6); c.px(HX + 9, HB - 23, 'rune', 4.6); c.px(HX + 10, HB - 22, 'rune', 3.4)   # borla
+    c.rect(HX - 7, HB - 6, HX + 8, HB - 3, 'rune', 3.2)
+    c.rect(HX - 7, HB - 6, HX + 8, HB - 5, 'rune', 4.6)
+    c.px(HX - 1, HB - 5, 'crystal', 6); c.px(HX, HB - 5, 'crystal', 5)                                          # gema de la cinta
+    c.sprite(HX - 2, HB - 14, [".x.", "xxx", ".x."], 'rune', {'x': 4.2})
+    for y in range(HB - 3, HB + 2):
+        half = 13 - abs(y - (HB - 0.5)) * 1.7
+        lv = 4 if y == HB - 3 else (3 if y < HB else (2 if y == HB else 1.2))
+        c.rect(HX - half, y, HX + half + 1, y + 1, 'blue', lv)
+    c.px(HX - 12, HB - 1, 'blue', 4.6)
+
     c.rect(214, AY - 9, 224, AY - 3, 'clay', 3)                 # macetita con hierba
     c.rect(214, AY - 9, 224, AY - 8, 'clay', 5)
     for (dx, ln) in [(0, 8), (3, 11), (6, 7)]:
@@ -609,7 +653,7 @@ def draw(t):
     c.rect(260, 32, 300, 33, 'wood', 6)
     c.rect(260, 36, 300, 37, 'wood', 1.6)
     carve(278, 33, MINI[1])
-    for pgx in (266, 292):
+    for pgx in (278,):
         c.rect(pgx, 37, pgx + 2, 41, 'wood', 5); c.px(pgx, 41, 'brass', 5); c.px(pgx + 1, 41, 'brass', 4)
     # túnica: capucha, hombros, cuerpo que se abre hacia abajo, forro violeta, ribete dorado con estrellas
     RCX = 279
@@ -625,7 +669,7 @@ def draw(t):
         x0, x1 = RCX - half + sway * 0.6, RCX + half + sway
         for x in range(int(round(x0)), int(round(x1))):
             u = (x - x0) / max(1, x1 - x0)
-            fold = 0.7 * math.sin(u * 9 + y * 0.015) if y > 58 else 0
+            fold = 1.15 * math.sin(math.atan2(x - RCX, y - 46) * 17) if y > 58 else 0
             lv = 2.4 + 1.1 * math.cos((u - 0.35) * math.pi) + fold
             if y < 50:
                 lv -= 0.3
@@ -656,37 +700,38 @@ def draw(t):
                 c.px(x, y, 'blue', 2 + (0.8 if dirx < 0 and x == int(sx0 + sw) + 1 else 0))
         c.rect(sx0, 96, sx0 + 6, 98, 'rune', 3.2)
     # capucha (pliegue) y broche
-    c.rect(RCX - 4, 42, RCX + 5, 48, 'blue', 1.4)
-    c.rect(RCX - 3, 43, RCX + 4, 47, 'arcane', 2)
+    hd_ = np.hypot((xx - RCX - 0.5) / 4.2, (yy - 46.5) / 4.6)                   # abertura de la capucha
+    c.mask(hd_ <= 1, 'arcane', np.clip(1.2 + (yy - 44) * 0.18, 1, 2.4).astype(np.float32))
+    c.mask((hd_ > 1) & (hd_ <= 1.3), 'rune', 3.2)
+    c.mask((hd_ > 1.3) & (hd_ <= 1.55) & (yy < 50), 'blue', 3.8)
     c.sprite(RCX - 1, 52, [".x.", "xox", ".x."], 'brass', {'x': 4.4, 'o': ('crystal', 5.5)})
     glows.append((RCX, 53, 6, '#5cc4dc', 0.3 + 0.2 * math.sin(ph * 2), 1))
-    # sombrero puntiagudo colgado del otro clavo, con la punta caída
-    HX, HY = RCX, 20
-    for y in range(HY, HY + 24):
-        tt = (y - HY) / 24
-        half = 0.6 + tt * 7.5
-        cx_ = HX - 7 * (1 - tt) ** 2.2 + 0.4 * math.sin(ph) * (1 - tt)     # la punta se dobla hacia un lado
-        for x in range(int(round(cx_ - half)), int(round(cx_ + half)) + 1):
-            u = (x - (cx_ - half)) / max(1, 2 * half)
-            c.px(x, y, 'blue', 1.8 + 1.4 * math.cos((u - 0.3) * math.pi))
-    c.px(HX - 8, HY - 1, 'rune', 4.5)                             # borla de la punta
-    c.rect(HX - 7, HY + 17, HX + 8, HY + 20, 'rune', 3.4)        # cinta dorada
-    c.rect(HX - 7, HY + 17, HX + 8, HY + 18, 'rune', 4.6)
-    c.sprite(HX - 1, HY + 10, [".x.", "xxx", ".x."], 'rune', {'x': 4.2})
-    for y in range(HY + 20, HY + 25):                             # ala ancha, vista un poco desde abajo
-        half = 14 - abs(y - (HY + 22)) * 1.6
-        c.rect(HX - half, y, HX + half + 1, y + 1, 'blue', 3.6 if y == HY + 20 else (2.6 if y < HY + 23 else 1.4))
-    # botas al pie de la túnica
-    for bx_ in (268, 284):
-        c.rect(bx_, 138, bx_ + 7, FLOOR_Y + 2, 'clay', 2.2)
-        c.rect(bx_, 138, bx_ + 7, 139, 'clay', 3.6)
-        c.rect(bx_ - 2, FLOOR_Y - 1, bx_ + 7, FLOOR_Y + 2, 'clay', 2.6)
-        c.rect(bx_ - 2, FLOOR_Y + 1, bx_ + 7, FLOOR_Y + 2, 'clay', 1)
-        c.rect(bx_ + 1, 141, bx_ + 6, 142, 'brass', 3.6)
+    # botas de mago: puño doblado con costura dorada, caña, correa con hebilla, punta curva, suela y taco
+    BOOT = ["..oooooooooo.",
+            "..ohhllllldo.",
+            "..olgmgmgmdo.",
+            "..oooooooooo.",
+            "....ohllmdo..",
+            "....ohllmdo..",
+            "....ollmmdo..",
+            "....obbBbbo..",
+            "....ohllmdo..",
+            "....ollmmdo..",
+            "....ohllmdo..",
+            "h..oollmmdo..",
+            "oohlllmmmmdo.",
+            "ohhlllmmmmdo.",
+            "ollllmmmmmdo.",
+            "osssssssssso.",
+            ".....ss......"]
+    boot_lv = {'o': 0.6, 'd': 1.6, 'm': 2.6, 'l': 3.4, 'h': 4.4, 'g': ('rune', 3.6), 'b': ('brass', 3.0),
+               'B': ('brass', 5.6), 's': ('wood', 1.0)}
+    c.sprite(283, FLOOR_Y + 3 - len(BOOT) - 1, BOOT, 'clay', {k: (v if isinstance(v, tuple) else v - 0.4) for k, v in boot_lv.items()}, flip=True)
+    c.sprite(266, FLOOR_Y + 3 - len(BOOT), BOOT, 'clay', boot_lv)
 
     # ================================================================== BÁCULO apoyado en la pared (Tienda)
     # vara de madera levemente inclinada, cabeza de media luna de latón que abraza una estrella de cristal
-    BTX, BTY, BBX, BBY = 304, 64, 311, FLOOR_Y + 8
+    BTX, BTY, BBX, BBY = 313, 62, 316, FLOOR_Y + 8
     n = BBY - BTY
     for k in range(n):
         x = BTX + (BBX - BTX) * k / n
@@ -717,61 +762,96 @@ def draw(t):
     c.px(BTX + 3 + round(math.sin(ph)), BTY + 7, 'paper', 3)
 
     # ================================================================== SILLÓN (Perfil) + mesita
-    CH0, CH1, CTOP = 318, 380, 92
+    CH0, CH1, CTOP = 318, 380, 90
     CC = (CH0 + CH1) / 2
-    # respaldo de orejas: arco arriba, orejas que salen a los lados
-    for y in range(CTOP, 130):
+    SEAT_T, SEAT_F, SKIRT = 128, 134, 146            # tapa del cojín, frente del cojín, faldón
+
+    def shade_x(x, x0, x1, base, spread=1.0):
+        u = (x - x0) / max(1, x1 - x0)
+        return base + spread * (0.9 * math.cos((u - 0.25) * math.pi) - 0.35)
+
+    # --- respaldo alto con corona redondeada (el centro, el más claro)
+    for y in range(CTOP, SEAT_T + 2):
         dy_ = y - CTOP
-        if dy_ < 6:
-            half = 14 + dy_ * 1.6
-        elif dy_ < 14:
-            half = 24 + (dy_ - 6) * 0.25
-        else:
-            half = 26 - max(0, dy_ - 26) * 0.15
+        half = 11 + dy_ * 0.9 if dy_ < 7 else 17
         x0, x1 = int(CC - half), int(CC + half)
         for x in range(x0, x1):
-            u = (x - x0) / max(1, x1 - x0)
-            lvx = 3.4 + 0.9 * math.cos((u - 0.3) * math.pi) - (0.7 if dy_ > 30 else 0)
-            plaid = ((x - x0) % 7 == 0) or (dy_ % 7 == 0)
-            gold = (dy_ % 14 == 3)
-            c.px(x, y, 'rune' if gold else 'green', 2.6 if gold else (lvx - 1 if plaid else lvx))
+            lv = shade_x(x, x0, x1, 3.6, 0.8)
+            crease = ((x + y) % 10 == 0) or ((x - y) % 10 == 0)            # capitoné en rombos
+            c.px(x, y, 'green', lv - (1.1 if crease else 0))
         c.px(x0, y, 'green', 1.2); c.px(x1 - 1, y, 'green', 1.2)
-    for x in range(int(CC - 14), int(CC + 14)):
-        c.px(x, CTOP, 'green', 4.8)
-    for (bx_, by_) in [(CC - 8, CTOP + 12), (CC, CTOP + 12), (CC + 8, CTOP + 12), (CC - 4, CTOP + 20), (CC + 4, CTOP + 20)]:
-        c.px(bx_, by_, 'green', 1.4); c.px(bx_ + 1, by_ + 1, 'green', 4.4)
-    # cojín bordado
-    c.rect(CC - 11, 110, CC + 9, 126, 'paper', 4)
-    c.rect(CC - 11, 110, CC + 9, 111, 'paper', 5)
-    c.rect(CC + 8, 110, CC + 9, 126, 'paper', 2.4)
-    c.rect(CC - 11, 125, CC + 9, 126, 'paper', 2.4)
-    leaf(CC - 1, 113, 4, LEAF_MED, ramp='leaf')
-    for (qx, qy) in [(CC - 12, 109), (CC + 9, 109), (CC - 12, 126), (CC + 9, 126)]:
-        c.px(qx, qy, 'rune', 3.5)
-    # asiento
-    c.rect(CH0 + 6, 128, CH1 - 6, 142, 'green', 3.8)
-    c.rect(CH0 + 6, 128, CH1 - 6, 130, 'green', 5)
-    c.rect(CH0 + 6, 130, CH1 - 6, 131, 'green', 4.4)
-    c.rect(CH0 + 8, 141, CH1 - 8, 142, 'green', 2)
-    # brazos enrollados (voluta al frente)
-    for (a0, a1, flip) in [(CH0 - 2, CH0 + 10, False), (CH1 - 10, CH1 + 2, True)]:
-        c.rect(a0, 122, a1, 150, 'green', 3)
-        c.rect(a0, 122, a1, 124, 'green', 4.6)
-        c.rect(a0, 127, a0 + 1, 150, 'green', 1.6 if not flip else 4.2)
-        c.rect(a1 - 1, 127, a1, 150, 'green', 4.2 if not flip else 1.6)
-        vcx = (a0 + a1) / 2
-        vd = np.hypot(xx - vcx, yy - 127)
-        c.mask(vd <= 5.5, 'green', np.clip(4.6 - vd * 0.4, 2, 4.6).astype(np.float32))
-        c.mask((vd <= 3.6) & (vd > 2.6), 'green', 1.8)
-        c.px(vcx, 127, 'rune', 4)
-        c.rect(a0, 146, a1, 150, 'wood', 4)
-        c.rect(a0, 146, a1, 147, 'wood', 5.5)
-    # faldón y patas torneadas
-    c.rect(CH0 + 8, 142, CH1 - 8, 152, 'green', 2.4)
-    c.rect(CH0 - 2, 150, CH1 + 2, 154, 'wood', 4)
-    c.rect(CH0 - 2, 150, CH1 + 2, 151, 'wood', 6)
+    for x in range(int(CC - 11), int(CC + 11)):
+        c.px(x, CTOP, 'green', 4.9)
+    for by_ in range(CTOP + 8, SEAT_T, 10):                                  # botones en los cruces
+        for bx_ in range(int(CC) - 10 + ((by_ // 10) % 2) * 5, int(CC) + 11, 10):
+            c.px(bx_, by_, 'green', 1.2); c.px(bx_ + 1, by_ + 1, 'rune', 4)
+    # ribete dorado que recorre el borde del respaldo
+    for y in range(CTOP + 1, SEAT_T):
+        dy_ = y - CTOP
+        half = 11 + dy_ * 0.9 if dy_ < 7 else 17
+        c.px(CC - half + 1, y, 'rune', 3); c.px(CC + half - 2, y, 'rune', 2.2)
+    # --- orejas: salen a los lados, se ven por delante del respaldo (cara interior más oscura)
+    for (sgn, lit) in [(-1, True), (1, False)]:
+        ex0, ex1 = (CC - 28, CC - 13) if sgn < 0 else (CC + 13, CC + 28)
+        for y in range(CTOP + 12, SEAT_T + 4):
+            dy_ = y - (CTOP + 12)
+            top_in = 5 * (1 - min(1, dy_ / 5) ** 2)                          # curva de la parte alta
+            for x in range(int(ex0), int(ex1)):
+                edge = (x - ex0) if sgn < 0 else (ex1 - 1 - x)               # 0 = borde exterior
+                if dy_ < 5 and edge < top_in:
+                    continue
+                inner = (ex1 - 1 - x) if sgn < 0 else (x - ex0)              # 0 = junto al respaldo
+                lv = (4.2 - edge * 0.05 if lit else 3.0 - edge * 0.05)
+                if inner < 4:
+                    lv -= 1.5 - inner * 0.3                                  # sombra donde se mete al respaldo
+                c.px(x, y, 'green', lv)
+            c.px(ex0 if sgn < 0 else ex1 - 1, y, 'green', 1.2)
+            c.px(ex0 + 1 if sgn < 0 else ex1 - 2, y, 'rune', 3.2 if lit else 2.4)    # ribete
+        c.px(int((ex0 + ex1) / 2), CTOP + 21, 'green', 1.2); c.px(int((ex0 + ex1) / 2) + 1, CTOP + 22, 'rune', 4)   # botón
+    # --- cojín del respaldo, ladeado
+    for y in range(110, 127):
+        off = (y - 110) * 0.18
+        x0, x1 = int(CC - 15 + off), int(CC - 1 + off)
+        for x in range(x0, x1):
+            c.px(x, y, 'paper', 4.3 - (x - x0) * 0.04 - (0.5 if y > 124 else 0))
+        c.px(x0, y, 'paper', 5); c.px(x1 - 1, y, 'paper', 2.4)
+    for x in range(int(CC - 15), int(CC - 1)):
+        c.px(x + int((126 - 110) * 0.18), 126, 'paper', 2.2)
+    leaf(CC - 8 + 1, 113, 4, LEAF_MED, ramp='leaf')
+    for (qx, qy) in [(CC - 15, 109), (CC - 1 + 3, 109), (CC - 15 + 3, 127), (CC + 2, 127)]:
+        c.px(qx, qy, 'rune', 3.6)
+    # --- brazos enrollados con voluta al frente
+    for (a0, a1, left) in [(CH0 - 3, CH0 + 10, True), (CH1 - 10, CH1 + 3, False)]:
+        for y in range(121, SKIRT + 4):
+            for x in range(a0, a1):
+                lv = shade_x(x, a0, a1, 3.4, 0.9) + (1.0 if y < 126 else 0) - (0.6 if y > 140 else 0)
+                c.px(x, y, 'green', lv)
+            c.px(a0, y, 'green', 1.2); c.px(a1 - 1, y, 'green', 1.2)
+        vcx = (a0 + a1 - 1) / 2
+        vd = np.hypot(xx - vcx, yy - 125)
+        c.mask(vd <= 6.2, 'green', np.clip(4.9 - vd * 0.38, 2, 4.9).astype(np.float32))
+        c.mask((vd <= 4) & (vd > 3), 'green', 1.6)
+        c.mask(vd <= 1.4, 'rune', 3.8)
+        c.rect(a0, 121, a1, 122, 'green', 5.2)
+        c.rect(a0, SKIRT, a1, SKIRT + 4, 'wood', 3.6)
+        c.rect(a0, SKIRT, a1, SKIRT + 1, 'wood', 5.5)
+    # --- asiento: tapa clara (se ve desde arriba) + frente + ribete + hendidura central
+    for y in range(SEAT_T, SEAT_F):
+        k = (y - SEAT_T) / (SEAT_F - SEAT_T)
+        x0, x1 = int(CH0 + 8 - k * 2), int(CH1 - 8 + k * 2)
+        c.rect(x0, y, x1, y + 1, 'green', 5.1 - k * 0.4)
+    c.rect(CH0 + 6, SEAT_F, CH1 - 6, SKIRT - 1, 'green', 3.5)
+    c.rect(CH0 + 6, SEAT_F, CH1 - 6, SEAT_F + 1, 'rune', 3.4)
+    c.rect(CH0 + 6, SKIRT - 2, CH1 - 6, SKIRT - 1, 'rune', 2.6)
+    c.rect(int(CC) - 1, SEAT_F + 1, int(CC) + 1, SKIRT - 2, 'green', 2.2)
+    c.rect(CH0 + 6, SEAT_F + 1, CH0 + 8, SKIRT - 2, 'green', 4.3)
+    c.rect(CH1 - 8, SEAT_F + 1, CH1 - 6, SKIRT - 2, 'green', 2.0)
+    # --- faldón con flecos y patas torneadas
+    c.rect(CH0 + 6, SKIRT - 1, CH1 - 6, SKIRT + 6, 'green', 2.2)
+    for x in range(CH0 + 6, CH1 - 5, 2):
+        c.px(x, SKIRT + 6, 'rune', 2.8); c.px(x, SKIRT + 7, 'rune', 2.0)
     for lx in (CH0 - 1, CH1 - 3):
-        for y in range(154, 166):
+        for y in range(SKIRT + 4, 166):
             b = 1 if y in (157, 158) else 0
             c.rect(lx - b, y, lx + 4 + b, y + 1, 'wood', 3)
             c.px(lx - b, y, 'wood', 5)
@@ -805,6 +885,7 @@ def draw(t):
     c.rect(LMX - 2, TYY - 20, LMX + 3, TYY - 9, 'glow', 2.5)
     c.rect(LMX - 2, TYY - 20, LMX - 1, TYY - 9, 'glow', 4.2)
     c.sprite(LMX - 1, TYY - 17, SMALL_FLAMES[(t // 4 + 1) % 3], 'flame', {'h': 2, 'w': 5, 'f': 3})
+    flames.append((LMX - 1, TYY - 17, 'small'))
     c.rect(LMX - 3, TYY - 22, LMX + 4, TYY - 20, 'brass', 4)
     glows.append((LMX, TYY - 14, 30, '#ffb440', 0.8 + 0.1 * math.sin(ph * 4), 1))
     # taza
@@ -922,6 +1003,7 @@ def draw(t):
     c.rect(LX + 4, LY - 1, LX + 5, LY + 12, 'brass', 1.5)
     c.rect(LX - 2, LY, LX - 1, LY + 10, 'glow', 4)
     c.sprite(LX - 2, LY + 3, FLAMES[(t // 4) % 3], 'flame', {'h': 2, 'f': 3, 'w': 5, 'r': 1})
+    flames.append((LX - 2, LY + 3, 'big'))
     c.rect(LX - 1, LY + 9, LX + 2, LY + 12, 'wax', 4)
     c.rect(LX - 5, LY + 12, LX + 6, LY + 14, 'brass', 4)
     c.rect(LX - 5, LY + 13, LX + 6, LY + 14, 'brass', 2)
@@ -938,6 +1020,8 @@ def draw(t):
         c.px(vx + 2, by_ + 2, 'wax', 5)
         c.sprite(vx, by_ - 4, SMALL_FLAMES[(t // 4 + k) % 3], 'flame', {'h': 2, 'w': 5, 'f': 3})
         glows.append((vx + 1, by_ - 3, 12, '#ffb440', 0.55 + 0.1 * math.sin(ph * 3 + k), 1))
+        flames.append((vx, int(round(by_ - 4)), 'small'))
+        lights.append((vx + 1, by_ - 3, 26, 1.2))
         for j in range(3):                                         # chispitas bajo la vela (lo que la sostiene)
             if (t // 3 + j + k) % 4 == 0:
                 c.px(vx + 1 + (j - 1) * 2, by_ + h_ + 2 + j, 'rune', 5)
@@ -983,15 +1067,24 @@ def draw(t):
             shaft[hit] = (np.clip(1.25 - s / 260, 0, 1) * np.where(open_part[sy_, sx_], 1.0, 0.75))[hit]
         _static['shaft'] = shaft
     shaft = _static['shaft']
+    # cuánto entra por la ventana, cuánto sol directo y cuánto pesan las lámparas en cada modo
+    WIN, SUN, LAMP, RAD, AMB = {'sol': (1.3, 1.0, 1.0, 1.0, 0.0), 'nublado': (1.05, 0.0, 1.1, 1.05, -0.35),
+                                'tarde': (1.0, 0.75, 1.35, 1.2, -0.45), 'noche': (0.3, 0.0, 2.1, 1.85, -1.45)}[mode]
     dwin = np.hypot((xx - 52) / 1.3, yy - 70)
-    c.add_light(np.clip(1.3 - dwin / 44, 0, 1.3))
-    c.add_light(np.where(view, 0, shaft * np.where(horiz, np.where(floor, 1.5, 2.2), 0.3)))
-    dl = np.hypot(xx - LX, (yy - (LY + 6)) * 1.1)
-    c.add_light(np.clip(1 - dl / 28, 0, 1) ** 1.8 * (1.8 + flick * 3))
-    dlamp = np.hypot(xx - LMX, (yy - (TYY - 14)) * 0.9)
-    c.add_light(np.clip(1 - dlamp / 60, 0, 1) ** 1.6 * 2.2)
+    c.add_light(np.clip(WIN - dwin / 44, 0, WIN))
+    c.add_light(np.where(view, 0, SUN * shaft * np.where(horiz, np.where(floor, 1.5, 2.2), 0.3)))
+    c.add_light(np.full((H, W), AMB, np.float32))
+    lights.append((LX, LY + 6, 30, 1.9 + flick * 3))
+    lights.append((LMX, TYY - 14, 60, 2.2))
     dstaff = np.hypot(xx - hx, yy - hy)
-    c.add_light(np.clip(1 - dstaff / 26, 0, 1) ** 2 * 0.9)
+    c.add_light(np.clip(1 - dstaff / (26 * RAD), 0, 1) ** 2 * 0.9 * min(LAMP, 1.4))
+    warm = np.zeros((H, W), np.float32)                # campo de luz cálida (para el tinte de la noche)
+    for (lx_, ly_, lr, ls) in lights:
+        dd = np.hypot(xx - lx_, (yy - ly_) * 1.05)
+        f = np.clip(1 - dd / (lr * RAD), 0, 1)
+        c.add_light(f ** 1.7 * ls * LAMP)
+        warm += f ** 1.3 * min(1.0, ls / 1.5)
+    warm = np.clip(warm, 0, 1)
     # sombras de contacto bajo los muebles
     for (x0, x1, y0, y1) in [(DX0, DX1, FLOOR_Y, FLOOR_Y + 9), (AX0 - 3, AX1 + 3, FLOOR_Y, FLOOR_Y + 7),
                              (CH0 - 2, CH1 + 12, FLOOR_Y + 4, FLOOR_Y + 16), (SX0 - 2, SX1 + 2, FLOOR_Y, FLOOR_Y + 6),
@@ -1007,26 +1100,96 @@ def draw(t):
         x0, y0 = r2.randint(0, W - 1), r2.randint(14, 200)
         x_ = int(x0 + 2 * math.sin(ph + k))
         y_ = int(y0 - ((t * 0.25 + k * 3) % 8))
-        if 0 <= x_ < W and 0 <= y_ < H and shaft[y_, x_] > 0.3 and not view[y_, x_]:
+        if SUN > 0 and 0 <= x_ < W and 0 <= y_ < H and shaft[y_, x_] > 0.3 and not view[y_, x_]:
             c.px(x_, y_, 'glow', 5); c.lock[y_, x_] = True
 
     def post(arr):
-        glow(arr, LX, LY + 6, 26, '#ffb440', 0.75 + flick * 2, rings=4)
-        glow(arr, 52, 66, 60, '#fff6dc', 0.3, rings=3, squash=0.75)
+        GL = {'sol': 1.0, 'nublado': 1.1, 'tarde': 1.35, 'noche': 1.9}[mode]
+        if mode == 'noche':
+            # penumbra azul donde no llega la luz y calidez ámbar cerca de cada llama: la noche se siente acogedora
+            k = warm[..., None]
+            cool = np.array([0.56, 0.47, 0.60], np.float32); hot = np.array([1.16, 0.98, 0.76], np.float32)
+            arr *= cool * (1 - k) + hot * k
+            arr[view] *= np.array([0.30, 0.34, 0.62], np.float32)
+        elif mode == 'tarde':
+            k = warm[..., None] * 0.5
+            arr *= np.array([1.06, 0.90, 0.76], np.float32) * (1 - k) + np.array([1.1, 0.96, 0.8], np.float32) * k
+            arr[view] *= np.array([1.15, 0.78, 0.66], np.float32)
+        elif mode == 'nublado':
+            gray = arr.mean(axis=2, keepdims=True)
+            arr[:] = arr * 0.8 + gray * 0.2
+            arr *= np.array([0.92, 0.95, 1.0], np.float32)
+        glow(arr, LX, LY + 6, 26 * RAD, '#ffb440', (0.75 + flick * 2) * GL, rings=4)
+        if mode in ('sol', 'tarde', 'nublado'):
+            glow(arr, 52, 66, 60, '#ffd8a0' if mode == 'tarde' else '#fff6dc', 0.3 if mode != 'nublado' else 0.18, rings=3, squash=0.75)
         for g in glows:
-            glow(arr, g[0], g[1], g[2], g[3], g[4], rings=3, squash=g[5])
+            warm_g = g[3] in ('#ffb440', '#fbe08a', '#ffd860')
+            glow(arr, g[0], g[1], g[2] * (RAD if warm_g else 1), g[3], g[4] * (GL if warm_g else 1), rings=3, squash=g[5])
 
-    return lambda scale: c.render(scale, post=post)
+    render = lambda scale: c.render(scale, post=post)
+    glass_px = view & (c.mat == snap_mat) & (c.lvl == snap_lvl)
+    render.info = {'window': [OX0, OY0, OX1, OY1], 'flames': flames, 'glass': glass_px, 'land': land,
+                   'shaft': shaft, 'view': view}
+    return render
+
+
+def save_full(img, name):
+    full = Image.new('RGB', (1672, 941)); full.paste(img, (0, 0)); full.paste(img.crop((0, 939, 1672, 940)), (0, 940))
+    full.save(OUT_ASSET / name, optimize=True)
+    return full
+
+
+def export_map(r, small_by_mode):
+    """Lo que la app necesita para animar: ventana, máscara del vidrio, paisaje por hora, haz de sol y llamas."""
+    import json
+    info = r.info
+    x0, y0, x1, y1 = info['window']
+    glass = (info['glass'][y0:y1, x0:x1] * 255).astype(np.uint8)
+    Image.fromarray(glass, 'L').save(OUT_ASSET / 'refugio-pixel-vidrio.png', optimize=True)
+    land = info['land'][y0:y1, x0:x1]
+    for mode, small in small_by_mode.items():
+        rgba = np.dstack([np.array(small)[y0:y1, x0:x1], (land * 255).astype(np.uint8)])
+        Image.fromarray(rgba, 'RGBA').save(OUT_ASSET / f'refugio-pixel-paisaje-{mode}.png', optimize=True)
+    shaft = np.where(info['view'], 0, np.clip(info['shaft'], 0, 1))
+    Image.fromarray((shaft * 255).astype(np.uint8), 'L').save(OUT_ASSET / 'refugio-pixel-haz.png', optimize=True)
+    from pixel import RAMPS
+    hexs = lambda name: ['#%02x%02x%02x' % c for c in RAMPS[name]]
+    data = {
+        'size': [W, H], 'window': info['window'], 'flames': info['flames'],
+        'smallFlames': SMALL_FLAMES, 'bigFlames': FLAMES,
+        'ramps': {'flame': hexs('flame'), 'glow': hexs('glow'), 'cloud': hexs('cloud'), 'sky': hexs('sky'), 'stone': hexs('stone')},
+        # cielos propios de cada hora (de arriba hacia el horizonte), con el mismo criterio de rampas
+        'skies': {
+            'day':   ['#4664aa', '#5880c4', '#719dd8', '#90b8e6', '#b2d0f0', '#d6e6f4'],
+            'cloudy': ['#5c6478', '#6c7488', '#7e8698', '#9198a8', '#a4aab6', '#b8bcc4'],
+            'dawn':  ['#46407a', '#6a5a96', '#a07aa8', '#d89ca4', '#f2c0a0', '#ffe2b4'],
+            'dusk':  ['#2c2450', '#4a2f66', '#7a3c6e', '#b8546a', '#e8805a', '#ffb45c'],
+            'night': ['#0a0e22', '#0e1430', '#131c3e', '#18244c', '#1e2c58', '#283868'],
+        },
+        'clouds': {
+            'day': ['#8c98c0', '#b2bcd8', '#d6dcec', '#f2f4f8', '#ffffff'],
+            'cloudy': ['#4c5264', '#60677a', '#767d8e', '#8c92a2', '#a2a8b4'],
+            'dawn': ['#6a5a8a', '#a07aa0', '#d8a0a8', '#f4c8b8', '#fff0dc'],
+            'dusk': ['#4a2c5a', '#7a3c64', '#b85a62', '#e8905c', '#ffc27a'],
+            'night': ['#141a34', '#1c2442', '#262f52', '#323c62', '#3e4a72'],
+        },
+    }
+    (OUT_ASSET / 'refugio-pixel-mapa.json').write_text(json.dumps(data, separators=(',', ':')), encoding='utf8')
 
 
 if __name__ == '__main__':
-    base = draw(0)(4)
-    # 941 de alto como el arte original: se repite la última fila (1 px)
-    full = Image.new('RGB', (1672, 941)); full.paste(base, (0, 0)); full.paste(base.crop((0, 939, 1672, 940)), (0, 940))
-    full.save(OUT_ASSET / 'refugio-pixel.png', optimize=True)
+    small_by_mode = {}
+    for mode, name in [('sol', 'refugio-pixel.png'), ('nublado', 'refugio-pixel-nublado.png'),
+                       ('tarde', 'refugio-pixel-tarde.png'), ('noche', 'refugio-pixel-noche.png')]:
+        r = draw(0, mode)
+        small_by_mode[mode] = r(1)
+        full = save_full(r(4), name)
+        if mode == 'sol':
+            base, r_sol = full, r
+    export_map(r_sol, small_by_mode)
     orig = Image.open(ROOT / 'dist/assets/home-scenes/refugio-012.png').convert('RGB')
     both = Image.new('RGB', (1672, 941 * 2 + 12), (20, 12, 16))
-    both.paste(orig, (0, 0)); both.paste(full, (0, 941 + 12))
+    both.paste(orig, (0, 0)); both.paste(base, (0, 941 + 12))
     both.resize((836, (941 * 2 + 12) // 2), Image.LANCZOS).save(OUT_DOCS / 'antes-ahora-refugio.png')
     if '--rapido' not in sys.argv:
         frames = [draw(t)(2) for t in range(FRAMES)]

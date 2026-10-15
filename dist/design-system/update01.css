@@ -700,3 +700,8 @@ body.reduce-motion #app>.page { animation:none!important; }
 .folio-footer { color:#6a4a2c; }
 /* 5 oct 2026 — refugio en pixel art: el navegador agranda el arte sin difuminar (píxeles nítidos). */
 .home-art-plane[data-scene-id="refugio-pixel"] { image-rendering:crisp-edges;image-rendering:pixelated; }
+/* 11 oct 2026 — refugio pixel: la sala con 4 luces pintadas en Python; se funden con la hora (--w-*) y las nubes reales (--w-cloud). */
+.home-px-light { image-rendering:crisp-edges;image-rendering:pixelated; }
+.home-px-nublado { background-image:url('../assets/home-scenes/refugio-pixel-nublado.png');opacity:calc(var(--w-cloud,0) * (var(--w-day,1) + var(--w-dawn,0))); }
+.home-px-tarde { background-image:url('../assets/home-scenes/refugio-pixel-tarde.png');opacity:calc(var(--w-dusk,0) + var(--w-dawn,0) * .7); }
+.home-px-noche { background-image:url('../assets/home-scenes/refugio-pixel-noche.png');opacity:var(--w-night,0); }
