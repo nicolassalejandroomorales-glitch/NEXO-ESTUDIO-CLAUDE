@@ -26,7 +26,7 @@ ul{margin:0;padding-left:18px;font-size:14px}li{margin-bottom:4px}.vacio{color:v
 </style></head><body><main>
 <h1>Hoja de ruta de Nexo</h1>
 <p class="sub">Generada el 2026-10-15 desde docs/chats/. Un chat = un tema = un modelo.</p>
-<div class="totales"><div><b>33</b>hecho</div><div><b>43</b>falta</div><div><b>30</b>ideas</div><div><b>12</b>chats</div></div>
+<div class="totales"><div><b>33</b>hecho</div><div><b>42</b>falta</div><div><b>30</b>ideas</div><div><b>12</b>chats</div></div>
 <div class="filtros"><button class="on" data-f="0">Todos</button><button data-f="1">Urgente</button><button data-f="2">Pronto</button><button data-f="3">Después</button><button data-f="4">Ideas</button></div>
 
 <article class="card p1" data-prio="1">
@@ -98,17 +98,17 @@ Aún no se ha trabajado en este chat nuevo: parte desde &quot;Falta&quot; del ar
   <header>
     <span class="tag prio">Pronto</span>
     <h2>Inicio (refugio)</h2>
-    <p class="meta"><span class="tag">Sonnet 5.5 · medio</span> <span class="tag">en curso, con cambios sin subir</span></p>
+    <p class="meta"><span class="tag">Sonnet 5.5 · medio</span> <span class="tag">clima y escenas por luz subidos (14 oct), falta animación</span></p>
   </header>
   <div class="cols">
-    <section><h3>Hecho (4)</h3><ul><li>Refugio en pixel art de verdad, ya es el Inicio por defecto.</li><li>Ventana según la hora, noche cálida, luz continua, 7+ objetos tocables.</li><li>Clima real (Open-Meteo) y variantes de escena (sol, tarde, noche, nublado) en trabajo local.</li><li>Arreglos de piso, sombrero y botas.</li></ul></section>
-    <section><h3>Falta (4)</h3><ul><li>Subir lo que está sin commit (escenas por clima, `refugio-vida.js`, `weather.js`) con el bundle regenerado en limpio.</li><li>Animación dentro de la app: hiedra, llamas, runas, velas, pájaros, nubes, vapor (hoy el fondo es estático).</li><li>Revisar el ancla `desk` de la mascota en el escritorio nuevo.</li><li>Aprobación visual final (ANTES/AHORA) de la ventana viva.</li></ul></section>
+    <section><h3>Hecho (4)</h3><ul><li>Refugio en pixel art de verdad, ya es el Inicio por defecto.</li><li>Ventana según la hora, noche cálida, luz continua, 7+ objetos tocables.</li><li>Clima real (Open-Meteo) y escenas pintadas por luz (sol, nublado, tarde, noche) con `refugio-vida.js`, ya en master (14 oct).</li><li>Arreglos de piso, sombrero y botas.</li></ul></section>
+    <section><h3>Falta (3)</h3><ul><li>Animación dentro de la app: hiedra, llamas, runas, velas, pájaros, nubes, vapor (hoy el fondo es estático).</li><li>Revisar el ancla `desk` de la mascota en el escritorio nuevo.</li><li>Aprobación visual final (ANTES/AHORA) de la ventana viva.</li></ul></section>
     <section><h3>Ideas (3)</h3><ul><li>Zoom por zonas del refugio al tocar objetos.</li><li>Objetos del refugio que cambian según tus logros o rangos.</li><li>Sonido ambiente suave según clima y hora.</li></ul></section>
   </div>
   <div class="prompts">
     <button data-copy="Chat: Inicio (refugio). Lee CLAUDE.md, la skill nexo-inicio y docs/inicio-pixelart/SPEC.md.
-Contexto: hay cambios sin subir (escenas por clima, refugio-vida.js, weather.js). Mira git status y dime en una línea qué hay.
-Tarea: primero ayúdame a dejar eso listo y subido (bundle regenerado en un worktree limpio si hay cambios de otros chats). Después dime qué sigue del Pendiente y propónmelo con selección múltiple.
+Contexto: el clima real y las escenas por luz ya están en master. Falta la animación dentro de la app y revisar la mascota en el escritorio.
+Tarea: dime en una línea qué entendiste y propón con selección múltiple por cuál sigo del Pendiente.
 No te salgas del tema. Al terminar, usa nexo-cierre y actualiza docs/chats/inicio.md.">Copiar prompt de inicio</button>
     <button data-copy="Chat: Inicio (refugio). Lee CLAUDE.md, la skill nexo-inicio y docs/chats/inicio.md.
 Parte desde &quot;Falta&quot; y pregúntame qué sigue.">Copiar prompt de continuación</button>
