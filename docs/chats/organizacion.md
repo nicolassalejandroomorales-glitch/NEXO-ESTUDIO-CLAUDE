@@ -1,22 +1,21 @@
 # Organización (Bitácora viva)
 - modelo: Sonnet 5.5 · medio
-- estado: diseño listo, sin programar
+- estado: Fases 1 a 3 hechas, siguen Lab y Avisos
 - prioridad: 1
 - spec: docs/update-02-organizacion/SPEC.md
 
 ## Hecho
-- Diseño v2 completo (Hoy · Calendario · Pruebas · Notas · Avisos) y maqueta en `docs/update-02-organizacion/maqueta/`.
-- Diagnóstico con capturas reales (antes/).
+- Diseño v2 y decisiones de 3 tandas; datos reales de los ramos cargados (ponderaciones, labs, fechas, horario).
+- Fase 1 aprobada: estudio de planos de la torre, vista Hoy con plan propuesto, avisos en el Inicio, sonidos, balanza y mesa viva.
+- Fase 2 aprobada: Notas e inasistencias (frascos, "Necesitas X,X", simulador); Perfil ya redirige a Organización.
+- Fase 3 hecha, esperando aprobación visual: Calendario (mes, semana, semestre, lista) con historial de fechas y .ics.
 
 ## Falta
-- Que Niquito apruebe diseño y maqueta (nada programado).
-- Fase 0: kit pixel + fuente (`tools/pixel-ui/`).
-- Fase 1: avisos en el Inicio + pestaña Hoy (urgente: semana 19–27 oct tiene 4 evaluaciones).
-- Fase 2: Notas (frascos, simulador, unificar con Perfil › Notas, ponderaciones de Orgánica y Fisiopatología).
-- Fase 3: Calendario nuevo + horario fijo.
-- Fase 4: Pruebas (fichas, plan hacia atrás, autopsia).
-- Fase 5: mascota viva en todas las pestañas.
-- Fase 6: Avisos (decidir Classroom vs pegar texto, ver AVISOS.md).
+- Aprobación visual del Calendario (1440 y 390).
+- Lab completo (laboratorios, pruebas de ciclo).
+- Avisos: bandeja de la campana, cambios de fecha, Inicio calmado el día de prueba, ritual del domingo, resumen del semestre.
+- Decidir Classroom vs pegar texto (AVISOS.md).
+- Editar o borrar una fecha desde el estudio y "¿cómo te fue?" después de rendir.
 
 ## Ideas
 - Plan semanal automático según evaluaciones cercanas, errores y tiempo (ya decidido en el v1, ver SPEC).
@@ -24,9 +23,9 @@
 
 ## Prompt de inicio
 ```
-Chat: Organización (Bitácora viva). Lee CLAUDE.md y docs/update-02-organizacion/SPEC.md.
-Contexto: el diseño v2 y la maqueta están hechos, nada programado. Tengo 4 evaluaciones entre el 19 y el 27 oct, así que lo urgente es la Fase 1 (avisos en el Inicio + pestaña Hoy).
-Tarea: dime en una línea qué entendiste, hazme máximo 3 preguntas de selección múltiple para cerrar lo que falta aprobar del diseño, y luego implementa solo la Fase 0 y la Fase 1 en pasos chicos.
+Chat: Organización (Bitácora viva). Lee CLAUDE.md y docs/update-02-organizacion/SPEC.md (sección Pendiente).
+Contexto: Fases 1, 2 y 3 (Hoy, Notas, Calendario) ya están programadas; el Calendario espera mi aprobación. Faltan Lab y Avisos. La PEP 1 es el 27 oct.
+Tarea: dime en una línea qué entendiste, revisa el Calendario en 1440 y 390 y pregúntame con selección múltiple si lo apruebo o qué ajustar; después propón el orden de Lab y Avisos.
 No te salgas del tema. Al terminar, usa nexo-cierre y actualiza docs/chats/organizacion.md.
 ```
 

@@ -26,7 +26,7 @@ ul{margin:0;padding-left:18px;font-size:14px}li{margin-bottom:4px}.vacio{color:v
 </style></head><body><main>
 <h1>Hoja de ruta de Nexo</h1>
 <p class="sub">Generada el 2026-10-15 desde docs/chats/. Un chat = un tema = un modelo.</p>
-<div class="totales"><div><b>27</b>hecho</div><div><b>42</b>falta</div><div><b>28</b>ideas</div><div><b>11</b>chats</div></div>
+<div class="totales"><div><b>33</b>hecho</div><div><b>43</b>falta</div><div><b>30</b>ideas</div><div><b>12</b>chats</div></div>
 <div class="filtros"><button class="on" data-f="0">Todos</button><button data-f="1">Urgente</button><button data-f="2">Pronto</button><button data-f="3">Después</button><button data-f="4">Ideas</button></div>
 
 <article class="card p1" data-prio="1">
@@ -76,17 +76,17 @@ Retoma desde &quot;Falta&quot; con una mini evaluación de 3 preguntas de selecc
   <header>
     <span class="tag prio">Urgente</span>
     <h2>Organización (Bitácora viva)</h2>
-    <p class="meta"><span class="tag">Sonnet 5.5 · medio</span> <span class="tag">diseño listo, sin programar</span></p>
+    <p class="meta"><span class="tag">Sonnet 5.5 · medio</span> <span class="tag">Fases 1 a 3 hechas, siguen Lab y Avisos</span></p>
   </header>
   <div class="cols">
-    <section><h3>Hecho (2)</h3><ul><li>Diseño v2 completo (Hoy · Calendario · Pruebas · Notas · Avisos) y maqueta en `docs/update-02-organizacion/maqueta/`.</li><li>Diagnóstico con capturas reales (antes/).</li></ul></section>
-    <section><h3>Falta (8)</h3><ul><li>Que Niquito apruebe diseño y maqueta (nada programado).</li><li>Fase 0: kit pixel + fuente (`tools/pixel-ui/`).</li><li>Fase 1: avisos en el Inicio + pestaña Hoy (urgente: semana 19–27 oct tiene 4 evaluaciones).</li><li>Fase 2: Notas (frascos, simulador, unificar con Perfil › Notas, ponderaciones de Orgánica y Fisiopatología).</li><li>Fase 3: Calendario nuevo + horario fijo.</li><li>Fase 4: Pruebas (fichas, plan hacia atrás, autopsia).</li><li>Fase 5: mascota viva en todas las pestañas.</li><li>Fase 6: Avisos (decidir Classroom vs pegar texto, ver AVISOS.md).</li></ul></section>
+    <section><h3>Hecho (4)</h3><ul><li>Diseño v2 y decisiones de 3 tandas; datos reales de los ramos cargados (ponderaciones, labs, fechas, horario).</li><li>Fase 1 aprobada: estudio de planos de la torre, vista Hoy con plan propuesto, avisos en el Inicio, sonidos, balanza y mesa viva.</li><li>Fase 2 aprobada: Notas e inasistencias (frascos, &quot;Necesitas X,X&quot;, simulador); Perfil ya redirige a Organización.</li><li>Fase 3 hecha, esperando aprobación visual: Calendario (mes, semana, semestre, lista) con historial de fechas y .ics.</li></ul></section>
+    <section><h3>Falta (5)</h3><ul><li>Aprobación visual del Calendario (1440 y 390).</li><li>Lab completo (laboratorios, pruebas de ciclo).</li><li>Avisos: bandeja de la campana, cambios de fecha, Inicio calmado el día de prueba, ritual del domingo, resumen del semestre.</li><li>Decidir Classroom vs pegar texto (AVISOS.md).</li><li>Editar o borrar una fecha desde el estudio y &quot;¿cómo te fue?&quot; después de rendir.</li></ul></section>
     <section><h3>Ideas (2)</h3><ul><li>Plan semanal automático según evaluaciones cercanas, errores y tiempo (ya decidido en el v1, ver SPEC).</li><li>Aviso del celular fuera de la app (queda fuera de este cambio).</li></ul></section>
   </div>
   <div class="prompts">
-    <button data-copy="Chat: Organización (Bitácora viva). Lee CLAUDE.md y docs/update-02-organizacion/SPEC.md.
-Contexto: el diseño v2 y la maqueta están hechos, nada programado. Tengo 4 evaluaciones entre el 19 y el 27 oct, así que lo urgente es la Fase 1 (avisos en el Inicio + pestaña Hoy).
-Tarea: dime en una línea qué entendiste, hazme máximo 3 preguntas de selección múltiple para cerrar lo que falta aprobar del diseño, y luego implementa solo la Fase 0 y la Fase 1 en pasos chicos.
+    <button data-copy="Chat: Organización (Bitácora viva). Lee CLAUDE.md y docs/update-02-organizacion/SPEC.md (sección Pendiente).
+Contexto: Fases 1, 2 y 3 (Hoy, Notas, Calendario) ya están programadas; el Calendario espera mi aprobación. Faltan Lab y Avisos. La PEP 1 es el 27 oct.
+Tarea: dime en una línea qué entendiste, revisa el Calendario en 1440 y 390 y pregúntame con selección múltiple si lo apruebo o qué ajustar; después propón el orden de Lab y Avisos.
 No te salgas del tema. Al terminar, usa nexo-cierre y actualiza docs/chats/organizacion.md.">Copiar prompt de inicio</button>
     <button data-copy="Chat: Organización (Bitácora viva). Lee CLAUDE.md, docs/update-02-organizacion/SPEC.md y docs/chats/organizacion.md.
 Aún no se ha trabajado en este chat nuevo: parte desde &quot;Falta&quot; del archivo de chat y pregúntame cuál fase sigue.">Copiar prompt de continuación</button>
@@ -141,18 +141,39 @@ Parte desde &quot;Falta&quot; y pregúntame qué decisión de diseño toca prime
 <article class="card p2" data-prio="2">
   <header>
     <span class="tag prio">Pronto</span>
-    <h2>Tutorial (Grimorio guía)</h2>
-    <p class="meta"><span class="tag">Sonnet 5.5 · medio</span> <span class="tag">en curso</span></p>
+    <h2>Torre (mundo recorrible)</h2>
+    <p class="meta"><span class="tag">Sonnet 5.5 · medio (el paso 4, progreso real, va en un chat Opus aparte)</span> <span class="tag">laboratorio caminable hecho, falta aprobar</span></p>
   </header>
   <div class="cols">
-    <section><h3>Hecho (3)</h3><ul><li>Diseño cerrado: SPEC, GUION de 29 pasos y FRASES de las mascotas.</li><li>Grimorio v3 en pixel art con 5 poses, huevos de mascota y marcos de diálogo.</li><li>Guion de 29 pasos programado en una ruta de prueba; paso 12 con los 8 objetos tocables reales.</li></ul></section>
-    <section><h3>Falta (4)</h3><ul><li>Conectar el tutorial: guardar mascota y nombre reales, aparición automática la primera vez, Ajustes › Tutoriales.</li><li>Premio final de monedas (propuesta 150 ⚛; depende del chat economia).</li><li>Aprobar la segunda tanda de arte (expresiones, boca, marco).</li><li>Revisar el filtro de nombres y que Niquito corrija el tono de FRASES.md.</li></ul></section>
+    <section><h3>Hecho (3)</h3><ul><li>Entrenar, Juegos y Perfil con escena pixel de borde a borde donde la mascota camina; cada objeto hace una acción.</li><li>Entrenar = Laboratorio de Orgánica II con capas, parallax, luz por hora real y 3 estados de progreso (provisorio).</li><li>Diseño de la torre completa (pisos por ramo, escalera y ascensor).</li></ul></section>
+    <section><h3>Falta (4)</h3><ul><li>Aprobar el laboratorio caminable y el estilo de la muestra.</li><li>Paso 3: vestíbulo (escalera, ascensor y viaje del menú) y ruta de la torre.</li><li>Paso 4 (Opus): progreso real por objeto, que reemplace el provisorio.</li><li>Botón &quot;Volver a Nexo&quot; en la campaña PEP 1.</li></ul></section>
+    <section><h3>Ideas (2)</h3><ul><li>Un piso por ramo que se va llenando con tu avance real.</li><li>Visitar la torre de un amigo (solo si algún día hay nube).</li></ul></section>
+  </div>
+  <div class="prompts">
+    <button data-copy="Chat: Torre (mundo recorrible). Lee CLAUDE.md y docs/mundo-torre/SPEC.md (Fase 2 y Pendiente).
+Tarea: dime en una línea qué entendiste, revisa el laboratorio caminable en 1440 y 390 y pregúntame con selección múltiple si lo apruebo o qué ajustar. Luego propón cómo hacer el vestíbulo (paso 3).
+El progreso real (paso 4) lo diseñamos aparte en un chat Opus; aquí deja el provisorio. Al terminar, usa nexo-cierre y actualiza docs/chats/torre.md.">Copiar prompt de inicio</button>
+    <button data-copy="Chat: Torre (mundo recorrible). Lee CLAUDE.md y docs/chats/torre.md.
+Parte desde &quot;Falta&quot; y pregúntame qué sigue.">Copiar prompt de continuación</button>
+    <span class="spec">docs/mundo-torre/SPEC.md</span>
+  </div>
+</article>
+
+<article class="card p2" data-prio="2">
+  <header>
+    <span class="tag prio">Pronto</span>
+    <h2>Tutorial (Grimorio guía)</h2>
+    <p class="meta"><span class="tag">Sonnet 5.5 · medio</span> <span class="tag">conectado a la app, falta pulir</span></p>
+  </header>
+  <div class="cols">
+    <section><h3>Hecho (4)</h3><ul><li>Diseño cerrado (SPEC, GUION de 29 pasos, FRASES) y arte pixel: Grimorio (15 poses × 3 bocas), huevos con nacimiento, marcos.</li><li>Guion completo programado y conectado: cuenta nueva lo ve sola, guarda mascota y nombre reales, premio de 150 ⚛ una vez, Ajustes › Tutoriales, filtro de nombres.</li><li>Avisos del Grimorio (primera vez por sección y novedades con versión) y revisión en móvil (390).</li><li>Objetos del refugio resaltados, voz por letra con botón de silencio.</li></ul></section>
+    <section><h3>Falta (4)</h3><ul><li>Premio con nube (necesita permiso explícito, hoy no se toca Supabase).</li><li>Rediseño propuesto: recorrido por la app real con audio sincronizado (ver SPEC).</li><li>Que Niquito corrija el tono del guion y de FRASES.md.</li><li>Revisar que 150 ⚛ siga bien si cambian los precios de la tienda.</li></ul></section>
     <section><h3>Ideas (2)</h3><ul><li>Mini tutoriales por sección que se activan la primera vez que entras.</li><li>El Grimorio recuerda tus preferencias y sugiere la primera sesión.</li></ul></section>
   </div>
   <div class="prompts">
     <button data-copy="Chat: Tutorial. Lee CLAUDE.md, la skill nexo-tutorial y docs/tutorial/SPEC.md.
-Contexto: el guion de 29 pasos está programado en una ruta de prueba. Falta conectarlo a la app de verdad.
-Tarea: dime en una línea qué entendiste y propón con selección múltiple el orden de lo que falta (mascota y nombre reales, primera vez, Ajustes › Tutoriales, premio). Implementa en pasos chicos, probando en 1440 y 390.
+Contexto: el tutorial ya está conectado a la app. Lo que sigue es el rediseño (recorrido por la app real con audio sincronizado) y corregir el tono del guion.
+Tarea: dime en una línea qué entendiste y propón con selección múltiple por cuál empezar. Implementa en pasos chicos, probando en 1440 y 390.
 No te salgas del tema. Al terminar, usa nexo-cierre y actualiza docs/chats/tutorial.md.">Copiar prompt de inicio</button>
     <button data-copy="Chat: Tutorial. Lee CLAUDE.md, la skill nexo-tutorial y docs/chats/tutorial.md.
 Parte desde &quot;Falta&quot; y pregúntame qué sigue.">Copiar prompt de continuación</button>
