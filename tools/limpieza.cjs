@@ -27,9 +27,11 @@ section('Código comentado', lines(code, /^\s*\/\/\s*(const|let|var|function|if|
   'Se borra: Git guarda el historial.');
 section('console.log / debugger olvidados', lines(code.filter(f => /^dist\//.test(f)), /\bconsole\.log\(|^\s*debugger\b/),
   'Depuración que no debe quedar.');
-section('TODO / FIXME / HACK sin resolver', lines(code, /\b(TODO|FIXME|HACK)\b/),
+section('TODO / FIXME / HACK sin resolver', lines(code, /(\/\/|\/\*|^\s*\*)\s*(TODO|FIXME|HACK)\b/),
   'Resolverlos o pasarlos a un Pendiente con explicación.');
-section('Nombres de parche o copia', tracked.filter(f => own(f) && /(-v\d+|-old|-nuevo|-copia|-copy|-backup|-bak|\.bak|\.orig|~)(\.|$)/i.test(f)),
+const base = f => f.replace(/[-_]v\d+(\.[^.]+)$/, '$1');
+const conHermana = f => tracked.some(g => g !== f && base(g) === base(f)); // -v1 suelto es solo un nombre; -v2 junto a -v3 es una versión paralela
+section('Nombres de parche o copia', tracked.filter(f => own(f) && (/(-old|-nuevo|-copia|-copy|-backup|-bak|\.bak|\.orig|~)(\.|$)/i.test(f) || (/[-_]v\d+\.[^.]+$/.test(f) && conHermana(f)))),
   'Una cosa, una versión: se reemplaza el original.');
 
 const hashes = new Map();

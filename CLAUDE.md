@@ -22,8 +22,11 @@ Lo que solo sirve para un tema vive en skills (`.claude/skills/`) y en `docs/`: 
 cd $HOME\Desktop\NEXO_APP_ACTUAL
 node tools/static-server.cjs        # luego abrir http://127.0.0.1:8765/#/home  (Ctrl+C para apagar)
 node tools/build-startup.cjs        # OBLIGATORIO después de editar módulos de dist/ que van en el bundle
-npm test                            # todas las pruebas rápidas (tools/run-tests.cjs las encuentra solas)
+node tools/run-tests.cjs            # todas las pruebas rápidas (las encuentra solas; equivale a `npm test`)
+node tools/limpieza.cjs             # LIMPIEZA: revisa restos sin usar (solo lee)
 ```
+
+- En el PowerShell de Niquito `npm` está bloqueado (política de scripts de Windows): darle siempre el comando con `node tools/...` o `npm.cmd`.
 
 - **Un clic**: doble clic en `Abrir Nexo.bat` (carpeta del proyecto) prende el servidor y abre `#/home`; se apaga cerrando la ventana "Servidor de Nexo".
 - No hay framework ni paso de compilación: **el código fuente vive directo en `dist/`**.
