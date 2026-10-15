@@ -9,6 +9,7 @@
     "supabase:prepare": "node tools/prepare-supabase.cjs",
     "build": "node tools/build.cjs",
     "test": "node tools/run-tests.cjs",
+    "limpieza": "node tools/limpieza.cjs",
     "test:e2e": "node tools/e2e-test.cjs && node tools/profile-test.cjs && node tools/planner-e2e.cjs && node tools/cloud-e2e.cjs",
     "test:perf": "node tools/perf-audit.cjs",
     "test:a11y": "node tools/accessibility-test.cjs",

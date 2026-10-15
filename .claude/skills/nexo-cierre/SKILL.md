@@ -9,6 +9,7 @@ description: Cierre obligatorio de un chat de Nexo cuando Niquito aprueba un cam
 2. **`docs/ESTADO.md`**: agrega una línea con fecha bajo el tema (qué quedó hecho y dónde está el SPEC). Corta.
 3. **`CLAUDE.md`**: solo si se tomó una decisión que deba valer siempre (regla, límite, preferencia, error que no se repite). Una línea, en su sección. Avísale a Niquito en una línea. Nunca borres reglas sin su permiso.
 4. **Skills**: si el cambio movió archivos, rutas, pruebas o reglas de una sección, actualiza su skill en `.claude/skills/` (1–2 líneas). Luego corre `node tools/check-skills.cjs`; si marca rutas viejas, corrígelas.
+4b. **Limpieza**: corre `node tools/limpieza.cjs` y relee `git diff` (regla 4 de "Forma de trabajo" de `CLAUDE.md`); borra lo que tu cambio dejó sin uso.
 5. Si apareció algo de otro tema: anótalo en el Pendiente de ese SPEC o en `docs/pendientes.md`.
 5b. **Archivo del chat** (`docs/chats/<tema>.md`): pasa lo terminado a Hecho, ajusta Falta e Ideas y reescribe **Prompt de continuación** con el punto exacto donde quedó. Corre `node tools/build-hoja.cjs` y muéstrale a Niquito el prompt de continuación en un bloque listo para copiar. Ver `docs/chats/README.md`.
 6. **Git**: `git status` → commit en español claro → `git push`.

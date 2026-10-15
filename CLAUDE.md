@@ -75,6 +75,9 @@ npm test                            # todas las pruebas rápidas (tools/run-test
 1. Antes de programar, una página en `docs/<cambio>/SPEC.md`: **qué**, **decisiones**, **cómo**, **criterios de aceptación** y **pendiente**.
 2. Implementar en pasos chicos. Probar en desktop (1440) y en móvil (390), y correr las pruebas rápidas.
 3. **Esperar la aprobación** de Niquito (con ANTES/AHORA si el cambio visual es grande).
+4. **Orden y limpieza** (Niquito, 15 oct 2026: "sin basura, sin parches por encima"): se edita el original (nada de `-v2`, parches encima ni código viejo "por si acaso"; Git guarda el historial),
+   lo que un cambio deja sin uso se borra en ese mismo cambio (ante la duda, preguntar), sin código comentado ni `console.log` ni relleno, y se reutiliza lo que ya existe.
+   **Si Niquito escribe "LIMPIEZA"**: correr `node tools/limpieza.cjs` (solo lee, no gasta tokens), resumirle en simple qué marcó y proponer qué borrar; nunca borrar sin su OK.
 
 ## Varios chats, una sola memoria (reglas absolutas)
 
