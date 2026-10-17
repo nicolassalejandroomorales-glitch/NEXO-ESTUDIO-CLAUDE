@@ -59,4 +59,28 @@ assert.equal(T.buyWithDust(st,'flor').ok,false);
 // Probabilidades suman 100 y los 14 accesorios tienen rareza.
 assert.equal(Object.values(T.ODDS).reduce((x,y)=>x+y,0),100);
 assert.equal(Object.keys(T.RARITY_OF).length,14);
+
+// Cofres por categoría: cuestan más, solo dan accesorios de esa categoría (aunque falte esa rareza).
+st={coins:T.SLOT_CHEST_PRICE-1};
+assert.equal(T.buyChest(st,'cuello').ok,false);
+st.coins=T.SLOT_CHEST_PRICE;
+assert.equal(T.buyChest(st,'cuello').ok,true);
+assert.equal(st.coins,0);
+assert.equal(T.shopOf(st).slotChests.cuello,1);
+for(const slot of T.SLOTS)for(const r of [0,0.7,0.95,0.999]){
+  const s2={coins:0};T.shopOf(s2).slotChests[slot]=1;
+  const o=T.openChest(s2,()=>r,slot);
+  assert.equal(T.SLOT_OF[o.id],slot,slot+' con rng '+r);
+}
+assert.equal(T.openChest({coins:0},()=>0,'mano').ok,false);
+
+// Ganar átomos: por evidencia, con bonus del primer día y tope diario.
+st={coins:0};
+assert.equal(T.earn(st,'sinAyuda','2026-10-17'),T.EARN.sinAyuda+T.DAILY_BONUS);
+assert.equal(T.earn(st,'recuerdo','2026-10-17'),T.EARN.recuerdo);
+for(let i=0;i<40;i++)T.earn(st,'transferencia','2026-10-17');
+assert.equal(st.coins,T.DAILY_CAP);
+assert.ok(T.shopOf(st).earned.total<=T.DAILY_CAP+T.DAILY_BONUS);
+assert.equal(T.earn(st,'sinAyuda','2026-10-17'),0);
+assert.ok(T.earn(st,'sinAyuda','2026-10-18')>0,'el tope se reinicia cada día');
 console.log('economia-test OK');

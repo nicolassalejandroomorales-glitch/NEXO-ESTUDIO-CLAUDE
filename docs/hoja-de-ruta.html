@@ -33,13 +33,13 @@ ul{margin:0;padding-left:18px;font-size:14px}li{margin-bottom:4px}.vacio{color:v
 <h1>Tablero de Nexo</h1>
 <p class="sub">Actualizado el 2026-10-17 desde docs/chats/. Un chat = un tema = un modelo. Toca una tarjeta para ver el detalle.</p>
 <div class="resumen">
-  <div class="grande"><b>40%</b><span>de la app avanzada · 45 cosas hechas, 67 por hacer, 34 ideas guardadas</span></div>
+  <div class="grande"><b>40%</b><span>de la app avanzada · 46 cosas hechas, 68 por hacer, 34 ideas guardadas</span></div>
   <div class="barra" role="img" aria-label="40% avanzado"><i style="width:40%"></i></div>
   <p>Lo urgente en marcha: <b>Beta para compañeros</b> (38%) · <b>Clases (contenido y aula)</b> (57%) · <b>Estudio Orgánica II (PEP 1)</b> (40%) · <b>Organización (Bitácora viva)</b> (44%).</p>
 </div>
 <div class="tablero">
 <section class="col terminado"><h2>Terminado <span>0</span></h2><p class="vacio">Ningún tema todavía.</p></section>
-<section class="col desarrollo"><h2>En desarrollo <span>12</span></h2>
+<section class="col desarrollo"><h2>En desarrollo <span>14</span></h2>
 <details class="card p1">
   <summary>
     <span class="tag prio">Urgente</span>
@@ -129,6 +129,29 @@ No te salgas del tema. Al terminar, usa nexo-cierre y actualiza docs/chats/organ
     <button data-copy="Chat: Organización (Bitácora viva). Lee CLAUDE.md, docs/update-02-organizacion/SPEC.md y docs/chats/organizacion.md.
 Aún no se ha trabajado en este chat nuevo: parte desde &quot;Falta&quot; del archivo de chat y pregúntame cuál fase sigue.">Copiar prompt de continuación</button>
     <span class="spec">docs/update-02-organizacion/SPEC.md</span>
+  </div>
+</details>
+<details class="card p2">
+  <summary>
+    <span class="tag prio">Pronto</span>
+    <h3>Aspecto y navegación de toda la app</h3>
+    <div class="barra" role="img" aria-label="44% avanzado"><i style="width:44%"></i></div>
+    <p class="meta"><b>44%</b> · 4 hechas, 5 faltan<br>kit + Inicio + barra aprobados y en master (17 oct 2026); falta fuente de párrafos y kit en el resto de pantallas</p>
+  </summary>
+  <div class="cols">
+    <section><h4>Hecho (4)</h4><ul><li>17 oct: kit `tools/pixel-ui/` (+ `pixel-ui.css/js`), Inicio y barra lateral con él. Detalle en docs/ux-app/SPEC.md.</li><li>Barra nueva (17 oct): Inicio · Aprender · Organización · Perfil. Entrenar se borró (pantalla, entrenamiento, sala Taller y pruebas); Repasos y Rescate siguen en Aprender. Juegos salió de la barra (sigue en #/games).</li><li>Refugio y mascotas ya en pixel art con las rampas de `tools/home-pixel/pixel.py`.</li><li>Grimorio del tutorial, marcos de diálogo y huevos en pixel art.</li></ul></section>
+    <section><h4>Falta (5)</h4><ul><li>Decidir la **navegación**: la barra lateral convive con las escenas tocables; Niquito duda de que haga falta.</li><li>Diseñar **botones y paneles con personalidad** (hoy &quot;feos, sin personalidad&quot;) como un kit compartido en `tools/pixel-ui/`.</li><li>Mejorar la **versión de computador**, que no le gusta.</li><li>Rehacer **Aprender** (su grimorio es &quot;antiestético&quot;) y preguntar a qué se refiere con &quot;la biblioteca Nexo&quot;.</li><li>Decidir si grimorio, clases, tienda y juegos pasan a pixel art con el mismo kit.</li></ul></section>
+    <section><h4>Ideas (3)</h4><ul><li>Una sola fuente y un solo set de botones para toda la app.</li><li>Íconos de la barra lateral en pixel art.</li><li>Transiciones entre pantallas con el mismo lenguaje del grimorio.</li></ul></section>
+  </div>
+  <div class="prompts">
+    <span class="tag">Sonnet 5.5 · alto (solo conversar y diseñar al inicio)</span>
+    <button data-copy="Chat: Aspecto y navegación de toda la app (solo diseño). Lee CLAUDE.md, la skill nexo-pixel-art y docs/ux-app/FEEDBACK-15OCT.md.
+Contexto: no me gusta la versión de computador, los botones ni la navegación; mi crítica está en ese archivo.
+Tarea: conversemos, sin dibujar ni programar. Dime en una línea qué entendiste y hazme máximo 3 preguntas de selección múltiple, empezando por la navegación (¿se queda la barra lateral?) y por cómo debe verse un botón de Nexo. Revisa si ya existe tools/pixel-ui/ para reutilizarlo.
+Al terminar, usa nexo-cierre y actualiza docs/chats/pixel-ui.md.">Copiar prompt de inicio</button>
+    <button data-copy="Chat: Aspecto y navegación de toda la app. Lee CLAUDE.md, la skill nexo-pixel-art y docs/chats/pixel-ui.md.
+Parte desde &quot;Falta&quot; y pregúntame qué decisión toca primero.">Copiar prompt de continuación</button>
+    <span class="spec">docs/ux-app/SPEC.md</span>
   </div>
 </details>
 <details class="card p2">
@@ -248,6 +271,29 @@ Parte desde &quot;Falta&quot; y pregúntame qué sección sigue.">Copiar prompt 
 <details class="card p3">
   <summary>
     <span class="tag prio">Después</span>
+    <h3>Economía, tienda y perfil</h3>
+    <div class="barra" role="img" aria-label="29% avanzado"><i style="width:29%"></i></div>
+    <p class="meta"><b>29%</b> · 2 hechas, 5 faltan<br>Tienda de la beta implementada (17 oct 2026), esperando aprobación de Niquito. SPEC: docs/economia/SPEC.md</p>
+  </summary>
+  <div class="cols">
+    <section><h4>Hecho (2)</h4><ul><li>Rangos arcanos (`dist/academic/ranks.js`) y Perfil con Mascota, Notas, Inasistencias, Estadísticas y Ajustes.</li><li>Precios de ejemplo de 14 accesorios (60–260 ⚛) en `PRICES` de `home-pet.js`.</li></ul></section>
+    <section><h4>Falta (5)</h4><ul><li>(17 oct) Hecho: Tienda del alquimista con kit de UI, apertura animada del cofre, cofres por categoría y ⚛ por evidencia con tope. Falta: pagar transferencia/recuerdo desde el motor académico, cofres por ramo, objetos del refugio y skins, rachas con perdón.</li><li>Diseñar la economía: cómo se gana y se gasta (átomos, monedas), cuándo se siente justo y cuándo no.</li><li>Que &quot;Comprar&quot; funcione en la Tienda.</li><li>Decidir premio del tutorial (propuesta 150 ⚛) y unificar `state.coins` / átomos.</li><li>Unificar Perfil › Notas con la Bitácora (lo hace el chat organizacion).</li></ul></section>
+    <section><h4>Ideas (3)</h4><ul><li>Ganar por evidencia real (acertar sin ayuda, recordar después) y no por tiempo sentado.</li><li>Objetos del refugio comprables, no solo accesorios.</li><li>Rachas con perdón (una semana mala no borra todo).</li></ul></section>
+  </div>
+  <div class="prompts">
+    <span class="tag">Sonnet 5.5 · alto (solo conversar y diseñar)</span>
+    <button data-copy="Chat: Economía, tienda y perfil (solo diseño). Lee CLAUDE.md, la skill nexo-perfil y el apartado de precios en docs/mascota/SPEC.md.
+Tarea: conversemos, sin código. Dime en una línea qué entendiste y hazme máximo 3 preguntas de selección múltiple sobre cómo se ganan y gastan los átomos/monedas, para que premie aprender de verdad y no solo abrir la app.
+El resultado es un docs/economia/SPEC.md corto y un prompt listo para un chat de implementación.
+Al terminar, usa nexo-cierre y actualiza docs/chats/economia.md.">Copiar prompt de inicio</button>
+    <button data-copy="Chat: Economía, tienda y perfil. Lee CLAUDE.md, la skill nexo-perfil y docs/chats/economia.md.
+Parte desde &quot;Falta&quot; y pregúntame qué decisión toca primero.">Copiar prompt de continuación</button>
+    <span class="spec">docs/mascota/SPEC.md (precios) y skill nexo-perfil</span>
+  </div>
+</details>
+<details class="card p3">
+  <summary>
+    <span class="tag prio">Después</span>
     <h3>Juegos</h3>
     <div class="barra" role="img" aria-label="33% avanzado"><i style="width:33%"></i></div>
     <p class="meta"><b>33%</b> · 2 hechas, 4 faltan<br>base aprobada, sin conectar</p>
@@ -312,53 +358,7 @@ Parte desde &quot;Falta&quot; y pregúntame qué sigue.">Copiar prompt de contin
     <span class="spec">docs/mascota/SPEC.md</span>
   </div>
 </details></section>
-<section class="col por-hacer"><h2>Por hacer <span>2</span></h2>
-<details class="card p2">
-  <summary>
-    <span class="tag prio">Pronto</span>
-    <h3>Aspecto y navegación de toda la app</h3>
-    <div class="barra" role="img" aria-label="38% avanzado"><i style="width:38%"></i></div>
-    <p class="meta"><b>38%</b> · 3 hechas, 5 faltan<br>crítica recibida el 15 oct, sin decisiones</p>
-  </summary>
-  <div class="cols">
-    <section><h4>Hecho (3)</h4><ul><li>Barra nueva (17 oct): Inicio · Aprender · Organización · Perfil. Entrenar se borró (pantalla, entrenamiento, sala Taller y pruebas); Repasos y Rescate siguen en Aprender. Juegos salió de la barra (sigue en #/games).</li><li>Refugio y mascotas ya en pixel art con las rampas de `tools/home-pixel/pixel.py`.</li><li>Grimorio del tutorial, marcos de diálogo y huevos en pixel art.</li></ul></section>
-    <section><h4>Falta (5)</h4><ul><li>Decidir la **navegación**: la barra lateral convive con las escenas tocables; Niquito duda de que haga falta.</li><li>Diseñar **botones y paneles con personalidad** (hoy &quot;feos, sin personalidad&quot;) como un kit compartido en `tools/pixel-ui/`.</li><li>Mejorar la **versión de computador**, que no le gusta.</li><li>Rehacer **Aprender** (su grimorio es &quot;antiestético&quot;) y preguntar a qué se refiere con &quot;la biblioteca Nexo&quot;.</li><li>Decidir si grimorio, clases, tienda y juegos pasan a pixel art con el mismo kit.</li></ul></section>
-    <section><h4>Ideas (3)</h4><ul><li>Una sola fuente y un solo set de botones para toda la app.</li><li>Íconos de la barra lateral en pixel art.</li><li>Transiciones entre pantallas con el mismo lenguaje del grimorio.</li></ul></section>
-  </div>
-  <div class="prompts">
-    <span class="tag">Sonnet 5.5 · alto (solo conversar y diseñar al inicio)</span>
-    <button data-copy="Chat: Aspecto y navegación de toda la app (solo diseño). Lee CLAUDE.md, la skill nexo-pixel-art y docs/ux-app/FEEDBACK-15OCT.md.
-Contexto: no me gusta la versión de computador, los botones ni la navegación; mi crítica está en ese archivo.
-Tarea: conversemos, sin dibujar ni programar. Dime en una línea qué entendiste y hazme máximo 3 preguntas de selección múltiple, empezando por la navegación (¿se queda la barra lateral?) y por cómo debe verse un botón de Nexo. Revisa si ya existe tools/pixel-ui/ para reutilizarlo.
-Al terminar, usa nexo-cierre y actualiza docs/chats/pixel-ui.md.">Copiar prompt de inicio</button>
-    <button data-copy="Chat: Aspecto y navegación de toda la app. Lee CLAUDE.md, la skill nexo-pixel-art y docs/chats/pixel-ui.md.
-Parte desde &quot;Falta&quot; y pregúntame qué decisión toca primero.">Copiar prompt de continuación</button>
-    <span class="spec">docs/ux-app/FEEDBACK-15OCT.md</span>
-  </div>
-</details>
-<details class="card p3">
-  <summary>
-    <span class="tag prio">Después</span>
-    <h3>Economía, tienda y perfil</h3>
-    <div class="barra" role="img" aria-label="33% avanzado"><i style="width:33%"></i></div>
-    <p class="meta"><b>33%</b> · 2 hechas, 4 faltan<br>diseño base aprobado (17 oct 2026), falta implementar. SPEC: docs/economia/SPEC.md</p>
-  </summary>
-  <div class="cols">
-    <section><h4>Hecho (2)</h4><ul><li>Rangos arcanos (`dist/academic/ranks.js`) y Perfil con Mascota, Notas, Inasistencias, Estadísticas y Ajustes.</li><li>Precios de ejemplo de 14 accesorios (60–260 ⚛) en `PRICES` de `home-pet.js`.</li></ul></section>
-    <section><h4>Falta (4)</h4><ul><li>Diseñar la economía: cómo se gana y se gasta (átomos, monedas), cuándo se siente justo y cuándo no.</li><li>Que &quot;Comprar&quot; funcione en la Tienda.</li><li>Decidir premio del tutorial (propuesta 150 ⚛) y unificar `state.coins` / átomos.</li><li>Unificar Perfil › Notas con la Bitácora (lo hace el chat organizacion).</li></ul></section>
-    <section><h4>Ideas (3)</h4><ul><li>Ganar por evidencia real (acertar sin ayuda, recordar después) y no por tiempo sentado.</li><li>Objetos del refugio comprables, no solo accesorios.</li><li>Rachas con perdón (una semana mala no borra todo).</li></ul></section>
-  </div>
-  <div class="prompts">
-    <span class="tag">Sonnet 5.5 · alto (solo conversar y diseñar)</span>
-    <button data-copy="Chat: Economía, tienda y perfil (solo diseño). Lee CLAUDE.md, la skill nexo-perfil y el apartado de precios en docs/mascota/SPEC.md.
-Tarea: conversemos, sin código. Dime en una línea qué entendiste y hazme máximo 3 preguntas de selección múltiple sobre cómo se ganan y gastan los átomos/monedas, para que premie aprender de verdad y no solo abrir la app.
-El resultado es un docs/economia/SPEC.md corto y un prompt listo para un chat de implementación.
-Al terminar, usa nexo-cierre y actualiza docs/chats/economia.md.">Copiar prompt de inicio</button>
-    <button data-copy="Chat: Economía, tienda y perfil. Lee CLAUDE.md, la skill nexo-perfil y docs/chats/economia.md.
-Parte desde &quot;Falta&quot; y pregúntame qué decisión toca primero.">Copiar prompt de continuación</button>
-    <span class="spec">docs/mascota/SPEC.md (precios) y skill nexo-perfil</span>
-  </div>
-</details></section>
+<section class="col por-hacer"><h2>Por hacer <span>0</span></h2><p class="vacio">Ningún tema todavía.</p></section>
 </div>
 <section class="guia"><h2>Cuándo abrir un chat nuevo</h2>
 <table>

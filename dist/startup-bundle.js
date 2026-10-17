@@ -3966,7 +3966,7 @@
   'use strict';
   function sessionReward(seconds) {
     const minutes = Math.floor(Math.max(0, Number(seconds) || 0) / 60);
-    return minutes >= 120 ? 250 : minutes >= 60 ? 100 : minutes >= 30 ? 25 : minutes >= 15 ? 15 : minutes >= 5 ? 3 : 0;
+    return minutes >= 120 ? 10 : minutes >= 60 ? 8 : minutes >= 30 ? 5 : 0; // el tiempo casi no paga: lo importante es la evidencia (docs/economia/SPEC.md)
   }
   function sessionXp(seconds) { return Math.min(60, Math.floor(Math.max(0, Number(seconds) || 0) / 300) * 5); }
   window.NexoEconomy = { sessionReward, sessionXp };
@@ -4835,7 +4835,18 @@
   const ODDS = { comun: 60, poco: 28, raro: 10, legendario: 2 };            // % por cofre
   const DUST = { comun: 10, poco: 20, raro: 40, legendario: 80 };            // polvo que da un repetido
   const DUST_PRICE = { comun: 30, poco: 60, raro: 120, legendario: 240 };    // polvo para comprar directo
-  const CHEST_PRICE = 70;                                                    // ⚛ por cofre
+  const CHEST_PRICE = 70;                                                    // ⚛ por cofre sorpresa
+  const SLOT_CHEST_PRICE = 90;                                               // ⚛ por cofre de una categoría (cabeza, cara, cuello, mano)
+  const SLOTS = ['cabeza', 'cara', 'cuello', 'mano'];
+  const SLOT_OF = {
+    flor: 'cabeza', gorro: 'cabeza', birrete: 'cabeza', sombrero: 'cabeza', corona: 'cabeza',
+    lentes: 'cara', monoculo: 'cara', lentesSol: 'cara',
+    corbatin: 'cuello', bufanda: 'cuello', collar: 'cuello',
+    taza: 'mano', lupa: 'mano', varita: 'mano'
+  };
+  // Átomos por evidencia (no por tiempo). Tope diario para que no se pueda farmear.
+  const EARN = { sinAyuda: 3, conAyuda: 1, transferencia: 6, recuerdo: 8, sesion: 0 };
+  const DAILY_CAP = 60, DAILY_BONUS = 5;
   const PITY = 10;                                                           // cada 10 cofres sin raro+, el siguiente lo es
   const RARITY_OF = {
     flor: 'comun', corbatin: 'comun', lentes: 'comun', gorro: 'comun', taza: 'comun',
@@ -4850,16 +4861,32 @@
     if (!Array.isArray(s.owned)) s.owned = [];
     ['dust', 'chests', 'sinceRare'].forEach(k => { s[k] = Math.max(0, Math.floor(Number(s[k]) || 0)); });
     if (typeof s.dailyAt !== 'string') s.dailyAt = '';
+    if (!s.slotChests || typeof s.slotChests !== 'object') s.slotChests = {};
+    SLOTS.forEach(k => { s.slotChests[k] = Math.max(0, Math.floor(Number(s.slotChests[k]) || 0)); });
+    if (!s.earned || typeof s.earned !== 'object') s.earned = { day: '', total: 0 };
     s.hitos = Array.isArray(s.hitos) ? s.hitos.filter(h => typeof h === 'string').slice(-500) : [];
     return s;
   }
   const fail = reason => ({ ok: false, reason });
 
-  function buyChest(state) {
-    const s = shopOf(state);
-    if ((Number(state.coins) || 0) < CHEST_PRICE) return fail('Te faltan átomos para un cofre.');
-    state.coins -= CHEST_PRICE; s.chests += 1;
+  // kind: 'sorpresa' o una categoría de SLOTS.
+  function buyChest(state, kind = 'sorpresa') {
+    const s = shopOf(state), slot = SLOTS.includes(kind) ? kind : null, price = slot ? SLOT_CHEST_PRICE : CHEST_PRICE;
+    if ((Number(state.coins) || 0) < price) return fail('Te faltan átomos para un cofre.');
+    state.coins -= price;
+    if (slot) s.slotChests[slot] += 1; else s.chests += 1;
     return { ok: true };
+  }
+  // Suma átomos por evidencia respetando el tope diario. Devuelve cuántos se dieron.
+  function earn(state, kind, today, amount) {
+    const s = shopOf(state), e = s.earned;
+    if (e.day !== today) { e.day = today; e.total = 0; }
+    const want = Math.max(0, Math.floor(amount === undefined ? (EARN[kind] || 0) : amount));
+    let give = Math.min(want, DAILY_CAP - e.total);
+    if (give > 0 && e.total === 0) give += DAILY_BONUS;
+    if (give <= 0) return 0;
+    e.total += give; state.coins = (Number(state.coins) || 0) + give;
+    return give;
   }
   function claimDaily(state, today) {
     const s = shopOf(state);
@@ -4884,14 +4911,16 @@
     return 'comun';
   }
   // Abre un cofre: da un accesorio nuevo; si ya lo tenías, lo convierte en polvo.
-  function openChest(state, rng = Math.random) {
-    const s = shopOf(state);
-    if (s.chests < 1) return fail('No tienes cofres para abrir.');
-    s.chests -= 1;
-    const guaranteed = s.sinceRare >= PITY - 1;
-    const rarity = rollRarity(rng, guaranteed);
+  function openChest(state, rng = Math.random, kind = 'sorpresa') {
+    const s = shopOf(state), slot = SLOTS.includes(kind) ? kind : null;
+    if ((slot ? s.slotChests[slot] : s.chests) < 1) return fail('No tienes cofres para abrir.');
+    if (slot) s.slotChests[slot] -= 1; else s.chests -= 1;
+    const rolled = rollRarity(rng, s.sinceRare >= PITY - 1);
+    // En una categoría puede no haber esa rareza: se usa la más cercana (primero hacia arriba).
+    const order = [RARITIES.indexOf(rolled), ...RARITIES.map((_, i) => i)].sort((x, y) => Math.abs(x - RARITIES.indexOf(rolled)) - Math.abs(y - RARITIES.indexOf(rolled)) || y - x);
+    const pool = order.map(i => idsOf(RARITIES[i]).filter(i2 => !slot || SLOT_OF[i2] === slot)).find(p => p.length);
+    const id = pool[Math.min(pool.length - 1, Math.floor(rng() * pool.length))], rarity = RARITY_OF[id];
     s.sinceRare = rarity === 'raro' || rarity === 'legendario' ? 0 : s.sinceRare + 1;
-    const pool = idsOf(rarity), id = pool[Math.min(pool.length - 1, Math.floor(rng() * pool.length))];
     const dupe = s.owned.includes(id);
     if (dupe) s.dust += DUST[rarity]; else s.owned.push(id);
     return { ok: true, id, rarity, dupe, dust: dupe ? DUST[rarity] : 0 };
@@ -4905,8 +4934,117 @@
     return { ok: true };
   }
 
-  window.NexoTienda = Object.freeze({ RARITIES, LABELS, ODDS, DUST, DUST_PRICE, CHEST_PRICE, PITY, RARITY_OF,
-    shopOf, buyChest, claimDaily, grantChest, claimMilestones, openChest, buyWithDust });
+  window.NexoTienda = Object.freeze({ RARITIES, LABELS, ODDS, DUST, DUST_PRICE, CHEST_PRICE, SLOT_CHEST_PRICE, SLOTS, SLOT_OF, EARN, DAILY_CAP, DAILY_BONUS, PITY, RARITY_OF,
+    shopOf, buyChest, earn, claimDaily, grantChest, claimMilestones, openChest, buyWithDust });
+})();
+
+;
+
+/* economy/cofre-fx.js */
+/* Apertura del cofre (docs/economia/SPEC.md): el cofre del alquimista tiembla, las raíces lo sueltan, la tapa salta con luz del color
+   de la rareza y el objeto sube flotando. Solo pinta y anima; la lógica está en tienda.js.
+   NexoCofre.play({ winner, ids, tile, reduced, title, note, again }) -> Promise<'again' | 'close'> */
+(() => {
+  'use strict';
+  const ART = './assets/tienda/';
+  const COLORS = {
+    comun: ['#e6d6b2', '#b9a98a', '#fff4d8'], poco: ['#b2cf5c', '#6cc08b', '#e2ee8a'],
+    raro: ['#9ce8f0', '#6aa7ff', '#e0fcff'], legendario: ['#ffd860', '#f2b84b', '#fffce8']
+  };
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+
+  function burst(canvas, rarity, count, until) {
+    const ctx = canvas.getContext('2d'), cols = COLORS[rarity], w = canvas.width, h = canvas.height;
+    const parts = Array.from({ length: count }, () => {
+      const a = -Math.PI / 2 + (Math.random() - .5) * 2.2, v = 2 + Math.random() * 6;
+      return { x: w / 2, y: h * .52, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 40 + Math.random() * 40, s: 3 + Math.floor(Math.random() * 3) * 2, c: cols[Math.floor(Math.random() * cols.length)] };
+    });
+    (function frame() {
+      if (!canvas.isConnected) return;
+      ctx.clearRect(0, 0, w, h);
+      let alive = false;
+      parts.forEach(p => {
+        if (p.life-- <= 0) return;
+        alive = true; p.x += p.vx; p.y += p.vy; p.vy += .22; p.vx *= .985;
+        ctx.globalAlpha = Math.min(1, p.life / 20); ctx.fillStyle = p.c;
+        ctx.fillRect(Math.round(p.x / 3) * 3, Math.round(p.y / 3) * 3, p.s, p.s);
+      });
+      if (alive || performance.now() < until) requestAnimationFrame(frame);
+    })();
+  }
+
+  const TILES = 62, WIN_AT = 52;
+  const ease = x => 1 - Math.pow(1 - x, 4.2);
+
+  /* winner: {id, rarity}; ids: [{id, rarity}] para rellenar la ruleta; tile(id) -> <canvas> del accesorio. */
+  async function play({ winner, ids, tile, reduced = false, title = '', note = '', again = false }) {
+    const rarity = winner.rarity, big = rarity === 'raro' || rarity === 'legendario';
+    const el = document.createElement('div');
+    el.className = 'cofre-fx'; el.dataset.rarity = rarity;
+    el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Abriendo cofre');
+    el.innerHTML = `<div class="cofre-fx-rays"></div><canvas class="cofre-fx-parts" width="480" height="360"></canvas>
+      <div class="cofre-fx-stage"><div class="cofre-fx-chest"><div class="cfx-glow"></div><i class="cfx-body"></i><i class="cfx-lid"></i></div></div>
+      <div class="cofre-fx-roulette pu-panel" hidden><div class="cfx-window"><div class="cfx-strip"></div><i class="cfx-marker"></i></div></div>
+      <div class="cofre-fx-card pu-paper" hidden><p class="cfx-title"></p><p class="cfx-note"></p><div class="cfx-actions"></div></div>`;
+    document.body.append(el);
+    const $ = s => el.querySelector(s), chest = $('.cofre-fx-chest'), roulette = $('.cofre-fx-roulette'), strip = $('.cfx-strip'), card = $('.cofre-fx-card'), parts = $('.cofre-fx-parts');
+    const mk = (item, win) => { const d = document.createElement('div'); d.className = 'cfx-tile'; d.dataset.r = item.rarity; if (win) d.dataset.win = '1'; d.append(tile(item.id)); return d; };
+    let done; const result = new Promise(r => { done = r; });
+    const close = v => { el.classList.add('cfx-out'); setTimeout(() => { el.remove(); done(v); }, reduced ? 0 : 260); };
+    const showCard = () => {
+      card.hidden = false; $('.cfx-title').textContent = title; $('.cfx-note').textContent = note;
+      $('.cfx-actions').innerHTML = `${again ? '<button type="button" class="pu-btn" data-r="again">Abrir otro</button>' : ''}<button type="button" class="pu-btn" data-r="close">Listo</button>`;
+      $('.cfx-actions button:last-child').focus({ preventScroll: true });
+    };
+    el.addEventListener('click', e => { const b = e.target.closest('button[data-r]'); if (b) close(b.dataset.r); });
+    el.addEventListener('keydown', e => { if (e.key === 'Escape' && !card.hidden) close('close'); });
+
+    window.NexoAudio?.play('purchase');
+    if (reduced) {
+      $('.cofre-fx-stage').hidden = true; roulette.hidden = false; strip.append(mk(winner, true)); strip.style.margin = '0 auto';
+      el.classList.add('cfx-won'); showCard(); return result;
+    }
+    strip.append(...Array.from({ length: TILES }, (_, i) => i === WIN_AT ? mk(winner, true) : mk(ids[Math.floor(Math.random() * ids.length)], false)));
+    // 1. el cofre tiembla y salta la tapa
+    await wait(80); chest.classList.add('cfx-shake');
+    await wait(1100);
+    chest.classList.remove('cfx-shake'); chest.classList.add('cfx-opening'); el.classList.add('cfx-lit');
+    window.NexoAudio?.play('confirm'); burst(parts, 'legendario', 40, performance.now() + 500);
+    await wait(800);
+    // 2. el cofre sube y aparece la ruleta
+    $('.cofre-fx-stage').classList.add('cfx-away'); roulette.hidden = false; roulette.classList.add('cfx-drop');
+    await wait(450);
+    // 3. la ruleta gira y frena en el premio
+    const tw = strip.children[1].getBoundingClientRect().left - strip.children[0].getBoundingClientRect().left, view = strip.parentElement.clientWidth;
+    const end = WIN_AT * tw + tw / 2 - view / 2 + (Math.random() - .5) * tw * .6, dur = big ? 7200 : 6000, t0 = performance.now();
+    let last = -1;
+    const tiles = [...strip.children], marker = $('.cfx-marker'), overshoot = tw * .22;
+    await new Promise(res => (function frame(now) {
+      const k = Math.min(1, (now - t0) / dur);
+      // frena suave y se pasa un poco del premio antes de asentarse (como una ruleta real)
+      const x = end * ease(Math.min(1, k / .86)) + (k > .86 ? overshoot * Math.sin(Math.PI * (1 - (k - .86) / .14)) * (1 - (k - .86) / .14) : 0);
+      strip.style.transform = `translate3d(${-x}px,0,0)`;
+      const centre = x + view / 2;
+      const speed = Math.min(1, (1 - k) * 1.4);
+      const lo = Math.max(0, Math.floor(centre / tw) - 4), hi = Math.min(tiles.length - 1, lo + 8);
+      for (let i = lo; i <= hi; i++) {
+        const d = Math.min(1.5, Math.abs((i + .5) * tw - centre) / tw);
+        tiles[i].style.transform = `scale(${1 + .22 * Math.max(0, 1 - d)}) translateY(${-6 * Math.max(0, 1 - d)}px)`;
+        tiles[i].style.filter = `blur(${(speed * 1.2 * Math.min(1, d)).toFixed(2)}px)`;
+      }
+      const idx = Math.floor(centre / tw);
+      if (idx !== last) { last = idx; if (k < .98) window.NexoAudio?.play('click'); marker.classList.remove('cfx-tick'); void marker.offsetWidth; marker.classList.add('cfx-tick'); }
+      k < 1 && el.isConnected ? requestAnimationFrame(frame) : res();
+    })(t0));
+    tiles.forEach(tl => { if (!tl.dataset.win) { tl.style.transform = ''; } tl.style.filter = ''; });
+    // 4. el premio brilla y sale el cartel
+    el.classList.add('cfx-won'); window.NexoAudio?.play('equip');
+    burst(parts, rarity, big ? 100 : 40, performance.now() + 900);
+    await wait(big ? 900 : 600); showCard();
+    return result;
+  }
+
+  window.NexoCofre = Object.freeze({ play });
 })();
 
 ;
@@ -5052,44 +5190,60 @@
     wardrobe.onchange = e => { const o = { ...pet().outfit, [e.target.dataset.slot]: e.target.value }; api.set({ outfit: o }); home?.life.setOutfit(o); };
   }
 
-  // ——— Tienda: cofres, polvo y accesorios (lógica en economy/tienda.js, docs/economia/SPEC.md) ———
-  const RARITY_COLOR = { comun: '#b9a98a', poco: '#6cc08b', raro: '#6aa7ff', legendario: '#f2b84b' };
+  // ——— Tienda del alquimista: cofres, polvo y accesorios (lógica en economy/tienda.js, apertura en economy/cofre-fx.js, docs/economia/SPEC.md) ———
+  const CHEST_KINDS = [['sorpresa', 'Sorpresa', 'Cualquier accesorio'], ['cabeza', 'De cabeza', 'Gorros y coronas'], ['cara', 'De rostro', 'Lentes y monóculos'], ['cuello', 'De cuello', 'Bufandas y collares'], ['mano', 'De mano', 'Tazas, lupas y varitas']];
   async function wireShop(root) {
     const P = await engine().catch(() => null); if (!P || !root.isConnected) return;
-    const T = window.NexoTienda, S = api.shop, shop = root.querySelector('#petShop'), prev = root.querySelector('#petShopPreview'), top = root.querySelector('#shopTop');
-    let tryOut = { ...pet().outfit }, reveal = null, note = '';
+    const T = window.NexoTienda, S = api.shop, shop = root.querySelector('#petShop'), prev = root.querySelector('#petShopPreview'), top = root.querySelector('#shopTop'),
+      wallet = root.querySelector('#shopWallet'), types = root.querySelector('#shopTypes'), chestImg = root.querySelector('#shopChest');
+    let tryOut = { ...pet().outfit }, note = '';
     addMini({ canvas: prev, get outfit() { return tryOut; } });
-    const tag = id => `<b style="color:${RARITY_COLOR[T.RARITY_OF[id]]}">${T.LABELS[T.RARITY_OF[id]]}</b>`;
+    const sprite = (id, k) => { const c = P.sprite(P.ACCESORIOS[id].rows); c.style.cssText = `width:${c.width * k}px;height:${c.height * k}px;image-rendering:pixelated`; return c; };
+    const count = (s, kind) => kind === 'sorpresa' ? s.chests : s.slotChests[kind];
+    const btn = (attrs, label, off) => `<button type="button" class="pu-btn" ${attrs}${off ? ' disabled' : ''}>${label}</button>`;
     const render = () => {
-      const st = S.state(), s = T.shopOf(st), locked = S.locked(), daily = s.dailyAt === S.today();
-      const btn = (act, label, off) => `<button type="button" data-act="${act}"${off ? ' disabled' : ''}>${label}</button>`;
-      top.innerHTML = `<p style="margin:6px 0"><b>${Math.floor(st.coins)} ⚛</b> · ${s.dust} polvo · ${s.chests} cofre${s.chests === 1 ? '' : 's'} sin abrir</p>` +
-        (locked ? '<p><small>Con cuenta en la nube la Tienda se activa más adelante; como invitado ya puedes usarla.</small></p>' :
-        `<div style="display:flex;gap:8px;flex-wrap:wrap">${btn('daily', daily ? 'Cofre diario (ya abierto hoy)' : 'Cofre diario gratis', daily)}${btn('buy', `Comprar cofre · ${T.CHEST_PRICE} ⚛`, st.coins < T.CHEST_PRICE)}${btn('open', `Abrir cofre (${s.chests})`, s.chests < 1)}</div>`) +
-        `<p><small>Cada ${T.PITY} cofres sin nada raro, el siguiente lo es seguro. Los repetidos se vuelven polvo.</small></p>` +
-        (note ? `<p role="status">${esc(note)}</p>` : '') +
-        (reveal ? `<div class="chest-reveal" style="text-align:center;margin:8px 0"><div class="pet-icon chest-pop" style="display:inline-flex;background:#e9d9b4;border-radius:10px;padding:12px;box-shadow:0 0 18px ${RARITY_COLOR[reveal.rarity]}"></div><p><b>${esc(P.NOMBRES[reveal.id])}</b> · ${tag(reveal.id)}${reveal.dupe ? ` · repetido: +${reveal.dust} polvo` : ' · ¡nuevo!'}</p></div>` : '');
-      const box = top.querySelector('.chest-pop');
-      if (box) { const c = P.sprite(P.ACCESORIOS[reveal.id].rows); c.style.cssText = `width:${c.width * 6}px;height:${c.height * 6}px;image-rendering:pixelated`; box.append(c); }
+      const st = S.state(), s = T.shopOf(st), locked = S.locked(), daily = s.dailyAt === S.today(), total = s.chests + T.SLOTS.reduce((n, k) => n + s.slotChests[k], 0);
+      wallet.innerHTML = `<span class="pu-paper"><b>${Math.floor(st.coins)}</b> ⚛</span><span class="pu-paper"><b>${s.dust}</b> <small>polvo</small></span><span class="pu-paper"><b>${total}</b> <small>cofre${total === 1 ? '' : 's'}</small></span>`;
+      chestImg.classList.toggle('tc-lit', total > 0);
+      top.innerHTML = locked ? '<p class="tc-hint">Con cuenta en la nube la Tienda se activa más adelante; como invitado ya puedes usarla.</p>' :
+        `<div class="tienda-acciones">${btn('data-act="daily"', daily ? 'Cofre diario (ya abierto)' : 'Cofre diario gratis', daily)}${btn('data-open="sorpresa"', `Abrir cofre (${s.chests})`, s.chests < 1)}</div>` +
+        `<p class="tc-hint">Cada ${T.PITY} cofres sin nada raro, el siguiente lo es seguro. Los repetidos se vuelven polvo.</p>` + (note ? `<p class="tienda-nota" role="status">${esc(note)}</p>` : '');
+      types.innerHTML = CHEST_KINDS.map(([kind, label, hint]) => { const price = kind === 'sorpresa' ? T.CHEST_PRICE : T.SLOT_CHEST_PRICE;
+        return `<div class="pu-paper tienda-tipo"><b>${label}</b><small>${hint}</small><div class="tt-row">${btn(`data-buy="${kind}"`, `${price} ⚛`, locked || st.coins < price)}${btn(`data-open="${kind}"`, `Abrir (${count(s, kind)})`, locked || count(s, kind) < 1)}</div></div>`; }).join('');
       shop.innerHTML = Object.entries(P.ACCESORIOS).sort((a, b) => T.RARITIES.indexOf(T.RARITY_OF[a[0]]) - T.RARITIES.indexOf(T.RARITY_OF[b[0]])).map(([id, a]) => {
-        const own = s.owned.includes(id), price = T.DUST_PRICE[T.RARITY_OF[id]];
-        return `<div class="pet-item" style="background:#1f1a14;border:1px solid #4a3d2e;border-radius:10px;padding:8px;text-align:center"><div class="pet-icon" data-id="${id}" style="background:#e9d9b4;border-radius:8px;display:flex;justify-content:center;align-items:center;height:64px;margin-bottom:6px"></div><b>${esc(P.NOMBRES[id])}</b><small style="display:block;opacity:.7">${a.slot} · ${tag(id)}</small>` +
-          `<button type="button" data-try="${id}" style="margin-top:6px;width:100%">${tryOut[a.slot] === id ? 'Quitar' : 'Probar'}</button>` +
-          (own ? '<small style="display:block;margin-top:4px;color:#6cc08b">Tuyo ✓</small>' : `<button type="button" data-dust="${id}" style="margin-top:4px;width:100%"${s.dust < price ? ' disabled' : ''}>${price} polvo</button>`) + '</div>';
+        const own = s.owned.includes(id), r = T.RARITY_OF[id], price = T.DUST_PRICE[r];
+        return `<div class="pu-paper tienda-item" data-r="${r}"><div class="ti-icon" data-id="${id}"></div><b>${esc(P.NOMBRES[id])}</b><small>${a.slot}</small><span class="ti-rar">${T.LABELS[r]}</span>` +
+          btn(`data-try="${id}"`, tryOut[a.slot] === id ? 'Quitar' : 'Probar') +
+          (own ? '<span class="ti-own">Tuyo ✓</span>' : btn(`data-dust="${id}"`, `${price} polvo`, s.dust < price)) + '</div>';
       }).join('');
-      shop.querySelectorAll('.pet-icon').forEach(b => { const c = P.sprite(P.ACCESORIOS[b.dataset.id].rows); c.style.cssText = `width:${c.width * 4}px;height:${c.height * 4}px;image-rendering:pixelated`; b.append(c); });
+      shop.querySelectorAll('.ti-icon').forEach(b => b.append(sprite(b.dataset.id, 4)));
     };
-    const act = name => {
-      const st = S.state(); note = ''; reveal = null;
-      const r = name === 'buy' ? T.buyChest(st) : name === 'daily' ? T.claimDaily(st, S.today()) : T.openChest(st);
-      if (!r.ok) note = r.reason; else if (name === 'open') { reveal = r; cheerUntil = performance.now() + 2500; }
+    const open = async kind => {
+      const st = S.state(); note = '';
+      const r = T.openChest(st, Math.random, kind);
+      if (!r.ok) { note = r.reason; render(); return; }
+      S.save();
+      const again = count(T.shopOf(st), kind) > 0;
+      const ids = Object.keys(P.ACCESORIOS).map(id => ({ id, rarity: T.RARITY_OF[id] }));
+      const choice = await window.NexoCofre.play({ winner: { id: r.id, rarity: r.rarity }, ids, tile: id => sprite(id, 5), reduced: reduced(), title: P.NOMBRES[r.id],
+        note: `${T.LABELS[r.rarity]} · ${r.dupe ? `repetido: +${r.dust} polvo` : '¡nuevo!'}`, again });
+      cheerUntil = performance.now() + 2500; render();
+      if (choice === 'again' && root.isConnected) open(kind);
+    };
+    const act = (name, kind) => {
+      const st = S.state(); note = '';
+      const r = name === 'buy' ? T.buyChest(st, kind) : T.claimDaily(st, S.today());
+      if (!r.ok) note = r.reason; else { window.NexoAudio?.play('purchase'); note = name === 'buy' ? 'Cofre comprado. ¡A abrirlo!' : 'Tu cofre diario te espera.'; }
       S.save(); render();
     };
-    top.onclick = e => { const a = e.target.dataset.act; if (a) act(a); };
-    shop.onclick = e => {
-      const d = e.target.dataset.dust, id = e.target.dataset.try;
-      if (d) { const r = T.buyWithDust(S.state(), d); note = r.ok ? `¡Conseguiste ${P.NOMBRES[d]}!` : r.reason; reveal = null; S.save(); render(); }
-      else if (id) { const slot = P.ACCESORIOS[id].slot; tryOut = { ...tryOut, [slot]: tryOut[slot] === id ? '' : id }; render(); }
+    root.querySelector('.tienda-page').onclick = e => {
+      const b = e.target.closest('button'); if (!b || b.disabled) return;
+      const d = b.dataset;
+      if (d.open) open(d.open);
+      else if (d.buy) act('buy', d.buy);
+      else if (d.act) act(d.act);
+      else if (d.dust) { const r = T.buyWithDust(S.state(), d.dust); note = r.ok ? `¡Conseguiste ${P.NOMBRES[d.dust]}!` : r.reason; if (r.ok) window.NexoAudio?.play('equip'); S.save(); render(); }
+      else if (d.try) { const slot = P.ACCESORIOS[d.try].slot; tryOut = { ...tryOut, [slot]: tryOut[slot] === d.try ? '' : d.try }; render(); }
     };
     render();
   }

@@ -791,7 +791,7 @@
         <div class="timer-head-v10"><span>${running ? 'SESIÓN EN CURSO' : paused ? 'SESIÓN EN PAUSA' : 'LISTO PARA COMENZAR'}</span><i class="live-pill ${state.timer.status}">${running ? 'EN CURSO' : paused ? 'PAUSADO' : 'LISTO'}</i></div>
         <label class="timer-subject-v10">Ramo<select id="timerSubject" ${running ? 'disabled' : ''}>${SUBJECTS.map(s => `<option value="${s.id}" ${state.timer.subject === s.id ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select></label>
         <div class="clock clock-v10" id="clock" role="timer" aria-label="${formatClock(timerElapsedMs())}">${pixelDigits(formatClock(timerElapsedMs()))}</div>
-        <div class="timer-tiers" aria-label="Átomos por sesión">${[[5,3],[15,15],[30,25],[60,100],[120,250]].map(([min,atoms]) => `<span><b>${min} min</b><small>${atoms} átomos</small></span>`).join('')}</div>
+        <div class="timer-tiers" aria-label="Átomos por sesión">${[[30,5],[60,8],[120,10]].map(([min,atoms]) => `<span><b>${min} min</b><small>${atoms} átomos</small></span>`).join('')}</div>
         <div class="button-row timer-controls-v10">
           ${running ? '<button class="secondary-btn" data-action="timer-pause">Pausar</button>' : `<button class="primary-story-v10" data-action="timer-start">${paused ? 'Continuar' : 'Iniciar estudio'}</button>`}
           <button class="secondary-btn" data-action="timer-finish" ${timerElapsedMs() < 1000 ? 'disabled' : ''}>Finalizar y guardar</button>
@@ -1412,10 +1412,11 @@
   }
   function renderShop() {
     petBind(); awardHitos();
-    app.innerHTML=`<section class="page forge-page"><p class="eyebrow">MERCADO ARCANO</p><h2>Tienda de cofres</h2>
-      <div id="shopTop"></div>
-      <div style="display:flex;justify-content:center;background:radial-gradient(circle at 50% 40%,#f3e6c8,#d8c39a);border-radius:12px;margin:10px 0"><canvas id="petShopPreview" width="40" height="44" style="width:160px;height:176px;image-rendering:pixelated" aria-label="Vista previa de tu compañero"></canvas></div>
-      <div id="petShop" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px"></div></section>`+
+    app.innerHTML=`<section class="page forge-page tienda-page"><div class="tienda-head"><div><p class="eyebrow">MERCADO ARCANO</p><h2 aria-label="Tienda del alquimista">${window.NexoPixelText?window.NexoPixelText.render('Tienda del alquimista'):'Tienda del alquimista'}</h2></div><div class="tienda-wallet" id="shopWallet"></div></div>
+      <div class="tienda-mesa"><div class="pu-panel"><div class="tienda-cofre"><img id="shopChest" src="./assets/tienda/cofre-cerrado.png" alt="Cofre del alquimista"><div id="shopTop"></div></div></div>
+        <div class="pu-panel"><div class="pu-paper tienda-pet"><canvas id="petShopPreview" width="40" height="44" aria-label="Vista previa de tu compañero"></canvas><small>Prueba un accesorio y mira cómo le queda a tu compañero.</small></div></div></div>
+      <div class="tienda-tipos" id="shopTypes"></div>
+      <div class="tienda-estantes" id="petShop"></div></section>`+
       `<details class="forge-challenges"><summary>Desafíos de estudio</summary>${renderChallenges()}</details>`;
     window.NexoPet?.wireShop(app);
   }
@@ -1546,7 +1547,7 @@
         });
         state.xp += sessionXp(confirmedSeconds);
       }
-      if (!cloud.authenticated) state.coins += rewardValue;
+      if (!cloud.authenticated) rewardValue = window.NexoTienda.earn(state, 'sesion', todayKey(), rewardValue);
       state.timer = { status: 'idle', subject: state.timer.subject, startedAt: null, elapsedBeforeMs: 0 };
       saveState(); playSuccess(); renderRoute(false); window.NexoPet?.celebrate(rewardValue);
       showToast(`Sesión guardada · ${formatClock(confirmedSeconds * 1000)}${rewardValue ? ` · +${rewardValue} átomos` : ' · sin átomos pendientes'}`);
@@ -1575,7 +1576,7 @@
     progress.firstCorrect = Boolean(progress.firstCorrect || (firstAttempt && progress.correct && !progress.hintUsed));
     progress.lastAttempt = todayKey(); progress.solvedAt = progress.correct ? todayKey() : progress.solvedAt;
     if (!progress.correct) addPracticeError(item, item.choices[progress.selected], item.lookFor);
-    else if (!hadCorrect) { if (!cloud.authenticated) state.coins += firstAttempt && !progress.hintUsed ? 4 : 2; state.xp += 5; progress.rewarded = true; playSuccess(); }
+    else if (!hadCorrect) { if (!cloud.authenticated) window.NexoTienda.earn(state, firstAttempt && !progress.hintUsed ? 'sinAyuda' : 'conAyuda', todayKey()); state.xp += 5; progress.rewarded = true; playSuccess(); }
     state.practice[item.id] = progress; saveState(); renderRoute(false);
     cloud.track(progress.correct?'exercise_attempted':'exercise_failed',{exercise_id:item.id,correct:progress.correct,attempt:progress.attempts});
   }
@@ -1586,7 +1587,7 @@
     progress.attempts += 1; progress.checked = true; progress.textScore = score; progress.correct = score >= 65;
     progress.firstCorrect = Boolean(progress.firstCorrect || (firstAttempt && progress.correct && !progress.hintUsed)); progress.lastAttempt = todayKey();
     if (!progress.correct) addPracticeError(item, `Respuesta abierta ${score}/100`, `Incluye la cadena ${item.lookFor} y conecta los pasos con “porque”, “provoca” o “por eso”.`);
-    else if (!hadCorrect) { if (!cloud.authenticated) state.coins += firstAttempt && !progress.hintUsed ? 5 : 2; state.xp += 6; progress.rewarded = true; playSuccess(); }
+    else if (!hadCorrect) { if (!cloud.authenticated) window.NexoTienda.earn(state, firstAttempt && !progress.hintUsed ? 'sinAyuda' : 'conAyuda', todayKey()); state.xp += 6; progress.rewarded = true; playSuccess(); }
     state.practice[item.id] = progress; saveState(); renderRoute(false);
     cloud.track(progress.correct?'exercise_attempted':'exercise_failed',{exercise_id:item.id,correct:progress.correct,attempt:progress.attempts});
   }
@@ -1721,7 +1722,7 @@
     if (button.dataset.action === 'timer-reset') return timerReset();
     if (button.dataset.action === 'exercise-hint') { const p = state.practice[button.dataset.exerciseId] || { attempts: 0 }; p.hintOpen = !p.hintOpen; if (p.hintOpen) p.hintUsed = true; state.practice[button.dataset.exerciseId] = p; saveState({ backup: false }); return renderRoute(false); }
     if (button.dataset.action === 'exercise-retry') { const p = state.practice[button.dataset.exerciseId] || {}; p.checked = false; delete p.selected; state.practice[button.dataset.exerciseId] = p; saveState({ backup: false }); return renderRoute(false); }
-    if (button.dataset.action === 'guide-complete') { const id = button.dataset.guideId; state.guides[id] = { ...(state.guides[id] || {}), completed: true, completedAt: todayKey() }; if (!cloud.authenticated) state.coins += state.guides[id].rewarded ? 0 : 8; state.guides[id].rewarded = true; awardHitos(); saveState(); playSuccess(); return renderRoute(false); }
+    if (button.dataset.action === 'guide-complete') { const id = button.dataset.guideId; state.guides[id] = { ...(state.guides[id] || {}), completed: true, completedAt: todayKey() }; state.guides[id].rewarded = true; awardHitos(); saveState(); playSuccess(); return renderRoute(false); }
     if (button.dataset.action === 'new-error') return routeTo('practice', 'errors', 'new');
     if (button.dataset.action === 'toggle-error-status') { const item = state.errors.find(e => e.id === button.dataset.errorId); if (item) { item.status = item.status === 'resolved' ? 'open' : 'resolved'; item.reviewedAt = todayKey(); saveState(); renderRoute(false); } return; }
     if (button.dataset.deleteError) return removeWithUndo(state.errors, button.dataset.deleteError, 'Error');

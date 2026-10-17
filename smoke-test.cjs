@@ -26,7 +26,7 @@ if (exercises.length !== 36) throw new Error('Los ejercicios reales base cambiar
 if (app.includes('generatedExercises') || !app.includes('const EXERCISES = [];')) throw new Error('La biblioteca de ejercicios debe estar vacía (se rehace junto con las clases)');
 if (!app.includes('Disponible próximamente') || app.includes('completeComprehension') || app.includes('gradeMastery')) throw new Error('Las clases deben mostrar "Disponible próximamente" y no conservar el reproductor antiguo');
 const economy = fs.readFileSync(path.join(dist, 'study/economy.js'), 'utf8');
-if (!index.includes('./startup-bundle.js?v=') || !startupBundle.includes('/* study/economy.js */') || !app.includes('window.NexoEconomy') || !economy.includes('minutes >= 120 ? 250') || !economy.includes('minutes >= 60 ? 100') || !economy.includes('minutes >= 30 ? 25') || !economy.includes('minutes >= 15 ? 15') || !economy.includes('minutes >= 5 ? 3')) throw new Error('Faltan tramos oficiales de átomos del reloj');
+if (!index.includes('./startup-bundle.js?v=') || !startupBundle.includes('/* study/economy.js */') || !app.includes('window.NexoEconomy') || !economy.includes('minutes >= 120 ? 10') || !economy.includes('minutes >= 60 ? 8') || !economy.includes('minutes >= 30 ? 5')) throw new Error('Faltan tramos oficiales de átomos del reloj');
 if (!app.includes('progress.rewarded = true') || !app.includes('const hadCorrect = Boolean(')) throw new Error('Protección contra cobro repetido de ejercicios ausente');
 if (!app.includes('BACKUP_KEY') || !app.includes('exportJson') || !app.includes('restoreBackup')) throw new Error('Respaldo/migración incompletos');
 if (!app.includes("window.addEventListener('hashchange'") || !app.includes("routeTo('lesson'")) throw new Error('Rutas persistentes incompletas');
@@ -52,5 +52,5 @@ for (const exam of exams) {
 
 // Mascota y tienda en preparación (docs/mascota/SPEC.md): no deben quedar restos del sistema anterior.
 if (companions.length || rewards.length || ['/* avatar/', 'mascot-rive', 'vendor/rive'].some(text => startupBundle.includes(text)) || fs.existsSync(path.join(dist, 'assets', 'avatar'))
-  || !app.includes('Tienda de cofres') || !app.includes('shopReset202610')) throw new Error('La mascota y la tienda antiguas deben estar borradas');
+  || !app.includes('Tienda del alquimista') || !app.includes('shopReset202610')) throw new Error('La mascota y la tienda antiguas deben estar borradas');
 console.log(`OK: cuatro destinos, perfil, mascota y tienda pixel, ${ids.length} clases del catálogo base, ${exercises.length + ids.length * 3} ejercicios de la base anterior. El aula nueva de Orgánica se valida por separado.`);
