@@ -304,7 +304,7 @@ body[data-nexo-room="home"] #app { padding-top:0;background:#28332a; }
 
 .home-room-hud { position:absolute;z-index:6;left:4%;bottom:23%; }
 .refuge .home-room-hud .streak-hud { background:#27372dba;border:1px solid #ceb97988;box-shadow:none;font-size:.875rem; }
-.home-clock { --px:3;--frame:24px;position:absolute;z-index:7;left:50%;top:3%;width:min(94%,580px);box-sizing:border-box;display:grid;grid-template-columns:auto 1fr auto;gap:4px 16px;align-items:center;padding:2px 10px 6px;border:var(--frame) solid transparent;border-image:url('../assets/pixel-ui/marco.png') 12 fill / var(--frame) round;image-rendering:pixelated;color:#f1e6c8;filter:drop-shadow(0 6px 10px #0007);transform-origin:50% 0;transform:translateX(-50%);animation:hcDrop 1.1s cubic-bezier(.3,1.4,.5,1) both,hcSway 7s ease-in-out 1.1s infinite alternate; }
+.home-clock { will-change:transform;--px:3;--frame:24px;scale:var(--cs,1);position:absolute;z-index:7;left:50%;top:max(3%,64px);width:min(calc(94% / var(--cs,1)),580px);box-sizing:border-box;display:grid;grid-template-columns:auto 1fr auto;gap:4px 16px;align-items:center;padding:2px 10px 6px;border:var(--frame) solid transparent;border-image:url('../assets/pixel-ui/marco.png') 12 fill / var(--frame) round;image-rendering:pixelated;color:#f1e6c8;filter:drop-shadow(0 6px 10px #0007);transform-origin:0 0;transform:translateX(-50%);animation:hcDrop 1.1s cubic-bezier(.3,1.4,.5,1) both,hcSway 7s ease-in-out 1.1s infinite alternate; }
 .home-clock .hc-now { display:grid;gap:5px;justify-items:start;margin-left:var(--frame); }
 .home-clock .hc-hour { height:28px;color:#fbe9b0; }
 .home-clock .hc-hour .pixel-digits { height:100%;width:auto;fill:#fbe9b0;filter:drop-shadow(0 2px 0 #1a0f13); }
@@ -322,6 +322,9 @@ body[data-nexo-room="home"] #app { padding-top:0;background:#28332a; }
 .home-clock .hc-plate { max-width:100%;overflow:hidden; }
 .home-clock .hc-plate-exam { background:#5b2a24; }
 .home-clock .hc-plate-exam .pixel-text { fill:#ffd9b0; }
+.home-clock .hc-size { position:absolute;left:var(--frame);top:calc(100% + 2px);display:flex;gap:4px; }
+.home-clock .hc-size .pu-btn { min-height:30px;padding:0 4px;--pu-face:8px; }
+.home-clock .hc-size .pixel-text { --s:1; }
 .home-clock i { position:absolute;display:block;pointer-events:none;image-rendering:pixelated;background-repeat:no-repeat; }
 .hc-gear { left:calc(-11*var(--px)*1px);top:calc(-11*var(--px)*1px);width:calc(20*var(--px)*1px);height:calc(20*var(--px)*1px);background-image:url('../assets/home-scenes/reloj-engranaje.png');background-size:calc(160*var(--px)*1px) 100%;animation:hcSheetGear 14s steps(8) infinite; }
 .hc-orb { right:calc(-11*var(--px)*1px);top:calc(-11*var(--px)*1px);width:calc(20*var(--px)*1px);height:calc(20*var(--px)*1px);background-image:url('../assets/home-scenes/reloj-orbe.png');background-size:calc(120*var(--px)*1px) 100%;animation:hcSheetOrb 3.6s steps(6) infinite; }
@@ -507,12 +510,6 @@ body.ambient-paused .home-leaf { animation-play-state:paused; }
 body[data-nexo-ambient-motion="reduced"] .home-leaf,body[data-nexo-quality="low"] .home-leaf { animation:none; }
 @media(prefers-reduced-motion:reduce) { .home-leaf { animation:none; } }
 
-/* UPDATE 01.4 — iconos propios de Bitácora (almanaque con luna) y Tienda (cabeza del báculo estelar). */
-.header-action { display:inline-grid;place-items:center; }
-.nexo-icon { width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round; }
-.nexo-icon .nexo-icon-fill { fill:#e9c77a;stroke:#e9c77a;stroke-width:.6; }
-.header-action:hover .nexo-icon .nexo-icon-fill { fill:#ffdf96;stroke:#ffdf96; }
-@media(max-width:700px) { .nexo-icon { width:19px;height:19px; } }
 
 /* UPDATE 01.5 — intro del grimorio (portada pintada por tools/grimoire-cover/build_cover.py).
    La coreografía está en platform/animation.js; aquí sólo vive el "objeto": portada, guardas, páginas y brillos. */
@@ -549,11 +546,7 @@ body[data-nexo-ambient-motion="reduced"] .home-leaf,body[data-nexo-quality="low"
 
 .gi-hint-touch { display:none; }
 @media(hover:none) { .gi-hint-mouse { display:none; } .gi-hint-touch { display:inline; } }
-/* UPDATE 01.5 — cambio entre secciones principales: "nuevo capítulo" sutil (antes partía en 72 % de opacidad). */
-#app[data-chapter-transition="1"]>.page { animation:nexoChapter .34s cubic-bezier(.2,.7,.2,1) both; }
-@keyframes nexoChapter { from { opacity:0;transform:translateY(12px); } 60% { opacity:1; } to { opacity:1;transform:none; } }
 #app[data-world-transition="book-first"]>.page,#app[data-world-transition="book-return"]>.page,#app[data-world-transition="book-close"]>.page,#app[data-world-transition="page-turn"]>.page { animation:none; }
-@media(prefers-reduced-motion:reduce) { #app[data-chapter-transition="1"]>.page { animation:none; } }
 body.reduce-motion #app>.page { animation:none!important; }
 
 /* UPDATE 01.7 — páginas llenas de dibujos según el ramo (tools/grimoire-pages/build_decor.py).
@@ -665,7 +658,7 @@ body.reduce-motion #app>.page { animation:none!important; }
 .home-px-tarde { background-image:url('../assets/home-scenes/refugio-pixel-tarde.png');opacity:calc(var(--w-dusk,0) + var(--w-dawn,0) * .7); }
 .home-px-noche { background-image:url('../assets/home-scenes/refugio-pixel-noche.png');opacity:var(--w-night,0); }
 @media (max-width:700px) {
-  .home-clock { --px:2;top:8px;width:calc(100% - 20px);grid-template-columns:1fr auto;gap:6px 10px;padding:0 4px 4px; }
+  .home-clock { scale:min(var(--cs,1),1);--px:2;top:8px;width:calc(100% - 20px);grid-template-columns:1fr auto;gap:6px 10px;padding:0 4px 4px; }
   .home-clock .hc-timer { grid-column:1/-1;grid-row:2; }
   .home-clock .hc-greet,.home-clock .hc-label { display:none; }
   .home-clock .hc-hour { height:21px; }

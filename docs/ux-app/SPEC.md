@@ -37,7 +37,15 @@ Se aplica primero al **Inicio** (carteles, reloj, barras) y a la **barra lateral
 - Inicio: reloj con marco nuevo y botones de latón; 3 carteles con marco, pergamino, sello, hiedra, barra de cristal y entrada que cuelga de la viga con rebote.
 - Barra lateral (248 px) y barra de celular: riel de madera, íconos pixel, letras pixel, botón hundido en la activa.
 
+## Hecho (17 oct, segunda vuelta)
+- Cronómetro del Inicio en tiempo real (el reloj nunca arrancaba su tic al abrir el Inicio; cada cuarto de segundo, solo repinta si cambia el texto). Se borró código viejo de la pantalla de cronómetro.
+- Reloj con tamaño a gusto (− / +, 5 pasos, se recuerda en el dispositivo).
+- Cabecera (Bitácora, átomos, Tienda) con botones de latón e íconos pixel.
+- Portal entre secciones (View Transitions, se abre desde donde tocaste; sin él con movimiento reducido).
+- Optimización: letras pixel pasaron de un `<rect>` por píxel a una `<path>` por texto (Inicio: ~6000 → ~300 nodos); capas con `will-change` y animaciones pausadas con `ambient-paused`.
+
 ## Falta de este tema
+- Inicio ya no permite elegir el ramo del cronómetro ni descartar una sesión (la pantalla vieja de cronómetro se fue): decidir dónde van.
 - Fuente legible para párrafos largos (hoy siguen en la fuente normal; solo lo corto va en letras pixel).
 - Grabados tallados extra en el marco (hoy solo vetas) y flores más visibles en la hiedra.
 - Botones redondos de la cabecera (Bitácora, átomos, Tienda) aún sin kit.

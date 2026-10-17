@@ -4,7 +4,7 @@
 .refuge-signs { position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:40px 28px;align-items:start;padding:50px 10px 12px; }
 .signs-beam { position:absolute;left:-14px;right:-14px;top:6px;height:28px;background:linear-gradient(#a56a36 0 4px,#8a552e 4px 8px,#673c23 8px 18px,#47281b 18px 24px,#2c1916 24px 28px);box-shadow:0 5px 0 #140c10,0 12px 14px #0007;image-rendering:pixelated; }
 .signs-beam::before { content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 46px,#2c191655 46px 48px,transparent 48px 120px); }
-.sign { display:grid;gap:10px;align-content:start;padding:2px 4px 8px;transform-origin:50% -34px;animation:signDrop .95s cubic-bezier(.3,1.5,.5,1) both,signSway 7s ease-in-out .95s infinite alternate; }
+.sign { will-change:transform;display:grid;gap:10px;align-content:start;padding:2px 4px 8px;transform-origin:50% -34px;animation:signDrop .95s cubic-bezier(.3,1.5,.5,1) both,signSway 7s ease-in-out .95s infinite alternate; }
 .sign-pruebas { animation-delay:.05s,.95s; }
 .sign-dia { animation-delay:.2s,-3s;animation-duration:.95s,8.5s; }
 .sign-continuar { animation-delay:.35s,-1.5s;animation-duration:.95s,6.5s; }
@@ -47,7 +47,7 @@
 @media(max-width:900px) {
   .refuge-signs { grid-template-columns:1fr;gap:44px;padding-top:44px; }
 }
-body[data-nexo-ambient-motion="reduced"] .sign,body[data-nexo-ambient-motion="reduced"] .sign *,body[data-nexo-quality="low"] .sign { animation:none !important; }
+body.ambient-paused .sign,body.ambient-paused .sign *,body[data-nexo-ambient-motion="reduced"] .sign,body[data-nexo-ambient-motion="reduced"] .sign *,body[data-nexo-quality="low"] .sign { animation:none !important; }
 @media(prefers-reduced-motion:reduce) { .sign,.sign *,.goal-bar i { animation:none !important;transition:none !important; } }
 .pixel-text { display:block;height:calc(var(--u,8)*var(--s,2)*1px);width:auto; }
 .sign .pu-seal { right:-10px;bottom:-14px;z-index:3; }
