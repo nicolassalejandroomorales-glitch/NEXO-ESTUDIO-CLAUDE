@@ -39,6 +39,23 @@ Se avanza paso a paso (toque o flechas, como en Vampire Crawlers), se gira en lo
 - **Ruta: todo abierto + guía**. Nada se bloquea; la alcoba de hoy brilla más y la **cuenta regresiva de la PEP** está grabada en la piedra ("PEP 1 · 10 días"). Resuelve el riesgo de trabar a alguien cerca de una prueba.
 - **Temas de la próxima PEP**: alcobas **veladas** con raíces y neblina y la fecha en que llega el material; se ven, aún sin misiones.
 - Orgánica II, PEP 1 (27 oct): alcobas **Aminas** (`org-01`), **Aromáticos** (`org-04` aromaticidad + `org-05` sustitución electrofílica) y **Heterociclos** (aún sin clase: su estante queda vacío hasta crearla); las de la PEP 2, veladas.
+- **Murales de alcoba** (Niquito, 17 oct; sacados de `docs/estudio-organica/MAPA_PEP1.md`):
+  Aminas = **basicidad** (el H⁺ se pega al par libre de una amina; en la anilina el par se reparte en el anillo y el H⁺ se va: "AMINA > ANILINA").
+  Aromáticos = **Hückel → SEA** (cuenta 2·4·6 electrones π = 4n+2 ✓ y ciclobutadieno 4 ✗; luego entra E⁺, complejo sigma, sale H⁺).
+  Heterociclos = **piridina vs pirrol** (el par libre de la piridina queda fuera del anillo y atrapa al H⁺; el del pirrol gira dentro de los 6 π y el H⁺ rebota).
+
+### Dónde va el resto de Aprender (Niquito, 17 oct; diseño, sin dibujar aún)
+Hoy el "Centro de estudio" (`renderPractice` en `app.js`) tiene Ejercicios, Guías, Errores, Pruebas antiguas y Laboratorio. En el sótano:
+- **Formulario** = un **grimorio abierto en el pedestal del sauce** de cada Cámara (uno por ramo, a mano desde cualquier alcoba).
+- **Ejercicios, Guías y Pruebas antiguas** = una **Sala de entrenamiento aparte**, al fondo del pasillo (el gran arco con luz que ya existe), para todos los ramos, con estaciones.
+- **Errores** = **grietas brillantes** en la alcoba de su tema (tocar una = reintentar ese error).
+- **Laboratorio** = **sala propia en el pasillo** (alambiques), porque cruza todos los temas.
+
+### Boceto animado (17 oct, aprobado: "está muy buena")
+- `tools/aprender-pasillo/build_camara.py` (usa las piezas de `build_sotano.py`): cripta de radio 2,6 con 6 alcobas (Aminas al frente, Aromáticos a la derecha, Heterociclos a la izquierda, 2 veladas de la PEP 2 y el portal de llegada atrás), pilares con antorchas, pedestal con **"PEP 1 · 10 DÍAS"** grabado, sauce con una rama gruesa por alcoba y un mimbre por concepto (hojas verdes y flor = dominio), mesa con un frasco por misión (Aminas 8, Aromáticos 6, Heterociclos vacía) y un cristal por concepto en las paredes de la alcoba (apagado = toca repaso).
+- Murales de alcoba en `murales.py` (`CAMARA`, 96×72 texeles); si en pantalla quedan más chicos, se engrosan los trazos.
+- Recorrido: sale del remolino mirando el sauce y, detrás, la alcoba de hoy → rodea el sauce → frente a Aminas → un toque = se acerca a la mesa → gira a Aromáticos → Heterociclos → alcoba velada.
+- Correr: `python tools/aprender-pasillo/build_camara.py` → `docs/aprender-pasillo/camara-organica.gif` (~6 min; no se sube a git). `... build_camara.py cuadros` → `camara-cuadros.png` con 6 cuadros clave en segundos (para revisar sin el GIF).
 
 ## Criterios de aceptación (de la prueba)
 - Avanzar, girar y abrir una puerta se ven fluidos y con profundidad real (no "PNG plano").
@@ -51,9 +68,10 @@ Se avanza paso a paso (toque o flechas, como en Vampire Crawlers), se gira en lo
 - Cuando Niquito no sabe explicar qué falla: ofrecer **3 versiones lado a lado** y que elija.
 
 ## Pendiente
-- **Boceto animado de la Cámara de Orgánica II** (Opus, dirección de arte): llegada desde el remolino, giro entre las 3 alcobas, sauce de cristal y cristales encendidos/apagados. Ofrecer 3 versiones si no convence.
-- Murales de las alcobas: definir qué muestra cada uno (ej. Aminas = basicidad y par libre; Aromáticos = Hückel; Heterociclos = piridina vs pirrol), verificado contra el material del ramo.
+- Diseñar (conversando) la **Sala de entrenamiento** del fondo y la **sala de Laboratorio**; luego bocetos. Sumar a la Cámara el grimorio-formulario del pedestal y las grietas de errores.
+- Cámara: el tronco del sauce aún se ve en bloques; la fecha de la PEP 2 de Orgánica no está en `semester-2026.js` (las veladas dicen "EN CAMINO").
 - Llevar el pasillo a la app con cuadros pre-renderizados (Sonnet · alto): peso, móvil (390) y escritorio (1440).
 - Pulir: cristales que aún parecen pegados, legibilidad de murales vistos de lado.
 - Relación con la Torre (`docs/mundo-torre/SPEC.md`: pisos, escalera, ascensor).
+- El laboratorio caminable de la Torre (`dist/world/torre-mundo.js`) quedó sin página: evaluar si es la sala de Laboratorio o de entrenamiento del sótano (avisado en `docs/mundo-torre/SPEC.md`).
 - Tutorial: su recorrido de Aprender espera a este rediseño (`docs/chats/tutorial.md`).

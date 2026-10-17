@@ -52,6 +52,7 @@ que se pueda recorrer con la mascota. Que no quede todo tan "anti ambiental".
 - `tools/torre-mundo-test.cjs` en verde; `npm test` 26/26. ANTES/AHORA: `docs/mundo-torre/antes-ahora.png`.
 
 ## Pendiente
+- (Desde Aprender, 17 oct) El Sótano de los Cristales tendrá una **sala de Laboratorio** y una **Sala de entrenamiento** propias (`docs/aprender-pasillo/SPEC.md`): el laboratorio caminable sin página podría reengancharse ahí.
 
 - Esperar aprobación visual de Niquito.
 - La campaña (`games/pep1/index.html`) no tiene botón "Volver a Nexo" (anotado en el SPEC de juegos).

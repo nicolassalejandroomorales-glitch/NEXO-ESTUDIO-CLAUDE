@@ -50,18 +50,18 @@ SIGN_HALF = 1.03
 _sign_cache = {}
 
 
-def sign_texture(lines):
+def sign_texture(lines, sw=SIGN_W, sh=SIGN_H):
     """Letrero de piedra grabada: placa con bisel y letras talladas (fuente 5x5 al doble).
     Códigos: 0 placa, 1 bisel con luz, 8 bisel en sombra, 2 letra (brilla), 6 sombra dentro del surco, 7 canto con luz bajo la letra."""
-    key = tuple(lines)
+    key = (tuple(lines), sw, sh)
     if key in _sign_cache:
         return _sign_cache[key]
-    tex = np.zeros((SIGN_H, SIGN_W), np.uint8)
-    let = np.zeros((SIGN_H, SIGN_W), bool)
-    y = (SIGN_H - (len(lines) * 12 + (len(lines) - 1) * 2)) // 2
+    tex = np.zeros((sh, sw), np.uint8)
+    let = np.zeros((sh, sw), bool)
+    y = (sh - (len(lines) * 12 + (len(lines) - 1) * 2)) // 2
     for text in lines:
         glyphs = [(FONT[ACCENT.get(ch, ch)], ch in ACCENT) for ch in text]
-        x = (SIGN_W - (sum((len(g[0]) + 1) * 2 for g, _ in glyphs) - 2)) // 2
+        x = (sw - (sum((len(g[0]) + 1) * 2 for g, _ in glyphs) - 2)) // 2
         for g, acc in glyphs:
             for ry, row in enumerate(g):
                 for rx, chx in enumerate(row):
@@ -352,32 +352,38 @@ class Compositor:
 def draw_crystal_cluster(comp, site, glows, rng):
     base, nrm = site_cam(site)
     fr, kind, mat = site[0], site[1], site[5]
+    axes = {'w': ((0, 1, 0), (0, 0, 1)), 'c': ((1, 0, 0), (0, 0, 1)), 'f': ((1, 0, 0), (0, 0, 1))}[kind]
+    draw_crystal(comp, base, nrm, [camdir(fvec(fr, a)) for a in axes], kind, mat, glows, rng)
+
+
+def draw_crystal(comp, base, nrm, tang, kind, mat, glows, rng, lit=1.0, size=1.0, bed=True):
+    """Racimo de cristales sobre una roca (base y normal en espacio de cámara); lit < 1 = cristal apagado."""
     z = float(base[2])
     if z < 0.9:
         return
     ly = Canvas(W, H)
     bx, by_ = project(base)
-    rr = 0.2 * F / z
+    rr = 0.2 * size * F / z
     yy, xx = np.mgrid[0:H, 0:W]
     ex, ey = (0.9, 1.2) if kind == 'w' else (1.3, 0.55)
     ring = ((xx + 0.5 - bx) / (rr * ex * 1.25)) ** 2 + ((yy + 0.5 - by_) / (rr * ey * 1.25)) ** 2 <= 1
-    bed = ((xx + 0.5 - bx) / (rr * ex)) ** 2 + ((yy + 0.5 - by_) / (rr * ey)) ** 2 <= 1
-    ly.mask(ring, 'crypt', 1.2)
-    ly.mask(bed, 'crypt', 4.2)
-    ly.mask(bed & (((xx + yy) % 4) < 2), 'crypt', 3.2)
-    ly.mask(bed & (yy + 0.5 < by_ - rr * ey * 0.45), 'crypt', 5.4)
-    ly.lock |= bed
-    axes = {'w': ((0, 1, 0), (0, 0, 1)), 'c': ((1, 0, 0), (0, 0, 1)), 'f': ((1, 0, 0), (0, 0, 1))}[kind]
-    tang = [camdir(fvec(fr, a)) for a in axes]
+    rock = ((xx + 0.5 - bx) / (rr * ex)) ** 2 + ((yy + 0.5 - by_) / (rr * ey)) ** 2 <= 1
+    if bed:
+        ly.mask(ring, 'crypt', 1.2)
+        ly.mask(rock, 'crypt', 4.2)
+        ly.mask(rock & (((xx + yy) % 4) < 2), 'crypt', 3.2)
+        ly.mask(rock & (yy + 0.5 < by_ - rr * ey * 0.45), 'crypt', 5.4)
+        ly.lock |= rock
     spikes = []
     for k in range(rng.randint(5, 8)):
-        B = base + tang[0] * rng.uniform(-0.13, 0.13) + tang[1] * rng.uniform(-0.11, 0.11)
+        B = base + (tang[0] * rng.uniform(-0.13, 0.13) + tang[1] * rng.uniform(-0.11, 0.11)) * size
         D = nrm * rng.uniform(0.9, 1.1) + tang[0] * rng.uniform(-0.3, 0.3) + tang[1] * rng.uniform(-0.3, 0.3)
         D = D / np.linalg.norm(D)
-        L = rng.uniform(0.26, 0.45) if k == 0 else rng.uniform(0.08, 0.26)
-        spikes.append((B, B + D * L, rng.uniform(0.045, 0.075) * (1.5 if k == 0 else 1)))
+        L = (rng.uniform(0.26, 0.45) if k == 0 else rng.uniform(0.08, 0.26)) * size
+        spikes.append((B, B + D * L, rng.uniform(0.045, 0.075) * (1.5 if k == 0 else 1) * size))
     spikes.sort(key=lambda sp: -sp[0][2])
     hi_l, mid_l, lo_l = (5.6, 4.0, 2.6) if mat == 'crystal' else (5.2, 3.6, 2.4)
+    hi_l, mid_l, lo_l, tip_l = hi_l * lit, mid_l * lit, lo_l * lit, 6.4 * lit
     for (B, T, wd) in spikes:
         if B[2] < 0.5 or T[2] < 0.5:
             continue
@@ -391,10 +397,11 @@ def draw_crystal_cluster(comp, site, glows, rng):
         tri(ly, b2 + perp, mid + perp * 0.55, b2, mat, hi_l)
         tri(ly, b2, mid + perp * 0.55, mid - perp * 0.55, mat, mid_l)
         tri(ly, b2, mid - perp * 0.55, b2 - perp, mat, lo_l)
-        tri(ly, mid + perp * 0.55, t2, mid - perp * 0.55, mat, 6.4)
-        ly.line(b2[0], b2[1], mid[0], mid[1], mat, 6.8)
+        tri(ly, mid + perp * 0.55, t2, mid - perp * 0.55, mat, tip_l)
+        ly.line(b2[0], b2[1], mid[0], mid[1], mat, 6.8 * lit)
     comp.paste(ly, z)
-    glows.append((bx, by_ - rr * 0.8, max(8, 0.9 * F / z), '#5cc4dc' if mat == 'crystal' else '#b88cf4', 0.45))
+    if lit > 0.5:
+        glows.append((bx, by_ - rr * 0.8, max(8, 0.9 * F / z), '#5cc4dc' if mat == 'crystal' else '#b88cf4', 0.45 * lit))
 
 
 def sphere_px(layer, P, rad, mat, base, lights, spec=2.4, only=None, lock=False, rim=0.9):
