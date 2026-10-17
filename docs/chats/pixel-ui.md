@@ -1,9 +1,9 @@
 # Aspecto y navegación de toda la app
 - modelo: Sonnet 5.5 · alto (solo conversar y diseñar al inicio)
-- estado: crítica recibida el 15 oct, sin decisiones
-- fase: por-hacer
+- estado: dirección y SPEC aprobados el 17 oct (docs/ux-app/SPEC.md); falta que Niquito diga "hazlo"
+- fase: desarrollo
 - prioridad: 2
-- spec: docs/ux-app/FEEDBACK-15OCT.md
+- spec: docs/ux-app/SPEC.md
 
 ## Hecho
 - Barra nueva (17 oct): Inicio · Aprender · Organización · Perfil. Entrenar se borró (pantalla, entrenamiento, sala Taller y pruebas); Repasos y Rescate siguen en Aprender. Juegos salió de la barra (sigue en #/games).
