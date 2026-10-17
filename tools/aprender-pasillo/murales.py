@@ -25,19 +25,24 @@ FONT = {
     'V': ['X...X', 'X...X', 'X...X', '.X.X.', '..X..'], 'X': ['X...X', '.X.X.', '..X..', '.X.X.', 'X...X'],
     '0': ['.XXX.', 'X..XX', 'X.X.X', 'XX..X', '.XXX.'], '1': ['..X..', '.XX..', '..X..', '..X..', '.XXX.'],
     '2': ['XXXX.', '....X', '.XXX.', 'X....', 'XXXXX'], '7': ['XXXXX', '....X', '...X.', '..X..', '..X..'],
+    '3': ['XXXX.', '....X', '.XXX.', '....X', 'XXXX.'], '4': ['X..X.', 'X..X.', 'XXXXX', '...X.', '...X.'],
+    '5': ['XXXXX', 'X....', 'XXXX.', '....X', 'XXXX.'], '6': ['.XXX.', 'X....', 'XXXX.', 'X...X', '.XXX.'],
+    '8': ['.XXX.', 'X...X', '.XXX.', 'X...X', '.XXX.'], '9': ['.XXX.', 'X...X', '.XXXX', '....X', '.XXX.'],
     '-': ['.....', '.....', 'XXXXX', '.....', '.....'], '+': ['.....', '..X..', '.XXX.', '..X..', '.....'],
+    '>': ['X....', '.XX..', '...XX', '.XX..', 'X....'], '·': ['...', '...', '.X.', '...', '...'],
     ' ': ['...', '...', '...', '...', '...'],
 }
 ACCENT = {'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U'}
 
 
 class Lienzo:
-    def __init__(self):
-        self.a = np.zeros((PH, PW), np.uint8)
+    def __init__(self, w=PW, h=PH):
+        self.w, self.h = w, h
+        self.a = np.zeros((h, w), np.uint8)
 
     def px(self, x, y, c):
         x, y = int(round(x)), int(round(y))
-        if 0 <= x < PW and 0 <= y < PH:
+        if 0 <= x < self.w and 0 <= y < self.h:
             self.a[y, x] = c
 
     def line(self, x0, y0, x1, y1, c, w=1, dash=0):
@@ -60,7 +65,7 @@ class Lienzo:
             self.line(a[0], a[1], b[0], b[1], c, w)
 
     def circle(self, cx, cy, r, c, fill=False):
-        yy, xx = np.mgrid[0:PH, 0:PW]
+        yy, xx = np.mgrid[0:self.h, 0:self.w]
         d = np.hypot(xx + 0.5 - cx, yy + 0.5 - cy)
         m = d <= r if fill else np.abs(d - r) < 0.6
         self.a[m] = c
@@ -76,7 +81,7 @@ class Lienzo:
 
     def title(self, s, c=1):
         w = sum(len(FONT[ACCENT.get(ch, ch)][0]) + 1 for ch in s) - 1
-        self.text((PW - w) // 2, 3, s, c)
+        self.text((self.w - w) // 2, 3, s, c)
 
     def curve(self, p0, p1, p2, c, prog=1.0, head=True):
         """Flecha curva (Bézier cuadrática) que se dibuja sola hasta `prog`."""
@@ -395,6 +400,182 @@ def fisio_ecg(T):
         L.line(32 - half, y, 32 + half, y, 5)
     L.text(24, 116, '72', 1)
     return L.a
+
+
+# ---------------------------------------------------------------- Cámara de Orgánica II (murales de alcoba, más anchos)
+AW_, AH_ = 96, 72
+
+
+def check(L, x, y, c=2):
+    L.line(x, y, x + 2, y + 2, c)
+    L.line(x + 2, y + 2, x + 7, y - 3, c)
+
+
+def cross(L, x, y, c=5):
+    L.line(x, y, x + 5, y + 5, c)
+    L.line(x + 5, y, x, y + 5, c)
+
+
+def alc_aminas(T):
+    """Basicidad: el H+ se pega al par libre de una amina; en la anilina el par se reparte en el anillo y el H+ se va."""
+    L = Lienzo(AW_, AH_)
+    L.title('BASICIDAD')
+    t = T % 8
+    L.line(48, 13, 48, 54, 1, dash=2)
+    # izquierda: amina alifática, su par libre atrapa al H+
+    stuck = t >= 3
+    L.text(9, 36, 'R-NH', 2)
+    L.text(33, 36, '3' if stuck else '2', 2)
+    if not stuck:
+        blink = 3 if int(T * 2) % 2 == 0 else 1
+        L.px(22, 32, blink)
+        L.px(24, 32, blink)
+        u = ease(t / 3.0)
+        hx, hy = 36 - 14 * u, 13 + 10 * u
+        L.text(int(hx), int(hy), 'H+', 4)
+        L.curve((23, 31), (18, 22), (hx - 1, hy + 3), 4, ease((t - 0.4) / 2.0))
+    else:
+        L.text(39, 31, '+', 4)
+        L.line(23, 33, 23, 27, 2)
+        L.text(21, 20, 'H', 2)
+        check(L, 34, 23)
+    # derecha: anilina, el par libre entra al anillo y el H+ rebota
+    v = ring(L, 72, 46, 9, int((T % 4) // 2), w=1)
+    L.line(72, 37, 72, 32, 2)
+    L.text(66, 26, 'NH', 2)
+    L.text(78, 29, '2', 2)
+    L.px(70, 23, 3)
+    L.px(73, 23, 3)
+    L.curve((69, 24), (58, 30), (v[1][0] + 2, v[1][1] + 3), 4, ease(t / 2.5))
+    if t < 3:
+        u = ease(t / 3.0)
+        L.text(int(90 - 14 * u), int(8 + 9 * u), 'H+', 4)
+    else:
+        u = ease((t - 3) / 3.0)
+        L.text(int(76 + 12 * u), int(17 - 9 * u), 'H+', 4 if int(T * 3) % 2 else 1)
+        cross(L, 84, 36)
+    L.text(10, 62, 'AMINA', 2)
+    L.text(44, 62, '>', 4)
+    L.text(53, 62, 'ANILINA', 1)
+    return L.a
+
+
+def alc_aromaticos(T):
+    """Primero Hückel (cuenta los electrones pi: 6 = 4n+2) y después la SEA: entra E+, complejo sigma, sale H+."""
+    L = Lienzo(AW_, AH_)
+    t = T % 16
+    if t < 8:
+        L.title('AROMÁTICO')
+        v = ring(L, 28, 40, 15, 0)
+        npairs = min(3, int(t / 1.2))
+        for k in range(npairs):                                     # cada doble enlace aporta 2 electrones pi
+            a, b = v[2 * k], v[2 * k + 1]
+            mx, my = (a[0] + b[0]) / 2 * 0.55 + 28 * 0.45, (a[1] + b[1]) / 2 * 0.55 + 40 * 0.45
+            L.px(mx - 1, my, 3)
+            L.px(mx + 1, my, 3)
+        if npairs:
+            L.text(60, 16, str(2 * npairs), 3)
+            L.text(67, 16, 'PI', 1)
+        if t >= 4.2:
+            L.text(54, 31, '4N+2', 4)
+            check(L, 82, 33)
+        if t >= 5.4:                                                # ciclobutadieno: 4 electrones, antiaromático
+            L.poly([(60, 47), (72, 47), (72, 59), (60, 59)], 2)
+            L.line(62, 50, 62, 56, 2)
+            L.line(70, 50, 70, 56, 2)
+            L.text(76, 50, '4', 1)
+            if int(T * 3) % 2:
+                cross(L, 84, 50)
+        return L.a
+    s = t - 8
+    L.title('SEA')
+    cx, cy = 34, 42
+    if s < 2.2 or s >= 6:
+        v = ring(L, cx, cy, 14, 0)
+    else:                                                           # complejo sigma: un carbono sp3 y la carga deslocalizada
+        v = hexv(cx, cy, 14)
+        L.poly(v, 2, 2)
+        L.line(v[2][0] + 3, v[2][1] + 1, v[3][0] + 3, v[3][1] - 1, 2)
+        L.line(v[4][0] - 3, v[4][1] - 1, v[5][0] - 3, v[5][1] + 1, 2)
+        L.text(cx - 2, cy - 2, '+', 5)
+    top = v[1]
+    if s < 2.2:
+        u = ease(s / 2.0)
+        ex, ey = 74 - 20 * u, 12 + 8 * u
+        L.text(int(ex), int(ey), 'E+', 4)
+        L.curve((cx + 6, cy - 9), (cx + 16, cy - 16), (ex - 1, ey + 4), 4, ease((s - 0.3) / 1.6))
+    elif s < 6:
+        L.line(top[0], top[1], top[0] + 7, top[1] - 6, 2)
+        L.text(int(top[0]) + 8, int(top[1]) - 11, 'E', 4)
+        if s < 4.2:
+            L.line(top[0], top[1], top[0] + 9, top[1] + 1, 1)
+            L.text(int(top[0]) + 10, int(top[1]) - 2, 'H', 3)
+            L.text(56, 60, 'SIGMA', 1)
+        else:
+            u = ease((s - 4.2) / 1.6)
+            L.text(int(top[0] + 10 + 26 * u), int(top[1] - 2 - 12 * u), 'H+', 3)
+            L.curve((top[0] + 6, top[1] + 1), (top[0] + 2, top[1] + 8), (cx + 5, cy - 2), 4, u)
+    else:
+        L.line(top[0], top[1], top[0] + 7, top[1] - 6, 2)
+        L.text(int(top[0]) + 8, int(top[1]) - 11, 'E', 4)
+        check(L, 72, 44)
+        L.text(56, 60, 'AROMÁTICO', 1)
+    return L.a
+
+
+def alc_heterociclos(T):
+    """Dónde está el par libre: en la piridina queda fuera del anillo y atrapa al H+; en el pirrol es parte de los 6 pi."""
+    L = Lienzo(AW_, AH_)
+    L.title('PAR LIBRE')
+    t = T % 8
+    L.line(48, 13, 48, 56, 1, dash=2)
+    # piridina: N arriba, par libre hacia afuera
+    v = ring(L, 24, 40, 12, int((T % 4) // 2), w=1)
+    nx, ny = v[0]
+    for dx in range(-3, 4):
+        for dy in range(-3, 4):
+            L.px(nx + dx, ny + dy, 0)
+    L.text(int(nx) - 2, int(ny) - 2, 'N', 7)
+    if t < 3:
+        u = ease(t / 3.0)
+        L.px(nx - 1, ny - 6, 3)
+        L.px(nx + 1, ny - 6, 3)
+        L.text(int(nx) - 4, int(4 + 8 * u) - 4, 'H+', 4)
+        L.curve((nx, ny - 7), (nx - 7, ny - 11), (nx - 1, 4 + 8 * u + 2), 4, ease((t - 0.6) / 1.8))
+    else:
+        L.line(nx, ny - 4, nx, ny - 8, 2)
+        L.text(int(nx) - 2, int(ny) - 14, 'H', 2)
+        L.text(int(nx) + 4, int(ny) - 15, '+', 4)
+        check(L, 38, 18)
+    # pirrol: anillo de 5, el par libre del N gira dentro de la nube pi
+    cx, cy, r = 72, 38, 11
+    pv = [(cx + r * math.cos(math.radians(90 + 72 * k)), cy + r * math.sin(math.radians(90 + 72 * k))) for k in range(5)]
+    L.poly(pv, 2, 2)
+    L.line(pv[1][0] - 2, pv[1][1] - 3, pv[2][0] + 1, pv[2][1] + 3, 2)
+    L.line(pv[4][0] + 2, pv[4][1] - 3, pv[3][0] - 1, pv[3][1] + 3, 2)
+    bx, by = pv[0]
+    for dx in range(-3, 4):
+        for dy in range(-3, 4):
+            L.px(bx + dx, by + dy, 0)
+    L.text(int(bx) - 2, int(by) - 2, 'N', 7)
+    L.line(bx, by + 4, bx, by + 7, 1)
+    L.text(int(bx) - 2, int(by) + 8, 'H', 1)
+    for k in range(6):
+        a = T * 1.4 + k * math.pi / 3
+        L.px(cx + 5.5 * math.cos(a), cy - 1 + 5.5 * math.sin(a), 3 if k < 2 else 2)
+    if t < 3:
+        u = ease(t / 3.0)
+        L.text(int(90 - 8 * u), int(8 + 12 * u), 'H+', 4)
+    else:
+        u = ease((t - 3) / 3.0)
+        L.text(int(82 + 6 * u), int(20 - 12 * u), 'H+', 4 if int(T * 3) % 2 else 1)
+        cross(L, 87, 30)
+    L.text(1, 62, 'PIRIDINA', 2)
+    L.text(57, 62, 'PIRROL', 1)
+    return L.a
+
+
+CAMARA = {'aminas': alc_aminas, 'aromaticos': alc_aromaticos, 'heterociclos': alc_heterociclos}
 
 
 MURALES = {

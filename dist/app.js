@@ -746,13 +746,13 @@
   const dayMoment = hour => hour < 6 ? 'madrugada' : hour < 12 ? 'mañana' : hour < 19 ? 'tarde' : 'noche';
   const GREETINGS = { madrugada: 'Noche larga', mañana: 'Buen día', tarde: 'Buena tarde', noche: 'Buena noche' };
   const pixelText = (text, options) => window.NexoPixelText.render(text, options);
-  // Tamaño del reloj a gusto: 5 pasos, se recuerda en este dispositivo (no viaja con la cuenta).
-  const CLOCK_SCALES = [0.7, 0.85, 1, 1.15, 1.3];
-  const clockScale = () => { try { const v = Number(localStorage.getItem('nexo.clockScale')); return CLOCK_SCALES.includes(v) ? v : 1; } catch (_) { return 1; } };
+  // Tamaño del reloj a gusto: 4 pasos de píxeles enteros (1 pequeño · 2 normal · 3 grande · 4 enorme), se recuerda en este dispositivo (no viaja con la cuenta).
+  const CLOCK_SCALES = [1, 2, 3, 4];
+  const clockScale = () => { try { const v = Number(localStorage.getItem('nexo.clockSize')); return CLOCK_SCALES.includes(v) ? v : 2; } catch (_) { return 1; } };
   function resizeClock(step) {
     const next = CLOCK_SCALES[Math.max(0, Math.min(CLOCK_SCALES.length - 1, CLOCK_SCALES.indexOf(clockScale()) + step))];
-    try { localStorage.setItem('nexo.clockScale', String(next)); } catch (_) { /* sin almacenamiento: vale solo hasta recargar */ }
-    document.querySelector('.home-clock')?.style.setProperty('--cs', next);
+    try { localStorage.setItem('nexo.clockSize', String(next)); } catch (_) { /* sin almacenamiento: vale solo hasta recargar */ }
+    if (document.querySelector('.home-clock')) document.querySelector('.home-clock').dataset.cs = next;
     document.querySelectorAll('[data-clock-size]').forEach(button => { button.disabled = (step < 0 && next === CLOCK_SCALES[0] && button.dataset.clockSize === '-1') || (step > 0 && next === CLOCK_SCALES[CLOCK_SCALES.length - 1] && button.dataset.clockSize === '1'); });
   }
   function homeClockMarkup(nextEvaluation, studiedMinutes) {
@@ -760,7 +760,7 @@
     const days = nextEvaluation ? daysBetween(todayKey(), nextEvaluation.event.date) : null;
     const countdown = days === null ? 'Sin pruebas a la vista' : `${nextEvaluation.event.title} · ${days <= 0 ? 'hoy' : days === 1 ? 'mañana' : `${days} días`}`;
     const pt = (text, shadow = false) => pixelText(text, { shadow });
-    return `<aside class="home-clock ${running ? 'is-running' : ''}" style="--cs:${clockScale()}" aria-label="Reloj de estudio">
+    return `<aside class="home-clock ${running ? 'is-running' : ''}" data-cs="${clockScale()}" aria-label="Reloj de estudio">
       <i class="hc-gear" aria-hidden="true"></i><i class="hc-orb" aria-hidden="true"></i><i class="hc-leaf hc-leaf-l" aria-hidden="true"></i><i class="hc-leaf hc-leaf-r" aria-hidden="true"></i><i class="hc-pendulum" aria-hidden="true"></i><i class="hc-flask" aria-hidden="true"></i>
       <div class="hc-now"><div class="hc-hour" data-hc-time role="text"></div><div class="hc-greet" data-hc-moment></div></div>
       <div class="hc-timer"><div class="hc-label">${pt(`${running ? 'Estudiando' : paused ? 'En pausa' : 'Cronómetro'} · ${subjectFor(timer.subject).short}`)}</div><div class="hc-digits" id="homeTimer" role="timer">${pixelDigits(formatClock(timerElapsedMs()))}</div></div>
