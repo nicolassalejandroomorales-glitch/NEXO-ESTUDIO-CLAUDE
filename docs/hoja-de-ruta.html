@@ -1,46 +1,59 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hoja de ruta de Nexo</title>
+<title>Tablero de Nexo</title>
 <style>
-:root{--bg:#f6f1e7;--card:#fffdf8;--ink:#2b2118;--mute:#7a6a58;--line:#e2d6c0;--accent:#8a5a2b;--u:#b3402a;--p:#c7881f;--d:#4a7c59;--i:#5b6fa6}
-@media (prefers-color-scheme:dark){:root{--bg:#1c1712;--card:#262019;--ink:#f1e8d8;--mute:#a8987f;--line:#3a3025;--accent:#e0a868;--u:#e0735c;--p:#e2ad4a;--d:#7fb58f;--i:#8fa2d8}}
+:root{--bg:#f6f1e7;--card:#fffdf8;--ink:#2b2118;--mute:#7a6a58;--line:#e2d6c0;--accent:#8a5a2b;--u:#b3402a;--p:#c7881f;--d:#4a7c59;--i:#5b6fa6;--track:#e9dfcc}
+@media (prefers-color-scheme:dark){:root{--bg:#1c1712;--card:#262019;--ink:#f1e8d8;--mute:#a8987f;--line:#3a3025;--accent:#e0a868;--u:#e0735c;--p:#e2ad4a;--d:#7fb58f;--i:#8fa2d8;--track:#3a3025}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,sans-serif;padding:24px 16px 64px}
-main{max-width:1100px;margin:0 auto}h1{margin:0 0 4px;font-size:28px}.sub{color:var(--mute);margin:0 0 20px}
-.totales{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}.totales div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 16px}
-.totales b{font-size:22px;display:block}
-.filtros{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
-.filtros button,.prompts button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:6px 12px}
-.filtros button.on,.prompts button:hover,.filtros button:hover{border-color:var(--accent);color:var(--accent)}
-.card{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--i);border-radius:12px;padding:16px 18px;margin-bottom:16px}
+main{max-width:1200px;margin:0 auto}h1{margin:0 0 4px;font-size:28px}.sub{color:var(--mute);margin:0 0 20px}
+.resumen{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:20px}
+.resumen .grande{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}.resumen .grande b{font-size:40px;line-height:1}
+.resumen .barra{height:12px;margin:10px 0}.resumen p{margin:4px 0;font-size:14px;color:var(--mute)}
+.barra{height:8px;background:var(--track);border-radius:99px;overflow:hidden}.barra i{display:block;height:100%;background:var(--d);border-radius:99px}
+.tablero{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start}
+@media(max-width:900px){.tablero{grid-template-columns:1fr}}
+.col h2{font-size:15px;text-transform:uppercase;letter-spacing:.06em;margin:0 0 10px;color:var(--mute)}
+.col h2 span{background:var(--card);border:1px solid var(--line);border-radius:99px;padding:0 8px;margin-left:4px}
+.col.desarrollo .barra i{background:var(--p)}.col.por-hacer .barra i{background:var(--i)}
+.card{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--i);border-radius:12px;padding:12px 14px;margin-bottom:12px}
 .card.p1{border-left-color:var(--u)}.card.p2{border-left-color:var(--p)}.card.p3{border-left-color:var(--d)}
-.card h2{margin:6px 0 4px;font-size:20px}.meta{margin:0 0 10px}
+summary{cursor:pointer;list-style:none}summary::-webkit-details-marker{display:none}
+.card h3{margin:6px 0 8px;font-size:17px}.meta{margin:6px 0 0;font-size:13px;color:var(--mute)}.meta b{color:var(--ink);font-size:15px}
 .tag{display:inline-block;font-size:12px;border:1px solid var(--line);border-radius:99px;padding:1px 10px;color:var(--mute);margin-right:4px}
 .tag.prio{color:var(--accent);border-color:var(--accent)}
-.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-@media(max-width:800px){.cols{grid-template-columns:1fr}}
-.cols h3{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--mute);margin:0 0 6px}
+.cols{display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px}
+.cols h4{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--mute);margin:0 0 4px}
 ul{margin:0;padding-left:18px;font-size:14px}li{margin-bottom:4px}.vacio{color:var(--mute);font-size:14px;margin:0}
-.prompts{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}.spec{color:var(--mute);font-size:12px;margin-left:auto}
+.prompts{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}.spec{color:var(--mute);font-size:12px;width:100%}
+.prompts button{font:inherit;font-size:13px;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:5px 10px}
+.prompts button:hover{border-color:var(--accent);color:var(--accent)}
 .guia{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-top:28px}
 .guia h2{margin-top:0}table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-top:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
 </style></head><body><main>
-<h1>Hoja de ruta de Nexo</h1>
-<p class="sub">Generada el 2026-10-15 desde docs/chats/. Un chat = un tema = un modelo.</p>
-<div class="totales"><div><b>41</b>hecho</div><div><b>66</b>falta</div><div><b>34</b>ideas</div><div><b>14</b>chats</div></div>
-<div class="filtros"><button class="on" data-f="0">Todos</button><button data-f="1">Urgente</button><button data-f="2">Pronto</button><button data-f="3">Después</button><button data-f="4">Ideas</button></div>
-
-<article class="card p1" data-prio="1">
-  <header>
+<h1>Tablero de Nexo</h1>
+<p class="sub">Actualizado el 2026-10-17 desde docs/chats/. Un chat = un tema = un modelo. Toca una tarjeta para ver el detalle.</p>
+<div class="resumen">
+  <div class="grande"><b>38%</b><span>de la app avanzada · 41 cosas hechas, 66 por hacer, 34 ideas guardadas</span></div>
+  <div class="barra" role="img" aria-label="38% avanzado"><i style="width:38%"></i></div>
+  <p>Lo urgente en marcha: <b>Beta para compañeros</b> (38%) · <b>Clases (contenido y aula)</b> (57%) · <b>Estudio Orgánica II (PEP 1)</b> (40%) · <b>Organización (Bitácora viva)</b> (44%).</p>
+</div>
+<div class="tablero">
+<section class="col terminado"><h2>Terminado <span>0</span></h2><p class="vacio">Ningún tema todavía.</p></section>
+<section class="col desarrollo"><h2>En desarrollo <span>12</span></h2>
+<details class="card p1">
+  <summary>
     <span class="tag prio">Urgente</span>
-    <h2>Beta para compañeros</h2>
-    <p class="meta"><span class="tag">Sonnet 5.5 · medio</span> <span class="tag">carpeta beta lista y probada; falta elegir hosting y publicar el ensayo</span></p>
-  </header>
+    <h3>Beta para compañeros</h3>
+    <div class="barra" role="img" aria-label="38% avanzado"><i style="width:38%"></i></div>
+    <p class="meta"><b>38%</b> · 5 hechas, 8 faltan<br>carpeta beta lista y probada; falta elegir hosting y publicar el ensayo</p>
+  </summary>
   <div class="cols">
-    <section><h3>Hecho (5)</h3><ul><li>Meta decidida: beta para 10 a 30 compañeros, sin cuentas ni nube, con tutorial, una clase por ramo y Organización.</li><li>`node tools/build-beta.cjs` arma `beta/` (296 archivos, 52 MB): sin diapositivas, pautas ni PDFs de profes, sin el texto de las diapositivas dentro de las clases, sin pestaña de Pruebas antiguas, con la nube apagada y con `.nojekyll`.</li><li>Probada en 1440 y 390 y dentro de una subcarpeta (`/nexo-beta/`), como la verá GitHub Pages: sin rutas rotas.</li><li>Repo principal pasado a privado (15 oct) y flujo deseado anotado en PLAN.md.</li><li>Se investigaron GitHub Pages y Cloudflare Pages con la documentación oficial (comparación en PLAN.md).</li></ul></section>
-    <section><h3>Falta (8)</h3><ul><li>**Elegir hosting**: Niquito pidió tener GitHub presente; se inclinó por GitHub Pages con un repo público aparte (`nexo-beta`). Claude no debe darlo por elegido.</li><li>Crear el repo público vacío `nexo-beta` (lo hace Niquito) y pasar su correo **noreply** de GitHub (Settings › Emails) para firmar el commit sin mostrar su Gmail.</li><li>Publicar la beta (Claude solo con permiso explícito) y revisarla ya publicada en 1440 y 390.</li><li>Decidir si la beta sale como está o tras pulir lo más visible (tutorial, botones, navegación).</li><li>Botón de feedback dentro de la app y aviso &quot;es una prueba, tu progreso queda solo en este navegador&quot;.</li><li>Revisar si las fechas del Inicio (PEP 1 21 oct, etc.) valen para compañeros de otra sección.</li><li>Revisar que el recorrido guiado de la clase no nombre la Pizarra (quitada en la beta).</li><li>Revisor automático en el repo privado (pruebas, limpieza y &quot;no viaja material de profes&quot;) antes de cada publicación.</li></ul></section>
-    <section><h3>Ideas (2)</h3><ul><li>Un script `tools/publish-beta.cjs` que arme y suba la beta al repo público con un solo comando y pida confirmación antes.</li><li>Formulario de feedback con preguntas fijas (qué entendiste, qué se rompió, qué te gustó).</li></ul></section>
+    <section><h4>Hecho (5)</h4><ul><li>Meta decidida: beta para 10 a 30 compañeros, sin cuentas ni nube, con tutorial, una clase por ramo y Organización.</li><li>`node tools/build-beta.cjs` arma `beta/` (296 archivos, 52 MB): sin diapositivas, pautas ni PDFs de profes, sin el texto de las diapositivas dentro de las clases, sin pestaña de Pruebas antiguas, con la nube apagada y con `.nojekyll`.</li><li>Probada en 1440 y 390 y dentro de una subcarpeta (`/nexo-beta/`), como la verá GitHub Pages: sin rutas rotas.</li><li>Repo principal pasado a privado (15 oct) y flujo deseado anotado en PLAN.md.</li><li>Se investigaron GitHub Pages y Cloudflare Pages con la documentación oficial (comparación en PLAN.md).</li></ul></section>
+    <section><h4>Falta (8)</h4><ul><li>**Elegir hosting**: Niquito pidió tener GitHub presente; se inclinó por GitHub Pages con un repo público aparte (`nexo-beta`). Claude no debe darlo por elegido.</li><li>Crear el repo público vacío `nexo-beta` (lo hace Niquito) y pasar su correo **noreply** de GitHub (Settings › Emails) para firmar el commit sin mostrar su Gmail.</li><li>Publicar la beta (Claude solo con permiso explícito) y revisarla ya publicada en 1440 y 390.</li><li>Decidir si la beta sale como está o tras pulir lo más visible (tutorial, botones, navegación).</li><li>Botón de feedback dentro de la app y aviso &quot;es una prueba, tu progreso queda solo en este navegador&quot;.</li><li>Revisar si las fechas del Inicio (PEP 1 21 oct, etc.) valen para compañeros de otra sección.</li><li>Revisar que el recorrido guiado de la clase no nombre la Pizarra (quitada en la beta).</li><li>Revisor automático en el repo privado (pruebas, limpieza y &quot;no viaja material de profes&quot;) antes de cada publicación.</li></ul></section>
+    <section><h4>Ideas (2)</h4><ul><li>Un script `tools/publish-beta.cjs` que arme y suba la beta al repo público con un solo comando y pida confirmación antes.</li><li>Formulario de feedback con preguntas fijas (qué entendiste, qué se rompió, qué te gustó).</li></ul></section>
   </div>
   <div class="prompts">
+    <span class="tag">Sonnet 5.5 · medio</span>
     <button data-copy="Chat: Beta para compañeros. Lee CLAUDE.md y docs/PLAN.md (secciones Propuesta, Avance, Hallazgos y Falta decidir).
 Contexto: tengo una carpeta beta/ lista (node tools/build-beta.cjs) para compartir con 10 a 30 compañeros, sin cuentas ni material de profesores. Mi repo principal es privado. Quiero publicar en GitHub Pages con un repo público aparte, pero la decisión final es mía.
 Tarea: dime en una línea qué entendiste. Pregúntame con selección múltiple qué decido primero (hosting, feedback, o pulir antes). Nada se publica sin que yo lo autorice en el momento.
@@ -49,20 +62,21 @@ Al terminar, usa nexo-cierre y actualiza docs/chats/beta.md.">Copiar prompt de i
 Parte desde &quot;Falta&quot; y pregúntame qué sigue. Recuerda: nada se publica sin mi permiso explícito.">Copiar prompt de continuación</button>
     <span class="spec">docs/PLAN.md</span>
   </div>
-</article>
-
-<article class="card p1" data-prio="1">
-  <header>
+</details>
+<details class="card p1">
+  <summary>
     <span class="tag prio">Urgente</span>
-    <h2>Clases (contenido y aula)</h2>
-    <p class="meta"><span class="tag">Sonnet 5.5 · medio</span> <span class="tag">en curso</span></p>
-  </header>
+    <h3>Clases (contenido y aula)</h3>
+    <div class="barra" role="img" aria-label="57% avanzado"><i style="width:57%"></i></div>
+    <p class="meta"><b>57%</b> · 4 hechas, 3 faltan<br>en curso</p>
+  </summary>
   <div class="cols">
-    <section><h3>Hecho (4)</h3><ul><li>Aula inmersiva &quot;torre del alquimista&quot; (`dist/classes/`).</li><li>Aminas completo para la PEP 1 (misiones 2 a 8, 63 actividades verificadas), diapositivas y glosario.</li><li>Clases de Analítica, Fisiopatología, Orgánica II y FQ II; ejercicios infinitos con regla de calidad.</li><li>Guía para crear una clase: `docs/clases-estructura/COMO_CREAR_UNA_CLASE.md` y `node tools/new-class.cjs`.</li></ul></section>
-    <section><h3>Falta (3)</h3><ul><li>Que la clase de Aminas → Basicidad se sienta increíble (corrección real, actividades variadas). Es lo más importante del producto.</li><li>Revisar las clases hechas en móvil (390 px).</li><li>Decidir si el aula pasa a pixel art (ver chat pixel-ui).</li></ul></section>
-    <section><h3>Ideas (3)</h3><ul><li>Modo &quot;simulacro&quot; de PEP 1 con tiempo y pauta.</li><li>Retrosíntesis guiada paso a paso con flechas dibujadas por el usuario.</li><li>Clases de otros ramos del semestre con la misma estructura.</li></ul></section>
+    <section><h4>Hecho (4)</h4><ul><li>Aula inmersiva &quot;torre del alquimista&quot; (`dist/classes/`).</li><li>Aminas completo para la PEP 1 (misiones 2 a 8, 63 actividades verificadas), diapositivas y glosario.</li><li>Clases de Analítica, Fisiopatología, Orgánica II y FQ II; ejercicios infinitos con regla de calidad.</li><li>Guía para crear una clase: `docs/clases-estructura/COMO_CREAR_UNA_CLASE.md` y `node tools/new-class.cjs`.</li></ul></section>
+    <section><h4>Falta (3)</h4><ul><li>Que la clase de Aminas → Basicidad se sienta increíble (corrección real, actividades variadas). Es lo más importante del producto.</li><li>Revisar las clases hechas en móvil (390 px).</li><li>Decidir si el aula pasa a pixel art (ver chat pixel-ui).</li></ul></section>
+    <section><h4>Ideas (3)</h4><ul><li>Modo &quot;simulacro&quot; de PEP 1 con tiempo y pauta.</li><li>Retrosíntesis guiada paso a paso con flechas dibujadas por el usuario.</li><li>Clases de otros ramos del semestre con la misma estructura.</li></ul></section>
   </div>
   <div class="prompts">
+    <span class="tag">Sonnet 5.5 · medio</span>
     <button data-copy="Chat: Clases (contenido y aula). Lee CLAUDE.md, la skill nexo-clase y docs/clases-estructura/SPEC.md.
 Contexto: Aminas está completo para la PEP 1 (27 oct). Quiero que la parte de Basicidad se sienta increíble, con corrección real y actividades variadas.
 Tarea: dime en una línea qué entendiste, revisa la clase en desktop (1440) y móvil (390), y propónme con selección múltiple las 3 mejoras de mayor impacto antes de programar.
@@ -71,20 +85,21 @@ Si aparece un problema de diseño del motor, no lo resuelvas aquí: anótalo en 
 Parte desde &quot;Falta&quot; del archivo de chat y pregúntame qué sigue.">Copiar prompt de continuación</button>
     <span class="spec">docs/clases-estructura/SPEC.md</span>
   </div>
-</article>
-
-<article class="card p1" data-prio="1">
-  <header>
+</details>
+<details class="card p1">
+  <summary>
     <span class="tag prio">Urgente</span>
-    <h2>Estudio Orgánica II (PEP 1)</h2>
-    <p class="meta"><span class="tag">Sonnet 5.5 · medio</span> <span class="tag">en curso, fecha cercana</span></p>
-  </header>
+    <h3>Estudio Orgánica II (PEP 1)</h3>
+    <div class="barra" role="img" aria-label="40% avanzado"><i style="width:40%"></i></div>
+    <p class="meta"><b>40%</b> · 2 hechas, 3 faltan<br>en curso, fecha cercana</p>
+  </summary>
   <div class="cols">
-    <section><h3>Hecho (2)</h3><ul><li>Mapa de estudio por niveles (base QOI, aromaticidad, aminas, heterociclos, síntesis).</li><li>Material de la PEP 1: guía de Aminas, pauta 2025, clases de cátedra.</li></ul></section>
-    <section><h3>Falta (3)</h3><ul><li>Seguir el mapa hasta la PEP 1 (martes 27 oct): aminas, heterociclos y aromáticos.</li><li>Practicar mecanismos con flechas y rutas de síntesis hacia atrás.</li><li>Confirmar la fecha del control de Orgánica.</li></ul></section>
-    <section><h3>Ideas (1)</h3><ul><li>Convertir los errores frecuentes en tarjetas de repaso dentro de Nexo.</li></ul></section>
+    <section><h4>Hecho (2)</h4><ul><li>Mapa de estudio por niveles (base QOI, aromaticidad, aminas, heterociclos, síntesis).</li><li>Material de la PEP 1: guía de Aminas, pauta 2025, clases de cátedra.</li></ul></section>
+    <section><h4>Falta (3)</h4><ul><li>Seguir el mapa hasta la PEP 1 (martes 27 oct): aminas, heterociclos y aromáticos.</li><li>Practicar mecanismos con flechas y rutas de síntesis hacia atrás.</li><li>Confirmar la fecha del control de Orgánica.</li></ul></section>
+    <section><h4>Ideas (1)</h4><ul><li>Convertir los errores frecuentes en tarjetas de repaso dentro de Nexo.</li></ul></section>
   </div>
   <div class="prompts">
+    <span class="tag">Sonnet 5.5 · medio</span>
     <button data-copy="Chat: Estudio de Orgánica II (esto no es código). Lee CLAUDE.md y docs/estudio-organica/MAPA_PEP1.md.
 Tarea: dime en una línea en qué nivel del mapa estoy según lo último que hicimos y hazme una mini evaluación de 3 preguntas de selección múltiple para ubicarme. Luego guíame con ejercicios, explicando el porqué, sin darme la respuesta de entrada.
 Recuerda que los apuntes de Obsidian son de un amigo. Al terminar, actualiza docs/chats/estudio-organica.md con qué domino y qué no.">Copiar prompt de inicio</button>
@@ -92,20 +107,21 @@ Recuerda que los apuntes de Obsidian son de un amigo. Al terminar, actualiza doc
 Retoma desde &quot;Falta&quot; con una mini evaluación de 3 preguntas de selección múltiple.">Copiar prompt de continuación</button>
     <span class="spec">docs/estudio-organica/MAPA_PEP1.md</span>
   </div>
-</article>
-
-<article class="card p1" data-prio="1">
-  <header>
+</details>
+<details class="card p1">
+  <summary>
     <span class="tag prio">Urgente</span>
-    <h2>Organización (Bitácora viva)</h2>
-    <p class="meta"><span class="tag">Sonnet 5.5 · medio</span> <span class="tag">Fases 1 a 3 hechas, siguen Lab y Avisos</span></p>
-  </header>
+    <h3>Organización (Bitácora viva)</h3>
+    <div class="barra" role="img" aria-label="44% avanzado"><i style="width:44%"></i></div>
+    <p class="meta"><b>44%</b> · 4 hechas, 5 faltan<br>Fases 1 a 3 hechas, siguen Lab y Avisos</p>
+  </summary>
   <div class="cols">
-    <section><h3>Hecho (4)</h3><ul><li>Diseño v2 y decisiones de 3 tandas; datos reales de los ramos cargados (ponderaciones, labs, fechas, horario).</li><li>Fase 1 aprobada: estudio de planos de la torre, vista Hoy con plan propuesto, avisos en el Inicio, sonidos, balanza y mesa viva.</li><li>Fase 2 aprobada: Notas e inasistencias (frascos, &quot;Necesitas X,X&quot;, simulador); Perfil ya redirige a Organización.</li><li>Fase 3 hecha, esperando aprobación visual: Calendario (mes, semana, semestre, lista) con historial de fechas y .ics.</li></ul></section>
-    <section><h3>Falta (5)</h3><ul><li>Aprobación visual del Calendario (1440 y 390).</li><li>Lab completo (laboratorios, pruebas de ciclo).</li><li>Avisos: bandeja de la campana, cambios de fecha, Inicio calmado el día de prueba, ritual del domingo, resumen del semestre.</li><li>Decidir Classroom vs pegar texto (AVISOS.md).</li><li>Editar o borrar una fecha desde el estudio y &quot;¿cómo te fue?&quot; después de rendir.</li></ul></section>
-    <section><h3>Ideas (2)</h3><ul><li>Plan semanal automático según evaluaciones cercanas, errores y tiempo (ya decidido en el v1, ver SPEC).</li><li>Aviso del celular fuera de la app (queda fuera de este cambio).</li></ul></section>
+    <section><h4>Hecho (4)</h4><ul><li>Diseño v2 y decisiones de 3 tandas; datos reales de los ramos cargados (ponderaciones, labs, fechas, horario).</li><li>Fase 1 aprobada: estudio de planos de la torre, vista Hoy con plan propuesto, avisos en el Inicio, sonidos, balanza y mesa viva.</li><li>Fase 2 aprobada: Notas e inasistencias (frascos, &quot;Necesitas X,X&quot;, simulador); Perfil ya redirige a Organización.</li><li>Fase 3 hecha, esperando aprobación visual: Calendario (mes, semana, semestre, lista) con historial de fechas y .ics.</li></ul></section>
+    <section><h4>Falta (5)</h4><ul><li>Aprobación visual del Calendario (1440 y 390).</li><li>Lab completo (laboratorios, pruebas de ciclo).</li><li>Avisos: bandeja de la campana, cambios de fecha, Inicio calmado el día de prueba, ritual del domingo, resumen del semestre.</li><li>Decidir Classroom vs pegar texto (AVISOS.md).</li><li>Editar o borrar una fecha desde el estudio y &quot;¿cómo te fue?&quot; después de rendir.</li></ul></section>
+    <section><h4>Ideas (2)</h4><ul><li>Plan semanal automático según evaluaciones cercanas, errores y tiempo (ya decidido en el v1, ver SPEC).</li><li>Aviso del celular fuera de la app (queda fuera de este cambio).</li></ul></section>
   </div>
   <div class="prompts">
+    <span class="tag">Sonnet 5.5 · medio</span>
     <button data-copy="Chat: Organización (Bitácora viva). Lee CLAUDE.md y docs/update-02-organizacion/SPEC.md (sección Pendiente).
 Contexto: Fases 1, 2 y 3 (Hoy, Notas, Calendario) ya están programadas; el Calendario espera mi aprobación. Faltan Lab y Avisos. La PEP 1 es el 27 oct.
 Tarea: dime en una línea qué entendiste, revisa el Calendario en 1440 y 390 y pregúntame con selección múltiple si lo apruebo o qué ajustar; después propón el orden de Lab y Avisos.
@@ -114,42 +130,21 @@ No te salgas del tema. Al terminar, usa nexo-cierre y actualiza docs/chats/organ
 Aún no se ha trabajado en este chat nuevo: parte desde &quot;Falta&quot; del archivo de chat y pregúntame cuál fase sigue.">Copiar prompt de continuación</button>
     <span class="spec">docs/update-02-organizacion/SPEC.md</span>
   </div>
-</article>
-
-<article class="card p2" data-prio="2">
-  <header>
+</details>
+<details class="card p2">
+  <summary>
     <span class="tag prio">Pronto</span>
-    <h2>Aspecto y navegación de toda la app</h2>
-    <p class="meta"><span class="tag">Sonnet 5.5 · alto (solo conversar y diseñar al inicio)</span> <span class="tag">crítica recibida el 15 oct, sin decisiones</span></p>
-  </header>
+    <h3>Inicio (refugio)</h3>
+    <div class="barra" role="img" aria-label="57% avanzado"><i style="width:57%"></i></div>
+    <p class="meta"><b>57%</b> · 4 hechas, 3 faltan<br>clima y escenas por luz subidos (14 oct), falta animación</p>
+  </summary>
   <div class="cols">
-    <section><h3>Hecho (2)</h3><ul><li>Refugio y mascotas ya en pixel art con las rampas de `tools/home-pixel/pixel.py`.</li><li>Grimorio del tutorial, marcos de diálogo y huevos en pixel art.</li></ul></section>
-    <section><h3>Falta (5)</h3><ul><li>Decidir la **navegación**: la barra lateral convive con las escenas tocables; Niquito duda de que haga falta.</li><li>Diseñar **botones y paneles con personalidad** (hoy &quot;feos, sin personalidad&quot;) como un kit compartido en `tools/pixel-ui/`.</li><li>Mejorar la **versión de computador**, que no le gusta.</li><li>Rehacer **Aprender** (su grimorio es &quot;antiestético&quot;) y preguntar a qué se refiere con &quot;la biblioteca Nexo&quot;.</li><li>Decidir si grimorio, clases, tienda y juegos pasan a pixel art con el mismo kit.</li></ul></section>
-    <section><h3>Ideas (3)</h3><ul><li>Una sola fuente y un solo set de botones para toda la app.</li><li>Íconos de la barra lateral en pixel art.</li><li>Transiciones entre pantallas con el mismo lenguaje del grimorio.</li></ul></section>
+    <section><h4>Hecho (4)</h4><ul><li>Refugio en pixel art de verdad, ya es el Inicio por defecto.</li><li>Ventana según la hora, noche cálida, luz continua, 7+ objetos tocables.</li><li>Clima real (Open-Meteo) y escenas pintadas por luz (sol, nublado, tarde, noche) con `refugio-vida.js`, ya en master (14 oct).</li><li>Arreglos de piso, sombrero y botas.</li></ul></section>
+    <section><h4>Falta (3)</h4><ul><li>Animación dentro de la app: hiedra, llamas, runas, velas, pájaros, nubes, vapor (hoy el fondo es estático).</li><li>Revisar el ancla `desk` de la mascota en el escritorio nuevo.</li><li>Aprobación visual final (ANTES/AHORA) de la ventana viva.</li></ul></section>
+    <section><h4>Ideas (3)</h4><ul><li>Zoom por zonas del refugio al tocar objetos.</li><li>Objetos del refugio que cambian según tus logros o rangos.</li><li>Sonido ambiente suave según clima y hora.</li></ul></section>
   </div>
   <div class="prompts">
-    <button data-copy="Chat: Aspecto y navegación de toda la app (solo diseño). Lee CLAUDE.md, la skill nexo-pixel-art y docs/ux-app/FEEDBACK-15OCT.md.
-Contexto: no me gusta la versión de computador, los botones ni la navegación; mi crítica está en ese archivo.
-Tarea: conversemos, sin dibujar ni programar. Dime en una línea qué entendiste y hazme máximo 3 preguntas de selección múltiple, empezando por la navegación (¿se queda la barra lateral?) y por cómo debe verse un botón de Nexo. Revisa si ya existe tools/pixel-ui/ para reutilizarlo.
-Al terminar, usa nexo-cierre y actualiza docs/chats/pixel-ui.md.">Copiar prompt de inicio</button>
-    <button data-copy="Chat: Aspecto y navegación de toda la app. Lee CLAUDE.md, la skill nexo-pixel-art y docs/chats/pixel-ui.md.
-Parte desde &quot;Falta&quot; y pregúntame qué decisión toca primero.">Copiar prompt de continuación</button>
-    <span class="spec">docs/ux-app/FEEDBACK-15OCT.md</span>
-  </div>
-</article>
-
-<article class="card p2" data-prio="2">
-  <header>
-    <span class="tag prio">Pronto</span>
-    <h2>Inicio (refugio)</h2>
-    <p class="meta"><span class="tag">Sonnet 5.5 · medio</span> <span class="tag">clima y escenas por luz subidos (14 oct), falta animación</span></p>
-  </header>
-  <div class="cols">
-    <section><h3>Hecho (4)</h3><ul><li>Refugio en pixel art de verdad, ya es el Inicio por defecto.</li><li>Ventana según la hora, noche cálida, luz continua, 7+ objetos tocables.</li><li>Clima real (Open-Meteo) y escenas pintadas por luz (sol, nublado, tarde, noche) con `refugio-vida.js`, ya en master (14 oct).</li><li>Arreglos de piso, sombrero y botas.</li></ul></section>
-    <section><h3>Falta (3)</h3><ul><li>Animación dentro de la app: hiedra, llamas, runas, velas, pájaros, nubes, vapor (hoy el fondo es estático).</li><li>Revisar el ancla `desk` de la mascota en el escritorio nuevo.</li><li>Aprobación visual final (ANTES/AHORA) de la ventana viva.</li></ul></section>
-    <section><h3>Ideas (3)</h3><ul><li>Zoom por zonas del refugio al tocar objetos.</li><li>Objetos del refugio que cambian según tus logros o rangos.</li><li>Sonido ambiente suave según clima y hora.</li></ul></section>
-  </div>
-  <div class="prompts">
+    <span class="tag">Sonnet 5.5 · medio</span>
     <button data-copy="Chat: Inicio (refugio). Lee CLAUDE.md, la skill nexo-inicio y docs/inicio-pixelart/SPEC.md.
 Contexto: el clima real y las escenas por luz ya están en master. Falta la animación dentro de la app y revisar la mascota en el escritorio.
 Tarea: dime en una línea qué entendiste y propón con selección múltiple por cuál sigo del Pendiente.
@@ -158,20 +153,21 @@ No te salgas del tema. Al terminar, usa nexo-cierre y actualiza docs/chats/inici
 Parte desde &quot;Falta&quot; y pregúntame qué sigue.">Copiar prompt de continuación</button>
     <span class="spec">docs/inicio-pixelart/SPEC.md</span>
   </div>
-</article>
-
-<article class="card p2" data-prio="2">
-  <header>
+</details>
+<details class="card p2">
+  <summary>
     <span class="tag prio">Pronto</span>
-    <h2>Limpieza y auditoría del código</h2>
-    <p class="meta"><span class="tag">Sonnet 5.5 · medio</span> <span class="tag">regla escrita (CLAUDE.md, Forma de trabajo 4); falta la limpieza de lo acumulado</span></p>
-  </header>
+    <h3>Limpieza y auditoría del código</h3>
+    <div class="barra" role="img" aria-label="25% avanzado"><i style="width:25%"></i></div>
+    <p class="meta"><b>25%</b> · 3 hechas, 9 faltan<br>regla escrita (CLAUDE.md, Forma de trabajo 4); falta la limpieza de lo acumulado</p>
+  </summary>
   <div class="cols">
-    <section><h3>Hecho (3)</h3><ul><li>Regla de orden y limpieza en `CLAUDE.md` y paso de limpieza en `nexo-cierre` (15 oct).</li><li>Script `tools/limpieza.cjs` (escribir LIMPIEZA o `node tools/limpieza.cjs`; en el PowerShell de Niquito `npm` está bloqueado). Borradas 8 imágenes viejas sin uso (15 oct).</li><li>Inventario de solo lectura (15 oct): `dist/` tiene 357 archivos sin contar `vendor`; el código no está muy sucio (casi nada de código comentado, un solo TODO), pero hay restos sin usar.</li></ul></section>
-    <section><h3>Falta (9)</h3><ul><li>Correr `node tools/limpieza.cjs` y seguir su lista (hoy: 2 scripts de versiones paralelas y 6 assets sin uso).</li><li>`tools/home-pixel/muestra_ventana_v2.py` y `_v3.py`: versiones paralelas de una muestra ya superada; ver si se pueden quitar.</li><li>6 assets `assets/torre/lab/dia-*` que ningún código carga: los genera `build_lab_muestra.py`; lo decide el chat de la Torre.</li><li>**Restos de funciones borradas** como el `hydrateAvatars` que ya se arregló: agregar un revisor automático (ESLint `no-undef` y `no-unused-vars`). Instalarlo necesita permiso.</li><li>**Escena vieja** `refugio-012.png` y el respaldo SVG de las mascotas (`dist/dev/alquimicos.js`): decidir si ya se pueden quitar.</li><li>**`dist/dev/`** (252 KB de demos y hojas de revisión): ver cuáles se usan todavía.</li><li>**`tools/`**: 71 entradas; revisar scripts que ya no se usan.</li><li>Ramas viejas en el repo (`respaldo-auto`, ramas de chats ya unidas): revisar y borrar las que sobren, con permiso.</li><li>4 pruebas rotas que se saltan (ver `docs/pendientes.md`).</li></ul></section>
-    <section><h3>Ideas (2)</h3><ul><li>Revisor automático en el repo privado (GitHub Actions) que corra pruebas, lint y la regla &quot;no viaja material de profesores&quot; en cada subida.</li><li>Una línea fija en cada PR: &quot;¿qué se borró en este cambio?&quot;.</li></ul></section>
+    <section><h4>Hecho (3)</h4><ul><li>Regla de orden y limpieza en `CLAUDE.md` y paso de limpieza en `nexo-cierre` (15 oct).</li><li>Script `tools/limpieza.cjs` (escribir LIMPIEZA o `node tools/limpieza.cjs`; en el PowerShell de Niquito `npm` está bloqueado). Borradas 8 imágenes viejas sin uso (15 oct).</li><li>Inventario de solo lectura (15 oct): `dist/` tiene 357 archivos sin contar `vendor`; el código no está muy sucio (casi nada de código comentado, un solo TODO), pero hay restos sin usar.</li></ul></section>
+    <section><h4>Falta (9)</h4><ul><li>Correr `node tools/limpieza.cjs` y seguir su lista (hoy: 2 scripts de versiones paralelas y 6 assets sin uso).</li><li>`tools/home-pixel/muestra_ventana_v2.py` y `_v3.py`: versiones paralelas de una muestra ya superada; ver si se pueden quitar.</li><li>6 assets `assets/torre/lab/dia-*` que ningún código carga: los genera `build_lab_muestra.py`; lo decide el chat de la Torre.</li><li>**Restos de funciones borradas** como el `hydrateAvatars` que ya se arregló: agregar un revisor automático (ESLint `no-undef` y `no-unused-vars`). Instalarlo necesita permiso.</li><li>**Escena vieja** `refugio-012.png` y el respaldo SVG de las mascotas (`dist/dev/alquimicos.js`): decidir si ya se pueden quitar.</li><li>**`dist/dev/`** (252 KB de demos y hojas de revisión): ver cuáles se usan todavía.</li><li>**`tools/`**: 71 entradas; revisar scripts que ya no se usan.</li><li>Ramas viejas en el repo (`respaldo-auto`, ramas de chats ya unidas): revisar y borrar las que sobren, con permiso.</li><li>4 pruebas rotas que se saltan (ver `docs/pendientes.md`).</li></ul></section>
+    <section><h4>Ideas (2)</h4><ul><li>Revisor automático en el repo privado (GitHub Actions) que corra pruebas, lint y la regla &quot;no viaja material de profesores&quot; en cada subida.</li><li>Una línea fija en cada PR: &quot;¿qué se borró en este cambio?&quot;.</li></ul></section>
   </div>
   <div class="prompts">
+    <span class="tag">Sonnet 5.5 · medio</span>
     <button data-copy="Chat: Limpieza y auditoría del código. Lee CLAUDE.md (Forma de trabajo, regla 4) y docs/chats/limpieza.md.
 Contexto: quiero trabajar ordenado, sin basura ni parches encima. Hay un inventario de restos en el archivo del chat.
 Tarea: dime en una línea qué entendiste. Corre `node tools/limpieza.cjs` y sigue su lista, mostrándome qué borrarías antes de hacerlo. Un grupo de restos por cambio, en un worktree limpio, con pruebas y revisión en 1440 y 390.
@@ -180,20 +176,21 @@ No borres nada mío sin preguntarme. Al terminar, usa nexo-cierre y actualiza do
 Parte desde &quot;Falta&quot; y pregúntame qué grupo de restos sigue.">Copiar prompt de continuación</button>
     <span class="spec">docs/pendientes.md</span>
   </div>
-</article>
-
-<article class="card p2" data-prio="2">
-  <header>
+</details>
+<details class="card p2">
+  <summary>
     <span class="tag prio">Pronto</span>
-    <h2>Motor académico (diseño)</h2>
-    <p class="meta"><span class="tag">Opus · esfuerzo alto</span> <span class="tag">piloto hecho en Aminas</span></p>
-  </header>
+    <h3>Motor académico (diseño)</h3>
+    <div class="barra" role="img" aria-label="50% avanzado"><i style="width:50%"></i></div>
+    <p class="meta"><b>50%</b> · 3 hechas, 3 faltan<br>piloto hecho en Aminas</p>
+  </summary>
   <div class="cols">
-    <section><h3>Hecho (3)</h3><ul><li>Conceptos, evidencia, estados de conocimiento y FSRS en `dist/academic/*`. Piloto org-01 / Aminas.</li><li>Etapas 4 a 10 (diagnóstico, intuitivo, grimorio, prueba, entrenar, replicar, arte) con su SPEC.</li><li>Ejercicios con regla de calidad (`docs/calidad-ejercicios/SPEC.md`).</li></ul></section>
-    <section><h3>Falta (3)</h3><ul><li>Extender el motor a otros ramos (Fisiopatología, Analítica, FQ II) sin reescribir.</li><li>Corrección real de respuestas abiertas y de flechas/mecanismos.</li><li>Que los juegos y las clases alimenten la misma evidencia (hoy el juego PEP 1 no registra intentos).</li></ul></section>
-    <section><h3>Ideas (3)</h3><ul><li>Repaso espaciado diario de 10 min que mezcle ramos según cercanía de evaluaciones.</li><li>Detección de &quot;falsa sensación de dominio&quot;: acertar con ayuda no cuenta igual que sin ayuda.</li><li>Panel de &quot;qué tan listo estoy&quot; por evaluación, con evidencia y no con porcentaje inventado.</li></ul></section>
+    <section><h4>Hecho (3)</h4><ul><li>Conceptos, evidencia, estados de conocimiento y FSRS en `dist/academic/*`. Piloto org-01 / Aminas.</li><li>Etapas 4 a 10 (diagnóstico, intuitivo, grimorio, prueba, entrenar, replicar, arte) con su SPEC.</li><li>Ejercicios con regla de calidad (`docs/calidad-ejercicios/SPEC.md`).</li></ul></section>
+    <section><h4>Falta (3)</h4><ul><li>Extender el motor a otros ramos (Fisiopatología, Analítica, FQ II) sin reescribir.</li><li>Corrección real de respuestas abiertas y de flechas/mecanismos.</li><li>Que los juegos y las clases alimenten la misma evidencia (hoy el juego PEP 1 no registra intentos).</li></ul></section>
+    <section><h4>Ideas (3)</h4><ul><li>Repaso espaciado diario de 10 min que mezcle ramos según cercanía de evaluaciones.</li><li>Detección de &quot;falsa sensación de dominio&quot;: acertar con ayuda no cuenta igual que sin ayuda.</li><li>Panel de &quot;qué tan listo estoy&quot; por evaluación, con evidencia y no con porcentaje inventado.</li></ul></section>
   </div>
   <div class="prompts">
+    <span class="tag">Opus · esfuerzo alto</span>
     <button data-copy="Chat: Motor académico (solo diseño, Opus). Lee CLAUDE.md, la skill nexo-motor y los SPEC de docs/etapa-4-diagnostico y docs/calidad-ejercicios.
 Tarea: conversemos. Dime en una línea qué entendiste y hazme máximo 3 preguntas de selección múltiple sobre cómo extender el motor a otros ramos y cómo corregir respuestas abiertas de verdad.
 No escribas código hasta que yo diga &quot;implementa&quot;. El resultado es un docs/motor/SPEC.md corto y un prompt listo para un chat Sonnet que lo construya.
@@ -202,20 +199,21 @@ Al terminar, usa nexo-cierre y actualiza docs/chats/motor.md.">Copiar prompt de 
 Parte desde &quot;Falta&quot; y pregúntame qué decisión de diseño toca primero.">Copiar prompt de continuación</button>
     <span class="spec">docs/etapa-4-diagnostico/SPEC.md</span>
   </div>
-</article>
-
-<article class="card p2" data-prio="2">
-  <header>
+</details>
+<details class="card p2">
+  <summary>
     <span class="tag prio">Pronto</span>
-    <h2>Torre (mundo recorrible)</h2>
-    <p class="meta"><span class="tag">Sonnet 5.5 · medio (el paso 4, progreso real, va en un chat Opus aparte)</span> <span class="tag">laboratorio caminable hecho, falta aprobar</span></p>
-  </header>
+    <h3>Torre (mundo recorrible)</h3>
+    <div class="barra" role="img" aria-label="43% avanzado"><i style="width:43%"></i></div>
+    <p class="meta"><b>43%</b> · 3 hechas, 4 faltan<br>laboratorio caminable hecho, falta aprobar</p>
+  </summary>
   <div class="cols">
-    <section><h3>Hecho (3)</h3><ul><li>Entrenar, Juegos y Perfil con escena pixel de borde a borde donde la mascota camina; cada objeto hace una acción.</li><li>Entrenar = Laboratorio de Orgánica II con capas, parallax, luz por hora real y 3 estados de progreso (provisorio).</li><li>Diseño de la torre completa (pisos por ramo, escalera y ascensor).</li></ul></section>
-    <section><h3>Falta (4)</h3><ul><li>Aprobar el laboratorio caminable y el estilo de la muestra.</li><li>Paso 3: vestíbulo (escalera, ascensor y viaje del menú) y ruta de la torre.</li><li>Paso 4 (Opus): progreso real por objeto, que reemplace el provisorio.</li><li>Botón &quot;Volver a Nexo&quot; en la campaña PEP 1.</li></ul></section>
-    <section><h3>Ideas (2)</h3><ul><li>Un piso por ramo que se va llenando con tu avance real.</li><li>Visitar la torre de un amigo (solo si algún día hay nube).</li></ul></section>
+    <section><h4>Hecho (3)</h4><ul><li>Entrenar, Juegos y Perfil con escena pixel de borde a borde donde la mascota camina; cada objeto hace una acción.</li><li>Entrenar = Laboratorio de Orgánica II con capas, parallax, luz por hora real y 3 estados de progreso (provisorio).</li><li>Diseño de la torre completa (pisos por ramo, escalera y ascensor).</li></ul></section>
+    <section><h4>Falta (4)</h4><ul><li>Aprobar el laboratorio caminable y el estilo de la muestra.</li><li>Paso 3: vestíbulo (escalera, ascensor y viaje del menú) y ruta de la torre.</li><li>Paso 4 (Opus): progreso real por objeto, que reemplace el provisorio.</li><li>Botón &quot;Volver a Nexo&quot; en la campaña PEP 1.</li></ul></section>
+    <section><h4>Ideas (2)</h4><ul><li>Un piso por ramo que se va llenando con tu avance real.</li><li>Visitar la torre de un amigo (solo si algún día hay nube).</li></ul></section>
   </div>
   <div class="prompts">
+    <span class="tag">Sonnet 5.5 · medio (el paso 4, progreso real, va en un chat Opus aparte)</span>
     <button data-copy="Chat: Torre (mundo recorrible). Lee CLAUDE.md y docs/mundo-torre/SPEC.md (Fase 2 y Pendiente).
 Tarea: dime en una línea qué entendiste, revisa el laboratorio caminable en 1440 y 390 y pregúntame con selección múltiple si lo apruebo o qué ajustar. Luego propón cómo hacer el vestíbulo (paso 3).
 El progreso real (paso 4) lo diseñamos aparte en un chat Opus; aquí deja el provisorio. Al terminar, usa nexo-cierre y actualiza docs/chats/torre.md.">Copiar prompt de inicio</button>
@@ -223,20 +221,21 @@ El progreso real (paso 4) lo diseñamos aparte en un chat Opus; aquí deja el pr
 Parte desde &quot;Falta&quot; y pregúntame qué sigue.">Copiar prompt de continuación</button>
     <span class="spec">docs/mundo-torre/SPEC.md</span>
   </div>
-</article>
-
-<article class="card p2" data-prio="2">
-  <header>
+</details>
+<details class="card p2">
+  <summary>
     <span class="tag prio">Pronto</span>
-    <h2>Tutorial (Grimorio guía)</h2>
-    <p class="meta"><span class="tag">Sonnet 5.5 · medio</span> <span class="tag">conectado a la app; Niquito pidió rehacer su aspecto y animación (crítica del 15 oct)</span></p>
-  </header>
+    <h3>Tutorial (Grimorio guía)</h3>
+    <div class="barra" role="img" aria-label="33% avanzado"><i style="width:33%"></i></div>
+    <p class="meta"><b>33%</b> · 4 hechas, 8 faltan<br>conectado a la app; Niquito pidió rehacer su aspecto y animación (crítica del 15 oct)</p>
+  </summary>
   <div class="cols">
-    <section><h3>Hecho (4)</h3><ul><li>Diseño cerrado (SPEC, GUION de 29 pasos, FRASES) y arte pixel: Grimorio (15 poses × 3 bocas), huevos con nacimiento, marcos.</li><li>Guion completo programado y conectado: cuenta nueva lo ve sola, guarda mascota y nombre reales, premio de 150 ⚛ una vez, Ajustes › Tutoriales, filtro de nombres.</li><li>Avisos del Grimorio (primera vez por sección y novedades con versión) y revisión en móvil (390).</li><li>Objetos del refugio resaltados, voz por letra con botón de silencio.</li></ul></section>
-    <section><h3>Falta (8)</h3><ul><li>Leer `docs/tutorial/FEEDBACK-15OCT.md` (crítica de Niquito, por sección) y conversar con él el orden antes de programar.</li><li>Animación fluida del Grimorio, el libro, el altar con velas y la nube de diálogo (hoy parecen PNG).</li><li>Fondo con runas y magia que se mueve (el azul liso no le gusta); huevos con textura y movimiento.</li><li>Mascota que habla con la personalidad de su especie y hace un &quot;dab&quot; al nacer (confirmar).</li><li>Texto con personalidad (hoy &quot;NPC&quot;) y cambiar la voz del mago; revisar el salto de la pantalla hacia arriba.</li><li>Hacer el tutorial **modular por secciones**, porque Aprender y otras pantallas van a cambiar.</li><li>Premio con nube (necesita permiso explícito, hoy no se toca Supabase).</li><li>Revisar que 150 ⚛ siga bien si cambian los precios de la tienda.</li></ul></section>
-    <section><h3>Ideas (2)</h3><ul><li>Mini tutoriales por sección que se activan la primera vez que entras.</li><li>El Grimorio recuerda tus preferencias y sugiere la primera sesión.</li></ul></section>
+    <section><h4>Hecho (4)</h4><ul><li>Diseño cerrado (SPEC, GUION de 29 pasos, FRASES) y arte pixel: Grimorio (15 poses × 3 bocas), huevos con nacimiento, marcos.</li><li>Guion completo programado y conectado: cuenta nueva lo ve sola, guarda mascota y nombre reales, premio de 150 ⚛ una vez, Ajustes › Tutoriales, filtro de nombres.</li><li>Avisos del Grimorio (primera vez por sección y novedades con versión) y revisión en móvil (390).</li><li>Objetos del refugio resaltados, voz por letra con botón de silencio.</li></ul></section>
+    <section><h4>Falta (8)</h4><ul><li>Leer `docs/tutorial/FEEDBACK-15OCT.md` (crítica de Niquito, por sección) y conversar con él el orden antes de programar.</li><li>Animación fluida del Grimorio, el libro, el altar con velas y la nube de diálogo (hoy parecen PNG).</li><li>Fondo con runas y magia que se mueve (el azul liso no le gusta); huevos con textura y movimiento.</li><li>Mascota que habla con la personalidad de su especie y hace un &quot;dab&quot; al nacer (confirmar).</li><li>Texto con personalidad (hoy &quot;NPC&quot;) y cambiar la voz del mago; revisar el salto de la pantalla hacia arriba.</li><li>Hacer el tutorial **modular por secciones**, porque Aprender y otras pantallas van a cambiar.</li><li>Premio con nube (necesita permiso explícito, hoy no se toca Supabase).</li><li>Revisar que 150 ⚛ siga bien si cambian los precios de la tienda.</li></ul></section>
+    <section><h4>Ideas (2)</h4><ul><li>Mini tutoriales por sección que se activan la primera vez que entras.</li><li>El Grimorio recuerda tus preferencias y sugiere la primera sesión.</li></ul></section>
   </div>
   <div class="prompts">
+    <span class="tag">Sonnet 5.5 · medio</span>
     <button data-copy="Chat: Tutorial (solo conversar primero). Lee CLAUDE.md, la skill nexo-tutorial, docs/tutorial/SPEC.md y docs/tutorial/FEEDBACK-15OCT.md.
 Contexto: el tutorial funciona, pero quiero rehacer su aspecto y animación; mi crítica está en FEEDBACK-15OCT.md, ordenada por sección.
 Tarea: dime en una línea qué entendiste y hazme máximo 3 preguntas de selección múltiple para decidir por qué sección empezamos y cómo se debe ver la animación. No escribas código ni dibujes hasta que yo diga &quot;hazlo&quot;.
@@ -245,42 +244,21 @@ Al terminar, usa nexo-cierre y actualiza docs/chats/tutorial.md.">Copiar prompt 
 Parte desde &quot;Falta&quot; y pregúntame qué sección sigue.">Copiar prompt de continuación</button>
     <span class="spec">docs/tutorial/SPEC.md</span>
   </div>
-</article>
-
-<article class="card p3" data-prio="3">
-  <header>
+</details>
+<details class="card p3">
+  <summary>
     <span class="tag prio">Después</span>
-    <h2>Economía, tienda y perfil</h2>
-    <p class="meta"><span class="tag">Sonnet 5.5 · alto (solo conversar y diseñar)</span> <span class="tag">sin diseño</span></p>
-  </header>
+    <h3>Juegos</h3>
+    <div class="barra" role="img" aria-label="33% avanzado"><i style="width:33%"></i></div>
+    <p class="meta"><b>33%</b> · 2 hechas, 4 faltan<br>base aprobada, sin conectar</p>
+  </summary>
   <div class="cols">
-    <section><h3>Hecho (2)</h3><ul><li>Rangos arcanos (`dist/academic/ranks.js`) y Perfil con Mascota, Notas, Inasistencias, Estadísticas y Ajustes.</li><li>Precios de ejemplo de 14 accesorios (60–260 ⚛) en `PRICES` de `home-pet.js`.</li></ul></section>
-    <section><h3>Falta (4)</h3><ul><li>Diseñar la economía: cómo se gana y se gasta (átomos, monedas), cuándo se siente justo y cuándo no.</li><li>Que &quot;Comprar&quot; funcione en la Tienda.</li><li>Decidir premio del tutorial (propuesta 150 ⚛) y unificar `state.coins` / átomos.</li><li>Unificar Perfil › Notas con la Bitácora (lo hace el chat organizacion).</li></ul></section>
-    <section><h3>Ideas (3)</h3><ul><li>Ganar por evidencia real (acertar sin ayuda, recordar después) y no por tiempo sentado.</li><li>Objetos del refugio comprables, no solo accesorios.</li><li>Rachas con perdón (una semana mala no borra todo).</li></ul></section>
+    <section><h4>Hecho (2)</h4><ul><li>Campaña &quot;Camino a la PEP 1&quot;: 3 guardianes + Rey Amonio, 6 tipos de desafío, preguntas de la pauta 2025, arte y audio.</li><li>Prototipo `batalla-rey-amonio.html` y ficha de enemigos.</li></ul></section>
+    <section><h4>Falta (4)</h4><ul><li>Conectar a `#/games` (tarjeta &quot;Boss Arena&quot;) y registrar intentos con `recordAttempt` (`activityType:'game'`).</li><li>Rediseño del Rey Amonio, que Niquito quiere hacer él.</li><li>Música de combate por jefe y arenas &quot;de jefe&quot;.</li><li>Más casos con estructuras dibujadas.</li></ul></section>
+    <section><h4>Ideas (3)</h4><ul><li>Jefes por ramo, con las preguntas de cada evaluación.</li><li>Modo repaso rápido de 5 minutos para la mañana de la prueba.</li><li>Ranking personal de récords, sin nada social.</li></ul></section>
   </div>
   <div class="prompts">
-    <button data-copy="Chat: Economía, tienda y perfil (solo diseño). Lee CLAUDE.md, la skill nexo-perfil y el apartado de precios en docs/mascota/SPEC.md.
-Tarea: conversemos, sin código. Dime en una línea qué entendiste y hazme máximo 3 preguntas de selección múltiple sobre cómo se ganan y gastan los átomos/monedas, para que premie aprender de verdad y no solo abrir la app.
-El resultado es un docs/economia/SPEC.md corto y un prompt listo para un chat de implementación.
-Al terminar, usa nexo-cierre y actualiza docs/chats/economia.md.">Copiar prompt de inicio</button>
-    <button data-copy="Chat: Economía, tienda y perfil. Lee CLAUDE.md, la skill nexo-perfil y docs/chats/economia.md.
-Parte desde &quot;Falta&quot; y pregúntame qué decisión toca primero.">Copiar prompt de continuación</button>
-    <span class="spec">docs/mascota/SPEC.md (precios) y skill nexo-perfil</span>
-  </div>
-</article>
-
-<article class="card p3" data-prio="3">
-  <header>
-    <span class="tag prio">Después</span>
-    <h2>Juegos</h2>
-    <p class="meta"><span class="tag">Sonnet 5.5 · medio</span> <span class="tag">base aprobada, sin conectar</span></p>
-  </header>
-  <div class="cols">
-    <section><h3>Hecho (2)</h3><ul><li>Campaña &quot;Camino a la PEP 1&quot;: 3 guardianes + Rey Amonio, 6 tipos de desafío, preguntas de la pauta 2025, arte y audio.</li><li>Prototipo `batalla-rey-amonio.html` y ficha de enemigos.</li></ul></section>
-    <section><h3>Falta (4)</h3><ul><li>Conectar a `#/games` (tarjeta &quot;Boss Arena&quot;) y registrar intentos con `recordAttempt` (`activityType:'game'`).</li><li>Rediseño del Rey Amonio, que Niquito quiere hacer él.</li><li>Música de combate por jefe y arenas &quot;de jefe&quot;.</li><li>Más casos con estructuras dibujadas.</li></ul></section>
-    <section><h3>Ideas (3)</h3><ul><li>Jefes por ramo, con las preguntas de cada evaluación.</li><li>Modo repaso rápido de 5 minutos para la mañana de la prueba.</li><li>Ranking personal de récords, sin nada social.</li></ul></section>
-  </div>
-  <div class="prompts">
+    <span class="tag">Sonnet 5.5 · medio</span>
     <button data-copy="Chat: Juegos. Lee CLAUDE.md, la skill nexo-juegos y docs/juegos-batalla/SPEC.md.
 Contexto: la campaña PEP 1 funciona aparte, falta conectarla a la app y que alimente el motor académico.
 Tarea: dime en una línea qué entendiste. Implementa la conexión mínima (tarjeta en #/games + recordAttempt), tocando lo menos posible de app.js, y prueba en 1440 y 390.
@@ -289,20 +267,21 @@ El rediseño del Rey Amonio lo hago yo, no lo cambies. Al terminar, usa nexo-cie
 Parte desde &quot;Falta&quot; y pregúntame qué sigue.">Copiar prompt de continuación</button>
     <span class="spec">docs/juegos-batalla/SPEC.md</span>
   </div>
-</article>
-
-<article class="card p3" data-prio="3">
-  <header>
+</details>
+<details class="card p3">
+  <summary>
     <span class="tag prio">Después</span>
-    <h2>Mantenimiento (pruebas, bundle, Artifact)</h2>
-    <p class="meta"><span class="tag">Sonnet 5.5 · bajo</span> <span class="tag">tareas sueltas</span></p>
-  </header>
+    <h3>Mantenimiento (pruebas, bundle, Artifact)</h3>
+    <div class="barra" role="img" aria-label="25% avanzado"><i style="width:25%"></i></div>
+    <p class="meta"><b>25%</b> · 1 hechas, 3 faltan<br>tareas sueltas</p>
+  </summary>
   <div class="cols">
-    <section><h3>Hecho (1)</h3><ul><li>`npm test` encuentra las pruebas solo; `?v=` por hash; `docs/ESTADO.md` con merge=union.</li></ul></section>
-    <section><h3>Falta (3)</h3><ul><li>Arreglar 4 pruebas rotas que se saltan: `update01-test`, `update01-dom-test`, `update01-integrity-test`, `web-vitals-test`.</li><li>Republicar el Artifact privado con lo último de master (desde un worktree limpio).</li><li>Dejar limpio el estado de git: hay muchos archivos sin subir de varios chats.</li></ul></section>
-    <section><h3>Ideas (2)</h3><ul><li>Un script que avise qué chats tienen cambios sin subir.</li><li>Revisar el gasto real de tokens cada pocas sesiones y recalibrar modelos.</li></ul></section>
+    <section><h4>Hecho (1)</h4><ul><li>`npm test` encuentra las pruebas solo; `?v=` por hash; `docs/ESTADO.md` con merge=union.</li></ul></section>
+    <section><h4>Falta (3)</h4><ul><li>Arreglar 4 pruebas rotas que se saltan: `update01-test`, `update01-dom-test`, `update01-integrity-test`, `web-vitals-test`.</li><li>Republicar el Artifact privado con lo último de master (desde un worktree limpio).</li><li>Dejar limpio el estado de git: hay muchos archivos sin subir de varios chats.</li></ul></section>
+    <section><h4>Ideas (2)</h4><ul><li>Un script que avise qué chats tienen cambios sin subir.</li><li>Revisar el gasto real de tokens cada pocas sesiones y recalibrar modelos.</li></ul></section>
   </div>
   <div class="prompts">
+    <span class="tag">Sonnet 5.5 · bajo</span>
     <button data-copy="Chat: Mantenimiento. Lee CLAUDE.md y docs/pendientes.md.
 Tarea: dime en una línea qué entendiste. Arregla de a una las 4 pruebas rotas de la lista (usa el agente nexo-tester para correr npm test) y explícame en simple qué estaba mal en cada una.
 Si algo toca archivos de otro chat con cambios sin subir, detente y avísame. Al terminar, usa nexo-cierre y actualiza docs/chats/mantenimiento.md.">Copiar prompt de inicio</button>
@@ -310,20 +289,21 @@ Si algo toca archivos de otro chat con cambios sin subir, detente y avísame. Al
 Parte desde &quot;Falta&quot; y pregúntame qué sigue.">Copiar prompt de continuación</button>
     <span class="spec">docs/pendientes.md</span>
   </div>
-</article>
-
-<article class="card p3" data-prio="3">
-  <header>
+</details>
+<details class="card p3">
+  <summary>
     <span class="tag prio">Después</span>
-    <h2>Mascota</h2>
-    <p class="meta"><span class="tag">Sonnet 5.5 · medio</span> <span class="tag">implementada, falta aprobación</span></p>
-  </header>
+    <h3>Mascota</h3>
+    <div class="barra" role="img" aria-label="33% avanzado"><i style="width:33%"></i></div>
+    <p class="meta"><b>33%</b> · 2 hechas, 4 faltan<br>implementada, falta aprobación</p>
+  </summary>
   <div class="cols">
-    <section><h3>Hecho (2)</h3><ul><li>3 mascotas en pixel art (átomo, matraz, slime) con 14 expresiones, emotes y 14 accesorios.</li><li>Viven en Inicio, barra lateral, Perfil › Mascota y Tienda (solo &quot;Probar&quot;). Celebran, duermen de noche y se asustan con tormenta.</li></ul></section>
-    <section><h3>Falta (4)</h3><ul><li>Aprobación de Niquito de la Fase 6.</li><li>Precios y compra (depende del chat economia).</li><li>Oclusión detrás de muebles.</li><li>Guardado en la nube (necesita permiso explícito, hoy no se toca Supabase).</li></ul></section>
-    <section><h3>Ideas (3)</h3><ul><li>La mascota evoluciona o cambia con la racha de estudio.</li><li>Reacciones a tus notas y a la cercanía de una prueba.</li><li>Más mascotas desbloqueables como premio.</li></ul></section>
+    <section><h4>Hecho (2)</h4><ul><li>3 mascotas en pixel art (átomo, matraz, slime) con 14 expresiones, emotes y 14 accesorios.</li><li>Viven en Inicio, barra lateral, Perfil › Mascota y Tienda (solo &quot;Probar&quot;). Celebran, duermen de noche y se asustan con tormenta.</li></ul></section>
+    <section><h4>Falta (4)</h4><ul><li>Aprobación de Niquito de la Fase 6.</li><li>Precios y compra (depende del chat economia).</li><li>Oclusión detrás de muebles.</li><li>Guardado en la nube (necesita permiso explícito, hoy no se toca Supabase).</li></ul></section>
+    <section><h4>Ideas (3)</h4><ul><li>La mascota evoluciona o cambia con la racha de estudio.</li><li>Reacciones a tus notas y a la cercanía de una prueba.</li><li>Más mascotas desbloqueables como premio.</li></ul></section>
   </div>
   <div class="prompts">
+    <span class="tag">Sonnet 5.5 · medio</span>
     <button data-copy="Chat: Mascota. Lee CLAUDE.md, la skill nexo-mascota y docs/mascota/SPEC.md (Fase 6).
 Tarea: revisa cómo se ve la mascota en Inicio, barra lateral, Perfil y Tienda en 1440 y 390 y dime en una línea qué falta pulir. Propón con selección múltiple qué hacer primero: oclusión, precios o reacciones nuevas.
 No toques Supabase. Al terminar, usa nexo-cierre y actualiza docs/chats/mascota.md.">Copiar prompt de inicio</button>
@@ -331,7 +311,55 @@ No toques Supabase. Al terminar, usa nexo-cierre y actualiza docs/chats/mascota.
 Parte desde &quot;Falta&quot; y pregúntame qué sigue.">Copiar prompt de continuación</button>
     <span class="spec">docs/mascota/SPEC.md</span>
   </div>
-</article>
+</details></section>
+<section class="col por-hacer"><h2>Por hacer <span>2</span></h2>
+<details class="card p2">
+  <summary>
+    <span class="tag prio">Pronto</span>
+    <h3>Aspecto y navegación de toda la app</h3>
+    <div class="barra" role="img" aria-label="29% avanzado"><i style="width:29%"></i></div>
+    <p class="meta"><b>29%</b> · 2 hechas, 5 faltan<br>crítica recibida el 15 oct, sin decisiones</p>
+  </summary>
+  <div class="cols">
+    <section><h4>Hecho (2)</h4><ul><li>Refugio y mascotas ya en pixel art con las rampas de `tools/home-pixel/pixel.py`.</li><li>Grimorio del tutorial, marcos de diálogo y huevos en pixel art.</li></ul></section>
+    <section><h4>Falta (5)</h4><ul><li>Decidir la **navegación**: la barra lateral convive con las escenas tocables; Niquito duda de que haga falta.</li><li>Diseñar **botones y paneles con personalidad** (hoy &quot;feos, sin personalidad&quot;) como un kit compartido en `tools/pixel-ui/`.</li><li>Mejorar la **versión de computador**, que no le gusta.</li><li>Rehacer **Aprender** (su grimorio es &quot;antiestético&quot;) y preguntar a qué se refiere con &quot;la biblioteca Nexo&quot;.</li><li>Decidir si grimorio, clases, tienda y juegos pasan a pixel art con el mismo kit.</li></ul></section>
+    <section><h4>Ideas (3)</h4><ul><li>Una sola fuente y un solo set de botones para toda la app.</li><li>Íconos de la barra lateral en pixel art.</li><li>Transiciones entre pantallas con el mismo lenguaje del grimorio.</li></ul></section>
+  </div>
+  <div class="prompts">
+    <span class="tag">Sonnet 5.5 · alto (solo conversar y diseñar al inicio)</span>
+    <button data-copy="Chat: Aspecto y navegación de toda la app (solo diseño). Lee CLAUDE.md, la skill nexo-pixel-art y docs/ux-app/FEEDBACK-15OCT.md.
+Contexto: no me gusta la versión de computador, los botones ni la navegación; mi crítica está en ese archivo.
+Tarea: conversemos, sin dibujar ni programar. Dime en una línea qué entendiste y hazme máximo 3 preguntas de selección múltiple, empezando por la navegación (¿se queda la barra lateral?) y por cómo debe verse un botón de Nexo. Revisa si ya existe tools/pixel-ui/ para reutilizarlo.
+Al terminar, usa nexo-cierre y actualiza docs/chats/pixel-ui.md.">Copiar prompt de inicio</button>
+    <button data-copy="Chat: Aspecto y navegación de toda la app. Lee CLAUDE.md, la skill nexo-pixel-art y docs/chats/pixel-ui.md.
+Parte desde &quot;Falta&quot; y pregúntame qué decisión toca primero.">Copiar prompt de continuación</button>
+    <span class="spec">docs/ux-app/FEEDBACK-15OCT.md</span>
+  </div>
+</details>
+<details class="card p3">
+  <summary>
+    <span class="tag prio">Después</span>
+    <h3>Economía, tienda y perfil</h3>
+    <div class="barra" role="img" aria-label="33% avanzado"><i style="width:33%"></i></div>
+    <p class="meta"><b>33%</b> · 2 hechas, 4 faltan<br>sin diseño</p>
+  </summary>
+  <div class="cols">
+    <section><h4>Hecho (2)</h4><ul><li>Rangos arcanos (`dist/academic/ranks.js`) y Perfil con Mascota, Notas, Inasistencias, Estadísticas y Ajustes.</li><li>Precios de ejemplo de 14 accesorios (60–260 ⚛) en `PRICES` de `home-pet.js`.</li></ul></section>
+    <section><h4>Falta (4)</h4><ul><li>Diseñar la economía: cómo se gana y se gasta (átomos, monedas), cuándo se siente justo y cuándo no.</li><li>Que &quot;Comprar&quot; funcione en la Tienda.</li><li>Decidir premio del tutorial (propuesta 150 ⚛) y unificar `state.coins` / átomos.</li><li>Unificar Perfil › Notas con la Bitácora (lo hace el chat organizacion).</li></ul></section>
+    <section><h4>Ideas (3)</h4><ul><li>Ganar por evidencia real (acertar sin ayuda, recordar después) y no por tiempo sentado.</li><li>Objetos del refugio comprables, no solo accesorios.</li><li>Rachas con perdón (una semana mala no borra todo).</li></ul></section>
+  </div>
+  <div class="prompts">
+    <span class="tag">Sonnet 5.5 · alto (solo conversar y diseñar)</span>
+    <button data-copy="Chat: Economía, tienda y perfil (solo diseño). Lee CLAUDE.md, la skill nexo-perfil y el apartado de precios en docs/mascota/SPEC.md.
+Tarea: conversemos, sin código. Dime en una línea qué entendiste y hazme máximo 3 preguntas de selección múltiple sobre cómo se ganan y gastan los átomos/monedas, para que premie aprender de verdad y no solo abrir la app.
+El resultado es un docs/economia/SPEC.md corto y un prompt listo para un chat de implementación.
+Al terminar, usa nexo-cierre y actualiza docs/chats/economia.md.">Copiar prompt de inicio</button>
+    <button data-copy="Chat: Economía, tienda y perfil. Lee CLAUDE.md, la skill nexo-perfil y docs/chats/economia.md.
+Parte desde &quot;Falta&quot; y pregúntame qué decisión toca primero.">Copiar prompt de continuación</button>
+    <span class="spec">docs/mascota/SPEC.md (precios) y skill nexo-perfil</span>
+  </div>
+</details></section>
+</div>
 <section class="guia"><h2>Cuándo abrir un chat nuevo</h2>
 <table>
 <tr><td>Aprobaste el cambio o el tema terminó</td><td>Cerrar y abrir el siguiente tema</td></tr>
@@ -341,19 +369,14 @@ Parte desde &quot;Falta&quot; y pregúntame qué sigue.">Copiar prompt de contin
 <tr><td>Toca diseñar (motor, economía, estructura de clase)</td><td>Chat Opus solo conversando; la implementación va a un chat Sonnet</td></tr>
 <tr><td>Compactaste 2 veces</td><td>Cerrar y abrir uno nuevo</td></tr>
 </table>
-<p>Antes de cerrar, Claude siempre: hace <code>nexo-cierre</code>, actualiza <code>docs/chats/&lt;tema&gt;.md</code>, regenera esta hoja y te deja el prompt de continuación listo.</p></section>
+<p>Antes de cerrar, Claude siempre: hace <code>nexo-cierre</code>, actualiza <code>docs/chats/&lt;tema&gt;.md</code>, regenera este tablero y lo publica en el Artifact.</p></section>
 </main>
 <script>
 document.addEventListener('click',function(e){
-  var b=e.target.closest('button');if(!b)return;
-  if(b.dataset.copy!==undefined){
-    var t=b.dataset.copy,o=b.textContent;
-    var ok=function(){b.textContent='¡Copiado!';setTimeout(function(){b.textContent=o},1400)};
-    try{navigator.clipboard.writeText(t).then(ok,fb)}catch(x){fb()}
-    function fb(){var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');ok()}catch(x){}a.remove()}
-  } else if(b.dataset.f!==undefined){
-    document.querySelectorAll('.filtros button').forEach(function(x){x.classList.toggle('on',x===b)});
-    document.querySelectorAll('.card').forEach(function(c){c.hidden=b.dataset.f!=='0'&&c.dataset.prio!==b.dataset.f});
-  }
+  var b=e.target.closest('button[data-copy]');if(!b)return;
+  var t=b.dataset.copy,o=b.textContent;
+  var ok=function(){b.textContent='¡Copiado!';setTimeout(function(){b.textContent=o},1400)};
+  function fb(){var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');ok()}catch(x){}a.remove()}
+  try{navigator.clipboard.writeText(t).then(ok,fb)}catch(x){fb()}
 });
 </script></body></html>

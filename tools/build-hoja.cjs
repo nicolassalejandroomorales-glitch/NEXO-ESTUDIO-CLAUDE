@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// Genera docs/hoja-de-ruta.html a partir de docs/chats/*.md (una página con todo lo hecho, lo que falta, ideas y prompts para copiar).
+// Genera docs/hoja-de-ruta.html (el tablero de Nexo) a partir de docs/chats/*.md:
+// 3 columnas (terminado, en desarrollo, por hacer), % de avance por tema y prompts para copiar.
 const fs = require('fs');
 const path = require('path');
 
@@ -14,7 +15,7 @@ function parse(file) {
   const sections = {};
   let inFence = false;
   for (const line of lines.slice(1)) {
-    const meta = line.match(/^- (modelo|estado|prioridad|spec):\s*(.*)$/);
+    const meta = line.match(/^- (modelo|estado|fase|prioridad|spec):\s*(.*)$/);
     if (meta && !section) { chat[meta[1]] = meta[2]; continue; }
     if (!inFence && line.startsWith('## ')) { section = line.slice(3).trim(); sections[section] = []; continue; }
     if (line.startsWith('```')) { inFence = !inFence; continue; }
@@ -39,59 +40,97 @@ const chats = fs.readdirSync(dir)
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const list = items => items.length ? `<ul>${items.map(i => `<li>${esc(i)}</li>`).join('')}</ul>` : '<p class="vacio">Nada por ahora.</p>';
 const PRIO = { 1: 'Urgente', 2: 'Pronto', 3: 'Después', 4: 'Idea' };
+const FASES = [
+  { id: 'terminado', titulo: 'Terminado' },
+  { id: 'desarrollo', titulo: 'En desarrollo' },
+  { id: 'por-hacer', titulo: 'Por hacer' },
+];
 
-const cards = chats.map(c => `
-<article class="card p${c.prioridad}" data-prio="${c.prioridad}">
-  <header>
+// La línea "- fase:" del chat manda; si no está, se calcula (nada hecho = por hacer, nada que falte = terminado).
+function fase(c) {
+  if (FASES.some(f => f.id === c.fase)) return c.fase;
+  if (!c.hecho.length) return 'por-hacer';
+  return c.falta.length ? 'desarrollo' : 'terminado';
+}
+const pct = (h, f) => (h + f ? Math.round(100 * h / (h + f)) : 0);
+
+chats.forEach(c => {
+  c.fase = fase(c);
+  c.pct = c.fase === 'terminado' ? 100 : pct(c.hecho.length, c.falta.length);
+});
+
+const card = c => `
+<details class="card p${c.prioridad}">
+  <summary>
     <span class="tag prio">${PRIO[c.prioridad] || 'Otro'}</span>
-    <h2>${esc(c.title)}</h2>
-    <p class="meta"><span class="tag">${esc(c.modelo || '')}</span> <span class="tag">${esc(c.estado || '')}</span></p>
-  </header>
+    <h3>${esc(c.title)}</h3>
+    <div class="barra" role="img" aria-label="${c.pct}% avanzado"><i style="width:${c.pct}%"></i></div>
+    <p class="meta"><b>${c.pct}%</b> · ${c.hecho.length} hechas, ${c.falta.length} faltan<br>${esc(c.estado || '')}</p>
+  </summary>
   <div class="cols">
-    <section><h3>Hecho (${c.hecho.length})</h3>${list(c.hecho)}</section>
-    <section><h3>Falta (${c.falta.length})</h3>${list(c.falta)}</section>
-    <section><h3>Ideas (${c.ideas.length})</h3>${list(c.ideas)}</section>
+    <section><h4>Hecho (${c.hecho.length})</h4>${list(c.hecho)}</section>
+    <section><h4>Falta (${c.falta.length})</h4>${list(c.falta)}</section>
+    <section><h4>Ideas (${c.ideas.length})</h4>${list(c.ideas)}</section>
   </div>
   <div class="prompts">
+    <span class="tag">${esc(c.modelo || '')}</span>
     <button data-copy="${esc(c.inicio)}">Copiar prompt de inicio</button>
     <button data-copy="${esc(c.continuacion)}">Copiar prompt de continuación</button>
     <span class="spec">${esc(c.spec || '')}</span>
   </div>
-</article>`).join('\n');
+</details>`;
+
+const columnas = FASES.map(f => {
+  const items = chats.filter(c => c.fase === f.id);
+  return `<section class="col ${f.id}"><h2>${f.titulo} <span>${items.length}</span></h2>${items.map(card).join('') || '<p class="vacio">Ningún tema todavía.</p>'}</section>`;
+}).join('\n');
 
 const totals = chats.reduce((t, c) => ({ h: t.h + c.hecho.length, f: t.f + c.falta.length, i: t.i + c.ideas.length }), { h: 0, f: 0, i: 0 });
+const general = pct(totals.h, totals.f);
+const ahora = chats.filter(c => c.fase === 'desarrollo' && c.prioridad === 1);
 
 const html = `<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hoja de ruta de Nexo</title>
+<title>Tablero de Nexo</title>
 <style>
-:root{--bg:#f6f1e7;--card:#fffdf8;--ink:#2b2118;--mute:#7a6a58;--line:#e2d6c0;--accent:#8a5a2b;--u:#b3402a;--p:#c7881f;--d:#4a7c59;--i:#5b6fa6}
-@media (prefers-color-scheme:dark){:root{--bg:#1c1712;--card:#262019;--ink:#f1e8d8;--mute:#a8987f;--line:#3a3025;--accent:#e0a868;--u:#e0735c;--p:#e2ad4a;--d:#7fb58f;--i:#8fa2d8}}
+:root{--bg:#f6f1e7;--card:#fffdf8;--ink:#2b2118;--mute:#7a6a58;--line:#e2d6c0;--accent:#8a5a2b;--u:#b3402a;--p:#c7881f;--d:#4a7c59;--i:#5b6fa6;--track:#e9dfcc}
+@media (prefers-color-scheme:dark){:root{--bg:#1c1712;--card:#262019;--ink:#f1e8d8;--mute:#a8987f;--line:#3a3025;--accent:#e0a868;--u:#e0735c;--p:#e2ad4a;--d:#7fb58f;--i:#8fa2d8;--track:#3a3025}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,sans-serif;padding:24px 16px 64px}
-main{max-width:1100px;margin:0 auto}h1{margin:0 0 4px;font-size:28px}.sub{color:var(--mute);margin:0 0 20px}
-.totales{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}.totales div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 16px}
-.totales b{font-size:22px;display:block}
-.filtros{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
-.filtros button,.prompts button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:6px 12px}
-.filtros button.on,.prompts button:hover,.filtros button:hover{border-color:var(--accent);color:var(--accent)}
-.card{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--i);border-radius:12px;padding:16px 18px;margin-bottom:16px}
+main{max-width:1200px;margin:0 auto}h1{margin:0 0 4px;font-size:28px}.sub{color:var(--mute);margin:0 0 20px}
+.resumen{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:20px}
+.resumen .grande{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}.resumen .grande b{font-size:40px;line-height:1}
+.resumen .barra{height:12px;margin:10px 0}.resumen p{margin:4px 0;font-size:14px;color:var(--mute)}
+.barra{height:8px;background:var(--track);border-radius:99px;overflow:hidden}.barra i{display:block;height:100%;background:var(--d);border-radius:99px}
+.tablero{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start}
+@media(max-width:900px){.tablero{grid-template-columns:1fr}}
+.col h2{font-size:15px;text-transform:uppercase;letter-spacing:.06em;margin:0 0 10px;color:var(--mute)}
+.col h2 span{background:var(--card);border:1px solid var(--line);border-radius:99px;padding:0 8px;margin-left:4px}
+.col.desarrollo .barra i{background:var(--p)}.col.por-hacer .barra i{background:var(--i)}
+.card{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--i);border-radius:12px;padding:12px 14px;margin-bottom:12px}
 .card.p1{border-left-color:var(--u)}.card.p2{border-left-color:var(--p)}.card.p3{border-left-color:var(--d)}
-.card h2{margin:6px 0 4px;font-size:20px}.meta{margin:0 0 10px}
+summary{cursor:pointer;list-style:none}summary::-webkit-details-marker{display:none}
+.card h3{margin:6px 0 8px;font-size:17px}.meta{margin:6px 0 0;font-size:13px;color:var(--mute)}.meta b{color:var(--ink);font-size:15px}
 .tag{display:inline-block;font-size:12px;border:1px solid var(--line);border-radius:99px;padding:1px 10px;color:var(--mute);margin-right:4px}
 .tag.prio{color:var(--accent);border-color:var(--accent)}
-.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-@media(max-width:800px){.cols{grid-template-columns:1fr}}
-.cols h3{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--mute);margin:0 0 6px}
+.cols{display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px}
+.cols h4{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--mute);margin:0 0 4px}
 ul{margin:0;padding-left:18px;font-size:14px}li{margin-bottom:4px}.vacio{color:var(--mute);font-size:14px;margin:0}
-.prompts{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}.spec{color:var(--mute);font-size:12px;margin-left:auto}
+.prompts{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}.spec{color:var(--mute);font-size:12px;width:100%}
+.prompts button{font:inherit;font-size:13px;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:5px 10px}
+.prompts button:hover{border-color:var(--accent);color:var(--accent)}
 .guia{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-top:28px}
 .guia h2{margin-top:0}table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-top:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
 </style></head><body><main>
-<h1>Hoja de ruta de Nexo</h1>
-<p class="sub">Generada el ${new Date().toISOString().slice(0, 10)} desde docs/chats/. Un chat = un tema = un modelo.</p>
-<div class="totales"><div><b>${totals.h}</b>hecho</div><div><b>${totals.f}</b>falta</div><div><b>${totals.i}</b>ideas</div><div><b>${chats.length}</b>chats</div></div>
-<div class="filtros"><button class="on" data-f="0">Todos</button><button data-f="1">Urgente</button><button data-f="2">Pronto</button><button data-f="3">Después</button><button data-f="4">Ideas</button></div>
-${cards}
+<h1>Tablero de Nexo</h1>
+<p class="sub">Actualizado el ${new Date().toISOString().slice(0, 10)} desde docs/chats/. Un chat = un tema = un modelo. Toca una tarjeta para ver el detalle.</p>
+<div class="resumen">
+  <div class="grande"><b>${general}%</b><span>de la app avanzada · ${totals.h} cosas hechas, ${totals.f} por hacer, ${totals.i} ideas guardadas</span></div>
+  <div class="barra" role="img" aria-label="${general}% avanzado"><i style="width:${general}%"></i></div>
+  <p>Lo urgente en marcha: ${ahora.map(c => `<b>${esc(c.title)}</b> (${c.pct}%)`).join(' · ') || 'nada urgente en desarrollo'}.</p>
+</div>
+<div class="tablero">
+${columnas}
+</div>
 <section class="guia"><h2>Cuándo abrir un chat nuevo</h2>
 <table>
 <tr><td>Aprobaste el cambio o el tema terminó</td><td>Cerrar y abrir el siguiente tema</td></tr>
@@ -101,23 +140,18 @@ ${cards}
 <tr><td>Toca diseñar (motor, economía, estructura de clase)</td><td>Chat Opus solo conversando; la implementación va a un chat Sonnet</td></tr>
 <tr><td>Compactaste 2 veces</td><td>Cerrar y abrir uno nuevo</td></tr>
 </table>
-<p>Antes de cerrar, Claude siempre: hace <code>nexo-cierre</code>, actualiza <code>docs/chats/&lt;tema&gt;.md</code>, regenera esta hoja y te deja el prompt de continuación listo.</p></section>
+<p>Antes de cerrar, Claude siempre: hace <code>nexo-cierre</code>, actualiza <code>docs/chats/&lt;tema&gt;.md</code>, regenera este tablero y lo publica en el Artifact.</p></section>
 </main>
 <script>
 document.addEventListener('click',function(e){
-  var b=e.target.closest('button');if(!b)return;
-  if(b.dataset.copy!==undefined){
-    var t=b.dataset.copy,o=b.textContent;
-    var ok=function(){b.textContent='¡Copiado!';setTimeout(function(){b.textContent=o},1400)};
-    try{navigator.clipboard.writeText(t).then(ok,fb)}catch(x){fb()}
-    function fb(){var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');ok()}catch(x){}a.remove()}
-  } else if(b.dataset.f!==undefined){
-    document.querySelectorAll('.filtros button').forEach(function(x){x.classList.toggle('on',x===b)});
-    document.querySelectorAll('.card').forEach(function(c){c.hidden=b.dataset.f!=='0'&&c.dataset.prio!==b.dataset.f});
-  }
+  var b=e.target.closest('button[data-copy]');if(!b)return;
+  var t=b.dataset.copy,o=b.textContent;
+  var ok=function(){b.textContent='¡Copiado!';setTimeout(function(){b.textContent=o},1400)};
+  function fb(){var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');ok()}catch(x){}a.remove()}
+  try{navigator.clipboard.writeText(t).then(ok,fb)}catch(x){fb()}
 });
 </script></body></html>
 `;
 
 fs.writeFileSync(out, html);
-console.log(`Hoja de ruta lista: ${path.relative(process.cwd(), out)} (${chats.length} chats, ${totals.h} hecho, ${totals.f} falta, ${totals.i} ideas)`);
+console.log(`Tablero listo: ${path.relative(process.cwd(), out)} (${chats.length} chats, ${general}% avanzado)`);

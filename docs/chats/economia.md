@@ -1,6 +1,7 @@
 # Economía, tienda y perfil
 - modelo: Sonnet 5.5 · alto (solo conversar y diseñar)
 - estado: sin diseño
+- fase: por-hacer
 - prioridad: 3
 - spec: docs/mascota/SPEC.md (precios) y skill nexo-perfil
 

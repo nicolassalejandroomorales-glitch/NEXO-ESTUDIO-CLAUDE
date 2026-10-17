@@ -1,6 +1,7 @@
 # Aspecto y navegación de toda la app
 - modelo: Sonnet 5.5 · alto (solo conversar y diseñar al inicio)
 - estado: crítica recibida el 15 oct, sin decisiones
+- fase: por-hacer
 - prioridad: 2
 - spec: docs/ux-app/FEEDBACK-15OCT.md
 
