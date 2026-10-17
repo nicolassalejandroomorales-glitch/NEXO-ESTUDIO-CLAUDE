@@ -1,6 +1,6 @@
 # Economía, tienda y perfil
 - modelo: Sonnet 5.5 · alto (solo conversar y diseñar)
-- estado: sin diseño
+- estado: diseño base aprobado (17 oct 2026), falta implementar. SPEC: docs/economia/SPEC.md
 - fase: por-hacer
 - prioridad: 3
 - spec: docs/mascota/SPEC.md (precios) y skill nexo-perfil

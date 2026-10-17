@@ -332,6 +332,8 @@
       ['cabeza', 'cara', 'cuello', 'mano'].forEach(slot => { if (typeof m.outfit?.[slot] === 'string' && /^\w{1,20}$/.test(m.outfit[slot])) outfit[slot] = m.outfit[slot]; });
       next.mascot = { name: String(m.name || '').trim().slice(0, 24) || 'Nexo', kind: ['matraz', 'atomo', 'slime'].includes(m.kind) ? m.kind : 'matraz', outfit };
     }
+    // Tienda y cofres (docs/economia/SPEC.md): accesorios que tienes, polvo y cofres sin abrir.
+    { next.shop = raw.shop; const s = window.NexoTienda.shopOf(next); s.owned = s.owned.filter(id => id in window.NexoTienda.RARITY_OF); }
     // Tutorial (docs/tutorial/SPEC.md): pending = lo verá solo; skipped/done = solo desde Ajustes. Datos viejos con progreso cuentan como ya vistos.
     {
       const tu = raw.tutorial && typeof raw.tutorial === 'object' ? raw.tutorial : null;
@@ -483,7 +485,8 @@
       get: () => state.mascot,
       set: patch => { Object.assign(state.mascot, patch); saveState({ backup: false }); window.NexoPet.renderDock(document.getElementById('companionPresence')); },
       motion: () => state.settings.mascotMotion,
-      studying: () => state.timer.status === 'running'
+      studying: () => state.timer.status === 'running',
+      shop: { state: () => state, save: () => { saveState({ backup: false }); updateChrome(); }, locked: () => cloud.authenticated, today: todayKey }
     });
   }
   function renderCompanionPresence() {
@@ -914,7 +917,7 @@
     const promise = Promise.resolve(window.NexoClassCatalog || window.NexoLoader.script('./classes/catalog.js?v=8dec702d')).then(() => {
       const file = window.NexoClassCatalog?.[id];
       if (!file) return false;
-      return Promise.all([window.NexoLoader.style('./classes/classroom.css?v=a1358874'), window.NexoLoader.script('./classes/tower-art.js?v=9099c2df').then(() => window.NexoLoader.script('./classes/player.js?v=4242bf88')),
+      return Promise.all([window.NexoLoader.style('./classes/classroom.css?v=7f1c7bf7'), window.NexoLoader.script('./classes/tower-art.js?v=9099c2df').then(() => window.NexoLoader.script('./classes/player.js?v=4242bf88')),
         window.NexoLoader.script('./classes/willow-tower.js?v=09c21b87').catch(() => null), // Torre del Sauce (etapa 10); sin ella, quedan las hojas en lista
         window.NexoLoader.script(`./classes/${file}?v=18`),
         // Motor de evidencia y repaso espaciado (FSRS); si no cargan, la clase funciona igual sin agendar repasos.
@@ -1350,8 +1353,8 @@
   }
   function renderShop() {
     petBind();
-    app.innerHTML=`<section class="page forge-page"><p class="eyebrow">MERCADO ARCANO</p><h2>Tienda de accesorios</h2>
-      <p>Pruébale los accesorios a tu compañero. Comprar se activa pronto; tus átomos se siguen ganando al estudiar (${state.coins} ⚛).</p>
+    app.innerHTML=`<section class="page forge-page"><p class="eyebrow">MERCADO ARCANO</p><h2>Tienda de cofres</h2>
+      <div id="shopTop"></div>
       <div style="display:flex;justify-content:center;background:radial-gradient(circle at 50% 40%,#f3e6c8,#d8c39a);border-radius:12px;margin:10px 0"><canvas id="petShopPreview" width="40" height="44" style="width:160px;height:176px;image-rendering:pixelated" aria-label="Vista previa de tu compañero"></canvas></div>
       <div id="petShop" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px"></div></section>`+
       `<details class="forge-challenges"><summary>Desafíos de estudio</summary>${renderChallenges()}</details>`;

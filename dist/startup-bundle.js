@@ -4646,6 +4646,83 @@
 
 ;
 
+/* economy/tienda.js */
+/* Tienda y cofres (docs/economia/SPEC.md). Lógica pura: recibe el estado y lo modifica; no toca el DOM.
+   state.shop = { owned: [ids], dust: polvo, chests: cofres sin abrir, sinceRare: cofres desde el último raro+, dailyAt: 'AAAA-MM-DD' } */
+(() => {
+  'use strict';
+  const RARITIES = ['comun', 'poco', 'raro', 'legendario'];
+  const LABELS = { comun: 'Común', poco: 'Poco común', raro: 'Raro', legendario: 'Legendario' };
+  const ODDS = { comun: 60, poco: 28, raro: 10, legendario: 2 };            // % por cofre
+  const DUST = { comun: 10, poco: 20, raro: 40, legendario: 80 };            // polvo que da un repetido
+  const DUST_PRICE = { comun: 30, poco: 60, raro: 120, legendario: 240 };    // polvo para comprar directo
+  const CHEST_PRICE = 70;                                                    // ⚛ por cofre
+  const PITY = 10;                                                           // cada 10 cofres sin raro+, el siguiente lo es
+  const RARITY_OF = {
+    flor: 'comun', corbatin: 'comun', lentes: 'comun', gorro: 'comun', taza: 'comun',
+    bufanda: 'poco', lupa: 'poco', monoculo: 'poco', collar: 'poco',
+    birrete: 'raro', lentesSol: 'raro', varita: 'raro',
+    sombrero: 'legendario', corona: 'legendario'
+  };
+
+  const idsOf = r => Object.keys(RARITY_OF).filter(id => RARITY_OF[id] === r);
+  function shopOf(state) {
+    const s = state.shop && typeof state.shop === 'object' ? state.shop : (state.shop = {});
+    if (!Array.isArray(s.owned)) s.owned = [];
+    ['dust', 'chests', 'sinceRare'].forEach(k => { s[k] = Math.max(0, Math.floor(Number(s[k]) || 0)); });
+    if (typeof s.dailyAt !== 'string') s.dailyAt = '';
+    return s;
+  }
+  const fail = reason => ({ ok: false, reason });
+
+  function buyChest(state) {
+    const s = shopOf(state);
+    if ((Number(state.coins) || 0) < CHEST_PRICE) return fail('Te faltan átomos para un cofre.');
+    state.coins -= CHEST_PRICE; s.chests += 1;
+    return { ok: true };
+  }
+  function claimDaily(state, today) {
+    const s = shopOf(state);
+    if (s.dailyAt === today) return fail('El cofre de hoy ya lo abriste. Vuelve mañana.');
+    s.dailyAt = today; s.chests += 1;
+    return { ok: true };
+  }
+  function grantChest(state, n = 1) { shopOf(state).chests += Math.max(0, Math.floor(n)); }   // premios por hitos
+
+  function rollRarity(rng, forceRare) {
+    if (forceRare) return rng() < ODDS.legendario / (ODDS.raro + ODDS.legendario) ? 'legendario' : 'raro';
+    let x = rng() * 100;
+    for (const r of RARITIES) { if (x < ODDS[r]) return r; x -= ODDS[r]; }
+    return 'comun';
+  }
+  // Abre un cofre: da un accesorio nuevo; si ya lo tenías, lo convierte en polvo.
+  function openChest(state, rng = Math.random) {
+    const s = shopOf(state);
+    if (s.chests < 1) return fail('No tienes cofres para abrir.');
+    s.chests -= 1;
+    const guaranteed = s.sinceRare >= PITY - 1;
+    const rarity = rollRarity(rng, guaranteed);
+    s.sinceRare = rarity === 'raro' || rarity === 'legendario' ? 0 : s.sinceRare + 1;
+    const pool = idsOf(rarity), id = pool[Math.min(pool.length - 1, Math.floor(rng() * pool.length))];
+    const dupe = s.owned.includes(id);
+    if (dupe) s.dust += DUST[rarity]; else s.owned.push(id);
+    return { ok: true, id, rarity, dupe, dust: dupe ? DUST[rarity] : 0 };
+  }
+  function buyWithDust(state, id) {
+    const s = shopOf(state), r = RARITY_OF[id];
+    if (!r) return fail('Ese accesorio no existe.');
+    if (s.owned.includes(id)) return fail('Ya lo tienes.');
+    if (s.dust < DUST_PRICE[r]) return fail('Te falta polvo.');
+    s.dust -= DUST_PRICE[r]; s.owned.push(id);
+    return { ok: true };
+  }
+
+  window.NexoTienda = Object.freeze({ RARITIES, LABELS, ODDS, DUST, DUST_PRICE, CHEST_PRICE, PITY, RARITY_OF,
+    shopOf, buyChest, claimDaily, grantChest, openChest, buyWithDust });
+})();
+
+;
+
 /* mascot/home-pet.js */
 /* Mascota pixel en la app (docs/mascota/SPEC.md · Fase 6).
    Carga perezosa de pixelmascotas.js + pixel-vida.js, y la conecta con: Inicio (vive en el refugio), barra lateral,
@@ -4654,7 +4731,6 @@
   'use strict';
   const KINDS = ['matraz', 'atomo', 'slime'];
   const NAMES = { matraz: 'Matraz', atomo: 'Átomo', slime: 'Slime' };
-  const PRICES = { flor: 60, corbatin: 60, lentes: 80, gorro: 90, taza: 90, bufanda: 110, lupa: 110, monoculo: 120, collar: 140, birrete: 160, lentesSol: 160, varita: 180, sombrero: 200, corona: 260 };
   const SLOTS = ['cabeza', 'cara', 'cuello', 'mano'];
   const STATIONS = {
     deskFloor: { x: 84, y: 166 },
@@ -4778,8 +4854,9 @@
     const big = root.querySelector('#petBig'); let tryOn = null;
     addMini({ canvas: big, expr: t => EXPRS[Math.floor(t / 2.5) % EXPRS.length], arm: e => e === 'picara' ? 'sixseven' : e === 'feliz' ? 'wave' : 'rest',
       get outfit() { return pet().outfit; } });
-    const paintWardrobe = () => { const o = pet().outfit; wardrobe.innerHTML = SLOTS.map(slot => `<label>${slot[0].toUpperCase() + slot.slice(1)} <select data-slot="${slot}"><option value="">—</option>` +
-      Object.entries(P.ACCESORIOS).filter(([, a]) => a.slot === slot).map(([id]) => `<option value="${id}"${o[slot] === id ? ' selected' : ''}>${esc(P.NOMBRES[id])}</option>`).join('') + '</select></label>').join(''); };
+    const paintWardrobe = () => { const o = pet().outfit, owned = window.NexoTienda.shopOf(api.shop.state()).owned;
+      wardrobe.innerHTML = SLOTS.map(slot => `<label>${slot[0].toUpperCase() + slot.slice(1)} <select data-slot="${slot}"><option value="">—</option>` +
+      Object.entries(P.ACCESORIOS).filter(([id, a]) => a.slot === slot && (owned.includes(id) || o[slot] === id)).map(([id]) => `<option value="${id}"${o[slot] === id ? ' selected' : ''}>${esc(P.NOMBRES[id])}</option>`).join('') + '</select></label>').join(''); };
     paintPick(); paintWardrobe();
     name.value = pet().name === 'Nexo' ? '' : pet().name; name.placeholder = NAMES[pet().kind];
     pets.onclick = e => { const b = e.target.closest('.pet-pick'); if (!b) return; api.set({ kind: b.dataset.kind }); name.placeholder = NAMES[b.dataset.kind]; paintPick(); home?.life.setKind(b.dataset.kind); };
@@ -4787,17 +4864,46 @@
     wardrobe.onchange = e => { const o = { ...pet().outfit, [e.target.dataset.slot]: e.target.value }; api.set({ outfit: o }); home?.life.setOutfit(o); };
   }
 
-  // ——— Tienda: probar accesorios (comprar se activa cuando se defina la economía) ———
+  // ——— Tienda: cofres, polvo y accesorios (lógica en economy/tienda.js, docs/economia/SPEC.md) ———
+  const RARITY_COLOR = { comun: '#b9a98a', poco: '#6cc08b', raro: '#6aa7ff', legendario: '#f2b84b' };
   async function wireShop(root) {
     const P = await engine().catch(() => null); if (!P || !root.isConnected) return;
-    const shop = root.querySelector('#petShop'), prev = root.querySelector('#petShopPreview');
-    let tryOut = { ...pet().outfit };
+    const T = window.NexoTienda, S = api.shop, shop = root.querySelector('#petShop'), prev = root.querySelector('#petShopPreview'), top = root.querySelector('#shopTop');
+    let tryOut = { ...pet().outfit }, reveal = null, note = '';
     addMini({ canvas: prev, get outfit() { return tryOut; } });
-    shop.innerHTML = Object.entries(P.ACCESORIOS).sort((a, b) => PRICES[a[0]] - PRICES[b[0]]).map(([id, a]) =>
-      `<div class="pet-item" style="background:#1f1a14;border:1px solid #4a3d2e;border-radius:10px;padding:8px;text-align:center"><div class="pet-icon" data-id="${id}" style="background:#e9d9b4;border-radius:8px;display:flex;justify-content:center;align-items:center;height:64px;margin-bottom:6px"></div><b>${esc(P.NOMBRES[id])}</b><small style="display:block;opacity:.7">${a.slot}</small><span style="color:#e8b65a;font-weight:bold">${PRICES[id]} ⚛</span><button type="button" data-try="${id}" style="margin-top:6px;width:100%">Probar</button></div>`).join('');
-    shop.querySelectorAll('.pet-icon').forEach(box => { const c = P.sprite(P.ACCESORIOS[box.dataset.id].rows); c.style.cssText = `width:${c.width * 4}px;height:${c.height * 4}px;image-rendering:pixelated`; box.append(c); });
-    shop.onclick = e => { const id = e.target.dataset.try; if (!id) return; const slot = P.ACCESORIOS[id].slot; tryOut = { ...tryOut, [slot]: tryOut[slot] === id ? '' : id };
-      shop.querySelectorAll('button[data-try]').forEach(b => { b.textContent = tryOut[P.ACCESORIOS[b.dataset.try].slot] === b.dataset.try ? 'Quitar' : 'Probar'; }); };
+    const tag = id => `<b style="color:${RARITY_COLOR[T.RARITY_OF[id]]}">${T.LABELS[T.RARITY_OF[id]]}</b>`;
+    const render = () => {
+      const st = S.state(), s = T.shopOf(st), locked = S.locked(), daily = s.dailyAt === S.today();
+      const btn = (act, label, off) => `<button type="button" data-act="${act}"${off ? ' disabled' : ''}>${label}</button>`;
+      top.innerHTML = `<p style="margin:6px 0"><b>${Math.floor(st.coins)} ⚛</b> · ${s.dust} polvo · ${s.chests} cofre${s.chests === 1 ? '' : 's'} sin abrir</p>` +
+        (locked ? '<p><small>Con cuenta en la nube la Tienda se activa más adelante; como invitado ya puedes usarla.</small></p>' :
+        `<div style="display:flex;gap:8px;flex-wrap:wrap">${btn('daily', daily ? 'Cofre diario (ya abierto hoy)' : 'Cofre diario gratis', daily)}${btn('buy', `Comprar cofre · ${T.CHEST_PRICE} ⚛`, st.coins < T.CHEST_PRICE)}${btn('open', `Abrir cofre (${s.chests})`, s.chests < 1)}</div>`) +
+        `<p><small>Cada ${T.PITY} cofres sin nada raro, el siguiente lo es seguro. Los repetidos se vuelven polvo.</small></p>` +
+        (note ? `<p role="status">${esc(note)}</p>` : '') +
+        (reveal ? `<div class="chest-reveal" style="text-align:center;margin:8px 0"><div class="pet-icon chest-pop" style="display:inline-flex;background:#e9d9b4;border-radius:10px;padding:12px;box-shadow:0 0 18px ${RARITY_COLOR[reveal.rarity]}"></div><p><b>${esc(P.NOMBRES[reveal.id])}</b> · ${tag(reveal.id)}${reveal.dupe ? ` · repetido: +${reveal.dust} polvo` : ' · ¡nuevo!'}</p></div>` : '');
+      const box = top.querySelector('.chest-pop');
+      if (box) { const c = P.sprite(P.ACCESORIOS[reveal.id].rows); c.style.cssText = `width:${c.width * 6}px;height:${c.height * 6}px;image-rendering:pixelated`; box.append(c); }
+      shop.innerHTML = Object.entries(P.ACCESORIOS).sort((a, b) => T.RARITIES.indexOf(T.RARITY_OF[a[0]]) - T.RARITIES.indexOf(T.RARITY_OF[b[0]])).map(([id, a]) => {
+        const own = s.owned.includes(id), price = T.DUST_PRICE[T.RARITY_OF[id]];
+        return `<div class="pet-item" style="background:#1f1a14;border:1px solid #4a3d2e;border-radius:10px;padding:8px;text-align:center"><div class="pet-icon" data-id="${id}" style="background:#e9d9b4;border-radius:8px;display:flex;justify-content:center;align-items:center;height:64px;margin-bottom:6px"></div><b>${esc(P.NOMBRES[id])}</b><small style="display:block;opacity:.7">${a.slot} · ${tag(id)}</small>` +
+          `<button type="button" data-try="${id}" style="margin-top:6px;width:100%">${tryOut[a.slot] === id ? 'Quitar' : 'Probar'}</button>` +
+          (own ? '<small style="display:block;margin-top:4px;color:#6cc08b">Tuyo ✓</small>' : `<button type="button" data-dust="${id}" style="margin-top:4px;width:100%"${s.dust < price ? ' disabled' : ''}>${price} polvo</button>`) + '</div>';
+      }).join('');
+      shop.querySelectorAll('.pet-icon').forEach(b => { const c = P.sprite(P.ACCESORIOS[b.dataset.id].rows); c.style.cssText = `width:${c.width * 4}px;height:${c.height * 4}px;image-rendering:pixelated`; b.append(c); });
+    };
+    const act = name => {
+      const st = S.state(); note = ''; reveal = null;
+      const r = name === 'buy' ? T.buyChest(st) : name === 'daily' ? T.claimDaily(st, S.today()) : T.openChest(st);
+      if (!r.ok) note = r.reason; else if (name === 'open') { reveal = r; cheerUntil = performance.now() + 2500; }
+      S.save(); render();
+    };
+    top.onclick = e => { const a = e.target.dataset.act; if (a) act(a); };
+    shop.onclick = e => {
+      const d = e.target.dataset.dust, id = e.target.dataset.try;
+      if (d) { const r = T.buyWithDust(S.state(), d); note = r.ok ? `¡Conseguiste ${P.NOMBRES[d]}!` : r.reason; reveal = null; S.save(); render(); }
+      else if (id) { const slot = P.ACCESORIOS[id].slot; tryOut = { ...tryOut, [slot]: tryOut[slot] === id ? '' : id }; render(); }
+    };
+    render();
   }
 
   window.NexoPet = Object.freeze({
