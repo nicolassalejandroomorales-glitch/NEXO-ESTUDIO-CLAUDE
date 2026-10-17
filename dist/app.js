@@ -746,14 +746,14 @@
   const dayMoment = hour => hour < 6 ? 'madrugada' : hour < 12 ? 'mañana' : hour < 19 ? 'tarde' : 'noche';
   const GREETINGS = { madrugada: 'Noche larga', mañana: 'Buen día', tarde: 'Buena tarde', noche: 'Buena noche' };
   const pixelText = (text, options) => window.NexoPixelText.render(text, options);
-  // Tamaño del reloj a gusto: 4 pasos de píxeles enteros (1 pequeño · 2 normal · 3 grande · 4 enorme), se recuerda en este dispositivo (no viaja con la cuenta).
+  // Tamaño del reloj a gusto: 1 mini · 2 normal · 3 grande · 4 enorme (píxeles enteros, ver update01.css), se recuerda en este dispositivo (no viaja con la cuenta).
   const CLOCK_SCALES = [1, 2, 3, 4];
   const clockScale = () => { try { const v = Number(localStorage.getItem('nexo.clockSize')); return CLOCK_SCALES.includes(v) ? v : 2; } catch (_) { return 1; } };
   function resizeClock(step) {
     const next = CLOCK_SCALES[Math.max(0, Math.min(CLOCK_SCALES.length - 1, CLOCK_SCALES.indexOf(clockScale()) + step))];
     try { localStorage.setItem('nexo.clockSize', String(next)); } catch (_) { /* sin almacenamiento: vale solo hasta recargar */ }
     if (document.querySelector('.home-clock')) document.querySelector('.home-clock').dataset.cs = next;
-    document.querySelectorAll('[data-clock-size]').forEach(button => { button.disabled = (step < 0 && next === CLOCK_SCALES[0] && button.dataset.clockSize === '-1') || (step > 0 && next === CLOCK_SCALES[CLOCK_SCALES.length - 1] && button.dataset.clockSize === '1'); });
+    document.querySelectorAll('[data-clock-size]').forEach(button => { button.disabled = button.dataset.clockSize === '-1' ? next === CLOCK_SCALES[0] : next === CLOCK_SCALES[CLOCK_SCALES.length - 1]; });
   }
   function homeClockMarkup(nextEvaluation, studiedMinutes) {
     const timer = state.timer, running = timer.status === 'running', paused = timer.status === 'paused';
@@ -765,8 +765,7 @@
       <div class="hc-now"><div class="hc-hour" data-hc-time role="text"></div><div class="hc-greet" data-hc-moment></div></div>
       <div class="hc-timer"><div class="hc-label">${pt(`${running ? 'Estudiando' : paused ? 'En pausa' : 'Cronómetro'} · ${subjectFor(timer.subject).short}`)}</div><div class="hc-digits" id="homeTimer" role="timer">${pixelDigits(formatClock(timerElapsedMs()))}</div></div>
       <div class="hc-controls">${running ? `<button class="hc-btn pu-btn" data-action="timer-pause" aria-label="Pausar">${pt('Pausar')}</button>` : `<button class="hc-btn hc-primary pu-btn" data-action="timer-start" aria-label="${paused ? 'Seguir' : 'Estudiar'}">${pt(paused ? 'Seguir' : 'Estudiar')}</button>`}${timerElapsedMs() >= 1000 ? `<button class="hc-btn pu-btn" data-action="timer-finish" aria-label="Terminar">${pt('Terminar')}</button>` : ''}</div>
-      <div class="hc-size" role="group" aria-label="Tamaño del reloj"><button class="pu-btn" data-clock-size="-1" aria-label="Achicar reloj">${pt('-')}</button><button class="pu-btn" data-clock-size="1" aria-label="Agrandar reloj">${pt('+')}</button></div>
-      <div class="hc-meta"><span class="hc-plate">${pt(`Hoy · ${studiedMinutes} min`)}</span><span class="hc-plate hc-plate-exam">${pt(countdown)}</span></div>
+      <div class="hc-meta"><span class="hc-plate">${pt(`Hoy · ${studiedMinutes} min`)}</span><span class="hc-plate hc-plate-exam">${pt(countdown)}</span><span class="hc-size" role="group" aria-label="Tamaño del reloj"><button class="pu-btn" data-clock-size="-1" aria-label="Achicar reloj" ${clockScale() === CLOCK_SCALES[0] ? 'disabled' : ''}>${pt('-')}</button><button class="pu-btn" data-clock-size="1" aria-label="Agrandar reloj" ${clockScale() === CLOCK_SCALES[CLOCK_SCALES.length - 1] ? 'disabled' : ''}>${pt('+')}</button></span></div>
     </aside>`;
   }
   // Chispas de latón, cristal y hoja al terminar una sesión: viven en el body porque el Inicio se vuelve a pintar al guardar.
