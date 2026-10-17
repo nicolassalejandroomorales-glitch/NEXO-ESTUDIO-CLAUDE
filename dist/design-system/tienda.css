@@ -52,13 +52,13 @@
 .cofre-fx.cfx-won .cofre-fx-rays { opacity:.6; }
 @keyframes cfxSpin { to { transform:rotate(360deg); } }
 .cofre-fx-parts { position:absolute;left:50%;top:50%;width:min(480px,100vw);height:auto;aspect-ratio:4/3;transform:translate(-50%,-50%);pointer-events:none;image-rendering:pixelated; }
-.cofre-fx-stage { position:relative;flex:none;width:min(300px,72vw);aspect-ratio:56/46;transition:transform .6s cubic-bezier(.6,0,.2,1),opacity .5s ease-in; }
+.cofre-fx-stage { position:relative;flex:none;width:min(300px,72vw);aspect-ratio:80/66;transition:transform .6s cubic-bezier(.6,0,.2,1),opacity .5s ease-in; }
 .cofre-fx-stage.cfx-away { transform:translateY(-90px) scale(.5);opacity:0;position:absolute; }
 .cofre-fx-stage[hidden] { display:none; }
 .cofre-fx-chest { position:absolute;inset:0;transform-origin:50% 90%; }
 .cofre-fx-chest .cfx-body,.cofre-fx-chest .cfx-lid { position:absolute;inset:0;background:url('../assets/tienda/cofre-cerrado.png') center / 100% 100% no-repeat;image-rendering:pixelated;filter:drop-shadow(0 8px 0 #0007); }
-.cofre-fx-chest .cfx-body { clip-path:inset(50% 0 0 0); }
-.cofre-fx-chest .cfx-lid { clip-path:inset(0 0 49% 0);transform-origin:50% 50%;will-change:transform; }
+.cofre-fx-chest .cfx-body { clip-path:inset(51.5% 0 0 0); }
+.cofre-fx-chest .cfx-lid { clip-path:inset(0 0 47% 0);transform-origin:50% 50%;will-change:transform; }
 .cfx-glow { position:absolute;left:8%;right:8%;top:38%;height:30%;border-radius:50%;background:radial-gradient(ellipse,#fff6c8 0,#ffd860 35%,#0000 70%);opacity:0;transform:scale(.3);filter:blur(2px); }
 .cfx-shake { animation:cfxShake 1.1s ease-in forwards; }
 .cfx-shake .cfx-glow { animation:cfxGlowUp 1.1s ease-in forwards; }
@@ -103,3 +103,21 @@
 @media(max-width:560px) { .cfx-tile { width:92px;height:112px; } .cfx-window { height:128px; } .cfx-tile canvas { max-width:66px;max-height:66px; } }
 body[data-nexo-ambient-motion="reduced"] .cofre-fx *,body[data-nexo-quality="low"] .cofre-fx-rays { animation:none !important; }
 @media(prefers-reduced-motion:reduce) { .cofre-fx *,.cofre-fx,.tienda-cofre img,.tienda-item .ti-icon { animation:none !important; } .cofre-fx-rays { display:none; } }
+
+/* ---- probabilidades ---- */
+.tienda-odds { margin:12px 0;display:grid;gap:6px; }
+.tienda-odds h3 { margin:0;font-size:1rem; }
+.tienda-odds .to-row { display:grid;grid-template-columns:minmax(90px,auto) 1fr auto;align-items:center;gap:10px;font-weight:700; }
+.tienda-odds .to-bar { height:10px;border-radius:5px;background:#0003;overflow:hidden; }
+.tienda-odds .to-bar i { display:block;height:100%;background:var(--c);border-radius:5px; }
+.tienda-odds .to-name { color:var(--c);text-shadow:0 1px 0 #0004; }
+.tienda-odds small { opacity:.8;font-weight:600; }
+.tienda-item .ti-pct { font-size:.72rem;opacity:.75; }
+
+/* ---- destello al abrir y sacudida al caer un premio raro ---- */
+.cofre-fx-flash { position:absolute;inset:0;background:radial-gradient(circle at 50% 45%,#fffbe0,#ffd86088 40%,#0000 70%);opacity:0;pointer-events:none;z-index:3; }
+.cofre-fx.cfx-flash .cofre-fx-flash { animation:cfxFlash .7s ease-out; }
+@keyframes cfxFlash { 0% { opacity:0; } 12% { opacity:.95; } 100% { opacity:0; } }
+.cofre-fx.cfx-bang .cofre-fx-roulette { animation:cfxBang .5s cubic-bezier(.3,1.6,.5,1); }
+@keyframes cfxBang { 0%,100% { transform:none; } 20% { transform:translate(-5px,3px) scale(1.02); } 40% { transform:translate(5px,-3px); } 60% { transform:translate(-3px,2px); } 80% { transform:translate(2px,-1px); } }
+@media(prefers-reduced-motion:reduce) { .cofre-fx-flash { display:none; } }

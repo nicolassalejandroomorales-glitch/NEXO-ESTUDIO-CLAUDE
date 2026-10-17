@@ -39,7 +39,7 @@
     const el = document.createElement('div');
     el.className = 'cofre-fx'; el.dataset.rarity = rarity;
     el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Abriendo cofre');
-    el.innerHTML = `<div class="cofre-fx-rays"></div><canvas class="cofre-fx-parts" width="480" height="360"></canvas>
+    el.innerHTML = `<div class="cofre-fx-flash"></div><div class="cofre-fx-rays"></div><canvas class="cofre-fx-parts" width="480" height="360"></canvas>
       <div class="cofre-fx-stage"><div class="cofre-fx-chest"><div class="cfx-glow"></div><i class="cfx-body"></i><i class="cfx-lid"></i></div></div>
       <div class="cofre-fx-roulette pu-panel" hidden><div class="cfx-window"><div class="cfx-strip"></div><i class="cfx-marker"></i></div></div>
       <div class="cofre-fx-card pu-paper" hidden><p class="cfx-title"></p><p class="cfx-note"></p><div class="cfx-actions"></div></div>`;
@@ -56,20 +56,20 @@
     el.addEventListener('click', e => { const b = e.target.closest('button[data-r]'); if (b) close(b.dataset.r); });
     el.addEventListener('keydown', e => { if (e.key === 'Escape' && !card.hidden) close('close'); });
 
-    window.NexoAudio?.play('purchase');
     if (reduced) {
+      window.NexoCofreSonidos?.play('reveal', rarity);
       $('.cofre-fx-stage').hidden = true; roulette.hidden = false; strip.append(mk(winner, true)); strip.style.margin = '0 auto';
-      el.classList.add('cfx-won'); showCard(); return result;
+      el.classList.add('cfx-won'); if (big) el.classList.add('cfx-bang'); showCard(); return result;
     }
     strip.append(...Array.from({ length: TILES }, (_, i) => i === WIN_AT ? mk(winner, true) : mk(ids[Math.floor(Math.random() * ids.length)], false)));
     // 1. el cofre tiembla y salta la tapa
-    await wait(80); chest.classList.add('cfx-shake');
+    await wait(80); chest.classList.add('cfx-shake'); window.NexoCofreSonidos?.play('rumble');
     await wait(1100);
-    chest.classList.remove('cfx-shake'); chest.classList.add('cfx-opening'); el.classList.add('cfx-lit');
-    window.NexoAudio?.play('confirm'); burst(parts, 'legendario', 40, performance.now() + 500);
+    chest.classList.remove('cfx-shake'); chest.classList.add('cfx-opening'); el.classList.add('cfx-lit', 'cfx-flash');
+    window.NexoCofreSonidos?.play('pop'); burst(parts, 'legendario', 40, performance.now() + 500);
     await wait(800);
     // 2. el cofre sube y aparece la ruleta
-    $('.cofre-fx-stage').classList.add('cfx-away'); roulette.hidden = false; roulette.classList.add('cfx-drop');
+    $('.cofre-fx-stage').classList.add('cfx-away'); roulette.hidden = false; roulette.classList.add('cfx-drop'); window.NexoCofreSonidos?.play('whoosh');
     await wait(450);
     // 3. la ruleta gira y frena en el premio
     const tw = strip.children[1].getBoundingClientRect().left - strip.children[0].getBoundingClientRect().left, view = strip.parentElement.clientWidth;
@@ -90,12 +90,12 @@
         tiles[i].style.filter = `blur(${(speed * 1.2 * Math.min(1, d)).toFixed(2)}px)`;
       }
       const idx = Math.floor(centre / tw);
-      if (idx !== last) { last = idx; if (k < .98) window.NexoAudio?.play('click'); marker.classList.remove('cfx-tick'); void marker.offsetWidth; marker.classList.add('cfx-tick'); }
+      if (idx !== last) { last = idx; if (k < .98) window.NexoCofreSonidos?.play('tick'); marker.classList.remove('cfx-tick'); void marker.offsetWidth; marker.classList.add('cfx-tick'); }
       k < 1 && el.isConnected ? requestAnimationFrame(frame) : res();
     })(t0));
     tiles.forEach(tl => { if (!tl.dataset.win) { tl.style.transform = ''; } tl.style.filter = ''; });
     // 4. el premio brilla y sale el cartel
-    el.classList.add('cfx-won'); window.NexoAudio?.play('equip');
+    el.classList.add('cfx-won'); if (big) el.classList.add('cfx-bang'); window.NexoCofreSonidos?.play('land'); setTimeout(() => window.NexoCofreSonidos?.play('reveal', rarity), 180);
     burst(parts, rarity, big ? 100 : 40, performance.now() + 900);
     await wait(big ? 900 : 600); showCard();
     return result;

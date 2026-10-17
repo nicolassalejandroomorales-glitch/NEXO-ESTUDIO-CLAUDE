@@ -1402,6 +1402,7 @@
       <div class="tienda-mesa"><div class="pu-panel"><div class="tienda-cofre"><img id="shopChest" src="./assets/tienda/cofre-cerrado.png" alt="Cofre del alquimista"><div id="shopTop"></div></div></div>
         <div class="pu-panel"><div class="pu-paper tienda-pet"><canvas id="petShopPreview" width="40" height="44" aria-label="Vista previa de tu compañero"></canvas><small>Prueba un accesorio y mira cómo le queda a tu compañero.</small></div></div></div>
       <div class="tienda-tipos" id="shopTypes"></div>
+      <div class="pu-paper tienda-odds" id="shopOdds"></div>
       <div class="tienda-estantes" id="petShop"></div></section>`+
       `<details class="forge-challenges"><summary>Desafíos de estudio</summary>${renderChallenges()}</details>`;
     window.NexoPet?.wireShop(app);

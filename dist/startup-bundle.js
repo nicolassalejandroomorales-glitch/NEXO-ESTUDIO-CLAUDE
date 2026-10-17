@@ -4963,6 +4963,73 @@
 
 ;
 
+/* economy/cofre-sonidos.js */
+/* Sonidos de la apertura de cofres, sintetizados con WebAudio (sin archivos). Respetan el silencio y el volumen de Ajustes.
+   NexoCofreSonidos.play('tick' | 'rumble' | 'whoosh' | 'pop' | 'land' | 'reveal', rareza?) */
+(() => {
+  'use strict';
+  let ctx = null, noiseBuf = null;
+  const NOTE = n => 440 * Math.pow(2, (n - 69) / 12);
+  const ARPEGIOS = { comun: [72, 76], poco: [72, 76, 79], raro: [72, 76, 79, 84, 88], legendario: [67, 72, 76, 79, 84, 88, 91, 96] };
+
+  function ready() {
+    const s = window.NexoAudio?.settings;
+    if (!s || !s.sound || s.hidden) return null;
+    try {
+      ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
+      if (ctx.state === 'suspended') ctx.resume();
+    } catch (_) { return null; }
+    return { ctx, vol: Math.max(0, Math.min(1, s.sfxVolume ?? .4)) };
+  }
+  function noise() {
+    if (!noiseBuf) { noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+    const src = ctx.createBufferSource(); src.buffer = noiseBuf; src.loop = true; return src;
+  }
+  // Una nota con ataque rápido y caída; freqEnd permite barridos.
+  function tone(c, { f, fEnd, type = 'sine', at = 0, dur = .2, gain = .3, attack = .005 }) {
+    const t = c.ctx.currentTime + at, o = c.ctx.createOscillator(), g = c.ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t); if (fEnd) o.frequency.exponentialRampToValueAtTime(fEnd, t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(gain * c.vol, t + attack); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(c.ctx.destination); o.start(t); o.stop(t + dur + .05);
+  }
+  function hiss(c, { at = 0, dur = .3, gain = .2, from = 400, to = 4000, q = 1.2, type = 'bandpass' }) {
+    const t = c.ctx.currentTime + at, n = noise(), f = c.ctx.createBiquadFilter(), g = c.ctx.createGain();
+    f.type = type; f.Q.value = q; f.frequency.setValueAtTime(from, t); f.frequency.exponentialRampToValueAtTime(to, t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(gain * c.vol, t + dur * .25); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    n.connect(f).connect(g).connect(c.ctx.destination); n.start(t); n.stop(t + dur + .05);
+  }
+
+  const SOUNDS = {
+    // casilla que pasa frente al marcador: golpecito de madera
+    tick: c => { tone(c, { f: 1300 + Math.random() * 120, fEnd: 700, type: 'triangle', dur: .05, gain: .22 }); hiss(c, { dur: .03, gain: .08, from: 3000, to: 2000 }); },
+    // el cofre tiembla: retumbo grave que crece
+    rumble: c => { tone(c, { f: 48, fEnd: 90, type: 'sawtooth', dur: 1.1, gain: .22, attack: .6 }); hiss(c, { dur: 1.1, gain: .3, from: 120, to: 700, type: 'lowpass', q: .7 }); },
+    // la ruleta arranca
+    whoosh: c => hiss(c, { dur: .7, gain: .35, from: 300, to: 3800, q: .8 }),
+    // salta la tapa: crujido de madera, golpe y destello
+    pop: c => { hiss(c, { dur: .22, gain: .5, from: 1500, to: 400, q: 2 }); tone(c, { f: 320, fEnd: 70, type: 'square', dur: .18, gain: .3 });
+      tone(c, { f: NOTE(84), type: 'sine', dur: .5, gain: .18, at: .04 }); tone(c, { f: NOTE(91), type: 'sine', dur: .5, gain: .12, at: .06 }); },
+    // la ruleta se asienta en el premio
+    land: c => { tone(c, { f: 180, fEnd: 60, type: 'sine', dur: .25, gain: .45 }); hiss(c, { dur: .12, gain: .2, from: 2500, to: 800 }); }
+  };
+
+  // Fanfarria según rareza: cuantas más notas y más brillo, más raro el premio.
+  function reveal(c, rarity) {
+    const notes = ARPEGIOS[rarity] || ARPEGIOS.comun, big = rarity === 'raro' || rarity === 'legendario';
+    notes.forEach((n, i) => { tone(c, { f: NOTE(n), type: 'triangle', at: i * .085, dur: .55, gain: .22 }); tone(c, { f: NOTE(n + 12), type: 'sine', at: i * .085 + .01, dur: .4, gain: .08 }); });
+    if (big) { for (let i = 0; i < 7; i++) tone(c, { f: NOTE(96 + (i * 5) % 12), type: 'sine', at: .5 + i * .07, dur: .25, gain: .07 }); hiss(c, { at: .1, dur: .9, gain: .12, from: 2000, to: 9000, q: 2 }); }
+    if (rarity === 'legendario') { tone(c, { f: 65, fEnd: 40, type: 'sine', dur: .9, gain: .5 }); [60, 64, 67, 72].forEach((n, i) => tone(c, { f: NOTE(n), type: 'sawtooth', at: .45, dur: 1.2, gain: .06 + i * .005 })); }
+  }
+
+  function play(name, rarity) {
+    const c = ready(); if (!c) return;
+    if (name === 'reveal') reveal(c, rarity); else SOUNDS[name]?.(c);
+  }
+  window.NexoCofreSonidos = Object.freeze({ play });
+})();
+
+;
+
 /* economy/cofre-fx.js */
 /* Apertura del cofre (docs/economia/SPEC.md): el cofre del alquimista tiembla, las raíces lo sueltan, la tapa salta con luz del color
    de la rareza y el objeto sube flotando. Solo pinta y anima; la lógica está en tienda.js.
@@ -5005,7 +5072,7 @@
     const el = document.createElement('div');
     el.className = 'cofre-fx'; el.dataset.rarity = rarity;
     el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Abriendo cofre');
-    el.innerHTML = `<div class="cofre-fx-rays"></div><canvas class="cofre-fx-parts" width="480" height="360"></canvas>
+    el.innerHTML = `<div class="cofre-fx-flash"></div><div class="cofre-fx-rays"></div><canvas class="cofre-fx-parts" width="480" height="360"></canvas>
       <div class="cofre-fx-stage"><div class="cofre-fx-chest"><div class="cfx-glow"></div><i class="cfx-body"></i><i class="cfx-lid"></i></div></div>
       <div class="cofre-fx-roulette pu-panel" hidden><div class="cfx-window"><div class="cfx-strip"></div><i class="cfx-marker"></i></div></div>
       <div class="cofre-fx-card pu-paper" hidden><p class="cfx-title"></p><p class="cfx-note"></p><div class="cfx-actions"></div></div>`;
@@ -5022,20 +5089,20 @@
     el.addEventListener('click', e => { const b = e.target.closest('button[data-r]'); if (b) close(b.dataset.r); });
     el.addEventListener('keydown', e => { if (e.key === 'Escape' && !card.hidden) close('close'); });
 
-    window.NexoAudio?.play('purchase');
     if (reduced) {
+      window.NexoCofreSonidos?.play('reveal', rarity);
       $('.cofre-fx-stage').hidden = true; roulette.hidden = false; strip.append(mk(winner, true)); strip.style.margin = '0 auto';
-      el.classList.add('cfx-won'); showCard(); return result;
+      el.classList.add('cfx-won'); if (big) el.classList.add('cfx-bang'); showCard(); return result;
     }
     strip.append(...Array.from({ length: TILES }, (_, i) => i === WIN_AT ? mk(winner, true) : mk(ids[Math.floor(Math.random() * ids.length)], false)));
     // 1. el cofre tiembla y salta la tapa
-    await wait(80); chest.classList.add('cfx-shake');
+    await wait(80); chest.classList.add('cfx-shake'); window.NexoCofreSonidos?.play('rumble');
     await wait(1100);
-    chest.classList.remove('cfx-shake'); chest.classList.add('cfx-opening'); el.classList.add('cfx-lit');
-    window.NexoAudio?.play('confirm'); burst(parts, 'legendario', 40, performance.now() + 500);
+    chest.classList.remove('cfx-shake'); chest.classList.add('cfx-opening'); el.classList.add('cfx-lit', 'cfx-flash');
+    window.NexoCofreSonidos?.play('pop'); burst(parts, 'legendario', 40, performance.now() + 500);
     await wait(800);
     // 2. el cofre sube y aparece la ruleta
-    $('.cofre-fx-stage').classList.add('cfx-away'); roulette.hidden = false; roulette.classList.add('cfx-drop');
+    $('.cofre-fx-stage').classList.add('cfx-away'); roulette.hidden = false; roulette.classList.add('cfx-drop'); window.NexoCofreSonidos?.play('whoosh');
     await wait(450);
     // 3. la ruleta gira y frena en el premio
     const tw = strip.children[1].getBoundingClientRect().left - strip.children[0].getBoundingClientRect().left, view = strip.parentElement.clientWidth;
@@ -5056,12 +5123,12 @@
         tiles[i].style.filter = `blur(${(speed * 1.2 * Math.min(1, d)).toFixed(2)}px)`;
       }
       const idx = Math.floor(centre / tw);
-      if (idx !== last) { last = idx; if (k < .98) window.NexoAudio?.play('click'); marker.classList.remove('cfx-tick'); void marker.offsetWidth; marker.classList.add('cfx-tick'); }
+      if (idx !== last) { last = idx; if (k < .98) window.NexoCofreSonidos?.play('tick'); marker.classList.remove('cfx-tick'); void marker.offsetWidth; marker.classList.add('cfx-tick'); }
       k < 1 && el.isConnected ? requestAnimationFrame(frame) : res();
     })(t0));
     tiles.forEach(tl => { if (!tl.dataset.win) { tl.style.transform = ''; } tl.style.filter = ''; });
     // 4. el premio brilla y sale el cartel
-    el.classList.add('cfx-won'); window.NexoAudio?.play('equip');
+    el.classList.add('cfx-won'); if (big) el.classList.add('cfx-bang'); window.NexoCofreSonidos?.play('land'); setTimeout(() => window.NexoCofreSonidos?.play('reveal', rarity), 180);
     burst(parts, rarity, big ? 100 : 40, performance.now() + 900);
     await wait(big ? 900 : 600); showCard();
     return result;
@@ -5218,7 +5285,7 @@
   async function wireShop(root) {
     const P = await engine().catch(() => null); if (!P || !root.isConnected) return;
     const T = window.NexoTienda, S = api.shop, shop = root.querySelector('#petShop'), prev = root.querySelector('#petShopPreview'), top = root.querySelector('#shopTop'),
-      wallet = root.querySelector('#shopWallet'), types = root.querySelector('#shopTypes'), chestImg = root.querySelector('#shopChest');
+      wallet = root.querySelector('#shopWallet'), odds = root.querySelector('#shopOdds'), types = root.querySelector('#shopTypes'), chestImg = root.querySelector('#shopChest');
     let tryOut = { ...pet().outfit }, note = '';
     addMini({ canvas: prev, get outfit() { return tryOut; } });
     const sprite = (id, k) => { const c = P.sprite(P.ACCESORIOS[id].rows); c.style.cssText = `width:${c.width * k}px;height:${c.height * k}px;image-rendering:pixelated`; return c; };
@@ -5233,9 +5300,13 @@
         `<p class="tc-hint">Cada ${T.PITY} cofres sin nada raro, el siguiente lo es seguro. Los repetidos se vuelven polvo.</p>` + (note ? `<p class="tienda-nota" role="status">${esc(note)}</p>` : '');
       types.innerHTML = CHEST_KINDS.map(([kind, label, hint]) => { const price = kind === 'sorpresa' ? T.CHEST_PRICE : T.SLOT_CHEST_PRICE;
         return `<div class="pu-paper tienda-tipo"><b>${label}</b><small>${hint}</small><div class="tt-row">${btn(`data-buy="${kind}"`, `${price} ⚛`, locked || st.coins < price)}${btn(`data-open="${kind}"`, `Abrir (${count(s, kind)})`, locked || count(s, kind) < 1)}</div></div>`; }).join('');
+      const RC = { comun: '#8a7a5a', poco: '#2f8a52', raro: '#3a6fd0', legendario: '#c98a10' }, NOTE = { comun: 'sale seguido', poco: 'sale a veces', raro: 'es raro', legendario: 'es muy raro' };
+      const inRar = r => Object.keys(P.ACCESORIOS).filter(id => T.RARITY_OF[id] === r).length;
+      odds.innerHTML = '<h3>Probabilidades de cada cofre</h3>' + T.RARITIES.map(r => `<div class="to-row" style="--c:${RC[r]}"><span class="to-name">${T.LABELS[r]}</span><span class="to-bar"><i style="width:${T.ODDS[r]}%"></i></span><span>${T.ODDS[r]} % <small>${NOTE[r]}</small></span></div>`).join('') +
+        `<small>Cada ${T.PITY} cofres sin nada raro, el siguiente es raro o legendario seguro (llevas ${s.sinceRare}). Los cofres de categoría usan las mismas probabilidades dentro de esa categoría. Los repetidos se vuelven polvo.</small>`;
       shop.innerHTML = Object.entries(P.ACCESORIOS).sort((a, b) => T.RARITIES.indexOf(T.RARITY_OF[a[0]]) - T.RARITIES.indexOf(T.RARITY_OF[b[0]])).map(([id, a]) => {
         const own = s.owned.includes(id), r = T.RARITY_OF[id], price = T.DUST_PRICE[r];
-        return `<div class="pu-paper tienda-item" data-r="${r}"><div class="ti-icon" data-id="${id}"></div><b>${esc(P.NOMBRES[id])}</b><small>${a.slot}</small><span class="ti-rar">${T.LABELS[r]}</span>` +
+        return `<div class="pu-paper tienda-item" data-r="${r}"><div class="ti-icon" data-id="${id}"></div><b>${esc(P.NOMBRES[id])}</b><small>${a.slot}</small><span class="ti-rar">${T.LABELS[r]}</span><span class="ti-pct">${(T.ODDS[r] / inRar(r)).toFixed(1)} % por cofre</span>` +
           btn(`data-try="${id}"`, tryOut[a.slot] === id ? 'Quitar' : 'Probar') +
           (own ? '<span class="ti-own">Tuyo ✓</span>' : btn(`data-dust="${id}"`, `${price} polvo`, s.dust < price)) + '</div>';
       }).join('');
@@ -5249,7 +5320,7 @@
       const again = count(T.shopOf(st), kind) > 0;
       const ids = Object.keys(P.ACCESORIOS).map(id => ({ id, rarity: T.RARITY_OF[id] }));
       const choice = await window.NexoCofre.play({ winner: { id: r.id, rarity: r.rarity }, ids, tile: id => sprite(id, 5), reduced: reduced(), title: P.NOMBRES[r.id],
-        note: `${T.LABELS[r.rarity]} · ${r.dupe ? `repetido: +${r.dust} polvo` : '¡nuevo!'}`, again });
+        note: `${T.LABELS[r.rarity]} (${T.ODDS[r.rarity]} %) · ${r.dupe ? `repetido: +${r.dust} polvo` : '¡nuevo!'}`, again });
       cheerUntil = performance.now() + 2500; render();
       if (choice === 'again' && root.isConnected) open(kind);
     };

@@ -143,7 +143,7 @@
   async function wireShop(root) {
     const P = await engine().catch(() => null); if (!P || !root.isConnected) return;
     const T = window.NexoTienda, S = api.shop, shop = root.querySelector('#petShop'), prev = root.querySelector('#petShopPreview'), top = root.querySelector('#shopTop'),
-      wallet = root.querySelector('#shopWallet'), types = root.querySelector('#shopTypes'), chestImg = root.querySelector('#shopChest');
+      wallet = root.querySelector('#shopWallet'), odds = root.querySelector('#shopOdds'), types = root.querySelector('#shopTypes'), chestImg = root.querySelector('#shopChest');
     let tryOut = { ...pet().outfit }, note = '';
     addMini({ canvas: prev, get outfit() { return tryOut; } });
     const sprite = (id, k) => { const c = P.sprite(P.ACCESORIOS[id].rows); c.style.cssText = `width:${c.width * k}px;height:${c.height * k}px;image-rendering:pixelated`; return c; };
@@ -158,9 +158,13 @@
         `<p class="tc-hint">Cada ${T.PITY} cofres sin nada raro, el siguiente lo es seguro. Los repetidos se vuelven polvo.</p>` + (note ? `<p class="tienda-nota" role="status">${esc(note)}</p>` : '');
       types.innerHTML = CHEST_KINDS.map(([kind, label, hint]) => { const price = kind === 'sorpresa' ? T.CHEST_PRICE : T.SLOT_CHEST_PRICE;
         return `<div class="pu-paper tienda-tipo"><b>${label}</b><small>${hint}</small><div class="tt-row">${btn(`data-buy="${kind}"`, `${price} ⚛`, locked || st.coins < price)}${btn(`data-open="${kind}"`, `Abrir (${count(s, kind)})`, locked || count(s, kind) < 1)}</div></div>`; }).join('');
+      const RC = { comun: '#8a7a5a', poco: '#2f8a52', raro: '#3a6fd0', legendario: '#c98a10' }, NOTE = { comun: 'sale seguido', poco: 'sale a veces', raro: 'es raro', legendario: 'es muy raro' };
+      const inRar = r => Object.keys(P.ACCESORIOS).filter(id => T.RARITY_OF[id] === r).length;
+      odds.innerHTML = '<h3>Probabilidades de cada cofre</h3>' + T.RARITIES.map(r => `<div class="to-row" style="--c:${RC[r]}"><span class="to-name">${T.LABELS[r]}</span><span class="to-bar"><i style="width:${T.ODDS[r]}%"></i></span><span>${T.ODDS[r]} % <small>${NOTE[r]}</small></span></div>`).join('') +
+        `<small>Cada ${T.PITY} cofres sin nada raro, el siguiente es raro o legendario seguro (llevas ${s.sinceRare}). Los cofres de categoría usan las mismas probabilidades dentro de esa categoría. Los repetidos se vuelven polvo.</small>`;
       shop.innerHTML = Object.entries(P.ACCESORIOS).sort((a, b) => T.RARITIES.indexOf(T.RARITY_OF[a[0]]) - T.RARITIES.indexOf(T.RARITY_OF[b[0]])).map(([id, a]) => {
         const own = s.owned.includes(id), r = T.RARITY_OF[id], price = T.DUST_PRICE[r];
-        return `<div class="pu-paper tienda-item" data-r="${r}"><div class="ti-icon" data-id="${id}"></div><b>${esc(P.NOMBRES[id])}</b><small>${a.slot}</small><span class="ti-rar">${T.LABELS[r]}</span>` +
+        return `<div class="pu-paper tienda-item" data-r="${r}"><div class="ti-icon" data-id="${id}"></div><b>${esc(P.NOMBRES[id])}</b><small>${a.slot}</small><span class="ti-rar">${T.LABELS[r]}</span><span class="ti-pct">${(T.ODDS[r] / inRar(r)).toFixed(1)} % por cofre</span>` +
           btn(`data-try="${id}"`, tryOut[a.slot] === id ? 'Quitar' : 'Probar') +
           (own ? '<span class="ti-own">Tuyo ✓</span>' : btn(`data-dust="${id}"`, `${price} polvo`, s.dust < price)) + '</div>';
       }).join('');
@@ -174,7 +178,7 @@
       const again = count(T.shopOf(st), kind) > 0;
       const ids = Object.keys(P.ACCESORIOS).map(id => ({ id, rarity: T.RARITY_OF[id] }));
       const choice = await window.NexoCofre.play({ winner: { id: r.id, rarity: r.rarity }, ids, tile: id => sprite(id, 5), reduced: reduced(), title: P.NOMBRES[r.id],
-        note: `${T.LABELS[r.rarity]} · ${r.dupe ? `repetido: +${r.dust} polvo` : '¡nuevo!'}`, again });
+        note: `${T.LABELS[r.rarity]} (${T.ODDS[r.rarity]} %) · ${r.dupe ? `repetido: +${r.dust} polvo` : '¡nuevo!'}`, again });
       cheerUntil = performance.now() + 2500; render();
       if (choice === 'again' && root.isConnected) open(kind);
     };
