@@ -11,7 +11,7 @@ const context = { window, document: { addEventListener() {} }, localStorage, set
 vm.runInNewContext(fs.readFileSync(path.join(dist, 'core/migrations.js'), 'utf8'), context);
 vm.runInNewContext(fs.readFileSync(path.join(dist, 'core/storage.js'), 'utf8'), context);
 vm.runInNewContext(fs.readFileSync(path.join(dist, 'study/economy.js'), 'utf8'), context);
-for (const [seconds, atoms] of [[0,0],[299,0],[300,3],[900,15],[1800,25],[3600,100],[7200,250]]) assert.equal(window.NexoEconomy.sessionReward(seconds), atoms);
+for (const [seconds, atoms] of [[0,0],[299,0],[900,0],[1800,5],[3600,8],[7200,10]]) assert.equal(window.NexoEconomy.sessionReward(seconds), atoms);
 
 const original = {
   version: 13, hearts: { count: 2 }, duel: { streak: 3 }, coins: 487,

@@ -1,7 +1,7 @@
 # Economía, tienda y perfil
 - modelo: Sonnet 5.5 · alto (solo conversar y diseñar)
-- estado: diseño base aprobado (17 oct 2026), falta implementar. SPEC: docs/economia/SPEC.md
-- fase: por-hacer
+- estado: Tienda de la beta implementada (17 oct 2026), esperando aprobación de Niquito. SPEC: docs/economia/SPEC.md
+- fase: desarrollo
 - prioridad: 3
 - spec: docs/mascota/SPEC.md (precios) y skill nexo-perfil
 
@@ -10,6 +10,7 @@
 - Precios de ejemplo de 14 accesorios (60–260 ⚛) en `PRICES` de `home-pet.js`.
 
 ## Falta
+- (17 oct) Hecho: Tienda del alquimista con kit de UI, apertura animada del cofre, cofres por categoría y ⚛ por evidencia con tope. Falta: pagar transferencia/recuerdo desde el motor académico, cofres por ramo, objetos del refugio y skins, rachas con perdón.
 - Diseñar la economía: cómo se gana y se gasta (átomos, monedas), cuándo se siente justo y cuándo no.
 - Que "Comprar" funcione en la Tienda.
 - Decidir premio del tutorial (propuesta 150 ⚛) y unificar `state.coins` / átomos.
