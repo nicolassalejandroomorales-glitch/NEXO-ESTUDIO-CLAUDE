@@ -1402,8 +1402,16 @@
   function comingSoon(eyebrow,id,title,text) {
     return `<section class="empty-state" aria-labelledby="${id}"><span class="empty-state-mark" aria-hidden="true">✧</span><p class="eyebrow">${eyebrow}</p><h2 id="${id}">${title}</h2><p>${text}</p></section>`;
   }
+  // Cofres por hitos (docs/economia/SPEC.md): jefes vencidos del juego, guías completadas y rachas.
+  function awardHitos() {
+    let bosses = [];
+    try { const rec = JSON.parse(localStorage.getItem('nexo-pep1-campana') || '{}').record || {}; bosses = Object.keys(rec); } catch (_) {}
+    const guides = Object.keys(state.guides).filter(id => state.guides[id]?.completed);
+    const got = window.NexoTienda.claimMilestones(state, { bosses, guides, streak: streak() });
+    if (got.length) { saveState({ backup: false }); showToast(got.length === 1 ? 'Ganaste un cofre por tu logro ✦' : 'Ganaste ' + got.length + ' cofres por tus logros ✦'); }
+  }
   function renderShop() {
-    petBind();
+    petBind(); awardHitos();
     app.innerHTML=`<section class="page forge-page"><p class="eyebrow">MERCADO ARCANO</p><h2>Tienda de cofres</h2>
       <div id="shopTop"></div>
       <div style="display:flex;justify-content:center;background:radial-gradient(circle at 50% 40%,#f3e6c8,#d8c39a);border-radius:12px;margin:10px 0"><canvas id="petShopPreview" width="40" height="44" style="width:160px;height:176px;image-rendering:pixelated" aria-label="Vista previa de tu compañero"></canvas></div>
@@ -1713,7 +1721,7 @@
     if (button.dataset.action === 'timer-reset') return timerReset();
     if (button.dataset.action === 'exercise-hint') { const p = state.practice[button.dataset.exerciseId] || { attempts: 0 }; p.hintOpen = !p.hintOpen; if (p.hintOpen) p.hintUsed = true; state.practice[button.dataset.exerciseId] = p; saveState({ backup: false }); return renderRoute(false); }
     if (button.dataset.action === 'exercise-retry') { const p = state.practice[button.dataset.exerciseId] || {}; p.checked = false; delete p.selected; state.practice[button.dataset.exerciseId] = p; saveState({ backup: false }); return renderRoute(false); }
-    if (button.dataset.action === 'guide-complete') { const id = button.dataset.guideId; state.guides[id] = { ...(state.guides[id] || {}), completed: true, completedAt: todayKey() }; if (!cloud.authenticated) state.coins += state.guides[id].rewarded ? 0 : 8; state.guides[id].rewarded = true; saveState(); playSuccess(); return renderRoute(false); }
+    if (button.dataset.action === 'guide-complete') { const id = button.dataset.guideId; state.guides[id] = { ...(state.guides[id] || {}), completed: true, completedAt: todayKey() }; if (!cloud.authenticated) state.coins += state.guides[id].rewarded ? 0 : 8; state.guides[id].rewarded = true; awardHitos(); saveState(); playSuccess(); return renderRoute(false); }
     if (button.dataset.action === 'new-error') return routeTo('practice', 'errors', 'new');
     if (button.dataset.action === 'toggle-error-status') { const item = state.errors.find(e => e.id === button.dataset.errorId); if (item) { item.status = item.status === 'resolved' ? 'open' : 'resolved'; item.reviewedAt = todayKey(); saveState(); renderRoute(false); } return; }
     if (button.dataset.deleteError) return removeWithUndo(state.errors, button.dataset.deleteError, 'Error');

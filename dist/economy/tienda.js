@@ -1,5 +1,5 @@
 /* Tienda y cofres (docs/economia/SPEC.md). Lógica pura: recibe el estado y lo modifica; no toca el DOM.
-   state.shop = { owned: [ids], dust: polvo, chests: cofres sin abrir, sinceRare: cofres desde el último raro+, dailyAt: 'AAAA-MM-DD' } */
+   state.shop = { owned: [ids], dust: polvo, chests: cofres sin abrir, sinceRare: cofres desde el último raro+, dailyAt: 'AAAA-MM-DD', hitos: [ids de logros ya premiados] } */
 (() => {
   'use strict';
   const RARITIES = ['comun', 'poco', 'raro', 'legendario'];
@@ -22,6 +22,7 @@
     if (!Array.isArray(s.owned)) s.owned = [];
     ['dust', 'chests', 'sinceRare'].forEach(k => { s[k] = Math.max(0, Math.floor(Number(s[k]) || 0)); });
     if (typeof s.dailyAt !== 'string') s.dailyAt = '';
+    s.hitos = Array.isArray(s.hitos) ? s.hitos.filter(h => typeof h === 'string').slice(-500) : [];
     return s;
   }
   const fail = reason => ({ ok: false, reason });
@@ -38,7 +39,15 @@
     s.dailyAt = today; s.chests += 1;
     return { ok: true };
   }
-  function grantChest(state, n = 1) { shopOf(state).chests += Math.max(0, Math.floor(n)); }   // premios por hitos
+  function grantChest(state, n = 1) { shopOf(state).chests += Math.max(0, Math.floor(n)); }
+  // Premios por hitos: 1 cofre por logro nuevo (jefe vencido, guía completada, racha de 7/14/30 días). Cada logro paga una sola vez.
+  const STREAK_HITOS = [7, 14, 30];
+  function claimMilestones(state, { bosses = [], guides = [], streak = 0 } = {}) {
+    const s = shopOf(state), found = [...bosses.map(id => 'jefe:' + id), ...guides.map(id => 'guia:' + id), ...STREAK_HITOS.filter(n => streak >= n).map(n => 'racha:' + n)]
+      .filter(h => !s.hitos.includes(h));
+    s.hitos.push(...found); s.chests += found.length;
+    return found;
+  }
 
   function rollRarity(rng, forceRare) {
     if (forceRare) return rng() < ODDS.legendario / (ODDS.raro + ODDS.legendario) ? 'legendario' : 'raro';
@@ -69,5 +78,5 @@
   }
 
   window.NexoTienda = Object.freeze({ RARITIES, LABELS, ODDS, DUST, DUST_PRICE, CHEST_PRICE, PITY, RARITY_OF,
-    shopOf, buyChest, claimDaily, grantChest, openChest, buyWithDust });
+    shopOf, buyChest, claimDaily, grantChest, claimMilestones, openChest, buyWithDust });
 })();
