@@ -292,35 +292,6 @@ def draw(t, mode='sol'):
     c.mask(floor_m & joint, 'wood', 1.2)
     c.mask(floor_m & (yy < FLOOR_Y + 2), 'wood', 1.5)
 
-    # ================================================================== ALFOMBRA con círculo bordado
-    RT, RB = 168, 224
-    for y in range(RT, RB):
-        k = (y - RT) / (RB - RT)
-        x0, x1 = 128 - 22 * k, 312 + 22 * k
-        c.rect(x0, y, x1, y + 1, 'green', 2.6)
-        if y in (RT, RT + 1, RB - 2, RB - 1):
-            c.rect(x0, y, x1, y + 1, 'rune', 2.4)
-        c.rect(x0, y, x0 + 2, y + 1, 'rune', 2.4); c.rect(x1 - 2, y, x1, y + 1, 'rune', 2.4)
-        if RT + 4 <= y < RB - 4:
-            c.rect(x0 + 4, y, x0 + 5, y + 1, 'rune', 2); c.rect(x1 - 5, y, x1 - 4, y + 1, 'rune', 2)
-        if y in (RT + 4, RB - 5):
-            c.rect(x0 + 4, y, x1 - 4, y + 1, 'rune', 2)
-    for x in range(110, 340, 4):                               # flecos
-        k = 1.0
-        if 106 <= x <= 334:
-            c.px(x, RB, 'paper', 3); c.px(x, RB + 1, 'paper', 2.5)
-    rcx, rcy = 220, 196
-    rd = np.hypot((xx - rcx) / 2.6, yy - rcy)                  # elipse (vista en perspectiva)
-    rug = (yy > RT + 5) & (yy < RB - 5)
-    c.mask(rug & ((np.abs(rd - 20) < 0.55) | (np.abs(rd - 15) < 0.5) | (np.abs(rd - 6) < 0.5)), 'rune', 2.6)
-    for k in range(12):
-        a = k * math.pi / 6
-        c.sprite(int(rcx + 17.5 * 2.6 * math.cos(a)) - 1, int(rcy + 17.5 * math.sin(a)) - 1, MINI[k % 4], 'rune', {'x': 2.8})
-    for k in range(8):
-        a = k * math.pi / 4
-        c.line(rcx + 6 * 2.6 * math.cos(a), rcy + 6 * math.sin(a), rcx + 15 * 2.6 * math.cos(a), rcy + 15 * math.sin(a), 'rune', 2.2)
-    c.sprite(rcx - 3, rcy - 3, STAR, 'rune', {'a': 2.8, 'b': 3.4, 'c': 4})
-
     # ================================================================== VENTANA (la de la muestra v3)
     FX0, FX1, FY0, FY1 = 24, 80, 20, 96
     c.rect(FX0 - 4, FY0 - 4, FX1 + 4, FY0, 'wood', 4)
