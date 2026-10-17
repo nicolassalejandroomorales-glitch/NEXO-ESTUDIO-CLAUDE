@@ -11,9 +11,9 @@ vm.runInNewContext(fs.readFileSync('dist/ambient/events.js','utf8'),{
 });
 const events=window.NexoAmbientEvents;
 const at=new Date('2026-09-28T14:00:00-03:00');
-const first=events.select({at,room:'train',profileId:'nicolas'});
-assert.deepEqual(events.select({at,room:'train',profileId:'nicolas'}),first);
-assert(['shield','rune'].includes(first.prop));
+const first=events.select({at,room:'learn',profileId:'nicolas'});
+assert.deepEqual(events.select({at,room:'learn',profileId:'nicolas'}),first);
+assert(['book','ink'].includes(first.prop));
 assert.equal(events.select({at:new Date('2026-09-28T02:00:00-03:00'),room:'profile'}).intent,'sleep');
 const applied=events.apply('home','nicolas',at);
 assert.equal(document.body.dataset.nexoAmbientEvent,applied.prop);

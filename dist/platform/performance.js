@@ -6,7 +6,7 @@
   const motionValues=['reduced','normal','rich'];
   const mascotValues=['reduced','full'];
   const points=[[13,18],[78,24],[42,12],[88,71],[9,67],[55,78],[28,44],[68,54],[33,88],[93,38]];
-  const roomCaps={home:10,learn:2,train:5,games:7,profile:8,shop:5,planner:2};
+  const roomCaps={home:10,learn:2,games:7,profile:8,shop:5,planner:2};
   let currentSettings={};
   let active=null;
   let started=false;

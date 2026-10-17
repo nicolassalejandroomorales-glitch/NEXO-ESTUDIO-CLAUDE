@@ -787,6 +787,61 @@
 
 ;
 
+/* design-system/pixel-text.js */
+/* Letras pixel art de Nexo: una fuente propia de 5×7 (mayúsculas, números y signos) dibujada como SVG de cuadritos.
+   Sirve para carteles, títulos y etiquetas cortas. El texto largo sigue en la fuente normal para que se lea bien.
+   NexoPixelText.render('Próximas pruebas', { shadow: true }) -> <svg class="pixel-text"> con fill: currentColor. */
+(() => {
+  'use strict';
+  const G = {
+    A: ['01110', '10001', '10001', '11111', '10001', '10001', '10001'], B: ['11110', '10001', '10001', '11110', '10001', '10001', '11110'],
+    C: ['01110', '10001', '10000', '10000', '10000', '10001', '01110'], D: ['11110', '10001', '10001', '10001', '10001', '10001', '11110'],
+    E: ['11111', '10000', '10000', '11110', '10000', '10000', '11111'], F: ['11111', '10000', '10000', '11110', '10000', '10000', '10000'],
+    G: ['01110', '10001', '10000', '10111', '10001', '10001', '01111'], H: ['10001', '10001', '10001', '11111', '10001', '10001', '10001'],
+    I: ['01110', '00100', '00100', '00100', '00100', '00100', '01110'], J: ['00111', '00010', '00010', '00010', '00010', '10010', '01100'],
+    K: ['10001', '10010', '10100', '11000', '10100', '10010', '10001'], L: ['10000', '10000', '10000', '10000', '10000', '10000', '11111'],
+    M: ['10001', '11011', '10101', '10101', '10001', '10001', '10001'], N: ['10001', '11001', '10101', '10011', '10001', '10001', '10001'],
+    O: ['01110', '10001', '10001', '10001', '10001', '10001', '01110'], P: ['11110', '10001', '10001', '11110', '10000', '10000', '10000'],
+    Q: ['01110', '10001', '10001', '10001', '10101', '10010', '01101'], R: ['11110', '10001', '10001', '11110', '10100', '10010', '10001'],
+    S: ['01111', '10000', '10000', '01110', '00001', '00001', '11110'], T: ['11111', '00100', '00100', '00100', '00100', '00100', '00100'],
+    U: ['10001', '10001', '10001', '10001', '10001', '10001', '01110'], V: ['10001', '10001', '10001', '10001', '10001', '01010', '00100'],
+    W: ['10001', '10001', '10001', '10101', '10101', '11011', '10001'], X: ['10001', '10001', '01010', '00100', '01010', '10001', '10001'],
+    Y: ['10001', '10001', '01010', '00100', '00100', '00100', '00100'], Z: ['11111', '00001', '00010', '00100', '01000', '10000', '11111'],
+    0: ['01110', '11011', '10001', '10001', '10001', '11011', '01110'], 1: ['00100', '01100', '00100', '00100', '00100', '00100', '01110'],
+    2: ['01110', '10001', '00001', '00010', '00100', '01000', '11111'], 3: ['11110', '00001', '00001', '01110', '00001', '00001', '11110'],
+    4: ['10010', '10010', '10010', '11111', '00010', '00010', '00010'], 5: ['11111', '10000', '10000', '11110', '00001', '00001', '11110'],
+    6: ['01111', '10000', '10000', '11110', '10001', '10001', '01110'], 7: ['11111', '00001', '00010', '00100', '01000', '01000', '01000'],
+    8: ['01110', '10001', '10001', '01110', '10001', '10001', '01110'], 9: ['01110', '10001', '10001', '01111', '00001', '00001', '11110'],
+    '.': ['0', '0', '0', '0', '0', '0', '1'], ',': ['0', '0', '0', '0', '0', '1', '1'], ':': ['0', '1', '0', '0', '1', '0', '0'],
+    '!': ['1', '1', '1', '1', '1', '0', '1'], '?': ['01110', '10001', '00001', '00110', '00100', '00000', '00100'],
+    '-': ['00000', '00000', '00000', '11111', '00000', '00000', '00000'], '·': ['0', '0', '0', '1', '0', '0', '0'],
+    '/': ['00001', '00010', '00010', '00100', '01000', '01000', '10000'], '%': ['11001', '11010', '00010', '00100', '01000', '01011', '10011'],
+    '→': ['00000', '00100', '00010', '11111', '00010', '00100', '00000'], "'": ['1', '1', '0', '0', '0', '0', '0'],
+    ' ': ['000', '000', '000', '000', '000', '000', '000'],
+  };
+  // Letras con marca arriba (2 filas extra sobre la letra).
+  const MARKS = { 'Á': ['A', ['00010', '00100']], 'É': ['E', ['00010', '00100']], 'Í': ['I', ['00010', '00100']], 'Ó': ['O', ['00010', '00100']],
+    'Ú': ['U', ['00010', '00100']], 'Ñ': ['N', ['01010', '10100']], 'Ü': ['U', ['01010', '00000']] };
+
+  function render(text, { shadow = true } = {}) {
+    const chars = [...String(text).toUpperCase()];
+    const accented = chars.some(ch => MARKS[ch]), top = accented ? 0 : 2;
+    let x = 0, cells = '';
+    for (const ch of chars) {
+      const mark = MARKS[ch], rows = mark ? G[mark[0]] : G[ch] || G['?'];
+      rows.forEach((row, y) => [...row].forEach((cell, dx) => { if (cell === '1') cells += `<rect x="${x + dx}" y="${y + 2}" width="1" height="1"/>`; }));
+      if (mark) mark[1].forEach((row, y) => [...row].forEach((cell, dx) => { if (cell === '1') cells += `<rect x="${x + dx}" y="${y}" width="1" height="1"/>`; }));
+      x += rows[0].length + 1;
+    }
+    const w = Math.max(1, x - 1), h = 9 - top, pad = shadow ? 1 : 0;
+    const body = shadow ? `<g class="pt-shadow" transform="translate(1 1)">${cells}</g><g class="pt-ink">${cells}</g>` : `<g class="pt-ink">${cells}</g>`;
+    return `<svg class="pixel-text" style="--u:${h + pad}" viewBox="0 ${top} ${w + pad} ${h + pad}" role="img" aria-label="${String(text).replace(/"/g, '&quot;')}" shape-rendering="crispEdges" focusable="false">${body}</svg>`;
+  }
+  window.NexoPixelText = Object.freeze({ render });
+})();
+
+;
+
 /* design-system/home-scene.js */
 /* UPDATE 01.3 checkpoint 1 — one profile; only the window is a slot/hotspot. */
 (() => {
@@ -799,7 +854,6 @@
       layers:{background:0,ambientBack:1,modularObjects:2,mascotBack:3,mascot:4,mascotFront:5,ambientFront:6,integratedUI:7,hotspots:8},
       slots:[{id:'window',type:'window',zone:'window-area',bounds:[.045,.08,.235,.40],layer:'modularObjects',renderMode:'baked',asset:null,foregroundAsset:null,replacementReady:false}],
       hotspots:[
-        {id:'window-focus',slot:'window',inset:[.04,.04,.76,.60],action:'focus-light',accessibleLabel:'Ventana: resaltar suavemente la luz de entrada'},
         // Navegación diegética: cada objeto usa el MISMO router que los botones normales (data-route).
         {id:'staff-shop',bounds:[1078/1672,292/941,62/1672,318/941],action:'route',route:'shop',accessibleLabel:'Báculo estelar: abrir la Tienda'},
         {id:'armchair-profile',bounds:[1255/1672,395/941,240/1672,280/941],action:'route',route:'profile',accessibleLabel:'Sillón: abrir tu Perfil'},
@@ -842,7 +896,7 @@
         {id:'window-tone',className:'home-window-tone',slot:'window',inset:[.025531914893617,.0375,.817021276595745,.8875],depth:2},
         {id:'light-rays',className:'refuge-light',bounds:[0,0,1,1],depth:3}
       ],
-      lightingProfile:{sourceSlot:'window',driver:'NexoAmbientTime',states:['dawn','day','dusk','night'],continuous:true,feedback:{duration:600,peakBrightness:1.12}}
+      lightingProfile:{sourceSlot:'window',driver:'NexoAmbientTime',states:['dawn','day','dusk','night'],continuous:true}
     },
     // 5 oct 2026 — refugio en pixel art (tools/home-pixel/build_refugio.py). 418×235 px de arte ×4.
     // Coordenadas en el mismo sistema 1672×941; por ahora solo tintes de hora (las capas animadas vienen después).
@@ -852,7 +906,6 @@
       layers:{background:0,ambientBack:1,modularObjects:2,mascotBack:3,mascot:4,mascotFront:5,ambientFront:6,integratedUI:7,hotspots:8},
       slots:[{id:'window',type:'window',zone:'window-area',bounds:[72/1672,64/941,280/1672,344/941],layer:'modularObjects',renderMode:'baked',asset:null,foregroundAsset:null,replacementReady:false}],
       hotspots:[
-        {id:'window-focus',slot:'window',inset:[.08,.06,.84,.86],action:'focus-light',accessibleLabel:'Ventana: resaltar suavemente la luz de entrada'},
         {id:'staff-shop',bounds:[1196/1672,192/941,104/1672,448/941],action:'route',route:'shop',accessibleLabel:'Báculo estelar: abrir la Tienda'},
         {id:'armchair-profile',bounds:[1264/1672,368/941,264/1672,296/941],action:'route',route:'profile',accessibleLabel:'Sillón: abrir tu Perfil'},
         {id:'map-logbook',bounds:[616/1672,620/941,176/1672,60/941],action:'route',route:'planner',routeSub:'grades',accessibleLabel:'Mapa enrollado: abrir la Bitácora'},
@@ -874,7 +927,7 @@
         {id:'px-tarde',className:'home-light-layer home-px-light home-px-tarde',bounds:[0,0,1,1],depth:1},
         {id:'px-noche',className:'home-light-layer home-px-light home-px-noche',bounds:[0,0,1,1],depth:1}
       ],
-      lightingProfile:{sourceSlot:'window',driver:'NexoAmbientTime',states:['dawn','day','dusk','night'],continuous:true,feedback:{duration:600,peakBrightness:1.12}}
+      lightingProfile:{sourceSlot:'window',driver:'NexoAmbientTime',states:['dawn','day','dusk','night'],continuous:true}
     }
   });
   // ?scene=refugio-012 abre el arte anterior (respaldo).
@@ -918,8 +971,6 @@
     const anchors=Object.fromEntries(Object.entries(profile.mascotAnchors).map(([id,a])=>[id==='rest'?'rest-area':id,{...a,selector:`[data-scene-zone="${a.zone}"]`}]));
     return freeze({artSize:[profile.referenceWidth,profile.referenceHeight],layers:{...profile.layers,scene:profile.layers.modularObjects,interactive:profile.layers.hotspots},currentSeat:{zone:desk.zone,x:desk.point[0],y:desk.point[1],...desk.seat},anchors});
   }
-  let pulse=null;
-  function cleanup() {pulse?.cancel();pulse=null;}
   function activate(id,root,profile=getProfile()) {
     const hotspot=profile.hotspots.find(item=>item.id===id);
     if(hotspot?.action==='continue') {
@@ -927,16 +978,7 @@
       root.querySelector('.continue-volume .primary-btn')?.click();
       return true;
     }
-    if(!hotspot||hotspot.action!=='focus-light')return false;
-    cleanup();
-    if(matchMedia('(prefers-reduced-motion: reduce)').matches||document.body.classList.contains('reduce-motion')||document.body.dataset.nexoAmbientMotion==='reduced')return true;
-    const tone=root.querySelector('[data-ambient-layer="window-tone"]');
-    if(!tone?.animate)return true;
-    const feedback=profile.lightingProfile.feedback;
-    pulse=tone.animate([{filter:'brightness(1)'},{filter:`brightness(${feedback.peakBrightness})`,offset:.5},{filter:'brightness(1)'}],{duration:feedback.duration,easing:'ease-in-out'});
-    const active=pulse;
-    active.finished.then(()=>{if(pulse===active)pulse=null;}).catch(()=>{});
-    return true;
+    return false;
   }
   // Móvil: la sala es más ancha que la pantalla y se desliza de lado (CSS en update01.css).
   // Parte mostrando el escritorio y la mascota; el aviso "Desliza" se oculta al primer deslizamiento.
@@ -953,9 +995,7 @@
     pan.addEventListener('scroll',()=>{if(pan.scrollLeft>4)pan.dataset.touched='1';update();},{passive:true});
     update();
   }
-  if(typeof matchMedia==='function')matchMedia('(prefers-reduced-motion: reduce)').addEventListener?.('change',cleanup);
-  if(typeof document!=='undefined')document.addEventListener('visibilitychange',()=>{if(document.hidden)cleanup();});
-  window.NexoHomeScene=Object.freeze({profiles,getProfile,ambientBounds,replacementReady,render,legacyContract,activate,cleanup,enhancePan});
+  window.NexoHomeScene=Object.freeze({profiles,getProfile,ambientBounds,replacementReady,render,legacyContract,activate,enhancePan});
 })();
 
 ;
@@ -973,7 +1013,6 @@
   const rooms = Object.freeze({
     home: { name: 'Refugio', material: 'wood', accent: '#83a987', art:window.NexoHomeScene.getProfile().backgroundAsset },
     learn: { name: 'Grimorio', material: 'paper', accent: '#d6a85d', art:'assets/rooms/learn.webp' },
-    train: { name: 'Taller', material: 'ink', accent: '#d29369', art:'assets/rooms/train.webp' },
     games: { name: 'Arcade', material: 'pixel', accent: '#aa79c7', art:'assets/rooms/games.webp' },
     profile: { name: 'Habitación', material: 'wood', accent: '#b9a587', art:'assets/rooms/profile.webp' },
     shop: { name: 'Mercado', material: 'ink', accent: '#d9ac68' },
@@ -982,7 +1021,7 @@
   const roomRoutes = Object.freeze({
     home:'home', subjects:'learn', subject:'learn', lesson:'learn', learn:'learn',
     library:'learn', knowledge:'learn', inspector:'learn',
-    train:'train', practice:'train', reviews:'train', rescue:'train',
+    practice:'learn', reviews:'learn', rescue:'learn',
     games:'games', profile:'profile', mascot:'profile', stats:'profile',
     settings:'profile', history:'profile', shop:'shop',
     planner:'planner', hub:'planner', timer:'planner'
@@ -1230,8 +1269,8 @@
     if (loading) return loading;
     loading = (async () => {
       const map = await (await fetch(BASE + 'refugio-pixel-mapa.json')).json();
-      const [glass, haz, ...lands] = await Promise.all([
-        loadImage(BASE + 'refugio-pixel-vidrio.png'), loadImage(BASE + 'refugio-pixel-haz.png'),
+      const [bg, glass, haz, ...lands] = await Promise.all([
+        loadImage(BASE + 'refugio-pixel.png'), loadImage(BASE + 'refugio-pixel-vidrio.png'), loadImage(BASE + 'refugio-pixel-haz.png'),
         ...['sol', 'nublado', 'tarde', 'noche'].map(m => loadImage(BASE + `refugio-pixel-paisaje-${m}.png`))]);
       const [x0, y0, x1, y1] = map.window, ww = x1 - x0, wh = y1 - y0;
       const hz = alphaMask(haz), rays = [];
@@ -1242,28 +1281,29 @@
       const r = rng(7);
       const stars = Array.from({ length: 34 }, () => [Math.floor(r() * ww), Math.floor(r() * wh * 0.6), r()]);
       const clouds = Array.from({ length: 9 }, (_, i) => ({
-        shape: Array.from({ length: 4 + Math.floor(r() * 4) }, (_, k) => [(k - 2.5) * (3 + r() * 3), (r() - 0.5) * 3, 2.5 + r() * 3.5]),
-        y: 6 + r() * (wh * 0.45), x: r() * (ww + 40), speed: 1.4 + r() * 2.6, order: i,
+        shape: Array.from({ length: 5 + Math.floor(r() * 4) }, (_, k) => [(k - 3) * (3.5 + r() * 3), (r() - 0.5) * 3.5, 3 + r() * 4.2]),
+        y: 6 + r() * (wh * 0.45), x: r() * (ww + 40), speed: 4 + r() * 6, order: i,
       }));
       const drops = Array.from({ length: 70 }, () => [r(), r(), 0.8 + r() * 0.4, 3 + Math.floor(r() * 2)]);
       const glassDrops = Array.from({ length: 9 }, () => [r() * ww, r() * wh, 2 + r() * 5, r()]);
       const motes = Array.from({ length: 40 }, () => Math.floor(r() * (rays.length / 3)) * 3);
       assets = { map, ww, wh, glass: alphaMask(glass).canvas, rays, raysW: haz.width, raysH: haz.height,
         lands: { sol: lands[0], nublado: lands[1], tarde: lands[2], noche: lands[3] }, stars, clouds, drops, glassDrops, motes,
-        cloudCache: new Map(), halos: { small: halo(10), big: halo(17) } };
+        cloudCache: new Map(), halos: { small: halo(10), big: halo(17), fly: halo(5, [190, 255, 110]), potion: halo(9, [90, 210, 230]) },
+        ...leafLayers(bg), shadow: cloudShadow(), flies: Array.from({ length: 12 }, () => [24 + r() * 370, 50 + r() * 150, r() * 6.28, r() * 6.28]) };
       return assets;
     })();
     return loading;
   }
 
   // Halo de pixel art: anillos de borde duro con un poco de tramado entre anillos.
-  function halo(radius) {
+  function halo(radius, rgb = [255, 180, 70]) {
     const size = radius * 2 + 1, c = canvas(size, size), x = c.getContext('2d'), d = x.createImageData(size, size);
     const bayer = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
     for (let j = 0; j < size; j += 1) for (let i = 0; i < size; i += 1) {
       const t = Math.max(0, 1 - Math.hypot(i - radius, j - radius) / radius);
       const step = Math.floor(t * 3 + (bayer[(j % 4) * 4 + (i % 4)] / 16) * 0.7) / 3, k = (j * size + i) * 4;
-      d.data[k] = 255; d.data[k + 1] = 180; d.data[k + 2] = 70; d.data[k + 3] = Math.round(step * step * 255);
+      d.data[k] = rgb[0]; d.data[k + 1] = rgb[1]; d.data[k + 2] = rgb[2]; d.data[k + 3] = Math.round(step * step * 255);
     }
     x.putImageData(d, 0, 0);
     return c;
@@ -1273,7 +1313,7 @@
   function cloudSprite(A, cloud, palette, shift) {
     const key = cloud.order + palette + shift;
     if (A.cloudCache.has(key)) return A.cloudCache.get(key);
-    const cols = A.map.clouds[palette].map(hex), W = 40, H = 18, c = canvas(W, H), x = c.getContext('2d'), d = x.createImageData(W, H);
+    const cols = A.map.clouds[palette].map(hex), W = 52, H = 22, c = canvas(W, H), x = c.getContext('2d'), d = x.createImageData(W, H);
     for (let j = 0; j < H; j += 1) for (let i = 0; i < W; i += 1) {
       let lv = -1;
       for (const [ox, oy, r] of cloud.shape) {
@@ -1286,6 +1326,40 @@
     }
     x.putImageData(d, 0, 0);
     A.cloudCache.set(key, c);
+    return c;
+  }
+
+  // Hojas del fondo repartidas en 6 franjas diagonales: cada franja se ilumina un rato, así una ola de luz recorre la hiedra.
+  const LEAF_BANDS = 6;
+  function leafLayers(bg) {
+    const W = 418, H = 235, tmp = canvas(W, H), tx = tmp.getContext('2d');
+    tx.imageSmoothingEnabled = false; tx.drawImage(bg, 0, 0, W, H);
+    const px = tx.getImageData(0, 0, W, H).data, bands = Array.from({ length: LEAF_BANDS }, () => { const c = canvas(W, H); return { c, x: c.getContext('2d'), d: null }; });
+    bands.forEach(b => { b.d = b.x.createImageData(W, H); });
+    const spawn = [];
+    for (let y = 0; y < H; y += 1) for (let x = 0; x < W; x += 1) {
+      const k = (y * W + x) * 4, r = px[k], g = px[k + 1], b = px[k + 2];
+      if (g > r + 8 && g > b + 8 && g > 70) {
+        const band = Math.floor((x * 0.65 + y * 0.35) / 9) % LEAF_BANDS, d = bands[band].d.data;
+        d[k] = 205; d[k + 1] = 235; d[k + 2] = 120; d[k + 3] = 255;
+        if (y < 150 && (x + y * 3) % 17 === 0) spawn.push([x, y]);
+      }
+    }
+    bands.forEach(b => b.x.putImageData(b.d, 0, 0));
+    return { leafBands: bands.map(b => b.c), leafSpawn: spawn };
+  }
+
+  // Sombra de nube sobre el piso: óvalo tramado (dos niveles) que cruza la sala despacio.
+  function cloudShadow() {
+    const W = 110, H = 26, c = canvas(W, H), x = c.getContext('2d'), d = x.createImageData(W, H), bayer = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+    for (let j = 0; j < H; j += 1) for (let i = 0; i < W; i += 1) {
+      const e = Math.hypot((i - W / 2) / (W / 2), (j - H / 2) / (H / 2));
+      if (e >= 1) continue;
+      const v = (1 - e) * 2 + bayer[(j % 4) * 4 + (i % 4)] / 16 - 0.45, k = (j * W + i) * 4;
+      if (v < 0.7) continue;
+      d.data[k] = 20; d.data[k + 1] = 24; d.data[k + 2] = 44; d.data[k + 3] = v > 1.5 ? 70 : 38;
+    }
+    x.putImageData(d, 0, 0);
     return c;
   }
 
@@ -1356,14 +1430,14 @@
       x.globalAlpha = 1;
     }
     // 4) nubes que avanzan (más y más grises si está nublado o llueve)
-    const nClouds = wx.kind === 'clear' ? 2 + Math.round((wx.cover / 100) * 4) : 9;
+    const nClouds = wx.kind === 'clear' ? 4 + Math.round((wx.cover / 100) * 4) : 9;
     const palette = w.night > 0.5 ? 'night' : grey > 0.5 || wx.rain > 0 ? 'cloudy' : w.dusk > 0.4 ? 'dusk' : w.dawn > 0.4 ? 'dawn' : 'day';
     const shift = wx.storm ? -1 : wx.rain > 0.6 ? -1 : 0;
     const wind = 1 + wx.rain * 0.8 + wx.storm;
     for (const cl of A.clouds.slice(0, nClouds)) {
-      const span = ww + 44, cx = ((cl.x + t * cl.speed * wind) % span + span) % span - 22;
+      const span = ww + 56, cx = ((cl.x + t * cl.speed * wind) % span + span) % span - 28;
       const cy = wx.kind === 'clear' ? cl.y : cl.y * 0.7;
-      x.drawImage(cloudSprite(A, cl, palette, shift), Math.round(cx - 20), Math.round(cy - 9));
+      x.drawImage(cloudSprite(A, cl, palette, shift), Math.round(cx - 26), Math.round(cy - 11));
     }
     if (wx.rain > 0 || wx.kind === 'cloudy') { x.globalAlpha = 0.25 * Math.max(wx.rain, grey * 0.6); x.fillStyle = '#2a3244'; x.fillRect(0, 0, ww, wh); x.globalAlpha = 1; }
     // 5) paisaje con la luz de la hora (pintado en Python con las rampas)
@@ -1461,8 +1535,84 @@
       ctx.drawImage(h, cx - (h.width >> 1), cy - (h.height >> 1));
       ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
     });
+    const dt = Math.min(0.25, Math.max(0, t - (L.lastT ?? t))); L.lastT = t;
+    if (!L.still) drawExtras(L, t, dt);
     // el relámpago también se nota un poquito en la sala
     if (wx.storm && t < L.flashUntil) { ctx.globalAlpha = 0.08; ctx.fillStyle = '#d8e0ff'; ctx.fillRect(0, 0, L.canvas.width, L.canvas.height); ctx.globalAlpha = 1; }
+  }
+
+  // Lo que se mueve en toda la sala (no solo en la ventana): sombra de nubes, brillo de la hiedra, hojas y páginas que caen,
+  // burbujas y vapor de la poción, polvo de luz y luciérnagas de noche.
+  function drawExtras(L, t, dt) {
+    const A = L.A, ctx = L.ctx, { w, wx } = L.env, low = document.body.dataset.nexoQuality === 'low';
+    const fair = (w.day + w.dawn * 0.6 + w.dusk * 0.4) * (1 - wx.cloud) * (1 - wx.rain);
+    if (fair > 0.05) {                                                         // sombra de nube sobre el piso
+      ctx.globalAlpha = Math.min(1, fair * 1.2);
+      for (let k = 0; k < 2; k += 1) {
+        const span = 418 + 160, sx = ((k * 230 + t * (5 + k * 2)) % span + span) % span - 120;
+        ctx.drawImage(A.shadow, Math.round(sx), 150 + k * 38);
+      }
+      ctx.globalAlpha = 1;
+    }
+    ctx.globalCompositeOperation = 'lighter';                                   // ola de luz que recorre la hiedra
+    const lit = 0.25 + 0.75 * Math.min(1, w.day + w.dawn * 0.7 + w.dusk * 0.4 + 0.3);
+    A.leafBands.forEach((band, i) => {
+      const a = Math.max(0, Math.sin(t * 1.4 - i * 1.05)) ** 2 * 0.2 * lit;
+      if (a > 0.01) { ctx.globalAlpha = a; ctx.drawImage(band, 0, 0); }
+    });
+    ctx.globalAlpha = 0.14 + 0.07 * Math.sin(t * 2.2); ctx.drawImage(A.halos.potion, 126, 57);   // la poción de la estantería brilla
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+    for (let i = 0; i < 5; i += 1) {                                            // burbujas que suben por el frasco
+      const p = (t * 0.55 + i * 0.37) % 1, by = Math.round(70 - p * 12), bx = Math.round(135 + Math.sin(t * 2 + i * 2) * 1.6);
+      ctx.globalAlpha = 1 - p * 0.7; ctx.fillStyle = i % 2 ? '#e0fcff' : '#9ce8f0'; ctx.fillRect(bx, by, 1, 1);
+    }
+    for (let i = 0; i < 3; i += 1) {                                            // vapor verde que sale del cuello
+      const p = (t * 0.3 + i / 3) % 1, vy = Math.round(56 - p * 14), vx = Math.round(135 + Math.sin(t * 1.3 + i * 2.4) * 3 * p);
+      ctx.globalAlpha = (1 - p) * 0.55; ctx.fillStyle = '#cfeedd'; ctx.fillRect(vx - 1, vy, 2, 1); ctx.fillRect(vx, vy - 1, 1, 1);
+    }
+    ctx.globalAlpha = 1;
+    if (!low) {                                                                  // polvo de luz por toda la sala
+      ctx.fillStyle = '#fff3c8';
+      for (let i = 0; i < 26; i += 1) {
+        const x = (i * 97 % 400) + 9 + Math.sin(t * 0.25 + i) * 6, y = 20 + (((i * 53) % 170 - t * (0.8 + (i % 5) * 0.25)) % 170 + 170) % 170;
+        ctx.globalAlpha = (0.15 + 0.3 * (0.5 + 0.5 * Math.sin(t * 0.9 + i * 1.7))) * Math.max(fair, 0.25); ctx.fillRect(Math.round(x), Math.round(y), 1, 1);
+      }
+      ctx.globalAlpha = 1;
+    }
+    const night = (w.night + w.dusk * 0.5) * (1 - wx.rain);
+    if (night > 0.1) {                                                           // luciérnagas
+      ctx.globalCompositeOperation = 'lighter';
+      A.flies.forEach(([bx, by, p, q]) => {
+        const x = Math.round(bx + Math.sin(t * 0.32 + p) * 16 + Math.sin(t * 0.9 + q) * 4), y = Math.round(by + Math.sin(t * 0.47 + q) * 9),
+          on = Math.max(0, Math.sin(t * 1.5 + p * 5)) ** 2 * night;
+        if (on < 0.05) return;
+        ctx.globalAlpha = on * 0.5; ctx.drawImage(A.halos.fly, x - 5, y - 5);
+        ctx.globalAlpha = on; ctx.fillStyle = '#eaff9a'; ctx.fillRect(x, y, 1, 1);
+      });
+      ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+    }
+    // hojas que se sueltan de la hiedra y páginas que se escapan de la estantería
+    L.fall = L.fall || []; L.nextFall = L.nextFall ?? t + 2;
+    if (t > L.nextFall && L.fall.length < (low ? 3 : 7)) {
+      const page = Math.random() < 0.18, s = A.leafSpawn[Math.floor(Math.random() * A.leafSpawn.length)] || [200, 40];
+      L.fall.push(page ? { page: true, x: 104 + Math.random() * 50, y: 33, vx: 3, vy: 5.5, ph: Math.random() * 6, born: t }
+        : { page: false, x: s[0], y: s[1], vx: 0, vy: 6 + Math.random() * 4, ph: Math.random() * 6, born: t, dark: Math.random() < 0.4 });
+      L.nextFall = t + 2.5 + Math.random() * 3.5;
+    }
+    L.fall = L.fall.filter(f => f.y < 205);
+    for (const f of L.fall) {
+      f.y += f.vy * dt; f.x += (f.vx + Math.sin(t * 2.2 + f.ph) * 9) * dt;
+      const a = Math.min(1, (t - f.born) * 2, (205 - f.y) / 20), flap = Math.floor(t * 5 + f.ph) % 2, x = Math.round(f.x), y = Math.round(f.y);
+      ctx.globalAlpha = Math.max(0, a);
+      if (f.page) {
+        ctx.fillStyle = '#e6d6b2'; ctx.fillRect(x, y, flap ? 4 : 3, flap ? 3 : 4);
+        ctx.fillStyle = '#a69070'; ctx.fillRect(x, y + (flap ? 2 : 3), flap ? 4 : 3, 1);
+      } else {
+        ctx.fillStyle = f.dark ? '#3f6e2d' : '#83ad42'; ctx.fillRect(x, y, flap ? 3 : 2, flap ? 1 : 2);
+        ctx.fillStyle = f.dark ? '#2a5228' : '#5d8c36'; ctx.fillRect(x + 1, y + 1, 2, 1);
+      }
+      ctx.globalAlpha = 1;
+    }
   }
 
   function stillMode() {
@@ -1524,7 +1674,6 @@
   const scenes=Object.freeze({
     home:[['leaves','watch'],['book','read'],['lamp','rest']],
     learn:[['book','read'],['ink','think']],
-    train:[['shield','ready'],['rune','ready']],
     games:[['spark','play']],
     profile:[['lamp','rest'],['book','read'],['sleep','sleep']],
     shop:[['spark','preview']],
@@ -4035,7 +4184,7 @@
   const motionValues=['reduced','normal','rich'];
   const mascotValues=['reduced','full'];
   const points=[[13,18],[78,24],[42,12],[88,71],[9,67],[55,78],[28,44],[68,54],[33,88],[93,38]];
-  const roomCaps={home:10,learn:2,train:5,games:7,profile:8,shop:5,planner:2};
+  const roomCaps={home:10,learn:2,games:7,profile:8,shop:5,planner:2};
   let currentSettings={};
   let active=null;
   let started=false;
@@ -4436,7 +4585,7 @@
   const sprite={click:[0,80],confirm:[100,150],purchase:[280,200],equip:[510,120],error:[650,180]};
   const tones={click:[540,690],confirm:[570,810],purchase:[390,570,790],equip:[640,880],error:[260,180]};
   const rooms={home:'home',learn:'learn',lesson:'learn',subject:'learn',subjects:'learn',library:'learn',
-    knowledge:'learn',reviews:'learn',rescue:'learn',train:'train',practice:'train',
+    knowledge:'learn',reviews:'learn',rescue:'learn',practice:'learn',
     games:'games',profile:'profile',mascot:'profile',stats:'profile',settings:'profile',
     hub:'planner',planner:'planner',timer:'planner',shop:'profile'};
   let settings={sound:false,sfxVolume:.4,music:false,musicVolume:.15,ambient:false,ambientVolume:.12};
@@ -4475,7 +4624,7 @@
   /* Periodic waves end at zero crossings, avoiding a click at loop boundaries. */
   function wavLoop(kind,scene) {
     const rate=8000,seconds=4,samples=rate*seconds,pcm=new Int16Array(samples);
-    const base={home:110,train:130,profile:98,planner:123,games:146}[scene]||110;
+    const base={home:110,profile:98,planner:123,games:146}[scene]||110;
     for(let i=0;i<samples;i++) {
       const t=i/rate,edge=Math.sin(Math.PI*i/samples)**2;
       let sample;
@@ -4603,8 +4752,8 @@
 /* Context decisions only. Actual artboard animation remains Idle until the rig supports named states. */
 (() => {
   'use strict';
-  const intents={home:'idle',learn:'read',train:'ready',games:'play',profile:'rest',shop:'preview',planner:'watch'};
-  const props={home:'window',learn:'book',train:'spellbook',games:null,profile:'cushion',shop:null,planner:'calendar'};
+  const intents={home:'idle',learn:'read',games:'play',profile:'rest',shop:'preview',planner:'watch'};
+  const props={home:'window',learn:'book',games:null,profile:'cushion',shop:null,planner:'calendar'};
   let effectTimer=null;
   const roomOf=input=>typeof input==='string'?input:input?.id||'home';
   function plan({currentMascot={},currentEquipment={},currentRoom='home',currentActivity='',academicEvent=null,ambientEvent=null,

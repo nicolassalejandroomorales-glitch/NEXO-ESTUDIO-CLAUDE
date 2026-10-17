@@ -59,17 +59,6 @@ const server = http.createServer((request, response) => {
     assert.match(await page.locator('.academic-concept-detail h2').textContent(),/pKa/i);
     await page.goto(`${url}#/learn/course/organica/lesson/org-01`);
     await page.locator('.amine-lesson').waitFor();
-    await page.goto(`${url}#/train/practice`);
-    await page.locator('[data-training-setup]').waitFor();
-    await page.waitForFunction(() => performance.getEntriesByType('resource').some(item => item.name.endsWith('/assets/rooms/train.webp')));
-    await capture('train-desktop');
-    await page.locator('#companionPresence .avatar-canvas-v10[data-engine="rive"][data-pose="Ready"]').waitFor({timeout:15000});
-    await page.goto(`${url}#/train/pep`);
-    await page.locator('[data-training-setup] [name="mode"]').waitFor();
-    assert.equal(await page.locator('[data-training-setup] [name="mode"]').inputValue(),'pep');
-    await page.goto(`${url}#/train/errors`);
-    await page.locator('[data-training-setup] [name="mode"]').waitFor();
-    assert.equal(await page.locator('[data-training-setup] [name="mode"]').inputValue(),'errors');
     await page.goto(`${url}#/profile/collection`);
     await page.locator('.forge-editor').waitFor();
     await page.goto(`${url}#/profile/progress`);
@@ -107,27 +96,6 @@ const server = http.createServer((request, response) => {
     assert(await page.locator('.academic-concept-detail').textContent().then(text=>text.includes('Pares libres')));
     await page.locator('[data-route="reviews"]').click();
     await page.locator('.academic-reviews').waitFor();
-    await page.goto(`${url}#/train`);
-    await page.locator('[data-training-setup]').waitFor();
-    await page.locator('[data-training-setup] [name="mode"]').selectOption('topic');
-    await page.locator('[data-training-setup] [name="topic"]').selectOption('org.pka');
-    await page.locator('[data-training-setup] [name="help"]').selectOption('none');
-    await page.locator('[data-training-setup] [name="duration"]').selectOption('until');
-    await page.locator('[data-training-setup] button[type="submit"]').click();
-    await page.locator('[data-training-case="sv-pka"]').waitFor();
-    await capture('train-question-desktop');
-    assert.match(await page.locator('[data-training-clock]').textContent(),/^\d{2}:\d{2}$/);
-    assert.equal(await page.locator('[data-training-hint]').count(),0);
-    await page.locator('[data-training-case="sv-pka"] [name="logA"]').fill('2,3');
-    await page.locator('[data-training-case="sv-pka"] [name="logB"]').fill('-1,4');
-    await page.locator('[data-training-case="sv-pka"] [name="favored"]').selectOption('A');
-    await page.locator('[data-training-case="sv-pka"] [name="reason"]').fill('Resto el pKa del ácido reactivo al ácido conjugado formado.');
-    await page.locator('[data-training-case="sv-pka"] button[type="submit"]').click();
-    await page.locator('.training-problem .structured-feedback.correct').waitFor();
-    assert(await page.locator('.training-own-answer').textContent().then(text=>text.includes('Resto el pKa')));
-    assert(await page.evaluate(()=>JSON.parse(localStorage.getItem('nexo-study-beta')).academicIntelligence.attempts.some(item=>item.exerciseId==='org-01:sv-pka'&&item.activityType==='practice')));
-    await page.locator('[data-training-stop]').first().click();
-    assert(await page.locator('.arcane-training').textContent().then(text=>text.includes('Sesión terminada')));
     await page.evaluate(()=>{
       const state=JSON.parse(localStorage.getItem('nexo-study-beta'));
       state.academicIntelligence.attempts.unshift(
@@ -237,12 +205,11 @@ const server = http.createServer((request, response) => {
     assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('nexo-study-beta')).grades.organica.components[0].grade), '5.50');
     for (const width of [768, 390]) {
       await page.setViewportSize({ width, height: 844 });
-      for (const route of ['home', 'learn', 'train', 'games', 'subjects', 'subject/organica', 'knowledge', 'reviews', 'lesson/org-01', 'hub/timer', 'hub/calendar', 'hub/grades', 'shop', 'profile/grades']) {
+      for (const route of ['home', 'learn', 'subjects', 'subject/organica', 'knowledge', 'reviews', 'lesson/org-01', 'hub/timer', 'hub/calendar', 'hub/grades', 'shop', 'profile/grades']) {
         await page.goto(`${url}#/${route}`);
         await page.locator('#app').waitFor();
-        if(route==='train')await page.locator('.training-setup').waitFor();
         if(width===390&&route==='learn')await page.locator('#companionPresence .avatar-canvas-v10[data-engine="rive"][data-pose="Read"]').waitFor({timeout:15000});
-        if (width === 390 && ['home','learn','train','games', 'lesson/org-01', 'hub/calendar', 'hub/grades', 'shop', 'profile/grades'].includes(route)) await capture(`${route.replace('/', '-')}-mobile`);
+        if (width === 390 && ['home','learn', 'lesson/org-01', 'hub/calendar', 'hub/grades', 'shop', 'profile/grades'].includes(route)) await capture(`${route.replace('/', '-')}-mobile`);
         if(width===390&&route==='lesson/org-01')await capture('amine-mobile-top',false);
         const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
         assert.ok(overflow <= 1, `Overflow ${overflow}px en ${route} a ${width}px`);
@@ -261,9 +228,8 @@ const server = http.createServer((request, response) => {
     }
     for(const viewport of [{width:375,height:812},{width:844,height:390},{width:1440,height:900}]){
       await page.setViewportSize(viewport);
-      for(const route of ['home','train','rescue/org.lone-pair','lesson/org-01','hub/calendar','shop','profile']){
+      for(const route of ['home','rescue/org.lone-pair','lesson/org-01','hub/calendar','shop','profile']){
         await page.goto(`${url}#/${route}`);
-        if(route==='train')await page.locator('.training-setup').waitFor();
         if(route==='lesson/org-01')await page.locator('.amine-lesson').waitFor();
         const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
         assert.ok(overflow<=1,`Overflow ${overflow}px en ${route} a ${viewport.width}×${viewport.height}`);

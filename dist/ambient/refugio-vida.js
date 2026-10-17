@@ -30,8 +30,8 @@
     if (loading) return loading;
     loading = (async () => {
       const map = await (await fetch(BASE + 'refugio-pixel-mapa.json')).json();
-      const [glass, haz, ...lands] = await Promise.all([
-        loadImage(BASE + 'refugio-pixel-vidrio.png'), loadImage(BASE + 'refugio-pixel-haz.png'),
+      const [bg, glass, haz, ...lands] = await Promise.all([
+        loadImage(BASE + 'refugio-pixel.png'), loadImage(BASE + 'refugio-pixel-vidrio.png'), loadImage(BASE + 'refugio-pixel-haz.png'),
         ...['sol', 'nublado', 'tarde', 'noche'].map(m => loadImage(BASE + `refugio-pixel-paisaje-${m}.png`))]);
       const [x0, y0, x1, y1] = map.window, ww = x1 - x0, wh = y1 - y0;
       const hz = alphaMask(haz), rays = [];
@@ -42,28 +42,29 @@
       const r = rng(7);
       const stars = Array.from({ length: 34 }, () => [Math.floor(r() * ww), Math.floor(r() * wh * 0.6), r()]);
       const clouds = Array.from({ length: 9 }, (_, i) => ({
-        shape: Array.from({ length: 4 + Math.floor(r() * 4) }, (_, k) => [(k - 2.5) * (3 + r() * 3), (r() - 0.5) * 3, 2.5 + r() * 3.5]),
-        y: 6 + r() * (wh * 0.45), x: r() * (ww + 40), speed: 1.4 + r() * 2.6, order: i,
+        shape: Array.from({ length: 5 + Math.floor(r() * 4) }, (_, k) => [(k - 3) * (3.5 + r() * 3), (r() - 0.5) * 3.5, 3 + r() * 4.2]),
+        y: 6 + r() * (wh * 0.45), x: r() * (ww + 40), speed: 4 + r() * 6, order: i,
       }));
       const drops = Array.from({ length: 70 }, () => [r(), r(), 0.8 + r() * 0.4, 3 + Math.floor(r() * 2)]);
       const glassDrops = Array.from({ length: 9 }, () => [r() * ww, r() * wh, 2 + r() * 5, r()]);
       const motes = Array.from({ length: 40 }, () => Math.floor(r() * (rays.length / 3)) * 3);
       assets = { map, ww, wh, glass: alphaMask(glass).canvas, rays, raysW: haz.width, raysH: haz.height,
         lands: { sol: lands[0], nublado: lands[1], tarde: lands[2], noche: lands[3] }, stars, clouds, drops, glassDrops, motes,
-        cloudCache: new Map(), halos: { small: halo(10), big: halo(17) } };
+        cloudCache: new Map(), halos: { small: halo(10), big: halo(17), fly: halo(5, [190, 255, 110]), potion: halo(9, [90, 210, 230]) },
+        ...leafLayers(bg), shadow: cloudShadow(), flies: Array.from({ length: 12 }, () => [24 + r() * 370, 50 + r() * 150, r() * 6.28, r() * 6.28]) };
       return assets;
     })();
     return loading;
   }
 
   // Halo de pixel art: anillos de borde duro con un poco de tramado entre anillos.
-  function halo(radius) {
+  function halo(radius, rgb = [255, 180, 70]) {
     const size = radius * 2 + 1, c = canvas(size, size), x = c.getContext('2d'), d = x.createImageData(size, size);
     const bayer = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
     for (let j = 0; j < size; j += 1) for (let i = 0; i < size; i += 1) {
       const t = Math.max(0, 1 - Math.hypot(i - radius, j - radius) / radius);
       const step = Math.floor(t * 3 + (bayer[(j % 4) * 4 + (i % 4)] / 16) * 0.7) / 3, k = (j * size + i) * 4;
-      d.data[k] = 255; d.data[k + 1] = 180; d.data[k + 2] = 70; d.data[k + 3] = Math.round(step * step * 255);
+      d.data[k] = rgb[0]; d.data[k + 1] = rgb[1]; d.data[k + 2] = rgb[2]; d.data[k + 3] = Math.round(step * step * 255);
     }
     x.putImageData(d, 0, 0);
     return c;
@@ -73,7 +74,7 @@
   function cloudSprite(A, cloud, palette, shift) {
     const key = cloud.order + palette + shift;
     if (A.cloudCache.has(key)) return A.cloudCache.get(key);
-    const cols = A.map.clouds[palette].map(hex), W = 40, H = 18, c = canvas(W, H), x = c.getContext('2d'), d = x.createImageData(W, H);
+    const cols = A.map.clouds[palette].map(hex), W = 52, H = 22, c = canvas(W, H), x = c.getContext('2d'), d = x.createImageData(W, H);
     for (let j = 0; j < H; j += 1) for (let i = 0; i < W; i += 1) {
       let lv = -1;
       for (const [ox, oy, r] of cloud.shape) {
@@ -86,6 +87,40 @@
     }
     x.putImageData(d, 0, 0);
     A.cloudCache.set(key, c);
+    return c;
+  }
+
+  // Hojas del fondo repartidas en 6 franjas diagonales: cada franja se ilumina un rato, así una ola de luz recorre la hiedra.
+  const LEAF_BANDS = 6;
+  function leafLayers(bg) {
+    const W = 418, H = 235, tmp = canvas(W, H), tx = tmp.getContext('2d');
+    tx.imageSmoothingEnabled = false; tx.drawImage(bg, 0, 0, W, H);
+    const px = tx.getImageData(0, 0, W, H).data, bands = Array.from({ length: LEAF_BANDS }, () => { const c = canvas(W, H); return { c, x: c.getContext('2d'), d: null }; });
+    bands.forEach(b => { b.d = b.x.createImageData(W, H); });
+    const spawn = [];
+    for (let y = 0; y < H; y += 1) for (let x = 0; x < W; x += 1) {
+      const k = (y * W + x) * 4, r = px[k], g = px[k + 1], b = px[k + 2];
+      if (g > r + 8 && g > b + 8 && g > 70) {
+        const band = Math.floor((x * 0.65 + y * 0.35) / 9) % LEAF_BANDS, d = bands[band].d.data;
+        d[k] = 205; d[k + 1] = 235; d[k + 2] = 120; d[k + 3] = 255;
+        if (y < 150 && (x + y * 3) % 17 === 0) spawn.push([x, y]);
+      }
+    }
+    bands.forEach(b => b.x.putImageData(b.d, 0, 0));
+    return { leafBands: bands.map(b => b.c), leafSpawn: spawn };
+  }
+
+  // Sombra de nube sobre el piso: óvalo tramado (dos niveles) que cruza la sala despacio.
+  function cloudShadow() {
+    const W = 110, H = 26, c = canvas(W, H), x = c.getContext('2d'), d = x.createImageData(W, H), bayer = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+    for (let j = 0; j < H; j += 1) for (let i = 0; i < W; i += 1) {
+      const e = Math.hypot((i - W / 2) / (W / 2), (j - H / 2) / (H / 2));
+      if (e >= 1) continue;
+      const v = (1 - e) * 2 + bayer[(j % 4) * 4 + (i % 4)] / 16 - 0.45, k = (j * W + i) * 4;
+      if (v < 0.7) continue;
+      d.data[k] = 20; d.data[k + 1] = 24; d.data[k + 2] = 44; d.data[k + 3] = v > 1.5 ? 70 : 38;
+    }
+    x.putImageData(d, 0, 0);
     return c;
   }
 
@@ -156,14 +191,14 @@
       x.globalAlpha = 1;
     }
     // 4) nubes que avanzan (más y más grises si está nublado o llueve)
-    const nClouds = wx.kind === 'clear' ? 2 + Math.round((wx.cover / 100) * 4) : 9;
+    const nClouds = wx.kind === 'clear' ? 4 + Math.round((wx.cover / 100) * 4) : 9;
     const palette = w.night > 0.5 ? 'night' : grey > 0.5 || wx.rain > 0 ? 'cloudy' : w.dusk > 0.4 ? 'dusk' : w.dawn > 0.4 ? 'dawn' : 'day';
     const shift = wx.storm ? -1 : wx.rain > 0.6 ? -1 : 0;
     const wind = 1 + wx.rain * 0.8 + wx.storm;
     for (const cl of A.clouds.slice(0, nClouds)) {
-      const span = ww + 44, cx = ((cl.x + t * cl.speed * wind) % span + span) % span - 22;
+      const span = ww + 56, cx = ((cl.x + t * cl.speed * wind) % span + span) % span - 28;
       const cy = wx.kind === 'clear' ? cl.y : cl.y * 0.7;
-      x.drawImage(cloudSprite(A, cl, palette, shift), Math.round(cx - 20), Math.round(cy - 9));
+      x.drawImage(cloudSprite(A, cl, palette, shift), Math.round(cx - 26), Math.round(cy - 11));
     }
     if (wx.rain > 0 || wx.kind === 'cloudy') { x.globalAlpha = 0.25 * Math.max(wx.rain, grey * 0.6); x.fillStyle = '#2a3244'; x.fillRect(0, 0, ww, wh); x.globalAlpha = 1; }
     // 5) paisaje con la luz de la hora (pintado en Python con las rampas)
@@ -261,8 +296,84 @@
       ctx.drawImage(h, cx - (h.width >> 1), cy - (h.height >> 1));
       ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
     });
+    const dt = Math.min(0.25, Math.max(0, t - (L.lastT ?? t))); L.lastT = t;
+    if (!L.still) drawExtras(L, t, dt);
     // el relámpago también se nota un poquito en la sala
     if (wx.storm && t < L.flashUntil) { ctx.globalAlpha = 0.08; ctx.fillStyle = '#d8e0ff'; ctx.fillRect(0, 0, L.canvas.width, L.canvas.height); ctx.globalAlpha = 1; }
+  }
+
+  // Lo que se mueve en toda la sala (no solo en la ventana): sombra de nubes, brillo de la hiedra, hojas y páginas que caen,
+  // burbujas y vapor de la poción, polvo de luz y luciérnagas de noche.
+  function drawExtras(L, t, dt) {
+    const A = L.A, ctx = L.ctx, { w, wx } = L.env, low = document.body.dataset.nexoQuality === 'low';
+    const fair = (w.day + w.dawn * 0.6 + w.dusk * 0.4) * (1 - wx.cloud) * (1 - wx.rain);
+    if (fair > 0.05) {                                                         // sombra de nube sobre el piso
+      ctx.globalAlpha = Math.min(1, fair * 1.2);
+      for (let k = 0; k < 2; k += 1) {
+        const span = 418 + 160, sx = ((k * 230 + t * (5 + k * 2)) % span + span) % span - 120;
+        ctx.drawImage(A.shadow, Math.round(sx), 150 + k * 38);
+      }
+      ctx.globalAlpha = 1;
+    }
+    ctx.globalCompositeOperation = 'lighter';                                   // ola de luz que recorre la hiedra
+    const lit = 0.25 + 0.75 * Math.min(1, w.day + w.dawn * 0.7 + w.dusk * 0.4 + 0.3);
+    A.leafBands.forEach((band, i) => {
+      const a = Math.max(0, Math.sin(t * 1.4 - i * 1.05)) ** 2 * 0.2 * lit;
+      if (a > 0.01) { ctx.globalAlpha = a; ctx.drawImage(band, 0, 0); }
+    });
+    ctx.globalAlpha = 0.14 + 0.07 * Math.sin(t * 2.2); ctx.drawImage(A.halos.potion, 126, 57);   // la poción de la estantería brilla
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+    for (let i = 0; i < 5; i += 1) {                                            // burbujas que suben por el frasco
+      const p = (t * 0.55 + i * 0.37) % 1, by = Math.round(70 - p * 12), bx = Math.round(135 + Math.sin(t * 2 + i * 2) * 1.6);
+      ctx.globalAlpha = 1 - p * 0.7; ctx.fillStyle = i % 2 ? '#e0fcff' : '#9ce8f0'; ctx.fillRect(bx, by, 1, 1);
+    }
+    for (let i = 0; i < 3; i += 1) {                                            // vapor verde que sale del cuello
+      const p = (t * 0.3 + i / 3) % 1, vy = Math.round(56 - p * 14), vx = Math.round(135 + Math.sin(t * 1.3 + i * 2.4) * 3 * p);
+      ctx.globalAlpha = (1 - p) * 0.55; ctx.fillStyle = '#cfeedd'; ctx.fillRect(vx - 1, vy, 2, 1); ctx.fillRect(vx, vy - 1, 1, 1);
+    }
+    ctx.globalAlpha = 1;
+    if (!low) {                                                                  // polvo de luz por toda la sala
+      ctx.fillStyle = '#fff3c8';
+      for (let i = 0; i < 26; i += 1) {
+        const x = (i * 97 % 400) + 9 + Math.sin(t * 0.25 + i) * 6, y = 20 + (((i * 53) % 170 - t * (0.8 + (i % 5) * 0.25)) % 170 + 170) % 170;
+        ctx.globalAlpha = (0.15 + 0.3 * (0.5 + 0.5 * Math.sin(t * 0.9 + i * 1.7))) * Math.max(fair, 0.25); ctx.fillRect(Math.round(x), Math.round(y), 1, 1);
+      }
+      ctx.globalAlpha = 1;
+    }
+    const night = (w.night + w.dusk * 0.5) * (1 - wx.rain);
+    if (night > 0.1) {                                                           // luciérnagas
+      ctx.globalCompositeOperation = 'lighter';
+      A.flies.forEach(([bx, by, p, q]) => {
+        const x = Math.round(bx + Math.sin(t * 0.32 + p) * 16 + Math.sin(t * 0.9 + q) * 4), y = Math.round(by + Math.sin(t * 0.47 + q) * 9),
+          on = Math.max(0, Math.sin(t * 1.5 + p * 5)) ** 2 * night;
+        if (on < 0.05) return;
+        ctx.globalAlpha = on * 0.5; ctx.drawImage(A.halos.fly, x - 5, y - 5);
+        ctx.globalAlpha = on; ctx.fillStyle = '#eaff9a'; ctx.fillRect(x, y, 1, 1);
+      });
+      ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+    }
+    // hojas que se sueltan de la hiedra y páginas que se escapan de la estantería
+    L.fall = L.fall || []; L.nextFall = L.nextFall ?? t + 2;
+    if (t > L.nextFall && L.fall.length < (low ? 3 : 7)) {
+      const page = Math.random() < 0.18, s = A.leafSpawn[Math.floor(Math.random() * A.leafSpawn.length)] || [200, 40];
+      L.fall.push(page ? { page: true, x: 104 + Math.random() * 50, y: 33, vx: 3, vy: 5.5, ph: Math.random() * 6, born: t }
+        : { page: false, x: s[0], y: s[1], vx: 0, vy: 6 + Math.random() * 4, ph: Math.random() * 6, born: t, dark: Math.random() < 0.4 });
+      L.nextFall = t + 2.5 + Math.random() * 3.5;
+    }
+    L.fall = L.fall.filter(f => f.y < 205);
+    for (const f of L.fall) {
+      f.y += f.vy * dt; f.x += (f.vx + Math.sin(t * 2.2 + f.ph) * 9) * dt;
+      const a = Math.min(1, (t - f.born) * 2, (205 - f.y) / 20), flap = Math.floor(t * 5 + f.ph) % 2, x = Math.round(f.x), y = Math.round(f.y);
+      ctx.globalAlpha = Math.max(0, a);
+      if (f.page) {
+        ctx.fillStyle = '#e6d6b2'; ctx.fillRect(x, y, flap ? 4 : 3, flap ? 3 : 4);
+        ctx.fillStyle = '#a69070'; ctx.fillRect(x, y + (flap ? 2 : 3), flap ? 4 : 3, 1);
+      } else {
+        ctx.fillStyle = f.dark ? '#3f6e2d' : '#83ad42'; ctx.fillRect(x, y, flap ? 3 : 2, flap ? 1 : 2);
+        ctx.fillStyle = f.dark ? '#2a5228' : '#5d8c36'; ctx.fillRect(x + 1, y + 1, 2, 1);
+      }
+      ctx.globalAlpha = 1;
+    }
   }
 
   function stillMode() {

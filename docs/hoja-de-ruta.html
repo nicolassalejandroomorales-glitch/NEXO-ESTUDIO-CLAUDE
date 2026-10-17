@@ -33,8 +33,8 @@ ul{margin:0;padding-left:18px;font-size:14px}li{margin-bottom:4px}.vacio{color:v
 <h1>Tablero de Nexo</h1>
 <p class="sub">Actualizado el 2026-10-17 desde docs/chats/. Un chat = un tema = un modelo. Toca una tarjeta para ver el detalle.</p>
 <div class="resumen">
-  <div class="grande"><b>38%</b><span>de la app avanzada · 41 cosas hechas, 66 por hacer, 34 ideas guardadas</span></div>
-  <div class="barra" role="img" aria-label="38% avanzado"><i style="width:38%"></i></div>
+  <div class="grande"><b>40%</b><span>de la app avanzada · 45 cosas hechas, 67 por hacer, 34 ideas guardadas</span></div>
+  <div class="barra" role="img" aria-label="40% avanzado"><i style="width:40%"></i></div>
   <p>Lo urgente en marcha: <b>Beta para compañeros</b> (38%) · <b>Clases (contenido y aula)</b> (57%) · <b>Estudio Orgánica II (PEP 1)</b> (40%) · <b>Organización (Bitácora viva)</b> (44%).</p>
 </div>
 <div class="tablero">
@@ -135,11 +135,11 @@ Aún no se ha trabajado en este chat nuevo: parte desde &quot;Falta&quot; del ar
   <summary>
     <span class="tag prio">Pronto</span>
     <h3>Inicio (refugio)</h3>
-    <div class="barra" role="img" aria-label="57% avanzado"><i style="width:57%"></i></div>
-    <p class="meta"><b>57%</b> · 4 hechas, 3 faltan<br>clima y escenas por luz subidos (14 oct), falta animación</p>
+    <div class="barra" role="img" aria-label="70% avanzado"><i style="width:70%"></i></div>
+    <p class="meta"><b>70%</b> · 7 hechas, 3 faltan<br>clima y escenas por luz subidos (14 oct), falta animación</p>
   </summary>
   <div class="cols">
-    <section><h4>Hecho (4)</h4><ul><li>Refugio en pixel art de verdad, ya es el Inicio por defecto.</li><li>Ventana según la hora, noche cálida, luz continua, 7+ objetos tocables.</li><li>Clima real (Open-Meteo) y escenas pintadas por luz (sol, nublado, tarde, noche) con `refugio-vida.js`, ya en master (14 oct).</li><li>Arreglos de piso, sombrero y botas.</li></ul></section>
+    <section><h4>Hecho (7)</h4><ul><li>Texto del Inicio rehecho (17 oct): letras pixel propias, carteles colgados de la viga en vez de tarjetas, reloj con hora y datos en pixel, título viejo quitado. Falta aprobación visual.</li><li>Animaciones nuevas (17 oct): nubes grandes y rápidas con sombra en el piso, brillo que recorre la hiedra, hojas y páginas que caen, poción que burbujea, polvo de luz y luciérnagas de noche; reloj con engranaje, orbe, péndulo, matraz y chispas al terminar. Ventana ya no es tocable. Falta aprobación visual.</li><li>Reloj de la torre en el Inicio (17 oct): hora y momento del día, cronómetro con Estudiar/Pausar/Terminar, minutos de hoy y próxima evaluación; falta aprobación visual de Niquito.</li><li>Refugio en pixel art de verdad, ya es el Inicio por defecto.</li><li>Ventana según la hora, noche cálida, luz continua, objetos tocables.</li><li>Clima real (Open-Meteo) y escenas pintadas por luz (sol, nublado, tarde, noche) con `refugio-vida.js`, ya en master (14 oct).</li><li>Arreglos de piso, sombrero y botas.</li></ul></section>
     <section><h4>Falta (3)</h4><ul><li>Animación dentro de la app: hiedra, llamas, runas, velas, pájaros, nubes, vapor (hoy el fondo es estático).</li><li>Revisar el ancla `desk` de la mascota en el escritorio nuevo.</li><li>Aprobación visual final (ANTES/AHORA) de la ventana viva.</li></ul></section>
     <section><h4>Ideas (3)</h4><ul><li>Zoom por zonas del refugio al tocar objetos.</li><li>Objetos del refugio que cambian según tus logros o rangos.</li><li>Sonido ambiente suave según clima y hora.</li></ul></section>
   </div>
@@ -204,12 +204,12 @@ Parte desde &quot;Falta&quot; y pregúntame qué decisión de diseño toca prime
   <summary>
     <span class="tag prio">Pronto</span>
     <h3>Torre (mundo recorrible)</h3>
-    <div class="barra" role="img" aria-label="43% avanzado"><i style="width:43%"></i></div>
-    <p class="meta"><b>43%</b> · 3 hechas, 4 faltan<br>laboratorio caminable hecho, falta aprobar</p>
+    <div class="barra" role="img" aria-label="38% avanzado"><i style="width:38%"></i></div>
+    <p class="meta"><b>38%</b> · 3 hechas, 5 faltan<br>laboratorio caminable hecho, falta aprobar</p>
   </summary>
   <div class="cols">
     <section><h4>Hecho (3)</h4><ul><li>Entrenar, Juegos y Perfil con escena pixel de borde a borde donde la mascota camina; cada objeto hace una acción.</li><li>Entrenar = Laboratorio de Orgánica II con capas, parallax, luz por hora real y 3 estados de progreso (provisorio).</li><li>Diseño de la torre completa (pisos por ramo, escalera y ascensor).</li></ul></section>
-    <section><h4>Falta (4)</h4><ul><li>Aprobar el laboratorio caminable y el estilo de la muestra.</li><li>Paso 3: vestíbulo (escalera, ascensor y viaje del menú) y ruta de la torre.</li><li>Paso 4 (Opus): progreso real por objeto, que reemplace el provisorio.</li><li>Botón &quot;Volver a Nexo&quot; en la campaña PEP 1.</li></ul></section>
+    <section><h4>Falta (5)</h4><ul><li>Entrenar se borró (17 oct): el laboratorio de la Torre (`dist/world/torre-mundo.js`, `assets/torre/lab`) quedó sin página y su prueba está saltada. Decidir a qué ruta y con qué objetos se reengancha.</li><li>Aprobar el laboratorio caminable y el estilo de la muestra.</li><li>Paso 3: vestíbulo (escalera, ascensor y viaje del menú) y ruta de la torre.</li><li>Paso 4 (Opus): progreso real por objeto, que reemplace el provisorio.</li><li>Botón &quot;Volver a Nexo&quot; en la campaña PEP 1.</li></ul></section>
     <section><h4>Ideas (2)</h4><ul><li>Un piso por ramo que se va llenando con tu avance real.</li><li>Visitar la torre de un amigo (solo si algún día hay nube).</li></ul></section>
   </div>
   <div class="prompts">
@@ -317,11 +317,11 @@ Parte desde &quot;Falta&quot; y pregúntame qué sigue.">Copiar prompt de contin
   <summary>
     <span class="tag prio">Pronto</span>
     <h3>Aspecto y navegación de toda la app</h3>
-    <div class="barra" role="img" aria-label="29% avanzado"><i style="width:29%"></i></div>
-    <p class="meta"><b>29%</b> · 2 hechas, 5 faltan<br>crítica recibida el 15 oct, sin decisiones</p>
+    <div class="barra" role="img" aria-label="38% avanzado"><i style="width:38%"></i></div>
+    <p class="meta"><b>38%</b> · 3 hechas, 5 faltan<br>crítica recibida el 15 oct, sin decisiones</p>
   </summary>
   <div class="cols">
-    <section><h4>Hecho (2)</h4><ul><li>Refugio y mascotas ya en pixel art con las rampas de `tools/home-pixel/pixel.py`.</li><li>Grimorio del tutorial, marcos de diálogo y huevos en pixel art.</li></ul></section>
+    <section><h4>Hecho (3)</h4><ul><li>Barra nueva (17 oct): Inicio · Aprender · Organización · Perfil. Entrenar se borró (pantalla, entrenamiento, sala Taller y pruebas); Repasos y Rescate siguen en Aprender. Juegos salió de la barra (sigue en #/games).</li><li>Refugio y mascotas ya en pixel art con las rampas de `tools/home-pixel/pixel.py`.</li><li>Grimorio del tutorial, marcos de diálogo y huevos en pixel art.</li></ul></section>
     <section><h4>Falta (5)</h4><ul><li>Decidir la **navegación**: la barra lateral convive con las escenas tocables; Niquito duda de que haga falta.</li><li>Diseñar **botones y paneles con personalidad** (hoy &quot;feos, sin personalidad&quot;) como un kit compartido en `tools/pixel-ui/`.</li><li>Mejorar la **versión de computador**, que no le gusta.</li><li>Rehacer **Aprender** (su grimorio es &quot;antiestético&quot;) y preguntar a qué se refiere con &quot;la biblioteca Nexo&quot;.</li><li>Decidir si grimorio, clases, tienda y juegos pasan a pixel art con el mismo kit.</li></ul></section>
     <section><h4>Ideas (3)</h4><ul><li>Una sola fuente y un solo set de botones para toda la app.</li><li>Íconos de la barra lateral en pixel art.</li><li>Transiciones entre pantallas con el mismo lenguaje del grimorio.</li></ul></section>
   </div>
@@ -341,7 +341,7 @@ Parte desde &quot;Falta&quot; y pregúntame qué decisión toca primero.">Copiar
     <span class="tag prio">Después</span>
     <h3>Economía, tienda y perfil</h3>
     <div class="barra" role="img" aria-label="33% avanzado"><i style="width:33%"></i></div>
-    <p class="meta"><b>33%</b> · 2 hechas, 4 faltan<br>sin diseño</p>
+    <p class="meta"><b>33%</b> · 2 hechas, 4 faltan<br>diseño base aprobado (17 oct 2026), falta implementar. SPEC: docs/economia/SPEC.md</p>
   </summary>
   <div class="cols">
     <section><h4>Hecho (2)</h4><ul><li>Rangos arcanos (`dist/academic/ranks.js`) y Perfil con Mascota, Notas, Inasistencias, Estadísticas y Ajustes.</li><li>Precios de ejemplo de 14 accesorios (60–260 ⚛) en `PRICES` de `home-pet.js`.</li></ul></section>

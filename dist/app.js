@@ -539,7 +539,8 @@
   }
   function setActiveNav(route) {
     const primary = ['subject', 'lesson', 'subjects','library','knowledge','inspector'].includes(route[0]) ? 'learn'
-      : ['practice','reviews'].includes(route[0]) ? 'train'
+      : ['practice','reviews','rescue'].includes(route[0]) ? 'learn'
+      : ['planner','hub','timer'].includes(route[0]) ? 'planner'
       : ['profile', 'mascot', 'stats', 'settings','history'].includes(route[0]) ? 'profile' : route[0];
     document.querySelectorAll('.nav-btn, .profile-orb').forEach(button => {
       const active = button.dataset.route === primary;
@@ -550,19 +551,16 @@
   function renderRoute(moveFocus = true) {
     const previousRoute=app.dataset.renderedRoute;
     window.NexoAnimation?.prepare(app);
-    window.NexoHomeScene?.cleanup();
     if (document.body.classList.contains('in-classroom')) window.NexoAmbientTime?.stopPreview?.(); // la ventana de la torre puede haber cambiado la hora
     document.body.classList.remove('in-classroom');
     clearInterval(timerTicker);
     window.NexoWorkbench?.cleanup();
     window.NexoWillowView?.cleanup();
-    window.NexoAcademicTraining?.cleanup();
     window.NexoMascotController?.cleanup();
     window.NexoPet?.cleanup();
     const route = parseRoute();
     const routeChanged=previousRoute!==route.join('/');
-    const roomFamily=parts=>['subject','lesson','subjects','library','knowledge','inspector'].includes(parts[0])?'learn':
-      ['practice','reviews','rescue'].includes(parts[0])?'train':
+    const roomFamily=parts=>['subject','lesson','subjects','library','knowledge','inspector','practice','reviews','rescue'].includes(parts[0])?'learn':
         ['mascot','stats','settings','history'].includes(parts[0])?'profile':parts[0];
     app.dataset.chapterTransition=previousRoute&&roomFamily(previousRoute.split('/'))!==roomFamily(route)?'1':'0';
     if(routeChanged)window.NexoActiveStudy?.stop();
@@ -586,11 +584,7 @@
               : renderEvaluations(route[2]))
         : route[1] === 'map' ? renderAcademicExplorer('knowledge')
           : route[1] === 'library' ? renderAcademicLibrary() : renderSubjects(),
-      train: () => route[1] === 'reviews' ? renderAcademicExplorer('reviews')
-        : route[1] === 'practice' ? renderAcademicTraining()
-          : route[1] === 'errors' ? renderAcademicTraining('errors')
-            : route[1] === 'pep' ? renderAcademicTraining('pep')
-              : route[1] ? renderPractice(route[1],route[2]) : renderAcademicTraining(),
+      train: () => routeTo(route[1] === 'reviews' ? 'reviews' : 'learn'),
       games: renderGames,
       subjects: renderSubjects,
       hub: () => window.NexoEstudio && ['calendar','grades'].includes(route[1]) ? routeTo('planner', window.NexoEstudio.legacy[route[1]]) : renderHub(route[1] || 'timer'),
@@ -703,19 +697,37 @@
           </div>
           </div>
           <span class="home-pan-hint" aria-hidden="true">Desliza para explorar ⟷</span>
-          <header class="refuge-welcome"><p class="eyebrow">NEXO · TU REFUGIO</p><h1>Un lugar para aprender.</h1><p>Abre la ventana. Prepara tu siguiente paso.</p></header>
+          ${homeClockMarkup(evaluations[0], studied)}
           <div class="home-room-hud"><span class="streak-hud">✦ ${streak()} días de racha</span></div>
         </div>
-        <div class="refuge-objects">
-          <section class="evaluation-board" aria-labelledby="priorityTitle"><div class="board-pin" aria-hidden="true">✦</div><p class="eyebrow">EN EL HORIZONTE</p><h2 id="priorityTitle">Próximas pruebas<br> y controles</h2>
-            ${evaluations.length ? `<ol class="evaluation-notes">${evaluations.map((item,index) => {const course=subjectFor(item.event.subject);return `<li class="evaluation-note ${index===0?'next-evaluation':''}"><div><span>${esc(course.name)}</span><time datetime="${esc(item.event.date)}">${formatDate(item.event.date)}</time></div><h3>${esc(item.event.title)}</h3><p>${item.reasons.map(esc).join(' · ')}</p>${item.event.dateNote||item.event.weekdayUncertain?`<small>${esc(item.event.dateNote||'Fecha por confirmar con cátedra.')}</small>`:''}<button class="paper-link" data-route="planner" data-route-sub="calendar">Ver evaluación en Bitácora →</button></li>`;}).join('')}</ol>` : '<p class="paper-empty">Sin pruebas pendientes en tu calendario.</p>'}
-            <button class="wood-link" data-route="planner" data-route-sub="calendar">Abrir mi calendario →</button>
+        <div class="refuge-signs">
+          <div class="signs-beam" aria-hidden="true"></div>
+          <section class="sign sign-pruebas evaluation-board" aria-labelledby="priorityTitle">
+            <i class="sign-chain sign-chain-l" aria-hidden="true"></i><i class="sign-chain sign-chain-r" aria-hidden="true"></i>
+            <h2 class="sign-title" id="priorityTitle">${pixelText('Próximas pruebas')}</h2>
+            <div class="sign-paper">
+              ${evaluations.length ? `<ol class="evaluation-notes">${evaluations.map((item,index) => {const course=subjectFor(item.event.subject);return `<li class="evaluation-note ${index===0?'next-evaluation':''}"><div><span>${esc(course.name)}</span><time datetime="${esc(item.event.date)}">${formatDate(item.event.date)}</time></div><h3>${esc(item.event.title)}</h3><p>${item.reasons.map(esc).join(' · ')}</p>${item.event.dateNote||item.event.weekdayUncertain?`<small>${esc(item.event.dateNote||'Fecha por confirmar con cátedra.')}</small>`:''}<button class="paper-link" data-route="planner" data-route-sub="calendar">Ver evaluación en Bitácora →</button></li>`;}).join('')}</ol>` : '<p class="paper-empty">Sin pruebas pendientes en tu calendario.</p>'}
+            </div>
+            <button class="wood-link sign-link" data-route="planner" data-route-sub="calendar">Abrir mi calendario →</button>
           </section>
-          <section class="day-paper" aria-labelledby="dayTitle"><p class="eyebrow">HOJA DEL DÍA</p><h2 id="dayTitle">Tu día</h2><div class="day-goal"><span>Meta diaria</span><strong>${studied} / ${goal} min</strong><progress value="${Math.min(studied,goal)}" max="${goal}" aria-label="${studied} de ${goal} minutos estudiados hoy"></progress></div>
-            <ul class="day-agenda">${todayEvents.length ? todayEvents.slice(0,3).map(event=>`<li><span aria-hidden="true">◇</span><div><b>${esc(event.title)}</b><small>${esc(subjectFor(event.subject).name)}${event.time?` · ${esc(event.time)}`:''}</small></div></li>`).join('') : '<li><span aria-hidden="true">☼</span><div><b>Sin compromisos hoy</b><small>Tu calendario está libre para estudiar a tu ritmo.</small></div></li>'}</ul>
-            <div class="day-actions"><button class="paper-link" data-route="train" data-route-sub="reviews">${dueReviews().length} repasos pendientes →</button><button class="paper-link" data-home-start="${continuingSubject.id}">Iniciar sesión de estudio →</button></div>
+          <section class="sign sign-dia day-paper" aria-labelledby="dayTitle">
+            <i class="sign-chain sign-chain-l" aria-hidden="true"></i><i class="sign-chain sign-chain-r" aria-hidden="true"></i>
+            <h2 class="sign-title" id="dayTitle">${pixelText('Tu día')}</h2>
+            <div class="sign-paper">
+              <div class="day-goal"><span>Meta diaria</span><strong>${studied} / ${goal} min</strong><div class="goal-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${goal}" aria-valuenow="${Math.min(studied,goal)}" aria-label="${studied} de ${goal} minutos estudiados hoy"><i style="width:${Math.min(100,Math.round(100*studied/Math.max(1,goal)))}%"></i></div></div>
+              <ul class="day-agenda">${todayEvents.length ? todayEvents.slice(0,3).map(event=>`<li><span aria-hidden="true">◇</span><div><b>${esc(event.title)}</b><small>${esc(subjectFor(event.subject).name)}${event.time?` · ${esc(event.time)}`:''}</small></div></li>`).join('') : '<li><span aria-hidden="true">☼</span><div><b>Sin compromisos hoy</b><small>Tu calendario está libre para estudiar a tu ritmo.</small></div></li>'}</ul>
+            </div>
+            <button class="wood-link sign-link" data-route="reviews">${dueReviews().length} repasos pendientes →</button>
           </section>
-          <section class="continue-volume" aria-labelledby="continueTitle"><div class="volume-seal" aria-hidden="true">✧</div><div><p class="eyebrow">EL GRIMORIO TE ESPERA</p><h2 id="continueTitle">Continuar estudiando</h2><p>${esc(continuingSubject.name)} · ${esc(pep?.name||'Selecciona una evaluación')}</p>${saved?`<button class="paper-link saved-lesson" data-open-lesson="${state.lessonSession.id}">Retomar clase guardada: ${esc(saved.title)} →</button>`:''}</div><div class="volume-actions"><button class="primary-btn" data-grimoire-route="learn/course/${continuingSubject.id}/evaluation/pep-${pepIndex+1}">Abrir mapa de preparación →</button><button class="wood-link" data-route="learn">Elegir otro ramo</button></div></section>
+          <section class="sign sign-continuar continue-volume" aria-labelledby="continueTitle">
+            <i class="sign-chain sign-chain-l" aria-hidden="true"></i><i class="sign-chain sign-chain-r" aria-hidden="true"></i>
+            <h2 class="sign-title" id="continueTitle">${pixelText('Continuar')}</h2>
+            <div class="sign-paper">
+              <p class="continue-where"><b>${esc(continuingSubject.name)}</b><span>${esc(pep?.name||'Selecciona una evaluación')}</span></p>
+              ${saved?`<button class="paper-link saved-lesson" data-open-lesson="${state.lessonSession.id}">Retomar clase guardada: ${esc(saved.title)} →</button>`:''}
+            </div>
+            <div class="volume-actions"><button class="primary-btn" data-grimoire-route="learn/course/${continuingSubject.id}/evaluation/pep-${pepIndex+1}">Abrir mapa de preparación →</button><button class="wood-link sign-link" data-route="learn">Elegir otro ramo</button></div>
+          </section>
         </div>
         <footer class="refuge-caption">Un lugar donde el conocimiento florece.</footer>
       </div>
@@ -726,6 +738,52 @@
   }
 
   function renderTimer() {
+    startHomeClock();
+  }
+
+  // Reloj de la torre en el Inicio: hora y momento del día, cronómetro de estudio, minutos de hoy y próxima evaluación.
+  const dayMoment = hour => hour < 6 ? 'madrugada' : hour < 12 ? 'mañana' : hour < 19 ? 'tarde' : 'noche';
+  const GREETINGS = { madrugada: 'Noche larga', mañana: 'Buen día', tarde: 'Buena tarde', noche: 'Buena noche' };
+  const pixelText = (text, options) => window.NexoPixelText.render(text, options);
+  function homeClockMarkup(nextEvaluation, studiedMinutes) {
+    const timer = state.timer, running = timer.status === 'running', paused = timer.status === 'paused';
+    const days = nextEvaluation ? daysBetween(todayKey(), nextEvaluation.event.date) : null;
+    const countdown = days === null ? 'Sin pruebas a la vista' : `${nextEvaluation.event.title} · ${days <= 0 ? 'hoy' : days === 1 ? 'mañana' : `${days} días`}`;
+    const pt = (text, shadow = false) => pixelText(text, { shadow });
+    return `<aside class="home-clock ${running ? 'is-running' : ''}" aria-label="Reloj de estudio">
+      <i class="hc-gear" aria-hidden="true"></i><i class="hc-orb" aria-hidden="true"></i><i class="hc-leaf hc-leaf-l" aria-hidden="true"></i><i class="hc-leaf hc-leaf-r" aria-hidden="true"></i><i class="hc-pendulum" aria-hidden="true"></i><i class="hc-flask" aria-hidden="true"></i>
+      <div class="hc-now"><div class="hc-hour" data-hc-time role="text"></div><div class="hc-greet" data-hc-moment></div></div>
+      <div class="hc-timer"><div class="hc-label">${pt(`${running ? 'Estudiando' : paused ? 'En pausa' : 'Cronómetro'} · ${subjectFor(timer.subject).short}`)}</div><div class="hc-digits" id="homeTimer" role="timer">${pixelDigits(formatClock(timerElapsedMs()))}</div></div>
+      <div class="hc-controls">${running ? `<button class="hc-btn" data-action="timer-pause" aria-label="Pausar">${pt('Pausar')}</button>` : `<button class="hc-btn hc-primary" data-action="timer-start" aria-label="${paused ? 'Seguir' : 'Estudiar'}">${pt(paused ? 'Seguir' : 'Estudiar')}</button>`}${timerElapsedMs() >= 1000 ? `<button class="hc-btn" data-action="timer-finish" aria-label="Terminar">${pt('Terminar')}</button>` : ''}</div>
+      <div class="hc-meta"><span class="hc-plate">${pt(`Hoy · ${studiedMinutes} min`)}</span><span class="hc-plate hc-plate-exam">${pt(countdown)}</span></div>
+    </aside>`;
+  }
+  // Chispas de latón, cristal y hoja al terminar una sesión: viven en el body porque el Inicio se vuelve a pintar al guardar.
+  function sparkBurst(origin) {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches || document.body.classList.contains('reduce-motion')) return;
+    const box = origin.getBoundingClientRect(), layer = document.createDocumentFragment(), made = [];
+    for (let i = 0; i < 22; i += 1) {
+      const spark = document.createElement('b'), angle = Math.PI * 2 * i / 22 + Math.random() * 0.5, dist = 50 + Math.random() * 70;
+      spark.className = 'hc-spark';
+      spark.style.cssText = `left:${box.left + box.width / 2}px;top:${box.top + box.height / 2}px;--dx:${Math.cos(angle) * dist}px;--dy:${Math.sin(angle) * dist - 30}px;animation-delay:${Math.random() * 90}ms`;
+      layer.appendChild(spark); made.push(spark);
+    }
+    document.body.appendChild(layer);
+    setTimeout(() => made.forEach(spark => spark.remove()), 1100);
+  }
+  function startHomeClock() {
+    const tick = () => {
+      const now = new Date(), time = document.querySelector('[data-hc-time]');
+      if (!time) return;
+      const clock = now.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false }), moment = dayMoment(now.getHours());
+      if (time.dataset.t !== clock) { time.dataset.t = clock; time.innerHTML = pixelDigits(clock); time.setAttribute('aria-label', clock); }
+      const greet = document.querySelector('[data-hc-moment]');
+      if (greet.dataset.m !== moment) { greet.dataset.m = moment; greet.innerHTML = pixelText(GREETINGS[moment], { shadow: false }); }
+      const digits = document.querySelector('#homeTimer');
+      if (digits && state.timer.status === 'running') digits.innerHTML = pixelDigits(formatClock(timerElapsedMs()));
+    };
+    tick();
+    timerTicker = setInterval(tick, 1000);
     const running = state.timer.status === 'running';
     const paused = state.timer.status === 'paused';
     app.innerHTML = `<section class="page timer-page-v10 storybook-v10">
@@ -852,8 +910,8 @@
   let academicFoundation=null;
   let mascotAcademicSubscribed=false;
   function loadAcademicFoundation() {
-    if(!academicFoundation)academicFoundation=['model','graph','diagnosis','knowledge','ranks','classifiers','sources','reviews','structured','engine','library','inspector','explorer','training','rescue']
-      .reduce((promise,name)=>promise.then(()=>window.NexoLoader.script(`./academic/${name}.js?v=c503132d`)),Promise.resolve())
+    if(!academicFoundation)academicFoundation=['model','graph','diagnosis','knowledge','ranks','classifiers','sources','reviews','structured','engine','library','inspector','explorer','rescue']
+      .reduce((promise,name)=>promise.then(()=>window.NexoLoader.script(`./academic/${name}.js?v=9fd2b9aa`)),Promise.resolve())
       .then(()=>{if(!mascotAcademicSubscribed){window.NexoAcademicEngine.subscribe(event=>
         window.NexoMascotController.react(event,app));mascotAcademicSubscribed=true;}})
       .catch(error=>{academicFoundation=null;throw error;});
@@ -865,13 +923,6 @@
     app.innerHTML='<section class="page"><p role="status">Abriendo Biblioteca…</p></section>';
     loadAcademicFoundation().then(()=>{const route=parseRoute();if(route[0]==='library'||route.join('/')==='learn/library')renderRoute(false);})
       .catch(()=>{app.innerHTML='<section class="page"><h1>Biblioteca no disponible</h1><button data-route="library">Reintentar</button></section>';});
-  }
-  function renderAcademicTraining(mode) {
-    if(window.NexoAcademicTraining)return window.NexoAcademicTraining.render(app,
-      {getState:()=>state,saveState,showToast,track:(...args)=>cloud.track(...args)},mode);
-    app.innerHTML='<section class="page"><p role="status">Abriendo entrenamiento…</p></section>';
-    loadAcademicFoundation().then(()=>{if(parseRoute()[0]==='train')renderRoute(false);})
-      .catch(()=>{app.innerHTML='<section class="page"><h1>Entrenamiento no disponible</h1><button data-route="train">Reintentar</button></section>';});
   }
   function renderAcademicRescue(conceptId) {
     if(window.NexoAcademicRescue)return window.NexoAcademicRescue.render(app,
@@ -888,14 +939,14 @@
         track:(...args)=>cloud.track(...args)},conceptId);
     }
     app.innerHTML='<section class="page"><p role="status">Abriendo contenido académico…</p></section>';
-    loadAcademicFoundation().then(()=>{const route=parseRoute();if(route[0]===view||route[0]==='learn'||route[0]==='train')renderRoute(false);})
+    loadAcademicFoundation().then(()=>{const route=parseRoute();if(route[0]===view||route[0]==='learn')renderRoute(false);})
       .catch(()=>{app.innerHTML='<section class="page"><h1>Contenido no disponible</h1><button data-route="subjects">Volver a Ramos</button></section>';});
   }
   function renderWorkbench(view) {
     if (new URLSearchParams(location.search).get('nexoDev') !== '1') return renderHome();
     if(view==='ui-lab'&&!window.NexoArcaneRanks){
       app.innerHTML='<section class="page"><p role="status">Abriendo componentes…</p></section>';
-      Promise.all([loadAcademicFoundation(),window.NexoLoader.script('./dev/workbench.js?v=32c5574c')])
+      Promise.all([loadAcademicFoundation(),window.NexoLoader.script('./dev/workbench.js?v=6bcdb09f')])
         .then(()=>{if(parseRoute()[0]===view)renderRoute(false);})
         .catch(()=>{app.innerHTML='<section class="page"><h1>UI Lab no disponible</h1></section>';});
       return;
@@ -906,7 +957,7 @@
       return window.NexoWorkbench.renderReview(app);
     }
     app.innerHTML='<section class="page"><p role="status">Abriendo herramientas de revisión…</p></section>';
-    window.NexoLoader.script('./dev/workbench.js?v=32c5574c')
+    window.NexoLoader.script('./dev/workbench.js?v=6bcdb09f')
       .then(() => { if (parseRoute()[0] === view) renderRoute(false); })
       .catch(() => { if (parseRoute()[0] === view) app.innerHTML='<section class="page"><h1>Revisión no disponible</h1><button data-route="home">Volver al inicio</button></section>'; });
   }
@@ -1463,6 +1514,7 @@
     cloud.track('study_session_started',{subject_id:state.timer.subject});
   }
   function timerPause() {
+    if (parseRoute()[0] === 'home') window.NexoPet?.celebrate(0);
     if (state.timer.status !== 'running') return;
     if (cloud.authenticated && state.timer.serverId) cloud.pauseTimer(state.timer.serverId).catch(() => showToast('Pausa guardada aquí; revisa la conexión.'));
     state.timer.elapsedBeforeMs = timerElapsedMs(); state.timer.startedAt = null; state.timer.status = 'paused'; saveState({ backup: false }); renderRoute(false);
@@ -1625,15 +1677,8 @@
     if (button.dataset.grimoireEvaluation) return routeTo('learn','course',button.dataset.grimoireCourse,'evaluation',button.dataset.grimoireEvaluation,...(button.dataset.grimoireNode?[button.dataset.grimoireNode]:[]));
     if (button.dataset.grimoireRoute) return routeTo(...button.dataset.grimoireRoute.split('/'));
     if (button.dataset.route) return routeTo(button.dataset.route, ...(button.dataset.routeSub ? [button.dataset.routeSub] : []));
-    if(button.dataset.trainingHint!==undefined) {
-      window.NexoAcademicTraining?.hint();return;
-    }
-    if(button.dataset.trainingNext!==undefined)return window.NexoAcademicTraining?.next();
-    if(button.dataset.trainingStop!==undefined){window.NexoAcademicTraining?.stop();return renderRoute(false);}
-    if(button.dataset.trainingReset!==undefined)return window.NexoAcademicTraining?.reset();
     if(button.dataset.rescueNext!==undefined)return window.NexoAcademicRescue?.next();
     if(button.dataset.rescueRetry!==undefined)return window.NexoAcademicRescue?.retry();
-    if (button.dataset.homeStart) { state.timer.subject=button.dataset.homeStart; saveState({backup:false}); return routeTo('hub','timer'); }
     if (button.dataset.action === 'toggle-more') return toggleMore(button);
     if (button.dataset.openSubject) return routeTo('subject', button.dataset.openSubject);
     if (button.dataset.openLesson) return openLesson(button.dataset.openLesson, button.dataset.mode || null);
@@ -1664,7 +1709,7 @@
     if (button.dataset.deleteAbsence) return removeWithUndo(state.absences, button.dataset.deleteAbsence, 'Inasistencia');
     if (button.dataset.action === 'timer-start') return timerStart();
     if (button.dataset.action === 'timer-pause') return timerPause();
-    if (button.dataset.action === 'timer-finish') return timerFinish();
+    if (button.dataset.action === 'timer-finish') { if (button.closest('.home-clock')) sparkBurst(button); return timerFinish(); }
     if (button.dataset.action === 'timer-reset') return timerReset();
     if (button.dataset.action === 'exercise-hint') { const p = state.practice[button.dataset.exerciseId] || { attempts: 0 }; p.hintOpen = !p.hintOpen; if (p.hintOpen) p.hintUsed = true; state.practice[button.dataset.exerciseId] = p; saveState({ backup: false }); return renderRoute(false); }
     if (button.dataset.action === 'exercise-retry') { const p = state.practice[button.dataset.exerciseId] || {}; p.checked = false; delete p.selected; state.practice[button.dataset.exerciseId] = p; saveState({ backup: false }); return renderRoute(false); }
@@ -1814,9 +1859,6 @@
 
   document.addEventListener('submit', event => {
     event.preventDefault(); const form = event.target;
-    if(form.dataset.trainingSetup!==undefined)return window.NexoAcademicTraining?.start(form);
-    if(form.dataset.trainingCase)return window.NexoAcademicTraining?.answer(form)
-      .catch(()=>showToast('No se pudo guardar el intento. Inténtalo de nuevo.'));
     if(form.dataset.rescueCase)return window.NexoAcademicRescue?.answer(form)
       .catch(()=>showToast('No se pudo guardar el intento de Rescate.'));
     if (form.dataset.structuredCase) {

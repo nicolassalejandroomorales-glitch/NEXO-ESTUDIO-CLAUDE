@@ -5,8 +5,11 @@
 - spec: docs/inicio-pixelart/SPEC.md
 
 ## Hecho
+- Texto del Inicio rehecho (17 oct): letras pixel propias, carteles colgados de la viga en vez de tarjetas, reloj con hora y datos en pixel, título viejo quitado. Falta aprobación visual.
+- Animaciones nuevas (17 oct): nubes grandes y rápidas con sombra en el piso, brillo que recorre la hiedra, hojas y páginas que caen, poción que burbujea, polvo de luz y luciérnagas de noche; reloj con engranaje, orbe, péndulo, matraz y chispas al terminar. Ventana ya no es tocable. Falta aprobación visual.
+- Reloj de la torre en el Inicio (17 oct): hora y momento del día, cronómetro con Estudiar/Pausar/Terminar, minutos de hoy y próxima evaluación; falta aprobación visual de Niquito.
 - Refugio en pixel art de verdad, ya es el Inicio por defecto.
-- Ventana según la hora, noche cálida, luz continua, 7+ objetos tocables.
+- Ventana según la hora, noche cálida, luz continua, objetos tocables.
 - Clima real (Open-Meteo) y escenas pintadas por luz (sol, nublado, tarde, noche) con `refugio-vida.js`, ya en master (14 oct).
 - Arreglos de piso, sombrero y botas.
 

@@ -20,6 +20,9 @@ description: Reglas del Inicio de Nexo (refugio, escena, luz, objetos tocables, 
 - Toda capa de luz usa `--w-*` o `--sun` / `--lamps` (cambio gradual). **No** crear reglas por estado `body[data-nexo-time=...]`.
 - Respetar `prefers-reduced-motion`, `data-nexo-ambient-motion="reduced"`, `data-nexo-quality="low"` y `body.ambient-paused`.
 - Móvil (≤700 px): la sala se desliza de lado dentro de `.home-pan` (no se recorta).
+- Vida extra del refugio (17 oct): `ambient/refugio-vida.js` (`drawExtras`) suma sombra de nubes en el piso, ola de luz en la hiedra, hojas y páginas que caen, burbujas y vapor de la poción, polvo de luz y luciérnagas. La ventana ya no es tocable.
+- Texto del Inicio (17 oct): letras pixel propias en `design-system/pixel-text.js` (`NexoPixelText.render`, escala entera con `--s`); las 3 tarjetas son carteles colgados de una viga (`design-system/home-signs.css`, marcado en `renderHomeRpg`). Los nombres `evaluation-board`, `day-paper`, `continue-volume` y `evaluation-note` se mantienen como ganchos de `planner/avisos.js` y `platform/animation.js`. El título "Un lugar para aprender" se quitó.
+- Reloj de la torre (arriba al centro, `.home-clock` en `update01.css`, marcado en `homeClockMarkup` de `app.js`): marco 9-slice + engranaje, orbe y hiedra animados por tiras de cuadros. Se dibujan con `python tools/reloj-pixel/build_reloj.py`.
 - Objetos: ventana (pulso de luz), báculo → Tienda, sillón → Perfil, mapa → Bitácora, pergamino → Calendario, estantería → Biblioteca, globo → Mapa de conocimiento, escritorio → Continuar estudiando.
 
 ## Entrega
