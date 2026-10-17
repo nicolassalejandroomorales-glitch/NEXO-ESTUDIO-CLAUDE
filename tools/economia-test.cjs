@@ -21,6 +21,14 @@ assert.equal(T.claimDaily(st,'2026-10-17').ok,false);
 assert.equal(T.claimDaily(st,'2026-10-18').ok,true);
 assert.equal(T.shopOf(st).chests,2);
 
+// Hitos: 1 cofre por logro nuevo y no se repite.
+st={coins:0};
+assert.deepEqual([...T.claimMilestones(st,{bosses:['amina'],guides:['g1'],streak:8})],['jefe:amina','guia:g1','racha:7']);
+assert.equal(T.shopOf(st).chests,3);
+assert.deepEqual([...T.claimMilestones(st,{bosses:['amina'],guides:['g1'],streak:8})],[]);
+assert.deepEqual([...T.claimMilestones(st,{bosses:['amina','ciclo'],streak:14})],['jefe:ciclo','racha:14']);
+assert.equal(T.shopOf(st).chests,5);
+
 // Abrir sin cofres falla.
 assert.equal(T.openChest({coins:0}).ok,false);
 

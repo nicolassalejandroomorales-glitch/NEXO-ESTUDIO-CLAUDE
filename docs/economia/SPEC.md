@@ -49,11 +49,11 @@ Una economía donde los átomos (⚛) se ganan aprendiendo de verdad y se gastan
 - `dist/economy/tienda.js` (lógica) + Tienda en `home-pet.js` (`wireShop`) + prueba `tools/economia-test.cjs`.
 - Números: cofre 70 ⚛; rarezas 60/28/10/2 % (común/poco común/raro/legendario); garantía raro+ cada 10 cofres; repetido da 10/20/40/80 polvo; compra directa 30/60/120/240 polvo; 1 cofre diario gratis.
 - El Vestuario (Perfil › Mascota) solo muestra accesorios que tienes.
+- Cofres por hitos: 1 por jefe vencido (PEP 1), 1 por guía completada y 1 por racha de 7, 14 y 30 días; cada logro paga una sola vez (`claimMilestones`). Se entregan al abrir la Tienda o al completar una guía.
 - Solo accesorios dentro de los cofres; solo invitados (con cuenta en la nube la Tienda queda bloqueada).
 
 ## Pendiente (por decidir)
 - Cofres por categoría y temáticos por ramo, objetos del refugio y skins dentro de los cofres.
-- Dar cofres por hitos (clase terminada, jefe, racha): ya existe `grantChest(state, n)`, falta engancharlo.
 - Animación de apertura más elaborada (hoy: aparece el objeto con brillo del color de su rareza).
 - Ajustar números tras probar cuánto ⚛ se gana de verdad.
 - Premio del tutorial (propuesta 150 ⚛).
