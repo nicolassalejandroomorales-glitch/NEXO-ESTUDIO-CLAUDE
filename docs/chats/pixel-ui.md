@@ -15,7 +15,7 @@
 - Decidir la **navegación**: la barra lateral convive con las escenas tocables; Niquito duda de que haga falta.
 - Diseñar **botones y paneles con personalidad** (hoy "feos, sin personalidad") como un kit compartido en `tools/pixel-ui/`.
 - Mejorar la **versión de computador**, que no le gusta.
-- Rehacer **Aprender** (su grimorio es "antiestético") y preguntar a qué se refiere con "la biblioteca Nexo".
+- Aprender se rehace en su propio chat (`docs/chats/aprender.md`, Sótano de los Cristales). Falta preguntar a qué se refiere con "la biblioteca Nexo".
 - Decidir si grimorio, clases, tienda y juegos pasan a pixel art con el mismo kit.
 
 ## Ideas

@@ -16,3 +16,6 @@ art-source/pdfs/
 
 # Carpeta generada por tools/build-beta.cjs (versión para compartir)
 beta/
+
+# Animaciones de prueba de Aprender (pesadas; se regeneran con tools/aprender-pasillo/build_sotano.py)
+docs/aprender-pasillo/*.gif
