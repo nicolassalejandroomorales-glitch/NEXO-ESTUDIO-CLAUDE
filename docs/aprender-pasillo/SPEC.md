@@ -27,7 +27,18 @@ Se avanza paso a paso (toque o flechas, como en Vampire Crawlers), se gira en lo
 - `tools/aprender-pasillo/build_sotano.py`: motor de trazado de rayos en numpy (pasillo principal + pasillo lateral en un cruce, nichos, costillas, cámara con avance, giro e inclinación), pintado con las rampas de `tools/home-pixel/pixel.py` (pixel art, no filtro). Estilos en `STYLES` (a/b/c; **B por defecto**).
 - `tools/aprender-pasillo/murales.py`: los 8 murales como texturas 64×124 que se dibujan por cuadro según el tiempo; también la fuente 5×5 compartida.
 - Correr: `python tools/aprender-pasillo/build_sotano.py pasos|giro|puerta` → `docs/aprender-pasillo/sotano-*.gif` (los GIF pesan ~15 MB y **no se suben a git**: se regeneran con el script; ~4–7 min cada uno).
-- Para la app (por decidir): reproducir cuadros pre-renderizados (tira de PNG/WebP por paso, giro y puerta) o portar el motor a WebGL/canvas en tiempo real.
+- **Para la app: híbrido** (Niquito, 17 oct). Pasillo, giros y puertas = cuadros pre-renderizados por el script (WebP chicos, 320×200), con un loop corto en cada parada para que murales y antorchas sigan vivos. La Cámara del ramo (abajo) = canvas en vivo, porque depende del estado real (como hoy `dist/classes/willow-tower.js`).
+
+## Al otro lado del portal: la Cámara del ramo (diseño, 17 oct; piloto Orgánica II)
+- **Forma**: cripta **circular** de piedra y cristal. Se aterriza del remolino al centro; desde ahí se gira (igual que en el pasillo) para mirar cada **alcoba = un tema**.
+- **Llegada**: apareces ya **mirando lo que toca hoy** (la alcoba recomendada o la de cristales más apagados). Un toque y estás estudiando.
+- **Centro: sauce de cristal** que nace del suelo; cada rama = un concepto y **muestra el dominio** (brote → verde → flor). Reusa la idea y los estados de la Torre del Sauce (`willow-tower.js`), con el estilo B de piedra mágica.
+- **Repasos = cristales que se apagan**: en las paredes de cada alcoba hay un cristal por concepto; se apaga a medida que el FSRS dice que se está olvidando. Tocar uno apagado = repaso rápido de ese concepto. (Así los cristales del sótano pasan a tener función.)
+- **Cada alcoba**: un **mural animado del tema** al fondo y un **estante de frascos**, un frasco por misión, lleno y brillante según la evidencia demostrada (no por haberla "visto").
+- **Al tocar un frasco**: la cámara hace **zoom a la mesa de la alcoba** y la clase se juega ahí, con la cripta de fondo (sin corte de pantalla). Reusa el motor de clases (`player.js`), cambia el marco.
+- **Ruta: todo abierto + guía**. Nada se bloquea; la alcoba de hoy brilla más y la **cuenta regresiva de la PEP** está grabada en la piedra ("PEP 1 · 10 días"). Resuelve el riesgo de trabar a alguien cerca de una prueba.
+- **Temas de la próxima PEP**: alcobas **veladas** con raíces y neblina y la fecha en que llega el material; se ven, aún sin misiones.
+- Orgánica II, PEP 1 (27 oct): alcobas **Aminas** (`org-01`), **Aromáticos** (`org-04` aromaticidad + `org-05` sustitución electrofílica) y **Heterociclos** (aún sin clase: su estante queda vacío hasta crearla); las de la PEP 2, veladas.
 
 ## Criterios de aceptación (de la prueba)
 - Avanzar, girar y abrir una puerta se ven fluidos y con profundidad real (no "PNG plano").
@@ -40,9 +51,9 @@ Se avanza paso a paso (toque o flechas, como en Vampire Crawlers), se gira en lo
 - Cuando Niquito no sabe explicar qué falla: ofrecer **3 versiones lado a lado** y que elija.
 
 ## Pendiente
-- **Qué hay al otro lado del portal**: el aula/sala del ramo (antes se había pensado una sala con estaciones por tema y un objeto central que se llena con el dominio; revisar con el estilo nuevo).
-- Conectar con la app: formato (cuadros pre-renderizados vs tiempo real), peso, móvil (390) y escritorio (1440).
+- **Boceto animado de la Cámara de Orgánica II** (Opus, dirección de arte): llegada desde el remolino, giro entre las 3 alcobas, sauce de cristal y cristales encendidos/apagados. Ofrecer 3 versiones si no convence.
+- Murales de las alcobas: definir qué muestra cada uno (ej. Aminas = basicidad y par libre; Aromáticos = Hückel; Heterociclos = piridina vs pirrol), verificado contra el material del ramo.
+- Llevar el pasillo a la app con cuadros pre-renderizados (Sonnet · alto): peso, móvil (390) y escritorio (1440).
 - Pulir: cristales que aún parecen pegados, legibilidad de murales vistos de lado.
-- Si "desbloquear al dominar" puede trabar a alguien cerca de una PEP (¿salida para saltar?).
 - Relación con la Torre (`docs/mundo-torre/SPEC.md`: pisos, escalera, ascensor).
 - Tutorial: su recorrido de Aprender espera a este rediseño (`docs/chats/tutorial.md`).
