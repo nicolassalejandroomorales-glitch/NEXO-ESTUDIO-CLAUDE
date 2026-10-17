@@ -83,13 +83,13 @@
     ':': ['0','1','0','0','1','0','0']
   };
   function pixelDigits(value) {
-    let x = 0, blocks = '';
+    let x = 0, d = '';
     for (const glyph of String(value)) {
       const rows = pixelGlyphs[glyph] || pixelGlyphs['0'];
-      rows.forEach((row, y) => [...row].forEach((cell, dx) => { if (cell === '1') blocks += `<rect x="${x + dx}" y="${y}" width="1" height="1"/>`; }));
+      rows.forEach((row, y) => { for (const m of row.matchAll(/1+/g)) d += `M${x + m.index} ${y}h${m[0].length}v1h-${m[0].length}z`; });
       x += rows[0].length + 1;
     }
-    return `<svg class="pixel-digits" viewBox="0 0 ${Math.max(1, x - 1)} 7" aria-hidden="true" focusable="false" shape-rendering="crispEdges">${blocks}</svg>`;
+    return `<svg class="pixel-digits" viewBox="0 0 ${Math.max(1, x - 1)} 7" aria-hidden="true" focusable="false" shape-rendering="crispEdges"><path d="${d}"/></svg>`;
   }
   const subjectFor = id => SUBJECTS.find(subject => subject.id === id) || SUBJECTS[0];
   const allLessons = subjectId => subjectFor(subjectId).peps.flatMap(pep => pep.lessons);
@@ -423,7 +423,7 @@
     const level = Math.floor(state.xp / 100) + 1;
     document.querySelectorAll('.level-chip').forEach(node => { node.textContent = `Nv. ${level}`; });
     const coins = document.querySelector('#railCoins'); if (coins) coins.textContent = Math.floor(state.coins);
-    const headerCoins = document.querySelector('#headerCoins'); if (headerCoins) headerCoins.textContent = Math.floor(state.coins);
+    const headerCoins = document.querySelector('#headerCoins'); if (headerCoins && headerCoins.dataset.n !== String(Math.floor(state.coins))) { headerCoins.dataset.n = String(Math.floor(state.coins)); headerCoins.innerHTML = pixelText(headerCoins.dataset.n, { shadow: true }); }
     document.body.classList.toggle('reduce-motion', !state.settings.motion);
     window.NexoPerformance?.apply(state.settings);
     window.NexoAudio?.configure(state.settings);
@@ -548,7 +548,14 @@
       if (active) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current');
     });
   }
+  // Transición entre secciones (portal que se abre desde donde tocaste): ver NexoPixelUI.transition. El grimorio, el tutorial y las clases tienen la suya.
   function renderRoute(moveFocus = true) {
+    const from = app.dataset.renderedRoute || '', to = parseRoute().join('/');
+    const own = route => ['tutorial', 'lesson'].includes(route.split('/')[0]) || (route.split('/')[0] === 'learn' && route.split('/')[1] === 'course');
+    if (!from || from === to || own(from) || own(to) || !window.NexoPixelUI) return paintRoute(moveFocus);
+    window.NexoPixelUI.transition(() => paintRoute(moveFocus));
+  }
+  function paintRoute(moveFocus) {
     const previousRoute=app.dataset.renderedRoute;
     window.NexoAnimation?.prepare(app);
     if (document.body.classList.contains('in-classroom')) window.NexoAmbientTime?.stopPreview?.(); // la ventana de la torre puede haber cambiado la hora
@@ -560,9 +567,6 @@
     window.NexoPet?.cleanup();
     const route = parseRoute();
     const routeChanged=previousRoute!==route.join('/');
-    const roomFamily=parts=>['subject','lesson','subjects','library','knowledge','inspector','practice','reviews','rescue'].includes(parts[0])?'learn':
-        ['mascot','stats','settings','history'].includes(parts[0])?'profile':parts[0];
-    app.dataset.chapterTransition=previousRoute&&roomFamily(previousRoute.split('/'))!==roomFamily(route)?'1':'0';
     if(routeChanged)window.NexoActiveStudy?.stop();
     if (routeChanged) {
       if (route[0]==='lesson') cloud.track('lesson_started',{lesson_id:route[1]});
@@ -593,7 +597,7 @@
       lesson: () => renderLesson(route[1]),
       practice: () => renderPractice(route[1] || 'exercises', route[2]),
       planner: () => window.NexoEstudio ? window.NexoEstudio.render(app, route[1], orgBridge()) : renderPlanner(route[1] || 'calendar'),
-      timer: renderTimer,
+      timer: renderHome,
       stats: renderStats,
       history: () => window.NexoHistory.render(app,cloud,state),
       library: renderAcademicLibrary,
@@ -735,9 +739,6 @@
     window.NexoHomeScene.enhancePan?.(app);
     petBind(); window.NexoPet?.mountHome(app.querySelector('.home-art-plane')); window.NexoPet?.checkWeather();
     window.NexoOrgAvisos?.home(app, orgBridge());
-  }
-
-  function renderTimer() {
     startHomeClock();
   }
 
@@ -745,16 +746,26 @@
   const dayMoment = hour => hour < 6 ? 'madrugada' : hour < 12 ? 'mañana' : hour < 19 ? 'tarde' : 'noche';
   const GREETINGS = { madrugada: 'Noche larga', mañana: 'Buen día', tarde: 'Buena tarde', noche: 'Buena noche' };
   const pixelText = (text, options) => window.NexoPixelText.render(text, options);
+  // Tamaño del reloj a gusto: 5 pasos, se recuerda en este dispositivo (no viaja con la cuenta).
+  const CLOCK_SCALES = [0.7, 0.85, 1, 1.15, 1.3];
+  const clockScale = () => { try { const v = Number(localStorage.getItem('nexo.clockScale')); return CLOCK_SCALES.includes(v) ? v : 1; } catch (_) { return 1; } };
+  function resizeClock(step) {
+    const next = CLOCK_SCALES[Math.max(0, Math.min(CLOCK_SCALES.length - 1, CLOCK_SCALES.indexOf(clockScale()) + step))];
+    try { localStorage.setItem('nexo.clockScale', String(next)); } catch (_) { /* sin almacenamiento: vale solo hasta recargar */ }
+    document.querySelector('.home-clock')?.style.setProperty('--cs', next);
+    document.querySelectorAll('[data-clock-size]').forEach(button => { button.disabled = (step < 0 && next === CLOCK_SCALES[0] && button.dataset.clockSize === '-1') || (step > 0 && next === CLOCK_SCALES[CLOCK_SCALES.length - 1] && button.dataset.clockSize === '1'); });
+  }
   function homeClockMarkup(nextEvaluation, studiedMinutes) {
     const timer = state.timer, running = timer.status === 'running', paused = timer.status === 'paused';
     const days = nextEvaluation ? daysBetween(todayKey(), nextEvaluation.event.date) : null;
     const countdown = days === null ? 'Sin pruebas a la vista' : `${nextEvaluation.event.title} · ${days <= 0 ? 'hoy' : days === 1 ? 'mañana' : `${days} días`}`;
     const pt = (text, shadow = false) => pixelText(text, { shadow });
-    return `<aside class="home-clock ${running ? 'is-running' : ''}" aria-label="Reloj de estudio">
+    return `<aside class="home-clock ${running ? 'is-running' : ''}" style="--cs:${clockScale()}" aria-label="Reloj de estudio">
       <i class="hc-gear" aria-hidden="true"></i><i class="hc-orb" aria-hidden="true"></i><i class="hc-leaf hc-leaf-l" aria-hidden="true"></i><i class="hc-leaf hc-leaf-r" aria-hidden="true"></i><i class="hc-pendulum" aria-hidden="true"></i><i class="hc-flask" aria-hidden="true"></i>
       <div class="hc-now"><div class="hc-hour" data-hc-time role="text"></div><div class="hc-greet" data-hc-moment></div></div>
       <div class="hc-timer"><div class="hc-label">${pt(`${running ? 'Estudiando' : paused ? 'En pausa' : 'Cronómetro'} · ${subjectFor(timer.subject).short}`)}</div><div class="hc-digits" id="homeTimer" role="timer">${pixelDigits(formatClock(timerElapsedMs()))}</div></div>
       <div class="hc-controls">${running ? `<button class="hc-btn pu-btn" data-action="timer-pause" aria-label="Pausar">${pt('Pausar')}</button>` : `<button class="hc-btn hc-primary pu-btn" data-action="timer-start" aria-label="${paused ? 'Seguir' : 'Estudiar'}">${pt(paused ? 'Seguir' : 'Estudiar')}</button>`}${timerElapsedMs() >= 1000 ? `<button class="hc-btn pu-btn" data-action="timer-finish" aria-label="Terminar">${pt('Terminar')}</button>` : ''}</div>
+      <div class="hc-size" role="group" aria-label="Tamaño del reloj"><button class="pu-btn" data-clock-size="-1" aria-label="Achicar reloj">${pt('-')}</button><button class="pu-btn" data-clock-size="1" aria-label="Agrandar reloj">${pt('+')}</button></div>
       <div class="hc-meta"><span class="hc-plate">${pt(`Hoy · ${studiedMinutes} min`)}</span><span class="hc-plate hc-plate-exam">${pt(countdown)}</span></div>
     </aside>`;
   }
@@ -772,6 +783,7 @@
     setTimeout(() => made.forEach(spark => spark.remove()), 1100);
   }
   function startHomeClock() {
+    clearInterval(timerTicker);
     const tick = () => {
       const now = new Date(), time = document.querySelector('[data-hc-time]');
       if (!time) return;
@@ -780,27 +792,11 @@
       const greet = document.querySelector('[data-hc-moment]');
       if (greet.dataset.m !== moment) { greet.dataset.m = moment; greet.innerHTML = pixelText(GREETINGS[moment], { shadow: false }); }
       const digits = document.querySelector('#homeTimer');
-      if (digits && state.timer.status === 'running') digits.innerHTML = pixelDigits(formatClock(timerElapsedMs()));
+      const elapsed = formatClock(timerElapsedMs());
+      if (digits && state.timer.status === 'running' && digits.dataset.t !== elapsed) { digits.dataset.t = elapsed; digits.innerHTML = pixelDigits(elapsed); digits.setAttribute('aria-label', elapsed); }
     };
     tick();
-    timerTicker = setInterval(tick, 1000);
-    const running = state.timer.status === 'running';
-    const paused = state.timer.status === 'paused';
-    app.innerHTML = `<section class="page timer-page-v10 storybook-v10">
-      <article class="timer-workbench-v10">
-        <div class="timer-head-v10"><span>${running ? 'SESIÓN EN CURSO' : paused ? 'SESIÓN EN PAUSA' : 'LISTO PARA COMENZAR'}</span><i class="live-pill ${state.timer.status}">${running ? 'EN CURSO' : paused ? 'PAUSADO' : 'LISTO'}</i></div>
-        <label class="timer-subject-v10">Ramo<select id="timerSubject" ${running ? 'disabled' : ''}>${SUBJECTS.map(s => `<option value="${s.id}" ${state.timer.subject === s.id ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select></label>
-        <div class="clock clock-v10" id="clock" role="timer" aria-label="${formatClock(timerElapsedMs())}">${pixelDigits(formatClock(timerElapsedMs()))}</div>
-        <div class="timer-tiers" aria-label="Átomos por sesión">${[[5,3],[15,15],[30,25],[60,100],[120,250]].map(([min,atoms]) => `<span><b>${min} min</b><small>${atoms} átomos</small></span>`).join('')}</div>
-        <div class="button-row timer-controls-v10">
-          ${running ? '<button class="secondary-btn" data-action="timer-pause">Pausar</button>' : `<button class="primary-story-v10" data-action="timer-start">${paused ? 'Continuar' : 'Iniciar estudio'}</button>`}
-          <button class="secondary-btn" data-action="timer-finish" ${timerElapsedMs() < 1000 ? 'disabled' : ''}>Finalizar y guardar</button>
-          <button class="text-btn danger" data-action="timer-reset" ${timerElapsedMs() < 1000 ? 'disabled' : ''}>Descartar</button>
-        </div>
-        ${state.inventory.includes('focus-mode') ? `<label class="toggle"><input type="checkbox" data-setting="focusMode" ${state.settings.focusMode ? 'checked' : ''}><span>Modo sin distracciones</span></label>` : ''}
-      </article>
-    </section>`;
-    startClockTicker();
+    timerTicker = setInterval(tick, 250); // cada cuarto de segundo para que los segundos cambien justo en su momento; solo se repinta si cambió el texto
   }
 
   function lessonQuickRow(id) {
@@ -811,16 +807,6 @@
     const subject = subjectFor(event.subject), diff = daysBetween(todayKey(), event.date);
     return `<div class="compact-row static"><span class="date-box"><b>${parseDay(event.date).getDate()}</b><small>${new Intl.DateTimeFormat('es-CL', { month: 'short' }).format(parseDay(event.date))}</small></span><div><b>${esc(event.title)}</b><small>${subject.name} · ${diff < 0 ? 'pasó' : diff === 0 ? 'hoy' : `faltan ${diff} días`}</small></div></div>`;
   }
-
-  function startClockTicker() {
-    if (state.timer.status !== 'running') return;
-    timerTicker = setInterval(() => {
-      const elapsed = timerElapsedMs(), clock = document.querySelector('#clock'); if (clock) { clock.innerHTML = pixelDigits(formatClock(elapsed)); clock.setAttribute('aria-label', formatClock(elapsed)); }
-      document.querySelectorAll('[data-action="timer-finish"],[data-action="timer-reset"]').forEach(button => { button.disabled = elapsed < 1000; });
-    }, 1000);
-  }
-
-
 
   function grimoireShell(subject, title, subtitle, content, aside, pageLabel) {
     const courses = SUBJECTS.map(item => `<button class="grimoire-tab ${subject?.id===item.id?'active':''}" data-grimoire-route="learn/course/${item.id}" ${subject?.id===item.id?'aria-current="page"':''} title="${esc(item.name)}"><span aria-hidden="true">${window.NexoRooms.courses[item.id]?.symbol||item.icon}</span><span>${esc(item.short)}</span></button>`).join('');
@@ -1183,7 +1169,7 @@
 
   function renderHub(tab = 'timer') {
     const active = ['timer', 'calendar', 'grades'].includes(tab) ? tab : 'timer';
-    if (active === 'timer') renderTimer();
+    if (active === 'timer') renderHome();
     else renderPlanner(active, true);
     const page = app.querySelector('.page');
     page.classList.add('rpg-inner');
@@ -1715,6 +1701,7 @@
     }
     if (button.dataset.profileDeleteGrade) return removeGrade(button.dataset.profileDeleteGrade, ui.profileSubject);
     if (button.dataset.deleteAbsence) return removeWithUndo(state.absences, button.dataset.deleteAbsence, 'Inasistencia');
+    if (button.dataset.clockSize) return resizeClock(Number(button.dataset.clockSize));
     if (button.dataset.action === 'timer-start') return timerStart();
     if (button.dataset.action === 'timer-pause') return timerPause();
     if (button.dataset.action === 'timer-finish') { if (button.closest('.home-clock')) sparkBurst(button); return timerFinish(); }

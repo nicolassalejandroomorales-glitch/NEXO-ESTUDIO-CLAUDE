@@ -814,7 +814,7 @@
     8: ['01110', '10001', '10001', '01110', '10001', '10001', '01110'], 9: ['01110', '10001', '10001', '01111', '00001', '00001', '11110'],
     '.': ['0', '0', '0', '0', '0', '0', '1'], ',': ['0', '0', '0', '0', '0', '1', '1'], ':': ['0', '1', '0', '0', '1', '0', '0'],
     '!': ['1', '1', '1', '1', '1', '0', '1'], '?': ['01110', '10001', '00001', '00110', '00100', '00000', '00100'],
-    '-': ['00000', '00000', '00000', '11111', '00000', '00000', '00000'], '·': ['0', '0', '0', '1', '0', '0', '0'],
+    '-': ['00000', '00000', '00000', '11111', '00000', '00000', '00000'], '+': ['00000', '00100', '00100', '11111', '00100', '00100', '00000'], '·': ['0', '0', '0', '1', '0', '0', '0'],
     '/': ['00001', '00010', '00010', '00100', '01000', '01000', '10000'], '%': ['11001', '11010', '00010', '00100', '01000', '01011', '10011'],
     '→': ['00000', '00100', '00010', '11111', '00010', '00100', '00000'], "'": ['1', '1', '0', '0', '0', '0', '0'],
     ' ': ['000', '000', '000', '000', '000', '000', '000'],
@@ -823,18 +823,21 @@
   const MARKS = { 'Á': ['A', ['00010', '00100']], 'É': ['E', ['00010', '00100']], 'Í': ['I', ['00010', '00100']], 'Ó': ['O', ['00010', '00100']],
     'Ú': ['U', ['00010', '00100']], 'Ñ': ['N', ['01010', '10100']], 'Ü': ['U', ['01010', '00000']] };
 
+  // Una sola <path> por texto (tramos horizontales de píxeles) en vez de un <rect> por píxel: el Inicio pasó de ~6000 nodos a unos pocos.
+  const runs = (row, x, y) => { let d = ''; for (const m of row.matchAll(/1+/g)) d += `M${x + m.index} ${y}h${m[0].length}v1h-${m[0].length}z`; return d; };
+
   function render(text, { shadow = true } = {}) {
     const chars = [...String(text).toUpperCase()];
     const accented = chars.some(ch => MARKS[ch]), top = accented ? 0 : 2;
-    let x = 0, cells = '';
+    let x = 0, d = '';
     for (const ch of chars) {
       const mark = MARKS[ch], rows = mark ? G[mark[0]] : G[ch] || G['?'];
-      rows.forEach((row, y) => [...row].forEach((cell, dx) => { if (cell === '1') cells += `<rect x="${x + dx}" y="${y + 2}" width="1" height="1"/>`; }));
-      if (mark) mark[1].forEach((row, y) => [...row].forEach((cell, dx) => { if (cell === '1') cells += `<rect x="${x + dx}" y="${y}" width="1" height="1"/>`; }));
+      rows.forEach((row, y) => { d += runs(row, x, y + 2); });
+      if (mark) mark[1].forEach((row, y) => { d += runs(row, x, y); });
       x += rows[0].length + 1;
     }
     const w = Math.max(1, x - 1), h = 9 - top, pad = shadow ? 1 : 0;
-    const body = shadow ? `<g class="pt-shadow" transform="translate(1 1)">${cells}</g><g class="pt-ink">${cells}</g>` : `<g class="pt-ink">${cells}</g>`;
+    const body = shadow ? `<path class="pt-shadow" transform="translate(1 1)" d="${d}"/><path class="pt-ink" d="${d}"/>` : `<path class="pt-ink" d="${d}"/>`;
     return `<svg class="pixel-text" style="--u:${h + pad}" viewBox="0 ${top} ${w + pad} ${h + pad}" role="img" aria-label="${String(text).replace(/"/g, '&quot;')}" shape-rendering="crispEdges" focusable="false">${body}</svg>`;
   }
   window.NexoPixelText = Object.freeze({ render });
@@ -866,8 +869,28 @@
     if (button && !button.disabled && button.getAttribute('aria-disabled') !== 'true') window.NexoAudio?.play('click');
   }, { passive: true });
 
+  // Portal entre secciones: la pantalla nueva se abre en círculo desde el último toque (o el centro si fue con teclado).
+  // Usa View Transitions; sin soporte, con movimiento reducido o calidad baja la pantalla solo cambia.
+  let point = null, busy = false;
+  document.addEventListener('pointerdown', event => { point = { x: event.clientX, y: event.clientY, at: Date.now() }; }, { passive: true, capture: true });
+  const calm = () => !document.startViewTransition || busy || matchMedia('(prefers-reduced-motion: reduce)').matches
+    || document.body.classList.contains('reduce-motion') || document.body.dataset.nexoAmbientMotion === 'reduced' || document.body.dataset.nexoQuality === 'low';
+  function transition(update) {
+    if (calm()) return update();
+    const fresh = point && Date.now() - point.at < 1500, root = document.documentElement.style;
+    root.setProperty('--vt-x', `${fresh ? point.x : innerWidth / 2}px`);
+    root.setProperty('--vt-y', `${fresh ? point.y : innerHeight / 3}px`);
+    busy = true;
+    let done = false;
+    const once = () => { if (done) return; done = true; busy = false; update(); };
+    try {
+      document.startViewTransition(once).finished.catch(() => {}).finally(() => { busy = false; });
+      setTimeout(once, 800); // si el navegador no alcanza a pintar el cuadro (pestaña oculta), la pantalla igual cambia
+    } catch (_) { once(); }
+  }
+
   upgradeNav();
-  window.NexoPixelUI = Object.freeze({ upgradeNav });
+  window.NexoPixelUI = Object.freeze({ upgradeNav, transition });
 })();
 
 ;

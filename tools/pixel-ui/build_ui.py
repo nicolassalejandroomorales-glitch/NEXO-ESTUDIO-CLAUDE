@@ -298,6 +298,10 @@ ICONS = {
     'organizacion': ['..oo........oo..', '..ol........ld..', '.oooooooooooooo.', 'olllllllllllllmo', 'oaaaaaaaaaaaaaao', 'olmmmmmmmmmmmmdo',
                      'olmlmmlmmlmmmddo', 'olmmmmmmmmmmmmdo', 'olmmlmmlmmlmmddo', 'olmmmmmmmmmmmmdo', 'olmlmmlmmlmmmddo', 'olmmmmmmmmmmmmdo',
                      'oddddddddddddddo', '.oooooooooooooo.', '................', '................'],
+    'tienda': ['.....oooooo.....', '....olllllmo....', '...ollmmmmmdo...', '...olmmmooodo...', '...olmmoaaodo...', '...olmmmooodo...', '....ommmmmdo....', '.....oodmdoo....',
+               '......odmdo.....', '......odmdo.....', '......odmdo.....', '......odmdo.....', '......odmdo.....', '......odmdo.....', '......oddo......', '................'],
+    'atomo': ['................', '.....oo..oo.....', '....olmooomo....', '...olmo.oo.omo..', '..olmo..oo..omo.', '..oomo.olmo.oo..', '..oo..olaamo.oo.', '.oo...olaamo..oo', '..oo..odaamo.oo.',
+              '..oomo.odmo.oo..', '..odmo..oo..omo.', '...odmo.oo.omo..', '....odmoooomo...', '.....oo..oo.....', '................', '................'],
     'perfil': ['......oooo......', '.....ollmmo.....', '.....olmmdo.....', '.....olmmdo.....', '.....omddo......', '......oddo......',
                '....oooooooo....', '..ooollllmmdoo..', '.oolllmmmmmddoo.', '.olllmmmmmmmddo.', '.olmmmmmmmmmmdo.', '.olmmmmmmmmmmdo.',
                '.oddddddddddddo.', '..oooooooooooo..', '................', '................'],
@@ -305,7 +309,7 @@ ICONS = {
 
 
 def iconos():
-    names = list(ICONS)
+    names = ['inicio', 'aprender', 'organizacion', 'perfil', 'tienda', 'atomo']
     sheet = Canvas(16 * len(names), 32)
     rest = {'o': ('brass', 0), 'l': ('brass', 4), 'm': ('brass', 3), 'd': ('brass', 1), 'a': ('crystal', 3)}
     act = {'o': ('brass', 1), 'l': ('rune', 6), 'm': ('rune', 4), 'd': ('rune', 2), 'a': ('crystal', 7)}

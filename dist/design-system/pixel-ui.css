@@ -39,16 +39,24 @@
 .pu-seal-1 { background-position-x:0; }
 .pu-seal-2 { background-position-x:calc(-18*var(--pu)*1px); }
 .pu-seal-3 { background-position-x:calc(-36*var(--pu)*1px); }
-.pu-ivy { position:absolute;z-index:2;width:calc(24*var(--pu)*1px);height:calc(44*var(--pu)*1px);background:url('../assets/pixel-ui/hiedra.png') 0 0 / calc(48*var(--pu)*1px) 100% no-repeat;image-rendering:pixelated;pointer-events:none;transform-origin:50% 0;animation:puIvy 5.5s ease-in-out infinite alternate; }
+.pu-ivy { will-change:transform;position:absolute;z-index:2;width:calc(24*var(--pu)*1px);height:calc(44*var(--pu)*1px);background:url('../assets/pixel-ui/hiedra.png') 0 0 / calc(48*var(--pu)*1px) 100% no-repeat;image-rendering:pixelated;pointer-events:none;transform-origin:50% 0;animation:puIvy 5.5s ease-in-out infinite alternate; }
 .pu-ivy-b { background-position-x:calc(-24*var(--pu)*1px);animation-duration:6.8s;animation-delay:-2s; }
 @keyframes puSeal { from { transform:scale(2.2) rotate(-25deg);opacity:0; } to { transform:scale(1) rotate(0);opacity:1; } }
 @keyframes puIvy { from { transform:rotate(-2.5deg); } to { transform:rotate(3deg); } }
 
 /* ---- barra lateral: íconos pixel (reposo latón apagado, activo oro) ---- */
-.nav-ico { flex:none;display:block;width:calc(16*var(--pu)*1px);height:calc(16*var(--pu)*1px);background:url('../assets/pixel-ui/iconos.png') calc(var(--ico,0)*-16*var(--pu)*1px) 0 / calc(64*var(--pu)*1px) calc(32*var(--pu)*1px) no-repeat;image-rendering:pixelated;transition:transform .3s cubic-bezier(.3,1.8,.5,1); }
+.nav-ico { flex:none;display:block;width:calc(16*var(--pu)*1px);height:calc(16*var(--pu)*1px);background:url('../assets/pixel-ui/iconos.png') calc(var(--ico,0)*-16*var(--pu)*1px) 0 / calc(96*var(--pu)*1px) calc(32*var(--pu)*1px) no-repeat;image-rendering:pixelated;transition:transform .3s cubic-bezier(.3,1.8,.5,1); }
 .nav-btn:hover .nav-ico { transform:translateY(-2px) scale(1.08); }
 .nav-btn.active .nav-ico { background-position-y:calc(-16*var(--pu)*1px);animation:puIcon 2.4s ease-in-out infinite; }
 @keyframes puIcon { 0%,100% { filter:drop-shadow(0 0 0 #ffd86000); } 50% { filter:drop-shadow(0 0 4px #ffd860cc); } }
 
-body[data-nexo-ambient-motion="reduced"] .pu-btn,body[data-nexo-ambient-motion="reduced"] .pu-btn::before,body[data-nexo-ambient-motion="reduced"] .pu-ivy,body[data-nexo-ambient-motion="reduced"] .pu-seal,body[data-nexo-ambient-motion="reduced"] .pu-bar>i,body[data-nexo-ambient-motion="reduced"] .nav-ico,body[data-nexo-quality="low"] .pu-ivy,body[data-nexo-quality="low"] .pu-bar>i { animation:none !important; }
+body.ambient-paused .pu-ivy,body.ambient-paused .pu-bar>i,body.ambient-paused .nav-ico,body[data-nexo-ambient-motion="reduced"] .pu-btn,body[data-nexo-ambient-motion="reduced"] .pu-btn::before,body[data-nexo-ambient-motion="reduced"] .pu-ivy,body[data-nexo-ambient-motion="reduced"] .pu-seal,body[data-nexo-ambient-motion="reduced"] .pu-bar>i,body[data-nexo-ambient-motion="reduced"] .nav-ico,body[data-nexo-quality="low"] .pu-ivy,body[data-nexo-quality="low"] .pu-bar>i { animation:none !important; }
 @media(prefers-reduced-motion:reduce) { .pu-btn,.pu-btn::before,.pu-btn::after,.pu-ivy,.pu-seal,.pu-bar>i,.nav-ico { animation:none !important;transition:none !important; } }
+
+/* ---- portal entre secciones (View Transitions): la pantalla nueva se abre en círculo desde el último toque ---- */
+#app { view-transition-name:page; }
+::view-transition-group(page) { animation-duration:.62s; }
+::view-transition-old(page) { animation:puPortalOut .5s ease-in both; }
+::view-transition-new(page) { animation:puPortalIn .62s cubic-bezier(.2,.75,.2,1) both; }
+@keyframes puPortalOut { to { opacity:.35;transform:scale(.985);filter:brightness(.7) saturate(.8); } }
+@keyframes puPortalIn { from { clip-path:circle(0 at var(--vt-x,50%) var(--vt-y,30%));filter:brightness(1.7); } 55% { filter:brightness(1.15); } to { clip-path:circle(150vmax at var(--vt-x,50%) var(--vt-y,30%));filter:none; } }

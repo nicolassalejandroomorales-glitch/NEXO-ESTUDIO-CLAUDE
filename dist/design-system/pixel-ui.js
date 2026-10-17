@@ -21,6 +21,26 @@
     if (button && !button.disabled && button.getAttribute('aria-disabled') !== 'true') window.NexoAudio?.play('click');
   }, { passive: true });
 
+  // Portal entre secciones: la pantalla nueva se abre en círculo desde el último toque (o el centro si fue con teclado).
+  // Usa View Transitions; sin soporte, con movimiento reducido o calidad baja la pantalla solo cambia.
+  let point = null, busy = false;
+  document.addEventListener('pointerdown', event => { point = { x: event.clientX, y: event.clientY, at: Date.now() }; }, { passive: true, capture: true });
+  const calm = () => !document.startViewTransition || busy || matchMedia('(prefers-reduced-motion: reduce)').matches
+    || document.body.classList.contains('reduce-motion') || document.body.dataset.nexoAmbientMotion === 'reduced' || document.body.dataset.nexoQuality === 'low';
+  function transition(update) {
+    if (calm()) return update();
+    const fresh = point && Date.now() - point.at < 1500, root = document.documentElement.style;
+    root.setProperty('--vt-x', `${fresh ? point.x : innerWidth / 2}px`);
+    root.setProperty('--vt-y', `${fresh ? point.y : innerHeight / 3}px`);
+    busy = true;
+    let done = false;
+    const once = () => { if (done) return; done = true; busy = false; update(); };
+    try {
+      document.startViewTransition(once).finished.catch(() => {}).finally(() => { busy = false; });
+      setTimeout(once, 800); // si el navegador no alcanza a pintar el cuadro (pestaña oculta), la pantalla igual cambia
+    } catch (_) { once(); }
+  }
+
   upgradeNav();
-  window.NexoPixelUI = Object.freeze({ upgradeNav });
+  window.NexoPixelUI = Object.freeze({ upgradeNav, transition });
 })();
