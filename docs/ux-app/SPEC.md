@@ -4,7 +4,7 @@ Tema: `docs/chats/pixel-ui.md`. Crítica de origen: `FEEDBACK-15OCT.md` y la del
 Estado: **implementado en la rama (17 oct 2026): kit, Inicio y barra lateral. Falta la aprobación visual de Niquito (ANTES/AHORA) y el merge.**
 
 ## Qué
-Un kit de UI pixel art compartido (`tools/pixel-ui/`, scripts Python reproducibles → PNG en `dist/assets/ui/`) y su CSS/JS en `dist/design-system/`.
+Un kit de UI pixel art compartido (`tools/pixel-ui/`, scripts Python reproducibles → PNG en `dist/assets/pixel-ui/`) y su CSS/JS en `dist/design-system/`.
 Se aplica primero al **Inicio** (carteles, reloj, barras) y a la **barra lateral**. Aprender, clases, tienda y juegos quedan para otros chats con este mismo kit.
 
 ## Decisiones (Niquito, 17 oct 2026)
