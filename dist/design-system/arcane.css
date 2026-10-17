@@ -80,20 +80,28 @@ html.nexo-ready .opening-cover>span{animation:nexo-cover-title .22s ease-out bot
 @keyframes nexo-cover-right{to{transform:translateX(102%)}}
 @keyframes nexo-cover-title{to{opacity:0;transform:scale(.94)}}
 
-.top-bar { position:fixed; inset:0 auto 0 0; z-index:70; width:214px; height:100vh; min-height:0; padding:27px 14px; display:flex; flex-direction:column; align-items:stretch; gap:31px; border:0; border-right:1px solid rgb(215 228 214 / .2); background:rgb(16 25 28 / .94); box-shadow:12px 0 32px rgb(4 10 13 / .14); }
+.top-bar { position:fixed; inset:0 auto 0 0; z-index:70; width:248px; height:100vh; min-height:0; padding:27px 14px 20px 10px; display:flex; flex-direction:column; align-items:stretch; gap:28px; border:0; background:url('../assets/pixel-ui/riel.png') 0 0 / 96px 128px; image-rendering:pixelated; box-shadow:12px 0 32px rgb(4 10 13 / .28); }
+.top-bar::after { content:""; position:absolute; top:0; right:0; bottom:0; width:16px; background:url('../assets/pixel-ui/riel-borde.png') 0 0 / 16px 32px repeat-y; image-rendering:pixelated; pointer-events:none; }
 .top-bar .brand { min-height:48px; justify-content:flex-start; gap:9px; padding-left:10px; color:var(--paper-100); font:700 1.35rem/1 var(--font-title); }
 .top-bar .brand-mark { color:var(--amber-500); font:1.5rem/1 var(--font-title); }
-.rail-nav { display:flex; flex-direction:column; gap:5px; }
-.nav-btn { min-height:48px; padding:11px 14px; justify-content:flex-start; align-items:center; border:1px solid transparent; border-radius:10px; color:#d2dbd2; background:transparent; text-transform:none; font-weight:650; transition:background .22s,color .22s,border-color .22s; }
-.nav-btn span { width:22px; font-size:1.18rem; text-align:center; }
-.nav-btn b { font:650 .92rem/1.1 var(--font-ui); }
-.nav-btn:hover,.nav-btn.active { background:rgb(121 173 174 / .12); border-color:rgb(121 173 174 / .45); color:var(--paper-100); }
-.nav-btn.active { box-shadow:inset 3px 0 var(--room-accent); }
+.top-bar .brand .pixel-text { --s:3; fill:#f6d77a; }
+.top-bar .brand .pt-shadow { fill:#1a0f13; }
+.rail-nav { display:flex; flex-direction:column; gap:6px; }
+.nav-btn { min-height:48px; padding:6px 4px 4px; gap:6px; justify-content:flex-start; align-items:center; box-sizing:border-box; border:12px solid transparent; border-image:none; background:none; color:#d2dbd2; text-transform:none; font-weight:650; image-rendering:pixelated; transition:filter .2s; }
+.nav-btn b { display:flex; align-items:center; font:650 .92rem/1.1 var(--font-ui); }
+.nav-btn .pixel-text { --s:2; fill:#f1e4c0; }
+.nav-btn .pt-shadow { fill:#1a0f13; }
+.nav-btn:hover { border-image:url('../assets/pixel-ui/boton.png') 6 fill / 12px stretch; }
+.nav-btn:hover .pixel-text,.nav-btn.active .pixel-text { fill:#2a1a0a; }
+.nav-btn:hover .pt-shadow,.nav-btn.active .pt-shadow { fill:#fff1b070; }
+.nav-btn.active { border-image:url('../assets/pixel-ui/boton-down.png') 6 fill / 12px stretch; padding-top:8px; padding-bottom:2px; }
+.nav-btn:active { border-image:url('../assets/pixel-ui/boton-down.png') 6 fill / 12px stretch; padding-top:8px; padding-bottom:2px; }
+.nav-btn:focus-visible { outline:2px dashed #fbe08a; outline-offset:2px; }
 .header-actions { position:fixed; top:16px; right:24px; z-index:80; display:flex; align-items:center; gap:9px; }
 .header-action { width:44px; height:44px; border:1px solid rgb(229 237 221 / .43); border-radius:50%; background:rgb(23 33 38 / .9); color:var(--paper-100); font-size:1.22rem; }
 .header-action:hover { border-color:var(--amber-500); background:#334442; }
 .header-wallet { min-height:44px; padding:0 13px; display:flex; align-items:center; gap:6px; border:1px solid rgb(229 237 221 / .32); border-radius:22px; background:rgb(23 33 38 / .9); color:var(--amber-500); font:700 .92rem/1 var(--font-ui); }
-#app { margin-left:214px; padding-top:62px; min-height:100vh; }
+#app { margin-left:248px; padding-top:62px; min-height:100vh; }
 #app[data-chapter-transition="1"]>.page{animation:nexo-chapter-enter .29s ease-out both}
 @keyframes nexo-chapter-enter{from{opacity:.72;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
 .page { width:min(1140px,calc(100% - 48px)); padding:28px 0 90px; }
@@ -305,10 +313,12 @@ body[data-nexo-room="learn"] .subject-card footer strong { color:#346552; }
   .header-action { width:40px; height:40px; }
   .header-wallet { min-height:40px; padding:0 10px; }
   #app { margin-left:0; padding-top:0; }
-  .mobile-nav { inset:auto 8px max(8px,env(safe-area-inset-bottom)); min-height:66px; grid-template-columns:repeat(5,minmax(0,1fr)); border:1px solid #91a79e; border-radius:14px; background:#142126f5; box-shadow:0 9px 30px rgb(0 0 0 / .4); }
-  .mobile-nav .nav-btn { min-width:0; min-height:54px; padding:5px 1px; flex-direction:column; justify-content:center; gap:3px; }
-  .mobile-nav .nav-btn b { font-size:.66rem; line-height:1.05; }
-  .mobile-nav .nav-btn span { width:auto; }
+  .mobile-nav { inset:auto 0 0; min-height:72px; padding-bottom:env(safe-area-inset-bottom); grid-template-columns:repeat(4,minmax(0,1fr)); border:0; border-radius:0; background:url('../assets/pixel-ui/riel.png') 0 0 / 96px 128px; image-rendering:pixelated; border-top:4px solid #fbe08a; box-shadow:0 -4px 0 #5a3616,0 -9px 24px rgb(0 0 0 / .4); }
+  .mobile-nav .nav-btn { min-width:0; min-height:58px; padding:4px 0 2px; flex-direction:column; justify-content:center; gap:2px; border-width:8px; }
+  .mobile-nav .nav-btn:hover { border-image-width:8px; }
+  .mobile-nav .nav-btn b { justify-content:center; }
+  .mobile-nav .nav-btn .pixel-text { --s:1; }
+  .mobile-nav .nav-btn .nav-ico { transform:none; }
   .page { width:min(100% - 26px,720px); padding-bottom:105px; }
 }
 @media(max-width:480px) {

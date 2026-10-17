@@ -702,31 +702,31 @@
         </div>
         <div class="refuge-signs">
           <div class="signs-beam" aria-hidden="true"></div>
-          <section class="sign sign-pruebas evaluation-board" aria-labelledby="priorityTitle">
-            <i class="sign-chain sign-chain-l" aria-hidden="true"></i><i class="sign-chain sign-chain-r" aria-hidden="true"></i>
+          <section class="sign sign-pruebas evaluation-board pu-panel" aria-labelledby="priorityTitle">
+            <i class="sign-chain sign-chain-l" aria-hidden="true"></i><i class="sign-chain sign-chain-r" aria-hidden="true"></i><i class="pu-ivy sign-ivy-l" aria-hidden="true"></i>
             <h2 class="sign-title" id="priorityTitle">${pixelText('Próximas pruebas')}</h2>
-            <div class="sign-paper">
-              ${evaluations.length ? `<ol class="evaluation-notes">${evaluations.map((item,index) => {const course=subjectFor(item.event.subject);return `<li class="evaluation-note ${index===0?'next-evaluation':''}"><div><span>${esc(course.name)}</span><time datetime="${esc(item.event.date)}">${formatDate(item.event.date)}</time></div><h3>${esc(item.event.title)}</h3><p>${item.reasons.map(esc).join(' · ')}</p>${item.event.dateNote||item.event.weekdayUncertain?`<small>${esc(item.event.dateNote||'Fecha por confirmar con cátedra.')}</small>`:''}<button class="paper-link" data-route="planner" data-route-sub="calendar">Ver evaluación en Bitácora →</button></li>`;}).join('')}</ol>` : '<p class="paper-empty">Sin pruebas pendientes en tu calendario.</p>'}
+            <div class="sign-paper pu-paper"><i class="pu-seal pu-seal-1" aria-hidden="true"></i>
+              ${evaluations.length ? `<ol class="evaluation-notes">${evaluations.map((item,index) => {const course=subjectFor(item.event.subject);return `<li class="evaluation-note ${index===0?'next-evaluation':''}"><div><span>${esc(course.name)}</span><time datetime="${esc(item.event.date)}">${formatDate(item.event.date)}</time></div><h3>${pixelText(esc(item.event.title),{shadow:false})}</h3><p>${item.reasons.map(esc).join(' · ')}</p>${item.event.dateNote||item.event.weekdayUncertain?`<small>${esc(item.event.dateNote||'Fecha por confirmar con cátedra.')}</small>`:''}<button class="paper-link" data-route="planner" data-route-sub="calendar">Ver evaluación en Bitácora →</button></li>`;}).join('')}</ol>` : '<p class="paper-empty">Sin pruebas pendientes en tu calendario.</p>'}
             </div>
-            <button class="wood-link sign-link" data-route="planner" data-route-sub="calendar">Abrir mi calendario →</button>
+            <button class="pu-btn sign-link" data-route="planner" data-route-sub="calendar">${pixelText('Abrir mi calendario →',{shadow:false})}</button>
           </section>
-          <section class="sign sign-dia day-paper" aria-labelledby="dayTitle">
-            <i class="sign-chain sign-chain-l" aria-hidden="true"></i><i class="sign-chain sign-chain-r" aria-hidden="true"></i>
+          <section class="sign sign-dia day-paper pu-panel" aria-labelledby="dayTitle">
+            <i class="sign-chain sign-chain-l" aria-hidden="true"></i><i class="sign-chain sign-chain-r" aria-hidden="true"></i><i class="pu-ivy pu-ivy-b sign-ivy-r" aria-hidden="true"></i>
             <h2 class="sign-title" id="dayTitle">${pixelText('Tu día')}</h2>
-            <div class="sign-paper">
-              <div class="day-goal"><span>Meta diaria</span><strong>${studied} / ${goal} min</strong><div class="goal-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${goal}" aria-valuenow="${Math.min(studied,goal)}" aria-label="${studied} de ${goal} minutos estudiados hoy"><i style="width:${Math.min(100,Math.round(100*studied/Math.max(1,goal)))}%"></i></div></div>
-              <ul class="day-agenda">${todayEvents.length ? todayEvents.slice(0,3).map(event=>`<li><span aria-hidden="true">◇</span><div><b>${esc(event.title)}</b><small>${esc(subjectFor(event.subject).name)}${event.time?` · ${esc(event.time)}`:''}</small></div></li>`).join('') : '<li><span aria-hidden="true">☼</span><div><b>Sin compromisos hoy</b><small>Tu calendario está libre para estudiar a tu ritmo.</small></div></li>'}</ul>
+            <div class="sign-paper pu-paper"><i class="pu-seal pu-seal-2" aria-hidden="true"></i>
+              <div class="day-goal"><span>${pixelText('Meta',{shadow:false})}</span><strong>${pixelText(`${studied} / ${goal} min`,{shadow:false})}</strong><div class="goal-bar pu-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${goal}" aria-valuenow="${Math.min(studied,goal)}" aria-label="${studied} de ${goal} minutos estudiados hoy"><i style="width:${Math.min(100,Math.round(100*studied/Math.max(1,goal)))}%"></i></div></div>
+              <ul class="day-agenda">${todayEvents.length ? todayEvents.slice(0,3).map(event=>`<li><span aria-hidden="true">◇</span><div><b>${pixelText(event.title,{shadow:false})}</b><small>${esc(subjectFor(event.subject).name)}${event.time?` · ${esc(event.time)}`:''}</small></div></li>`).join('') : '<li><span aria-hidden="true">☼</span><div><b>Sin compromisos hoy</b><small>Tu calendario está libre para estudiar a tu ritmo.</small></div></li>'}</ul>
             </div>
-            <button class="wood-link sign-link" data-route="reviews">${dueReviews().length} repasos pendientes →</button>
+            <button class="pu-btn sign-link" data-route="reviews">${pixelText(`${dueReviews().length} repasos pendientes →`,{shadow:false})}</button>
           </section>
-          <section class="sign sign-continuar continue-volume" aria-labelledby="continueTitle">
-            <i class="sign-chain sign-chain-l" aria-hidden="true"></i><i class="sign-chain sign-chain-r" aria-hidden="true"></i>
+          <section class="sign sign-continuar continue-volume pu-panel" aria-labelledby="continueTitle">
+            <i class="sign-chain sign-chain-l" aria-hidden="true"></i><i class="sign-chain sign-chain-r" aria-hidden="true"></i><i class="pu-ivy sign-ivy-l" aria-hidden="true"></i>
             <h2 class="sign-title" id="continueTitle">${pixelText('Continuar')}</h2>
-            <div class="sign-paper">
-              <p class="continue-where"><b>${esc(continuingSubject.name)}</b><span>${esc(pep?.name||'Selecciona una evaluación')}</span></p>
+            <div class="sign-paper pu-paper"><i class="pu-seal pu-seal-3" aria-hidden="true"></i>
+              <p class="continue-where"><b>${pixelText(continuingSubject.name,{shadow:false})}</b><span>${esc(pep?.name||'Selecciona una evaluación')}</span></p>
               ${saved?`<button class="paper-link saved-lesson" data-open-lesson="${state.lessonSession.id}">Retomar clase guardada: ${esc(saved.title)} →</button>`:''}
             </div>
-            <div class="volume-actions"><button class="primary-btn" data-grimoire-route="learn/course/${continuingSubject.id}/evaluation/pep-${pepIndex+1}">Abrir mapa de preparación →</button><button class="wood-link sign-link" data-route="learn">Elegir otro ramo</button></div>
+            <div class="volume-actions"><button class="pu-btn pu-btn-wide" data-grimoire-route="learn/course/${continuingSubject.id}/evaluation/pep-${pepIndex+1}">${pixelText('Preparar prueba →',{shadow:false})}</button><button class="pu-btn sign-link" data-route="learn">${pixelText('Elegir otro ramo',{shadow:false})}</button></div>
           </section>
         </div>
         <footer class="refuge-caption">Un lugar donde el conocimiento florece.</footer>
@@ -754,7 +754,7 @@
       <i class="hc-gear" aria-hidden="true"></i><i class="hc-orb" aria-hidden="true"></i><i class="hc-leaf hc-leaf-l" aria-hidden="true"></i><i class="hc-leaf hc-leaf-r" aria-hidden="true"></i><i class="hc-pendulum" aria-hidden="true"></i><i class="hc-flask" aria-hidden="true"></i>
       <div class="hc-now"><div class="hc-hour" data-hc-time role="text"></div><div class="hc-greet" data-hc-moment></div></div>
       <div class="hc-timer"><div class="hc-label">${pt(`${running ? 'Estudiando' : paused ? 'En pausa' : 'Cronómetro'} · ${subjectFor(timer.subject).short}`)}</div><div class="hc-digits" id="homeTimer" role="timer">${pixelDigits(formatClock(timerElapsedMs()))}</div></div>
-      <div class="hc-controls">${running ? `<button class="hc-btn" data-action="timer-pause" aria-label="Pausar">${pt('Pausar')}</button>` : `<button class="hc-btn hc-primary" data-action="timer-start" aria-label="${paused ? 'Seguir' : 'Estudiar'}">${pt(paused ? 'Seguir' : 'Estudiar')}</button>`}${timerElapsedMs() >= 1000 ? `<button class="hc-btn" data-action="timer-finish" aria-label="Terminar">${pt('Terminar')}</button>` : ''}</div>
+      <div class="hc-controls">${running ? `<button class="hc-btn pu-btn" data-action="timer-pause" aria-label="Pausar">${pt('Pausar')}</button>` : `<button class="hc-btn hc-primary pu-btn" data-action="timer-start" aria-label="${paused ? 'Seguir' : 'Estudiar'}">${pt(paused ? 'Seguir' : 'Estudiar')}</button>`}${timerElapsedMs() >= 1000 ? `<button class="hc-btn pu-btn" data-action="timer-finish" aria-label="Terminar">${pt('Terminar')}</button>` : ''}</div>
       <div class="hc-meta"><span class="hc-plate">${pt(`Hoy · ${studiedMinutes} min`)}</span><span class="hc-plate hc-plate-exam">${pt(countdown)}</span></div>
     </aside>`;
   }

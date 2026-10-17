@@ -1,7 +1,7 @@
 # Kit de UI pixel art + Inicio + barra lateral
 
 Tema: `docs/chats/pixel-ui.md`. Crítica de origen: `FEEDBACK-15OCT.md` y la del 17 oct ("el Inicio sigue sintiéndose básico o feo").
-Estado: **diseño aprobado en conversación (17 oct 2026). Falta que Niquito diga "hazlo" para programar.**
+Estado: **implementado en la rama (17 oct 2026): kit, Inicio y barra lateral. Falta la aprobación visual de Niquito (ANTES/AHORA) y el merge.**
 
 ## Qué
 Un kit de UI pixel art compartido (`tools/pixel-ui/`, scripts Python reproducibles → PNG en `dist/assets/ui/`) y su CSS/JS en `dist/design-system/`.
@@ -30,6 +30,17 @@ Se aplica primero al **Inicio** (carteles, reloj, barras) y a la **barra lateral
 - Respeta `prefers-reduced-motion`, `data-nexo-ambient-motion="reduced"`, `data-nexo-quality="low"` y `body.ambient-paused`.
 - Sin romper ganchos de `planner/avisos.js` y `platform/animation.js`; no se toca `dist/economy` ni `home-pet.js`.
 - Pruebas rápidas pasan (torre-mundo-test sigue saltada).
+
+## Hecho (17 oct)
+- `tools/pixel-ui/build_ui.py` -> `dist/assets/pixel-ui/` (marco, pergamino, 4 botones, barra y líquido, sellos, hiedra, hojita, riel, íconos). Reemplaza `reloj-marco.png`.
+- `dist/design-system/pixel-ui.css` (+ `pixel-ui.js`, dentro del bundle): `.pu-panel`, `.pu-paper`, `.pu-btn`, `.pu-bar`, `.pu-seal`, `.pu-ivy`, `.nav-ico`.
+- Inicio: reloj con marco nuevo y botones de latón; 3 carteles con marco, pergamino, sello, hiedra, barra de cristal y entrada que cuelga de la viga con rebote.
+- Barra lateral (248 px) y barra de celular: riel de madera, íconos pixel, letras pixel, botón hundido en la activa.
+
+## Falta de este tema
+- Fuente legible para párrafos largos (hoy siguen en la fuente normal; solo lo corto va en letras pixel).
+- Grabados tallados extra en el marco (hoy solo vetas) y flores más visibles en la hiedra.
+- Botones redondos de la cabecera (Bitácora, átomos, Tienda) aún sin kit.
 
 ## Pendiente (otros chats)
 - Aprender (rehacer el grimorio) y "la biblioteca Nexo": preguntar a qué se refiere.

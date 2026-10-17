@@ -1,23 +1,23 @@
-/* Carteles del Inicio: tres letreros de madera y latón (el mismo marco 9-slice del reloj) que cuelgan de una viga.
-   Título en letras pixel (NexoPixelText), contenido en pergamino. Los nombres de clase viejos (evaluation-board, day-paper,
+/* Carteles del Inicio: tres letreros del kit pixel-ui (marco de madera, pergamino, botones de latón, barra de cristal, sello e hiedra) que cuelgan de una viga.
+   Título en letras pixel (NexoPixelText). Los nombres de clase viejos (evaluation-board, day-paper,
    continue-volume, evaluation-note…) siguen puestos porque planner/avisos.js y platform/animation.js los usan como ganchos. */
 .refuge-signs { position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:40px 28px;align-items:start;padding:50px 10px 12px; }
 .signs-beam { position:absolute;left:-14px;right:-14px;top:6px;height:28px;background:linear-gradient(#a56a36 0 4px,#8a552e 4px 8px,#673c23 8px 18px,#47281b 18px 24px,#2c1916 24px 28px);box-shadow:0 5px 0 #140c10,0 12px 14px #0007;image-rendering:pixelated; }
 .signs-beam::before { content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 46px,#2c191655 46px 48px,transparent 48px 120px); }
-.sign { --px:2;position:relative;display:grid;gap:10px;align-content:start;padding:4px 6px 10px;border:calc(8*var(--px)*1px) solid transparent;border-image:url('../assets/home-scenes/reloj-marco.png') 8 fill / calc(8*var(--px)*1px) stretch;image-rendering:pixelated;filter:drop-shadow(0 10px 10px #0008);transform-origin:50% -34px;animation:signSway 7s ease-in-out infinite alternate; }
-.sign-dia { animation-duration:8.5s;animation-delay:-3s; }
-.sign-continuar { animation-duration:6.5s;animation-delay:-1.5s; }
-.sign:hover { animation-duration:3s; }
-.sign-chain { position:absolute;top:calc(-8*var(--px)*1px - 26px);width:6px;height:calc(8*var(--px)*1px + 28px);background:repeating-linear-gradient(#e2b850 0 5px,#6e4f1e 5px 7px);box-shadow:2px 0 0 #1a0f13,-2px 0 0 #1a0f13;image-rendering:pixelated; }
-.sign-chain-l { left:calc(8*var(--px)*1px + 14px); }
-.sign-chain-r { right:calc(8*var(--px)*1px + 14px); }
+.sign { display:grid;gap:10px;align-content:start;padding:2px 4px 8px;transform-origin:50% -34px;animation:signDrop .95s cubic-bezier(.3,1.5,.5,1) both,signSway 7s ease-in-out .95s infinite alternate; }
+.sign-pruebas { animation-delay:.05s,.95s; }
+.sign-dia { animation-delay:.2s,-3s;animation-duration:.95s,8.5s; }
+.sign-continuar { animation-delay:.35s,-1.5s;animation-duration:.95s,6.5s; }
+.sign:hover { animation-duration:.95s,3s; }
+.sign-chain { position:absolute;top:-38px;width:6px;height:44px;background:repeating-linear-gradient(#e2b850 0 5px,#6e4f1e 5px 7px);box-shadow:2px 0 0 #1a0f13,-2px 0 0 #1a0f13;image-rendering:pixelated; }
+.sign-chain-l { left:30px; }
+.sign-chain-r { right:30px; }
 .sign-title { margin:0;text-align:center;line-height:0; }
-.sign-title .pixel-text { max-width:100%;fill:#f6d77a;animation:signGlint 3.6s ease-in-out infinite; }
+.sign-title .pixel-text { margin:0 auto;max-width:100%;fill:#f6d77a;animation:signGlint 3.6s ease-in-out infinite; }
 .sign-title .pt-shadow { fill:#1a0f13; }
-.sign-paper { position:relative;padding:12px 14px;color:#3a2c1d;border:2px solid #1a0f13;border-radius:2px;background:repeating-linear-gradient(0deg,#0000 0 21px,#9a7a4a1f 21px 22px),radial-gradient(ellipse at 15% 10%,#fff7d8,transparent 65%),#ecd9ad;box-shadow:inset 0 2px 0 #fff7d899,inset 0 -3px 0 #b0905a66; }
+.sign-paper { padding:8px 8px 14px;color:#3a2c1d;animation:paperUnfold .8s cubic-bezier(.4,.1,.3,1) .5s both; }
 .sign-paper h3,.sign-paper b { color:#34271c; }
-.sign-link { justify-self:center;min-height:44px;padding:6px 10px;background:none;border:0;color:#f6deb0;font:700 .85rem/1.3 var(--font-ui);cursor:pointer;text-shadow:0 1px 0 #1a0f13; }
-.sign-link:hover { color:#fff;text-decoration:underline; }
+.sign-link { justify-self:center; }
 .sign .evaluation-notes { list-style:none;margin:0;padding:0;display:grid;gap:10px; }
 .sign .evaluation-note { position:relative;padding:10px 12px;background:#f6e8c4;border:2px solid #8a6a40;border-radius:1px;box-shadow:2px 2px 0 #6a4a28; }
 .sign .next-evaluation { border-left:6px solid #a8402e;background:#fbeecb; }
@@ -30,8 +30,8 @@
 .sign .paper-empty { margin:0;font-size:.9rem;text-align:center; }
 .sign .day-goal { display:grid;grid-template-columns:1fr auto;gap:6px;font-size:.88rem;font-weight:700; }
 .sign .day-goal strong { font-variant-numeric:tabular-nums;color:#456649; }
-.goal-bar { grid-column:1/-1;height:14px;border:2px solid #1a0f13;background:#3a2c1d;overflow:hidden; }
-.goal-bar i { display:block;height:100%;background:repeating-linear-gradient(90deg,#9cc24a 0 8px,#6d9a3a 8px 10px);transition:width .8s steps(12);animation:goalShine 2.6s linear infinite; }
+.goal-bar { grid-column:1/-1; }
+.goal-bar i { max-width:100%; }
 .sign .day-agenda { list-style:none;margin:12px 0 0;padding:0; }
 .sign .day-agenda li { display:flex;gap:10px;padding:8px 0;border-top:2px dotted #987c4a88;font-size:.88rem; }
 .sign .day-agenda small { display:block;margin-top:2px;line-height:1.4;color:#62543c; }
@@ -39,16 +39,23 @@
 .sign .continue-where b { font-size:1.15rem;line-height:1.2; }
 .sign .continue-where span { font-size:.9rem;color:#5b4630; }
 .sign .saved-lesson { margin-top:8px;color:#7a3a2a; }
-.sign .volume-actions { display:grid;gap:4px;justify-items:center; }
-.sign .volume-actions .primary-btn { width:100%;min-height:48px;padding:8px 12px;border:2px solid #1a0f13;border-radius:2px;background:#d3a95e;color:#2a2013;font:800 .95rem/1.2 var(--font-ui);box-shadow:0 3px 0 #0a0608,inset 0 2px 0 #fff3;cursor:pointer;white-space:normal;transition:transform .08s,filter .15s; }
-.sign .volume-actions .primary-btn:hover { filter:brightness(1.1);transform:translateY(-1px); }
-.sign .volume-actions .primary-btn:active { transform:translateY(2px);box-shadow:0 1px 0 #0a0608,inset 0 2px 0 #fff3; }
+.sign .volume-actions { display:grid;gap:6px;justify-items:center; }
 @keyframes signSway { from { transform:rotate(-.55deg); } to { transform:rotate(.55deg); } }
 @keyframes signGlint { 0%,100% { filter:brightness(1); } 50% { filter:brightness(1.25) drop-shadow(0 0 4px #f6d77a88); } }
-@keyframes goalShine { to { background-position-x:20px; } }
+@keyframes signDrop { from { transform:translateY(-70px) rotate(-3deg);opacity:0; } 60% { opacity:1; } }
+@keyframes paperUnfold { from { clip-path:inset(0 0 100% 0); } to { clip-path:inset(0 0 -20px 0); } }
 @media(max-width:900px) {
   .refuge-signs { grid-template-columns:1fr;gap:44px;padding-top:44px; }
 }
 body[data-nexo-ambient-motion="reduced"] .sign,body[data-nexo-ambient-motion="reduced"] .sign *,body[data-nexo-quality="low"] .sign { animation:none !important; }
 @media(prefers-reduced-motion:reduce) { .sign,.sign *,.goal-bar i { animation:none !important;transition:none !important; } }
 .pixel-text { display:block;height:calc(var(--u,8)*var(--s,2)*1px);width:auto; }
+.sign .pu-seal { right:-10px;bottom:-14px;z-index:3; }
+.sign .sign-ivy-l { left:-4px;top:calc(-12*var(--pu)*1px); }
+.sign .sign-ivy-r { right:-4px;top:calc(-12*var(--pu)*1px);transform-origin:50% 0; }
+.sign-paper .evaluation-note h3 .pixel-text,.sign-paper .day-agenda b .pixel-text,.sign-paper .continue-where b .pixel-text { --s:2; }
+.sign-paper .day-goal span .pixel-text { --s:2; }
+.sign-paper .day-goal strong .pixel-text { --s:2;fill:#456649; }
+.sign-paper .evaluation-note h3,.sign-paper .day-agenda b { line-height:0; }
+.sign-paper .next-evaluation h3 .pixel-text { fill:#7a2e22; }
+.sign .pu-btn { max-width:100%; }

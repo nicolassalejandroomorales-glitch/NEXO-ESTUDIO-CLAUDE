@@ -1,4 +1,4 @@
-"""Reloj de la torre (Inicio): marco 9-slice, engranaje, orbe de átomo y hiedra que se mece.
+"""Reloj de la torre (Inicio): engranaje, orbe de átomo y hiedra que se mece.
 
 Todo sale de las rampas de tools/home-pixel/pixel.py. Cada tira de animación son cuadros de izquierda a derecha;
 el CSS (update01.css, .home-clock) los recorre con steps(). Se muestran con image-rendering: pixelated.
@@ -36,37 +36,6 @@ def outline(c, mat='brass', lvl=0):
     grown[:, 1:] |= filled[:, :-1]
     grown[:, :-1] |= filled[:, 1:]
     c.mask(grown & ~filled, mat, lvl)
-
-
-# ---------- marco 9-slice (24x24, borde de 8) ----------
-def marco():
-    n = 24
-    c = Canvas(n, n)
-    for y in range(n):
-        for x in range(n):
-            d = min(x, y, n - 1 - x, n - 1 - y)
-            lit = min(x, y) < min(n - 1 - x, n - 1 - y)     # arriba/izquierda recibe la luz
-            if d == 0:
-                c.px(x, y, 'wood', 0)
-            elif d <= 4:
-                c.px(x, y, 'wood', [0, 5, 4, 4, 3][d] + (1 if lit else -1) * (1 if d in (1, 2) else 0))
-            elif d == 5:
-                c.px(x, y, 'brass', 2)
-            elif d == 6:
-                c.px(x, y, 'brass', 5 if lit else 3)
-            elif d == 7:
-                c.px(x, y, 'green', 0)
-            else:
-                c.px(x, y, 'green', 1)
-    for cx, cy in ((3, 3), (n - 4, 3), (3, n - 4), (n - 4, n - 4)):     # remaches de latón en las esquinas
-        c.px(cx, cy, 'brass', 3)
-        c.px(cx - 1, cy, 'brass', 5); c.px(cx, cy - 1, 'brass', 5)
-        c.px(cx - 1, cy - 1, 'brass', 6)
-        c.px(cx + 1, cy + 1, 'brass', 1)
-    for x, y in ((0, 0), (1, 0), (0, 1), (n - 1, 0), (n - 2, 0), (n - 1, 1),
-                 (0, n - 1), (1, n - 1), (0, n - 2), (n - 1, n - 1), (n - 2, n - 1), (n - 1, n - 2)):
-        c.mat[y, x] = 0
-    save(c, 'reloj-marco.png')
 
 
 # ---------- engranaje (8 cuadros de 20x20; 8 dientes => 45 grados por vuelta de patrón) ----------
@@ -202,7 +171,6 @@ def matraz(frames=6, w=12, h=16):
 
 if __name__ == '__main__':
     os.makedirs(OUT, exist_ok=True)
-    marco()
     engranaje()
     orbe()
     hoja()

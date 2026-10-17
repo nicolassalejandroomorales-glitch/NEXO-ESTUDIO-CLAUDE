@@ -1,11 +1,12 @@
 # Aspecto y navegación de toda la app
 - modelo: Sonnet 5.5 · alto (solo conversar y diseñar al inicio)
-- estado: dirección y SPEC aprobados el 17 oct (docs/ux-app/SPEC.md); falta que Niquito diga "hazlo"
+- estado: kit + Inicio + barra implementados el 17 oct en la rama claude/eager-jemison-88341e; falta aprobación visual y merge
 - fase: desarrollo
 - prioridad: 2
 - spec: docs/ux-app/SPEC.md
 
 ## Hecho
+- 17 oct: kit `tools/pixel-ui/` (+ `pixel-ui.css/js`), Inicio y barra lateral con él. Detalle en docs/ux-app/SPEC.md.
 - Barra nueva (17 oct): Inicio · Aprender · Organización · Perfil. Entrenar se borró (pantalla, entrenamiento, sala Taller y pruebas); Repasos y Rescate siguen en Aprender. Juegos salió de la barra (sigue en #/games).
 - Refugio y mascotas ya en pixel art con las rampas de `tools/home-pixel/pixel.py`.
 - Grimorio del tutorial, marcos de diálogo y huevos en pixel art.
