@@ -1,7 +1,7 @@
 # Kit de UI pixel art + Inicio + barra lateral
 
 Tema: `docs/chats/pixel-ui.md`. Crítica de origen: `FEEDBACK-15OCT.md` y la del 17 oct ("el Inicio sigue sintiéndose básico o feo").
-Estado: **implementado en la rama (17 oct 2026): kit, Inicio y barra lateral. Falta la aprobación visual de Niquito (ANTES/AHORA) y el merge.**
+Estado: **implementado en la rama (17 oct 2026): kit, Inicio y barra lateral. Aprobado por Niquito y en master.**
 
 ## Qué
 Un kit de UI pixel art compartido (`tools/pixel-ui/`, scripts Python reproducibles → PNG en `dist/assets/pixel-ui/`) y su CSS/JS en `dist/design-system/`.

@@ -1,6 +1,6 @@
 # Aspecto y navegación de toda la app
 - modelo: Sonnet 5.5 · alto (solo conversar y diseñar al inicio)
-- estado: kit + Inicio + barra implementados el 17 oct en la rama claude/eager-jemison-88341e; falta aprobación visual y merge
+- estado: kit + Inicio + barra aprobados y en master (17 oct 2026); falta fuente de párrafos y kit en el resto de pantallas
 - fase: desarrollo
 - prioridad: 2
 - spec: docs/ux-app/SPEC.md
