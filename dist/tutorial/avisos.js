@@ -5,8 +5,6 @@
 (() => {
   'use strict';
   const HERE = document.currentScript?.src || new URL('tutorial/avisos.js', document.baseURI).href;
-  const asset = p => new URL('../assets/tutorial/' + p, HERE).href;
-  const ROWS = ['reposo', 'senalar', 'abrir', 'importante', 'feliz', 'sorprendido', 'pensativo', 'triste', 'enojado', 'espiral', 'sudor', 'guino', 'nocreo', 'lista', 'dedo'];
 
   const SECTION_OF = { learn: 'clases', subjects: 'clases', subject: 'clases', library: 'clases', knowledge: 'clases',
     games: 'juegos', hub: 'organizacion', planner: 'organizacion', profile: 'perfil', stats: 'perfil', mascot: 'perfil', settings: 'perfil' };
@@ -23,20 +21,17 @@
   let cssLoaded = false, current = null;
   function ensureCss() {
     if (cssLoaded) return; cssLoaded = true;
-    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = new URL('./avisos.css?v=1', HERE).href; document.head.append(l);
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = new URL('./avisos.css?v=2', HERE).href; document.head.append(l);
   }
   function close() { current?.remove(); current = null; }
 
   function show({ pose, title, text }, done) {
     ensureCss(); close();
-    const row = Math.max(0, ROWS.indexOf(pose));
     const box = document.createElement('aside');
     box.className = 'nx-aviso'; box.setAttribute('role', 'status'); box.setAttribute('aria-live', 'polite');
     box.innerHTML = '<div class="nx-aviso-grim"></div><div class="nx-aviso-body"><b></b><p></p><button class="secondary-btn" type="button">Entendido</button></div>';
     const g = box.querySelector('.nx-aviso-grim');
-    g.style.backgroundImage = `url(${asset('grimorio-hablar.png')})`;
-    g.style.backgroundSize = 'calc(var(--s) * 204px) calc(var(--s) * ' + (76 * ROWS.length) + 'px)';
-    g.style.backgroundPosition = '0 calc(var(--s) * ' + (-76 * row) + 'px)';
+    Promise.resolve().then(() => window.NexoLoader.script(new URL('./grimorio-vivo.js?v=1', HERE).href)).then(() => { if (box.isConnected) window.NexoGrimorioVivo.mount(g).set(pose); }).catch(() => {});
     box.querySelector('b').textContent = title;
     box.querySelector('p').textContent = text;
     box.querySelector('button').addEventListener('click', () => { close(); done(); });

@@ -36,7 +36,7 @@
 .tut-err { min-height: 1.2em; margin: 0; font-size: .85rem; color: #ffb4a0; }
 
 .tut-talk { position: relative; display: flex; align-items: flex-end; gap: 6px; }
-.tut-grim { flex: none; position: relative; width: calc(var(--s) * 68px); height: calc(var(--s) * 76px); background-repeat: no-repeat; image-rendering: pixelated; }
+.tut-grim { flex: none; position: relative; width: calc(var(--s) * 68px); height: calc(var(--s) * 76px); image-rendering: pixelated; }
 /* Grimorio vivo: flota y respira siempre (transform), salta al hablar (translate, por JS) y rebota al cambiar de pose (scale) */
 .tut-grim { animation: grimFloat 3.4s ease-in-out infinite; transform-origin: 50% 100%; }
 .tut-grim.pop { animation: grimFloat 3.4s ease-in-out infinite, grimPop .42s cubic-bezier(.3, 1.6, .5, 1); }

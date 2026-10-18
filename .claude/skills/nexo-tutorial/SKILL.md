@@ -26,7 +26,7 @@ description: Tutorial guiado de Nexo (Grimorio que explica la app, elección y n
 - `dist/tutorial/recorrido.js` + `.css` (`NexoRecorrido.run(id, {volver})`): halo sobre elementos reales y globo del Grimorio. Secciones en `SECCIONES` (`ruta`, `pasos: {sel, pose, texto}`); en `STEPS` de `tutorial.js` un paso `{ recorrido: '<id>' }` la lanza y al terminar vuelve a `#/tutorial`. Si cambia una pantalla, revisa que sus `sel` existan (si no, se saltan).
 
 ## Arte (scripts reproducibles en `tools/tutorial-pixel/`, salida en `dist/assets/tutorial/`)
-- `build_grimorio.py` → `grimorio-v1.png` (5 poses, incl. dormido) y `grimorio-hablar.png` + `.json` (15 poses × 3 bocas, 68×76; el orden de filas está en el JSON y en `ROWS` de tutorial.js).
+- `build_grimorio.py` → el Grimorio por capas (68×76, 16 poses con `dormido` al final): `grimorio-cuerpo.png`, `grimorio-cara.png` (normal/parpadeo), `grimorio-barba.png`, `grimorio-boca.png` (cerrada/media/abierta) y `grimorio-capas.json`. `dist/tutorial/grimorio-vivo.js` las apila en un canvas (la barba ondea, los ojos parpadean); el orden de filas está en el JSON y en `ROWS` de ese archivo.
 - `build_llama.py` → `llama.png` (4 cuadros 3×8): llamas de las velas del altar, animadas por CSS (`.tut-llama`). Las posiciones salen del arte del Grimorio (68×76); si mueves las velas en `build_grimorio.py`, ajusta `.tut-llama.l/.r` en `tutorial.css`.
 - `build_marco.py` → `marco-dialogo.png` (9-slice 12), `marco-nombre.png` (9-slice 6), `flecha-siguiente.png`.
 - `build_huevos.py` → `huevo-{atomo,matraz,slime}.png` (9 cuadros de 56×64).
