@@ -11,11 +11,11 @@
   const KINDS = ['atomo', 'matraz', 'slime'];
   const INFO = {
     atomo:  { nombre: 'Átomo',  pose: 'dedo',        ficha: 'Inteligente. Te corrige con cariño. Probablemente tiene razón.', tono: 620,
-              sugeridos: ['Quark', 'Mol', 'Ión'],       hola: n => `Soy ${n}. Calculé que estudiar contigo tiene una probabilidad alta de éxito.` },
+              sugeridos: ['Quark', 'Mol', 'Ión'],       grito: '¡EUREKA! …creo. Sí. Sí, fue eureka.', hola: n => `Soy ${n}. Calculé que estudiar contigo tiene una probabilidad alta de éxito.` },
     matraz: { nombre: 'Matraz', pose: 'sorprendido', ficha: 'Valiente. Se lanza a todo. A veces sin mirar.', tono: 470,
-              sugeridos: ['Chispa', 'Burbuja', 'Bruno'], hola: n => `¡Soy ${n}! ¿Qué explotamos primero? Era broma. Más o menos.` },
+              sugeridos: ['Chispa', 'Burbuja', 'Bruno'], grito: '¡BLUP! ¡Estoy vivo! ¡Hola, mundo!', hola: n => `¡Soy ${n}! ¿Qué explotamos primero? Era broma. Más o menos.` },
     slime:  { nombre: 'Slime',  pose: 'feliz',       ficha: 'Dormilón. Vive tranquilo. Duerme más que tú en época de pruebas.', tono: 260,
-              sugeridos: ['Gelatina', 'Flan', 'Nube'],  hola: n => `Hola. Soy ${n}. …¿Hay almohadas por aquí?` }
+              sugeridos: ['Gelatina', 'Flan', 'Nube'],  grito: '…bluuu. ¿Ya? ¿Tan pronto?', hola: n => `Hola. Soy ${n}. …¿Hay almohadas por aquí?` }
   };
   // Qué dice la mascota al tocar cada objeto del refugio (ids de NexoHomeScene.getProfile().hotspots; guion paso 12).
   const OBJETOS = {
@@ -96,7 +96,7 @@
 
   function ensureCss() {
     if (cssLoaded) return; cssLoaded = true;
-    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = new URL('./tutorial.css?v=9', HERE).href; document.head.append(l);
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = new URL('./tutorial.css?v=10', HERE).href; document.head.append(l);
   }
   function ensurePixel() {
     if (window.PixelMascotas) return Promise.resolve(window.PixelMascotas);
@@ -113,6 +113,15 @@
       const s = document.createElement('script'); s.src = new URL('./magia.js?v=4', HERE).href; s.onload = () => ok(window.NexoMagia); s.onerror = fail; document.head.append(s);
     });
     return magiaLoading;
+  }
+
+  let huevosLoading = null;
+  function ensureHuevos() {
+    if (window.NexoHuevos) return Promise.resolve(window.NexoHuevos);
+    huevosLoading = huevosLoading || new Promise((ok, fail) => {
+      const s = document.createElement('script'); s.src = new URL('./huevos.js?v=1', HERE).href; s.onload = () => ok(window.NexoHuevos); s.onerror = fail; document.head.append(s);
+    });
+    return huevosLoading;
   }
 
   function render(app, opts = {}) {
@@ -161,7 +170,13 @@
     const MUTE = 'nexo.tutorial.mute';
     const muted = () => { try { return localStorage.getItem(MUTE) === '1'; } catch (_) { return false; } };
     const STEPS_UP = [-5, -3, 0, 2, 4, 7];
-    const beep = (hz, big = false) => {
+    // Timbre por especie: [onda, múltiplo del tono, volumen]; glide = hacia dónde se desliza el tono; dur = largo del blip.
+    const TIMBRE = {
+      atomo:  { osc: [['square', 1, .5], ['triangle', .5, .9]], glide: 1, dur: 1 },            // seco y nítido
+      matraz: { osc: [['sawtooth', 1, .28], ['sine', 1.5, .6]], glide: 1.35, dur: 1.15 },       // burbujeante: el tono sube
+      slime:  { osc: [['sine', 1, .95], ['triangle', .5, .7]], glide: .78, dur: 1.9 }           // blando: el tono cae
+    };
+    const beep = (hz, big = false, kind) => {
       if (muted()) return;
       try {
         ac = ac || new (window.AudioContext || window.webkitAudioContext)();
@@ -169,9 +184,12 @@
         const t = ac.currentTime, f = hz * 2 ** (STEPS_UP[Math.floor(Math.random() * STEPS_UP.length)] / 12) * (big ? 1.5 : 1);
         const out = ac.createGain(); out.connect(ac.destination);
         out.gain.setValueAtTime(0.0001, t); out.gain.linearRampToValueAtTime(big ? 0.16 : 0.1, t + 0.006); out.gain.exponentialRampToValueAtTime(0.0001, t + (big ? 0.16 : 0.075));
-        [['square', f, 0.55], ['triangle', f / 2, 0.9]].forEach(([type, fr, v]) => {
-          const o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.value = fr; g.gain.value = v;
-          o.connect(g); g.connect(out); o.start(t); o.stop(t + (big ? 0.18 : 0.09));
+        const tm = TIMBRE[kind] || TIMBRE.atomo, len = (big ? 0.18 : 0.09) * tm.dur;
+        out.gain.cancelScheduledValues(t); out.gain.setValueAtTime(0.0001, t); out.gain.linearRampToValueAtTime(big ? 0.16 : 0.1, t + 0.006); out.gain.exponentialRampToValueAtTime(0.0001, t + len - 0.01);
+        tm.osc.forEach(([type, m, v]) => {
+          const o = ac.createOscillator(), g = ac.createGain(); o.type = type; g.gain.value = v;
+          o.frequency.setValueAtTime(f * m, t); if (tm.glide !== 1) o.frequency.exponentialRampToValueAtTime(f * m * tm.glide, t + len);
+          o.connect(g); g.connect(out); o.start(t); o.stop(t + len);
         });
       } catch (_) { /* sin audio */ }
     };
@@ -216,7 +234,7 @@
         if (reduced() || k >= text.length) textEl.textContent = text.slice(0, k);
         else textEl.innerHTML = esc(text.slice(0, k - 1)) + `<span class="nl">${esc(text[k - 1])}</span>`;
         if (who === 'G' && pose !== 'dormido') drawGrim(pose, [1, 2, 1, 0][k % 4]);
-        if (/[\p{L}\p{N}]/u.test(text[k - 1])) beep(hz);
+        if (/[\p{L}\p{N}]/u.test(text[k - 1])) beep(hz, false, who === 'M' ? s.kind : undefined);
         if (who === 'G' && !reduced() && (k === 1 || text[k - 2] === ' ') && /\S/.test(text[k - 1])) hop();
         if (!reduced() && (k === 1 || text[k - 2] === ' ') && /\S/.test(text[k - 1])) chispita();
         if (k >= text.length) { finishType(); if (then) then(); return; }
@@ -258,7 +276,9 @@
     function eggEl(kind, frame = 0, cls = '') {
       const e = el('div', 'tut-egg ' + cls); e.dataset.kind = kind;
       e.style.backgroundImage = `url(${asset('huevo-' + kind + '.png')})`;
-      setEgg(e, frame); return e;
+      setEgg(e, frame);
+      if (!reduced()) ensureHuevos().then(H => { if (alive()) e.fx = H.attach(e, kind); }).catch(() => {});   // vida propia de cada huevo (huevos.js)
+      return e;
     }
     const setEgg = (e, f) => { e.style.backgroundPosition = `calc(var(--e) * ${-56 * f}px) 0`; };
 
@@ -271,6 +291,8 @@
         KINDS.forEach(k => {
           const b = el('button', 'tut-egg-btn'); b.type = 'button'; b.setAttribute('aria-label', 'Huevo de ' + INFO[k].nombre.toLowerCase());
           b.append(eggEl(k)); b.classList.toggle('on', s.kind === k);
+          const vivo = v => () => { const f = b.firstChild.fx; if (f) f.excite(v); };
+          ['mouseenter', 'focus'].forEach(ev => b.addEventListener(ev, vivo(true))); ['mouseleave', 'blur'].forEach(ev => b.addEventListener(ev, vivo(false)));
           b.addEventListener('click', () => {
             s.kind = k; save(s); row.querySelectorAll('.tut-egg-btn').forEach(x => x.classList.toggle('on', x === b));
             drawGrim(INFO[k].pose); say(INFO[k].ficha); refresh();
@@ -336,18 +358,22 @@
       let shake = 0;
       const frame = f => setEgg(egg, f);
       drawGrim('sudor'); say('Está temblando… ¿es normal? Creo que es normal.');
-      later(1500, () => { shake = 1; if (!reduced()) egg.classList.add('shake'); frame(1); });
+      later(1500, () => { shake = 1; if (!reduced()) egg.classList.add('shake'); frame(1); if (egg.fx) egg.fx.level(1); });
       scene.iv = setInterval(() => { if (shake && alive()) frame(Date.now() % 240 < 120 ? 1 : 2); }, 120);
       later(3600, () => { frame(3); flash.className = 'tut-flash on'; later(450, () => { flash.className = 'tut-flash'; frame(1); }); });
-      later(5200, () => { shake = 0; frame(4); egg.classList.add('hard'); });
-      later(6700, () => { frame(5); drawGrim('importante'); say('¡NO SÉ SI ES NORMAL!'); });
+      later(5200, () => { shake = 0; frame(4); egg.classList.add('hard'); if (egg.fx) { egg.fx.level(2); egg.fx.excite(true); } });
+      later(6700, () => { frame(5); if (egg.fx) egg.fx.level(3); drawGrim('importante'); say('¡NO SÉ SI ES NORMAL!'); });
       later(8300, () => { frame(6); drawGrim('espiral'); });
-      later(9800, () => { shake = 0; egg.classList.remove('shake', 'hard'); frame(7); flash.className = 'tut-flash on big'; drawGrim('sorprendido'); beep(500, true); if (magia) magia.pulse(); });
+      later(9800, () => { shake = 0; egg.classList.remove('shake', 'hard'); frame(7); flash.className = 'tut-flash on big'; drawGrim('sorprendido'); beep(500, true); if (magia) magia.pulse(); if (egg.fx) { egg.fx.level(0); egg.fx.burst(); } });
       later(10500, () => {
         flash.className = 'tut-flash'; frame(8); m.hidden = false; mascot.hop = 3;
         const t0 = performance.now(); const hop = () => { if (!alive()) return; const d = (performance.now() - t0) / 1000; mascot.hop = d < 1.6 ? Math.abs(Math.sin(d * 6)) * 5 : 0; if (d < 1.6) requestAnimationFrame(hop); };
         hop();
-        drawGrim('feliz'); say('¡Nació!', 'G', () => { busy = false; refresh(); });
+        drawGrim('feliz');
+        say('¡Nació!', 'G', () => later(250, () => {   // grito de la especie y dab (brazos hacia un lado, como en la tienda de poses)
+          mascot.arm = 'dab'; if (magia) magia.pulse(); beep(INFO[s.kind].tono, true, s.kind);
+          say(INFO[s.kind].grito, 'M', () => { busy = false; refresh(); later(1400, () => { mascot.arm = 'rest'; }); });
+        }));
       });
     }
 

@@ -222,6 +222,13 @@ Niquito: «el tutorial ya está súper bueno»: se da por **aprobado el tono, la
 
 **Criterios (etapa 1):** en 1440 y 390 el fondo se mueve sin tapar ni ensuciar el texto; no hay azul liso; no baja de ~50 fps; con reducir movimiento queda quieto; `npm test` sin fallas nuevas.
 
+## Huevos y mascota (18 oct 2026, hecho, esperando aprobación de Niquito)
+
+- **Huevos vivos:** `dist/tutorial/huevos.js` (`NexoHuevos.attach(huevo, kind)`) pone un canvas pixelado encima de cada huevo: átomo = electrones con estela en sus órbitas; matraz = burbujas que suben, revientan y se escapan por arriba; slime = gotas gelatinosas, gotitas que caen y el huevo se estira como gelatina. Todos con destellos en cruz. Al pasar el cursor (o enfocar) se agitan. Sin «reducir movimiento» no se monta.
+- **Nacimiento:** la luz dorada se escapa por las grietas (`level` 1→3 con cada fase) y en el estallido: trozos de cáscara con gravedad, chispas, dos ondas de choque y `NexoMagia.pulse()`.
+- **Dab + grito por especie:** al nacer, la mascota hace el dab (`arm: 'dab'`) y da su grito: átomo «¡EUREKA!…», matraz «¡BLUP!…», slime «…bluuu». Cada especie tiene timbre propio en `beep` (`TIMBRE`: átomo seco, matraz burbujeante con tono que sube, slime blando con tono que cae).
+- Probado en escritorio; falta revisar en móvil (390).
+
 ## Pendiente (ideas a futuro, no bloquean)
 - Aparición y avisos ya hechos; las novedades nuevas se agregan en `NEWS` de `dist/tutorial/avisos.js`.
 - Si Niquito cambia los precios de la tienda (`PRICES` en `dist/mascot/home-pet.js`), revisar que 150 ⚛ siga sintiéndose bien.

@@ -9,6 +9,12 @@
 .tut-scene { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; min-height: calc(var(--e) * 64px * 1.25 + 90px); position: relative; }
 .tut-eggs { display: flex; gap: calc(var(--e) * 14px); justify-content: center; align-items: flex-end; }
 .tut-egg { width: calc(var(--e) * 56px); height: calc(var(--e) * 64px); background-size: calc(var(--e) * 504px) calc(var(--e) * 64px); background-repeat: no-repeat; image-rendering: pixelated; }
+.tut-egg { position: relative; }
+.tut-egg-fx { position: absolute; left: calc(var(--e) * -32px); top: calc(var(--e) * -28px); width: calc(var(--e) * 120px); height: calc(var(--e) * 120px); image-rendering: pixelated; pointer-events: none; }
+.tut-egg[data-kind="slime"] { animation: tutJelly 2.2s ease-in-out infinite; transform-origin: bottom center; }
+.tut-egg-btn:hover .tut-egg, .tut-egg-btn:focus-visible .tut-egg { animation: tutVibra .18s steps(2) infinite; }
+@keyframes tutJelly { 0%, 100% { scale: 1 1; } 30% { scale: 1.05 .95; } 60% { scale: .96 1.04; } }
+@keyframes tutVibra { 0% { translate: -1px 0; rotate: -1.5deg; } 100% { translate: 1px 0; rotate: 1.5deg; } }
 .tut-egg.big { transform: scale(1.25); transform-origin: bottom center; margin-bottom: 10px; }
 .tut-egg-btn { background: none; border: 2px solid transparent; border-radius: 12px; padding: 4px; cursor: pointer; transition: transform .15s steps(3); animation: tutBob 2.4s steps(4) infinite; }
 .tut-egg-btn:nth-child(2) { animation-delay: -.8s; } .tut-egg-btn:nth-child(3) { animation-delay: -1.6s; }
@@ -86,7 +92,7 @@
   .tut-box { padding-top: calc(var(--s) * 8px); }
   .tut-tag { top: calc(var(--s) * -6px); left: auto; right: calc(var(--s) * 4px); }
 }
-@media (prefers-reduced-motion: reduce) { .tut-egg-btn, .tut-egg.shake, .tut-box, .tut-box.entra, .tut-chispa, .tut-text .nl, .tut-box.done .tut-arrow { animation: none; } .tut-chispa { display: none; } }
+@media (prefers-reduced-motion: reduce) { .tut-egg-btn, .tut-egg, .tut-egg.shake, .tut-box, .tut-box.entra, .tut-chispa, .tut-text .nl, .tut-box.done .tut-arrow { animation: none; } .tut-chispa { display: none; } }
 
 @media (max-width: 1100px) { .tut { padding-bottom: 96px; } }
 

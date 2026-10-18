@@ -9,7 +9,7 @@
 
   function ensureCss() {
     if (cssLoaded) return; cssLoaded = true;
-    for (const f of ['../tutorial/tutorial.css?v=9', './entrada.css?v=1']) {
+    for (const f of ['../tutorial/tutorial.css?v=10', './entrada.css?v=1']) {
       const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = new URL(f, HERE).href; document.head.append(l);
     }
   }
