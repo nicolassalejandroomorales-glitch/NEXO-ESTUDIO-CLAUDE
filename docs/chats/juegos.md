@@ -10,6 +10,7 @@
 - Prototipo `batalla-rey-amonio.html` y ficha de enemigos.
 
 ## Falta
+- **Coordinar con Clases v2** (18 oct 2026): las clases nuevas traen estaciones de **mini juego** donde la mecánica es la idea (ej. "atrapa el H⁺" en Basicidad). Ver `docs/clases-estructura/DISENO-V2.md`; decidir si comparten mecánicas con el juego de bichos y tarjetas.
 - **Juego nuevo dentro de Aprender**: bichos que aparecen de repente (referencia: Vampire Crawlers) y tarjetas. Falta conversar el diseño: cómo se juega una tarjeta, qué es un bicho en términos de aprendizaje, y cómo deja evidencia (`recordAttempt` con las clases ya conectadas).
 - Los cofres por jefes (`docs/economia`) leían `nexo-pep1-campana`; ya no hay jefes: decidir qué hito los reemplaza.
 - (Historial) - Conectar a `#/games` (tarjeta "Boss Arena") y registrar intentos con `recordAttempt` (`activityType:'game'`).

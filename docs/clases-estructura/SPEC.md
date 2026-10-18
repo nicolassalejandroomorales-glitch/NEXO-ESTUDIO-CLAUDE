@@ -2,6 +2,8 @@
 
 Estado: **estructura aprobada por Niquito (4 oct 2026)**: 7 etapas, sistema de errores con prerrequisitos y actividades reutilizables. Quedan abiertas las preguntas del final.
 
+**18 oct 2026: reemplazado para clases nuevas por `DISENO-V2.md`** (estaciones mixtas: clase, juego y reto PEP; piloto Aminas → Basicidad). Este SPEC queda como historia de v1.
+
 ## Qué
 
 Una forma única de construir clases: **cada clase es un archivo de datos** y **un solo reproductor** la muestra.
