@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 // Arma la carpeta beta/ para compartir con compañeros: copia dist/ SIN el material de profesores
 // (diapositivas del PPT, pautas y PDFs de pruebas) y sin lo que no hace falta. No publica nada.
-// Uso: node tools/build-beta.cjs   (antes corre `node tools/build-startup.cjs` si tocaste módulos del bundle)
+// Uso: node tools/build-beta.cjs           (sin nube: cada persona guarda su progreso en su navegador)
+//      node tools/build-beta.cjs --nube    (con cuentas Google: copia la URL y la clave PÚBLICA de dist/config.js)
+// (antes corre `node tools/build-startup.cjs` si tocaste módulos del bundle)
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -9,6 +11,7 @@ const vm = require('vm');
 const root = path.join(__dirname, '..');
 const src = path.join(root, 'dist');
 const out = path.join(root, 'beta');
+const conNube = process.argv.includes('--nube');
 
 // Rutas (relativas a dist/, con "/") que NO viajan en la beta.
 const EXCLUDE = [
@@ -17,7 +20,8 @@ const EXCLUDE = [
   'classes/slides',               // mapa de esas diapositivas (la clase ya lo ignora si falta)
   'dev',                          // demos y hojas de revisión internas
   'games/prototipos',             // prototipos sueltos, no hacen falta en la beta
-  'vendor/pdfjs', 'vendor/posthog', 'vendor/supabase', 'vendor/rive'
+  'vendor/pdfjs', 'vendor/posthog', 'vendor/rive',
+  ...(conNube ? [] : ['vendor/supabase'])
 ];
 const isExcluded = rel => EXCLUDE.some(e => rel === e || rel.startsWith(e + '/')) || rel.endsWith('.riv');
 
@@ -87,10 +91,20 @@ for (const f of fs.readdirSync(path.join(out, 'classes')).filter(n => /^[a-z]+-\
 }
 console.log(`Texto de diapositivas quitado de ${slideBlocks} bloques en las clases.`);
 
-// Sin nube: la beta no apunta a ningún proyecto de Supabase (cada persona guarda su progreso en su navegador).
+// Sin nube por defecto; con --nube se copia SOLO la URL y la clave pública (publishable) de dist/config.js.
+let publica = { supabaseUrl: '', supabaseAnonKey: '' };
+if (conNube) {
+  const ctxCfg = {}; ctxCfg.window = ctxCfg; vm.createContext(ctxCfg);
+  const cfgSrc = fs.readFileSync(path.join(src, 'config.js'), 'utf8').split('\n').filter(l => !l.includes('document.')).join('\n');
+  vm.runInContext(cfgSrc + '\n;this.__c = NEXO_PUBLIC_CONFIG;', ctxCfg);
+  publica = ctxCfg.__c;
+  if (!/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(publica.supabaseUrl) || !/^sb_publishable_/.test(publica.supabaseAnonKey))
+    throw new Error('dist/config.js no tiene la URL y la clave pública (sb_publishable_) de Supabase');
+}
+const cfg = { supabaseUrl: publica.supabaseUrl, supabaseAnonKey: publica.supabaseAnonKey, googleOAuthEnabled: conNube, beta: true };
 fs.writeFileSync(path.join(out, 'config.js'),
-  '/* Beta: sin nube ni cuentas, sin diapositivas ni pruebas de profes (el código lee `beta` y la clase nexo-beta). */\n' +
-  'window.NEXO_PUBLIC_CONFIG = Object.freeze({"supabaseUrl":"","supabaseAnonKey":"","googleOAuthEnabled":false,"beta":true});\n' +
+  `/* Beta: ${conNube ? 'con cuentas Google' : 'sin nube ni cuentas'}, sin diapositivas ni pruebas de profes (el código lee "beta" y la clase nexo-beta). */\n` +
+  `window.NEXO_PUBLIC_CONFIG = Object.freeze(${JSON.stringify(cfg)});\n` +
   'document.documentElement.classList.add("nexo-beta");\n');
 
 // Revisión final: nada de material de profesores en la carpeta.
@@ -100,7 +114,7 @@ const bad = [];
     const r = rel ? `${rel}/${e.name}` : e.name;
     if (e.isDirectory()) walk(d, r);
     else if (/\.pdf$/i.test(r) || r.startsWith('assets/exams/') || r.includes('/slides/')) bad.push(r);
-    else if (/\.(js|html|css|json)$/.test(r) && /https:\/\/[a-z0-9]{12,}\.supabase\.co|sb_publishable_[A-Za-z0-9_-]{10,}/.test(fs.readFileSync(path.join(d, r), 'utf8'))) bad.push(r + ' (apunta a Supabase)');
+    else if (!conNube && /\.(js|html|css|json)$/.test(r) && /https:\/\/[a-z0-9]{12,}\.supabase\.co|sb_publishable_[A-Za-z0-9_-]{10,}/.test(fs.readFileSync(path.join(d, r), 'utf8'))) bad.push(r + ' (apunta a Supabase)');
   }
 })(out);
 if (bad.length) throw new Error('Quedó algo que no debe viajar en beta/: ' + bad.slice(0, 5).join(', '));

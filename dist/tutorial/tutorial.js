@@ -96,7 +96,7 @@
 
   function ensureCss() {
     if (cssLoaded) return; cssLoaded = true;
-    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = new URL('./tutorial.css?v=5', HERE).href; document.head.append(l);
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = new URL('./tutorial.css?v=7', HERE).href; document.head.append(l);
   }
   function ensurePixel() {
     if (window.PixelMascotas) return Promise.resolve(window.PixelMascotas);
@@ -104,6 +104,15 @@
       const s = document.createElement('script'); s.src = new URL('../mascot/pixelmascotas.js?v=1', HERE).href; s.onload = () => ok(window.PixelMascotas); s.onerror = fail; document.head.append(s);
     });
     return pixelLoading;
+  }
+
+  let magiaLoading = null;
+  function ensureMagia() {
+    if (window.NexoMagia) return Promise.resolve(window.NexoMagia);
+    magiaLoading = magiaLoading || new Promise((ok, fail) => {
+      const s = document.createElement('script'); s.src = new URL('./magia.js?v=3', HERE).href; s.onload = () => ok(window.NexoMagia); s.onerror = fail; document.head.append(s);
+    });
+    return magiaLoading;
   }
 
   function render(app, opts = {}) {
@@ -130,6 +139,8 @@
       </div>
       <div class="tut-nav"><button class="secondary-btn tut-back" type="button">Atrás</button><button class="primary-btn tut-next" type="button">Siguiente</button></div>`;
     app.append(root);
+    let magia = null;
+    ensureMagia().then(M => { if (root.isConnected) magia = M.mount(root); }).catch(() => {});
     const $ = q => root.querySelector(q);
     const sceneEl = $('.tut-scene'), grim = $('.tut-grim'), tagEl = $('.tut-tag'), textEl = $('.tut-text'), box = $('.tut-box'),
       nextBtn = $('.tut-next'), backBtn = $('.tut-back'), barEl = $('.tut-bar'), talk = $('.tut-talk');
@@ -319,7 +330,7 @@
       later(5200, () => { shake = 0; frame(4); egg.classList.add('hard'); });
       later(6700, () => { frame(5); drawGrim('importante'); say('¡NO SÉ SI ES NORMAL!'); });
       later(8300, () => { frame(6); drawGrim('espiral'); });
-      later(9800, () => { shake = 0; egg.classList.remove('shake', 'hard'); frame(7); flash.className = 'tut-flash on big'; drawGrim('sorprendido'); beep(500, true); });
+      later(9800, () => { shake = 0; egg.classList.remove('shake', 'hard'); frame(7); flash.className = 'tut-flash on big'; drawGrim('sorprendido'); beep(500, true); if (magia) magia.pulse(); });
       later(10500, () => {
         flash.className = 'tut-flash'; frame(8); m.hidden = false; mascot.hop = 3;
         const t0 = performance.now(); const hop = () => { if (!alive()) return; const d = (performance.now() - t0) / 1000; mascot.hop = d < 1.6 ? Math.abs(Math.sin(d * 6)) * 5 : 0; if (d < 1.6) requestAnimationFrame(hop); };

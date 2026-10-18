@@ -1,19 +1,19 @@
 /* Mundo de la torre (docs/mundo-torre/SPEC.md).
    Entrenar (#/train) = Laboratorio de Orgánica II, por capas con parallax (fase 2, tools/torre-pixel/build_lab_muestra.py).
-   Juegos (#/games) = Arcade arcano (v1, tools/torre-pixel/build_torre.py). El Perfil tiene su propia habitación. Tocas el piso o un objeto y la mascota camina hasta ahí; el objeto hace su acción.
+   Juegos (#/games) = Arcade arcano (v1, tools/torre-pixel/build_torre.py). Tocas el piso o un objeto y la mascota camina hasta ahí; el objeto hace su acción.
    Se inserta solo cuando aparece la página (observa #app): no hay que tocar las pantallas. Arte: tools/torre-pixel/build_torre.py. */
 (() => {
   'use strict';
   const V = '1';
   const BASE = 'assets/torre/';
-  const ROOM_NAMES = { train: 'Laboratorio de Orgánica II', games: 'Arcade arcano', profile: 'Habitación de tu mascota' };
+  const ROOM_NAMES = { train: 'Laboratorio de Orgánica II', games: 'Arcade arcano' };
   const HINT = 'Toca el piso para caminar o un objeto para usarlo';
   const pick = list => list[Math.floor(Math.random() * list.length)];
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
   let data = null, loading = null, cssDone = false;
-  const worlds = {};          // 'mundo' | 'lab' | 'habitacion' → estado persistente (la mascota no "salta" al cambiar de pantalla)
+  const worlds = {};          // 'mundo' | 'lab' → estado persistente (la mascota no "salta" al cambiar de pantalla)
   const layerCache = {};
   const query = new URLSearchParams(location.search);       // para probar: ?hora=dia|tarde|noche  ?estado=0|1|2
 
@@ -26,13 +26,13 @@
       const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'world/torre-mundo.css?v=' + V; document.head.append(l);
     }
     loading = loading || Promise.all([
-      fetch(BASE + 'torre.json?v=' + V).then(r => r.json()), img('mundo.png'), img('habitacion.png'),
+      fetch(BASE + 'torre.json?v=' + V).then(r => r.json()), img('mundo.png'),
       fetch(BASE + 'lab/lab.json?v=' + V).then(r => r.json()),
       window.NexoPet?.engine ? window.NexoPet.engine() : Promise.reject(new Error('sin mascota'))
-    ]).then(([json, mundo, habitacion, lab]) => {
+    ]).then(([json, mundo, lab]) => {
       lab.objects.forEach(o => { o.room = 'lab'; });
       json.lab = lab;
-      data = { json, imgs: { mundo, habitacion } }; return data;
+      data = { json, imgs: { mundo } }; return data;
     });
     return loading;
   }
@@ -57,7 +57,7 @@
     const view = wrap.querySelector('.torre-view'), vctx = view.getContext('2d');
     const W = {
       key, meta, base, bg, bctx, stage, life, wrap, view, vctx, reduced, layered,
-      room: key === 'mundo' ? 'games' : key === 'lab' ? 'lab' : 'profile', camX: 0, vw: meta.w, scale: 1, raf: 0, last: performance.now(),
+      room: key === 'mundo' ? 'games' : 'lab', camX: 0, vw: meta.w, scale: 1, raf: 0, last: performance.now(),
       lastInput: performance.now(), nextIdle: 9000, sayTimer: 0, tab: null, crossing: false, hover: null, t: 0
     };
     wireInput(W);
@@ -262,7 +262,7 @@
   }
   function keys(W) {
     const box = W.wrap.querySelector('.torre-keys');
-    const list = W.meta.objects.filter(o => o.room === W.room && o.action !== 'nap');
+    const list = W.meta.objects.filter(o => o.room === W.room);
     const sig = list.map(o => o.id).join();
     if (box.dataset.sig === sig) return;
     box.dataset.sig = sig;
@@ -299,8 +299,6 @@
     if (!arrived) return;
     if (o.action === 'mode') return chooseMode(W, o);
     if (o.action === 'game') return openGame(W, o);
-    if (o.action === 'tab') { say(W, o.say); W.tab = o.tab; location.hash = '#/profile/' + o.tab; return; }
-    if (o.action === 'nap') { say(W, o.say); W.life.sleep(true); }
   }
   function chooseMode(W, o) {
     const form = document.querySelector('form[data-training-setup]');
@@ -330,7 +328,6 @@
     if (W.night !== night) { W.night = night; if (!W.layered) W.life.night(night); }   // el laboratorio ya trae su noche
     if (W.reduced || A.moving || W.life.busy || A.mode === 'sleep' || now - W.lastInput < W.nextIdle) return;
     W.lastInput = now; W.nextIdle = 9000 + Math.random() * 8000;
-    if (W.key === 'habitacion' && night) { const bed = W.meta.objects.find(o => o.id === 'bed'); use(W, bed); return; }
     if (Math.random() < .5) { W.life.act(pick(['saludo', 'idea', 'baile', 'seisSiete', 'dab', 'deslumbrada'])); return; }
     const room = W.key === 'mundo' ? W.meta.rooms[W.room] : { x0: 0, x1: W.meta.w };
     const [y0, y1] = W.meta.walk;
@@ -339,14 +336,13 @@
 
   // ——— Montaje en cada pantalla ———
   function anchorFor(kind, page) {
-    if (kind === 'profile') return page.querySelector('.profile-room-header');
     if (kind === 'games') return page.querySelector('.page-header');
     return page.firstElementChild;
   }
   async function mount(kind, page) {
     try { await load(); } catch (_) { return; }
     if (!page.isConnected) return;
-    const key = kind === 'profile' ? 'habitacion' : kind === 'train' ? 'lab' : 'mundo';
+    const key = kind === 'train' ? 'lab' : 'mundo';
     const W = worlds[key] = worlds[key] || createWorld(key);
     const pet = window.NexoPet.current();
     W.life.setKind(pet.kind); W.life.setOutfit(pet.outfit);
@@ -356,7 +352,7 @@
     // El título de la pantalla va encima del arte (como "Un lugar para aprender" en el Inicio).
     const title = W.wrap.querySelector('.torre-title');
     title.replaceChildren();
-    if (kind !== 'profile' && anchor && (anchor.matches('h1') || anchor.matches('.page-header'))) title.append(anchor);
+    if (anchor && (anchor.matches('h1') || anchor.matches('.page-header'))) title.append(anchor);
     const bg = getComputedStyle(document.querySelector('main') || document.body).backgroundColor;
     W.wrap.style.setProperty('--torre-fade', bg && bg !== 'rgba(0, 0, 0, 0)' ? bg : getComputedStyle(document.body).backgroundColor);
     W.wrap.setAttribute('aria-label', ROOM_NAMES[kind]);
@@ -367,13 +363,6 @@
     } else if (key === 'lab') {
       W.progress = labProgress();
       layersFor(W);
-    } else {
-      const tab = page.querySelector('[data-profile-tab][aria-selected="true"]')?.dataset.profileTab || 'mascot';
-      const o = W.meta.objects.find(k => k.tab === tab);
-      if (o && W.tab !== tab) {
-        if (W.tab === null) W.life.place(o.stand[0], o.stand[1], false); else go(W, o.stand[0], o.stand[1]);
-      }
-      W.tab = tab;
     }
     keys(W);
     resize(W);
@@ -386,8 +375,7 @@
     const app = document.getElementById('app'); if (!app) return;
     const page = app.querySelector(':scope > .page');
     if (!page) return;
-    const kind = page.classList.contains('arcane-training') ? 'train' : page.classList.contains('games-room') ? 'games'
-      : page.classList.contains('profile-page') ? 'profile' : null;
+    const kind = page.classList.contains('arcane-training') ? 'train' : page.classList.contains('games-room') ? 'games' : null;
     if (!kind || page.querySelector('.torre-scene')) return;
     mount(kind, page);
   }

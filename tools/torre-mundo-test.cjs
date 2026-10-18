@@ -8,12 +8,10 @@ const read = file => fs.readFileSync(path.join(dist, file), 'utf8');
 const json = JSON.parse(read('assets/torre/torre.json'));
 const png = file => { const b = fs.readFileSync(path.join(dist, 'assets/torre', file)); return [b.readUInt32BE(16), b.readUInt32BE(20)]; };
 assert.deepEqual(png('mundo.png'), [json.mundo.w, json.mundo.h], 'mundo.png del tamaño del json');
-assert.deepEqual(png('habitacion.png'), [json.habitacion.w, json.habitacion.h], 'habitacion.png del tamaño del json');
 
 const training = read('academic/training.js');
 const modes = [...training.match(/const modes=\[([\s\S]*?)\];/)[1].matchAll(/\['(\w+)'/g)].map(m => m[1]);
 const app = read('app.js');
-const tabs = ['mascot', 'grades', 'absences', 'stats', 'settings'];
 const cards = [...app.matchAll(/data-game-card="?\$?\{?(\w+)/g)].map(m => m[1]);
 const cardIds = new Set([...app.matchAll(/\['(memory|hunter|blitz)'/g)].map(m => m[1]).concat(cards));
 
@@ -35,7 +33,6 @@ for (const [key, meta] of Object.entries(json)) {
       if (o.action !== 'go') assert.ok(sx >= room.x0 && sx < room.x1, `${tag}: se para dentro de su sala`);
     }
     if (o.action === 'mode') assert.ok(modes.includes(o.mode), `${tag}: modo ${o.mode} existe en Entrenar`);
-    else if (o.action === 'tab') assert.ok(tabs.includes(o.tab), `${tag}: pestaña ${o.tab} existe en Perfil`);
     else if (o.action === 'game') assert.ok(cardIds.has(o.game), `${tag}: hay tarjeta data-game-card="${o.game}"`);
     else if (o.action === 'go') assert.ok(meta.rooms[o.route] && o.route !== o.room, `${tag}: lleva a la otra sala`);
     else assert.equal(o.action, 'nap', `${tag}: acción conocida`);
