@@ -563,7 +563,7 @@
   }
   function setActiveNav(route) {
     const primary = ['subject', 'lesson', 'subjects','library','knowledge','inspector'].includes(route[0]) ? 'learn'
-      : ['practice','reviews','rescue','study'].includes(route[0]) ? 'learn'
+      : ['practice','reviews','rescue','station','study'].includes(route[0]) ? 'learn'
       : ['planner','hub','timer'].includes(route[0]) ? 'planner'
       : ['profile', 'mascot', 'stats', 'settings','history'].includes(route[0]) ? 'profile' : route[0];
     document.querySelectorAll('.nav-btn, .profile-orb').forEach(button => {
@@ -637,6 +637,7 @@
       knowledge: () => renderAcademicExplorer('knowledge'),
       reviews: () => renderAcademicExplorer('reviews'),
       rescue: () => renderAcademicRescue(route[1]||'org.lone-pair'),
+      station: () => renderStation(route[1], route[2]),
       duelo: renderDuel,
       study: renderStudy,
       inspector: () => renderAcademicExplorer('inspector'),
@@ -958,6 +959,28 @@
     loadAcademicFoundation().then(()=>{const route=parseRoute();if(route[0]==='library'||route.join('/')==='learn/library')renderRoute(false);})
       .catch(()=>{app.innerHTML='<section class="page"><h1>Biblioteca no disponible</h1><button data-route="library">Reintentar</button></section>';});
   }
+  /* Estación de clase (docs/clases-v2/SPEC.md): Adivina → Clase → Práctica → Demuestra. El punto de Demuestra entra a la evidencia de la clase. */
+  function renderStation(id, missionId) {
+    const cls = window.NexoClasses?.[id], failed = () => { app.innerHTML = '<section class="page"><div class="panel error-boundary"><h1>No se pudo abrir la estación</h1><button class="primary-btn" data-route="home">Volver al inicio</button></div></section>'; };
+    if (!cls?.stations?.includes(missionId)) {
+      app.innerHTML = '<section class="page"><p role="status">Abriendo la estación…</p></section>';
+      loadClassroom(id).then(() => { if (window.NexoClasses?.[id]?.stations?.includes(missionId) && parseRoute()[0] === 'station') renderRoute(false); else failed(); }).catch(failed);
+      return;
+    }
+    if (!window.NexoStation) {
+      app.innerHTML = '<section class="page"><p role="status">Abriendo la estación…</p></section>';
+      Promise.all([window.NexoLoader.style('./classes/estacion.css'), window.NexoLoader.script('./mascot/pixelmascotas.js'), window.NexoLoader.script('./classes/estacion-art.js')])
+        .then(() => window.NexoLoader.script('./classes/estacion.js')).then(() => { if (parseRoute()[0] === 'station') renderRoute(false); }).catch(failed);
+      return;
+    }
+    app.innerHTML = '<section class="page station-page"><button class="back-btn" data-route="learn">← Aprender</button><div id="stationHost"></div></section>';
+    window.NexoStation.mount(app.querySelector('#stationHost'), { cls, mission: missionId, pet: state.mascot, onResult: result => {
+      const E = window.NexoClassEvidence; if (!E) return;
+      const rec = E.record(state, id, { itemId: result.itemId, conceptId: 'am.orden', missionId, stage: 'transfer', step: 5, correct: result.correct, hint: false, retry: false, transfer: true, at: result.at });
+      saveState({ backup: false });
+      E.schedule(state, id, rec).then(() => saveState({ backup: false })).catch(() => {});
+    } });
+  }
   function renderAcademicRescue(conceptId) {
     if(window.NexoAcademicRescue)return window.NexoAcademicRescue.render(app,
       {getState:()=>state,saveState,showToast,track:(...args)=>cloud.track(...args)},conceptId);
@@ -1022,13 +1045,13 @@
     const promise = Promise.resolve(window.NexoClassCatalog || window.NexoLoader.script('./classes/catalog.js?v=8dec702d')).then(() => {
       const file = window.NexoClassCatalog?.[id];
       if (!file) return false;
-      return Promise.all([window.NexoLoader.style('./classes/classroom.css?v=7f1c7bf7'), window.NexoLoader.script('./classes/tower-art.js?v=9099c2df').then(() => window.NexoLoader.script('./classes/player.js?v=5e381d35')),
+      return Promise.all([window.NexoLoader.style('./classes/classroom.css?v=7f1c7bf7'), window.NexoLoader.script('./classes/tower-art.js?v=9099c2df').then(() => window.NexoLoader.script('./classes/player.js?v=589cb0af')),
         window.NexoLoader.script('./classes/willow-tower.js?v=09c21b87').catch(() => null), // Torre del Sauce (etapa 10); sin ella, quedan las hojas en lista
         window.NexoLoader.script(`./classes/${file}?v=19`),
         // Motor de evidencia y repaso espaciado (FSRS); si no cargan, la clase funciona igual sin agendar repasos.
         window.NexoLoader.script('./classes/evidence.js?v=308f7a40'), window.NexoLoader.script('./classes/molecule.js?v=b3b2e5aa'), window.NexoLoader.script('./classes/editor.js?v=df0be94e'), window.NexoLoader.script('./academic/class-bridge.js?v=34abe0b8').catch(() => null), window.NexoLoader.script('./academic/reviews.js?v=0273ea6c').catch(() => null)])
         .then(() => Promise.all([window.NexoLoader.script(`./classes/slides/${id}.js?v=268941af`).catch(() => null), // diapositivas reales, si ya se convirtieron
-          window.NexoLoader.script(`./classes/${id}-gen.js?v=00c1b5a9`).catch(() => null)])) // generadores de ejercicios (etapa 8), si la clase los tiene
+          window.NexoLoader.script(`./classes/${id}-gen.js?v=33f747c1`).catch(() => null)])) // generadores de ejercicios (etapa 8), si la clase los tiene
         .then(() => true);
     });
     promise.catch(() => classroomLoads.delete(id));

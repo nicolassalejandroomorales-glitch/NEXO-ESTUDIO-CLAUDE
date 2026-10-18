@@ -74,6 +74,7 @@
     subject: 'organica',
     title: 'Aminas',
     evaluation: 'PEP 1',
+    stations: ['m4'],
     status: 'borrador',
     /* Meta de la clase: los puntos de la prueba que esta clase te prepara a asegurar (pauta PEP 1 2025,
        dist/assets/exams/13_org2_pep1_2025_aminas_aromaticos.jpg). Un punto cuenta cuando aciertas sin ayuda

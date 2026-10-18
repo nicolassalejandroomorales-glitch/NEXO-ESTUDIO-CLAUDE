@@ -247,6 +247,13 @@
     { n: 'Etilamina', k: 10.8, why: 'alquilamina 1°' }, { n: 'Dietilamina', k: 11.0, why: 'alquilamina 2°' },
     { n: 'Piperidina', k: 11.1, why: 'amina 2° cíclica, N sp³' }, { n: 'Pirrolidina', k: 11.3, why: 'amina 2° cíclica, N sp³' }
   ];
+  // SMILES de cada compuesto de la tabla: la estación de clase los dibuja como estructuras (como en la PEP).
+  const SMILES = {
+    'Acetamida (amida)': 'CC(N)=O', 'Pirrol': 'c1cc[nH]c1', 'p-Nitroanilina': 'Nc1ccc(cc1)[N+](=O)[O-]', 'p-Cloroanilina': 'Nc1ccc(Cl)cc1',
+    'Anilina': 'Nc1ccccc1', 'p-Toluidina (p-metilanilina)': 'Nc1ccc(C)cc1', 'Piridina': 'c1ccncc1', 'Imidazol': 'c1c[nH]cn1', 'Morfolina': 'C1COCCN1',
+    'Amoníaco': 'N', 'Bencilamina': 'NCc1ccccc1', 'Trimetilamina': 'CN(C)C', 'Ciclohexilamina': 'NC1CCCCC1', 'Metilamina': 'CN', 'Dimetilamina': 'CNC',
+    'Trietilamina': 'CCN(CC)CC', 'Etilamina': 'CCN', 'Dietilamina': 'CCNCC', 'Piperidina': 'C1CCNCC1', 'Pirrolidina': 'C1CCNC1'
+  };
   const ALKYL = new Set(['Trimetilamina', 'Ciclohexilamina', 'Metilamina', 'Dimetilamina', 'Trietilamina', 'Etilamina', 'Dietilamina', 'Piperidina', 'Pirrolidina']);
   // n compuestos con al menos "gap" unidades de pKa entre sí. "reason": sin tabla, solo contrastes que se pueden razonar
   // (sin morfolina ni imidazol, y a lo más una alquilamina: entre ellas las diferencias son muy chicas para deducirlas).
@@ -279,7 +286,7 @@
       const n = level <= 3 ? 3 : 4, gap = [0, 0, 0.3, 2.0, 1.0, 0.6][level], show = level === 2, s = spaced(rng, n, POOL && level >= 4 ? 0.6 : gap, !show, pool);
       const cards = shuffle(rng, s).map((x, i) => [`c${i}`, show ? `${x.n} (pKaH ${pkTxt(x)})` : x.n, x]);
       const answer = s.map(x => cards.find(c => c[2] === x)[0]);
-      return order(`${level === 5 ? 'Estilo PEP (pregunta 3): ' : ''}Ordena de menor a mayor basicidad${show ? '' : ' (sin tabla: razónalo)'}.`, cards.map(([id, text]) => ({ id, text })), answer,
+      return order(`${level === 5 ? 'Estilo PEP (pregunta 3): ' : ''}Ordena de menor a mayor basicidad${show ? '' : ' (sin tabla: razónalo)'}.`, cards.map(([id, text, x]) => ({ id, text, smiles: SMILES[x.n] })), answer,
         { ...base, direction: 'De menor a mayor basicidad.', explain: `${list(s)}. ${s.map(x => `${x.n}: ${x.why}`).join('; ')}.` });
     }
   };

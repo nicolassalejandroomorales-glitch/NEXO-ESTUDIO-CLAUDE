@@ -1,0 +1,84 @@
+/* Estación de clase (versión C, cristal-pantalla). Pixel art en los canvas; el texto va en letra de pergamino (serif del Grimorio). */
+.st{--serif:"Iowan Old Style","Palatino Linotype",Georgia,serif;--pet:200px;position:relative;overflow:hidden;width:100%;min-height:560px;aspect-ratio:16/10;background:#0c1e2c;border:2px solid #3a2f33;color:#f3e8cf;font-family:var(--serif);container-type:inline-size}
+.st-art{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated}
+.st-pet{position:absolute;left:6%;bottom:12%;width:var(--pet);aspect-ratio:40/44;image-rendering:pixelated;filter:drop-shadow(0 6px 0 rgba(0,0,0,.35));z-index:2}
+.st-bubble{position:absolute;left:4%;top:12%;width:30%;padding:10px 14px;background:linear-gradient(#f3e3b8,#e2c98f);color:#2b1d22;border:2px solid #2b1d22;border-radius:6px;font-size:16px;line-height:1.3;font-style:italic;z-index:3;box-shadow:0 4px 0 rgba(0,0,0,.3)}
+.st-bubble b{display:block;font-style:normal;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#8a552e;margin-bottom:2px}
+.st-bubble:after{content:"";position:absolute;left:40px;bottom:-14px;border:9px solid transparent;border-top:14px solid #2b1d22;border-bottom:0}
+.st-panel{position:absolute;left:41%;top:4%;right:3%;bottom:4%;display:flex;flex-direction:column;gap:8px;overflow:auto;z-index:3;padding:14px 20px;
+  background:linear-gradient(160deg,rgba(14,44,62,.72),rgba(10,26,40,.82));border:1px solid rgba(156,232,240,.4);border-radius:10px;backdrop-filter:blur(2px);
+  animation:st-glow 4.2s ease-in-out infinite}
+@keyframes st-glow{0%,100%{box-shadow:0 0 22px rgba(92,196,220,.22),inset 0 0 24px rgba(92,196,220,.06)}50%{box-shadow:0 0 38px rgba(92,196,220,.42),inset 0 0 34px rgba(92,196,220,.14)}}
+.st-steps{display:flex;gap:6px;list-style:none;margin:0;padding:0;font-size:13px;flex-wrap:wrap}
+.st-steps li{padding:2px 10px;border:1px solid rgba(255,255,255,.18);border-radius:99px;color:#a89880;transition:all .4s}
+.st-steps li.on{border-color:#ffd860;color:#ffd860;box-shadow:0 0 10px rgba(255,216,96,.35)}.st-steps li.done{border-color:#70a46a;color:#cfeccb}
+.st .pixel-text{height:26px;width:auto;fill:#ffd860;display:block;margin:2px 0 4px}
+.st b{color:#9ce8f0}
+.st-q{margin:4px 0 8px;font-size:19px;line-height:1.35}
+.st-opts{display:flex;flex-direction:column;gap:8px}
+.st-opt,.st-next{padding:10px 14px;background:rgba(35,27,34,.85);border:1px solid #9a8068;border-radius:8px;color:#f3e8cf;font:inherit;font-size:17px;text-align:left;cursor:pointer;min-height:44px;
+  transition:transform .18s,border-color .18s,box-shadow .18s,background .18s}
+.st-opt{animation:st-rise .45s cubic-bezier(.2,.8,.2,1) backwards;animation-delay:var(--d,0ms)}
+.st-opt:hover:not(:disabled),.st-next:hover{border-color:#9ce8f0;box-shadow:0 0 14px rgba(156,232,240,.4);transform:translateY(-2px)}
+.st-opt.ok{border-color:#70c58a;background:rgba(20,70,52,.85);box-shadow:0 0 18px rgba(112,197,138,.5);animation:st-pop .5s ease-out}
+.st-opt.bad{border-color:#d4645a;background:rgba(80,24,34,.85);animation:st-shake .4s}
+.st-next{align-self:flex-start;border-color:#ffd860;text-align:center;margin-top:4px}
+@keyframes st-rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes st-pop{40%{transform:scale(1.04)}}
+@keyframes st-shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.st-fb{margin:6px 0;font-size:16px;line-height:1.35;color:#e6d6b2;font-style:italic}
+.st-cap{margin:4px 0;font-size:19px;opacity:0;animation:st-rise .6s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:var(--d)}
+/* La reacción: el H⁺ vuela en arco, el par libre brilla y el ion aparece con un anillo de energía. */
+.st-react{position:relative;height:96px;display:flex;align-items:center;justify-content:center}
+.st-mol{position:relative;display:grid;place-items:center;font-size:34px;font-weight:700;letter-spacing:.02em}
+.st-n,.st-prod{grid-area:1/1;white-space:nowrap}
+.st-n{animation:st-n 5s ease-in-out infinite}.st-prod{color:#9ce8f0;opacity:0;animation:st-prod 5s ease-in-out infinite}
+.st-pair{position:absolute;right:-12px;top:2px;width:12px;height:12px;border-radius:50%;background:radial-gradient(#fff,#9ce8f0 45%,transparent 70%);animation:st-pair 5s ease-in-out infinite}
+.st-hp{position:absolute;left:50%;top:50%;font-size:28px;color:#ffd860;text-shadow:0 0 12px #e0b030,0 0 24px #e0b030;animation:st-fly 5s cubic-bezier(.4,0,.3,1) infinite;opacity:0}
+.st-ring{position:absolute;inset:-14px -30px;border:2px solid #9ce8f0;border-radius:50%;opacity:0;animation:st-ring 5s ease-out infinite}
+@keyframes st-fly{0%{transform:translate(120px,-70px) scale(.6);opacity:0}8%{opacity:1}40%{transform:translate(70px,-30px) scale(1)}58%{transform:translate(48px,-8px) scale(1)}62%{transform:translate(46px,-6px) scale(1.7);opacity:0}100%{opacity:0}}
+@keyframes st-n{0%,58%{opacity:1;transform:scale(1)}64%{opacity:0;transform:scale(.8)}96%{opacity:0}100%{opacity:1}}
+@keyframes st-prod{0%,60%{opacity:0;transform:scale(.7)}66%{opacity:1;transform:scale(1.15);text-shadow:0 0 20px #9ce8f0}74%,92%{opacity:1;transform:scale(1);text-shadow:0 0 10px #5cc4dc}98%,100%{opacity:0}}
+@keyframes st-pair{0%,40%{box-shadow:0 0 6px #9ce8f0;transform:scale(1)}52%{transform:scale(1.6);box-shadow:0 0 18px #fff}60%,100%{opacity:0}}
+@keyframes st-ring{0%,58%{opacity:0;transform:scale(.5)}62%{opacity:.9}85%,100%{opacity:0;transform:scale(1.5)}}
+/* Ordenar como en la PEP: casillas de menos a más básica y tarjetas con letra a), b), c)… */
+.st-slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:4px 0 10px}
+.st-slot{position:relative;min-height:62px;padding:16px 8px 8px;background:rgba(10,20,30,.5);border:1px dashed rgba(156,232,240,.45);border-radius:8px;color:#f3e8cf;font:inherit;font-size:16px;text-align:center;cursor:pointer;transition:all .25s}
+.st-slot em{position:absolute;left:8px;top:3px;font-style:normal;font-size:11px;color:#9ce8f0;letter-spacing:.04em}
+.st-slot.full{border-style:solid;border-color:#ffd860;background:rgba(60,48,20,.55);box-shadow:0 0 12px rgba(255,216,96,.3)}
+.st-slot.ok{border-color:#70c58a;background:rgba(20,70,52,.75);box-shadow:0 0 16px rgba(112,197,138,.45)}
+.st-slot.bad{border-color:#d4645a;animation:st-shake .4s}
+.st-cards{display:flex;flex-wrap:wrap;gap:8px}
+.st-card{padding:9px 14px;background:rgba(35,27,34,.9);border:1px solid #9a8068;border-radius:8px;color:#f3e8cf;font:inherit;font-size:17px;cursor:pointer;transition:transform .18s,border-color .18s,box-shadow .18s,opacity .2s}
+.st-card:hover:not(:disabled){border-color:#9ce8f0;box-shadow:0 0 14px rgba(156,232,240,.4);transform:translateY(-2px)}
+.st-card:disabled{opacity:.3;cursor:default}
+/* Estructuras dibujadas sobre "papel" blanco, como en la hoja de la PEP */
+.st-card{display:flex;flex-direction:column;gap:4px;align-items:flex-start;max-width:190px}
+.st-struct,.st-thumb{display:block;background:#fff;border-radius:6px;overflow:hidden;line-height:0}
+.st-struct{width:170px}.st-struct svg{width:100%;height:auto}
+.st-thumb{width:96px;margin:2px auto}.st-thumb svg{width:100%;height:auto}
+.st-slot span{display:flex;flex-direction:column;align-items:center;gap:2px}
+.is-exam .st-name{display:none}
+.st-ctl{margin-top:8px}.st-next:disabled{opacity:.4;cursor:default}
+.st-exam{padding:10px 0}.st-clockopt{display:flex;gap:8px;align-items:center;margin:8px 0;font-size:16px}
+.st-clock{position:relative;height:24px;margin:4px 0 8px;border:1px solid #9a8068;border-radius:99px;overflow:hidden;background:rgba(10,20,30,.6)}
+.st-clock i{position:absolute;inset:0;transform-origin:left;background:linear-gradient(90deg,#3098b8,#9ce8f0);transition:transform .25s linear}
+.st-clock.low i{background:linear-gradient(90deg,#b44c40,#ffb090);animation:st-pulse 1s ease-in-out infinite}
+.st-clock span{position:absolute;right:10px;top:1px;font-size:14px;color:#fff;text-shadow:0 1px 2px #000}
+.st-pep{margin:10px 0;padding:12px 14px;border:1px solid rgba(255,216,96,.5);border-radius:8px;background:rgba(40,34,16,.55)}
+.st-pep h3{margin:0 0 6px;font-size:18px;color:#ffd860}.st-pep ul{margin:0 0 6px;padding-left:0;list-style:none;font-size:16px;line-height:1.5}
+.st-pep li.ok{color:#cfeccb}.st-pep li.no{color:#f0c8c0}.st-pep p{margin:4px 0 0;font-size:15px;color:#e6d6b2;font-style:italic}
+.st-tip{margin:2px 0;font-size:13px;color:#b4a68c}
+.st-fx{position:absolute;inset:0;pointer-events:none;z-index:5;overflow:hidden}
+.st-spark{position:absolute;border-radius:50%}
+@media (max-width:700px){
+  .st{aspect-ratio:auto;min-height:780px;--pet:120px}
+  .st-pet{left:4%;top:2%;bottom:auto}
+  .st-bubble{left:36%;right:3%;top:3%;width:auto;font-size:15px}
+  .st-bubble:after{left:-15px;top:16px;bottom:auto;border:9px solid transparent;border-right:14px solid #2b1d22;border-left:0}
+  .st-panel{left:3%;right:3%;top:24%;bottom:2%;padding:12px 14px}
+  .st-q{font-size:17px}.st-opt,.st-next{font-size:16px}
+  .st-react{height:84px}
+}
+@media (prefers-reduced-motion:reduce){.st *{animation:none!important;transition:none!important}.st-hp{display:none}.st-prod{opacity:1}.st-n{display:none}}
+.station-page{padding-bottom:110px}

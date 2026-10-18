@@ -92,3 +92,4 @@ Historial de lo hecho por tema. Lo lee Claude solo cuando necesita contexto de o
 - 18 oct 2026 · Tutorial: Inicio mágico (fondo, velas, aura, nube) + huevos vivos por especie, nacimiento con estallido, dab y grito/timbre por especie. SPEC: docs/tutorial/SPEC.md.
 - 18 oct 2026 · Tutorial: voz del Grimorio (blip grave por letra) y textos con personalidad (brillo, susurro, temblor, pausas). SPEC: docs/tutorial/SPEC.md.
 - 18 oct 2026 · Clases v2 (piloto Basicidad): elegida la versión C (cristal-pantalla), mini juego "Atrapa el H⁺", habla la mascota. Boceto en docs/clases-v2/estacion-basicidad.html. SPEC: docs/clases-v2/SPEC.md.
+- 18 oct 2026 · Clases v2: estación de Basicidad (Adivina, Clase, Práctica, Demuestra) con la pregunta 3 de la PEP: estructuras dibujadas (RDKit), reloj, evidencia y repaso; ruta #/station/org-01/m4. SPEC: docs/clases-v2/SPEC.md.
