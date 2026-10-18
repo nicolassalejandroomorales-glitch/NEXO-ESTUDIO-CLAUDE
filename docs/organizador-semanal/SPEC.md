@@ -42,7 +42,8 @@ Aprobación visual, integración con avances posteriores a la instantánea y pub
 - Animaciones en `calendario.css`: pergamino que se despliega, luciérnagas, mascota que asoma (copia el cuadro de `.dock-pet`; `NexoEventEditor.peek`). En móvil se esconden mascota, hiedra y sello. Todo se apaga con `prefers-reduced-motion`.
 - Semana: días con papel y entrada escalonada, "hoy" con brillo, sesiones doradas con destello.
 - Hoy, Mes y Mis horarios (18 oct): mismo papel con fibras y entrada escalonada (`vv*` al final de `calendario.css`). Hoy: tarjetas de papel, primera sesión pendiente late, hechas con ✓; Mes: cabecera de madera, ola de entrada, brillo en hoy y punto rojo en semanas críticas; Mis horarios: tablillas por día, los desmarcados se apagan. Textos del alquimista en `estudio.js` y `event-editor.js`.
-- Pendiente: la mascota no reacciona aún a los campos (solo asoma); `¡` no existe en la fuente pixel (no usarlo en títulos).
+- La mascota (sentada en la cabecera) reacciona vía `NexoPet.mini` y `NexoEventEditor.watch`: se asombra al cambiar fecha/hora, se preocupa si el horario choca, duerme si es de madrugada (<06:00 o ≥23:00) y celebra al guardar. Al guardar, `farewell`: sello grande, pergamino que se enrolla (~1 s; sin animación con reduced-motion).
+- Pendiente: vista Semestre y panel del día del Mes siguen planos. `¡` no existe en la fuente pixel (no usarlo en títulos).
 
 ## Límites concretos
 El plan sigue proponiendo hasta tres sesiones por día según el motor existente. No estima el temario ni garantiza preparación suficiente: muestra tiempo, prioridades y pendientes. Un compromiso con inicio y sin duración impide prometer horarios ese día hasta completarlo. No admite compromisos que crucen medianoche; dividirlos en dos días. La sincronización con cuenta no fue modificada ni verificada. Las propuestas se recalculan; los compromisos fijos solo cambian por acción del usuario.

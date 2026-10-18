@@ -113,9 +113,9 @@ h3::first-letter { text-transform: uppercase; }
 .agenda-overlay[open] { animation: agendaDim .35s ease-out both; }
 .agenda-head { position: relative; z-index: 1; }
 .agenda-head h2 .pixel-text { --s: 3; fill: #fff0c8; display: block; max-width: 100%; height: auto; }
-.agenda-ivy-l { left: -12px; top: 30px; } .agenda-ivy-r { right: 64px; top: 30px; }
+.agenda-ivy-l { left: -12px; top: 30px; } .agenda-ivy-r { right: 190px; top: 30px; }
 .agenda-sheet .agenda-head { padding-left: 44px; }
-.agenda-pet { position: absolute; z-index: 3; right: 112px; top: -80px; width: 80px; height: 88px; image-rendering: pixelated; pointer-events: none; transform-origin: 50% 100%; animation: agendaPeek .7s cubic-bezier(.3,1.6,.5,1) .35s both, agendaBob 3.2s ease-in-out 1.1s infinite; }
+.agenda-pet { position: absolute; z-index: 3; right: 92px; top: 38px; width: 80px; height: 88px; image-rendering: pixelated; pointer-events: none; transform-origin: 50% 100%; animation: agendaPeek .7s cubic-bezier(.3,1.6,.5,1) .35s both, agendaBob 3.2s ease-in-out 1.1s infinite; }
 .agenda-wisps { position: absolute; inset: 40px 20px 20px; z-index: 0; pointer-events: none; overflow: hidden; }
 .agenda-wisp { position: absolute; bottom: -8px; width: 4px; height: 4px; background: #ffd860; box-shadow: 0 0 6px 2px #ffd86099; opacity: 0; animation: agendaWisp 7s ease-in-out infinite; }
 .agenda-wisp-0 { left: 8%; animation-delay: 0s; } .agenda-wisp-1 { left: 28%; animation-delay: 2.2s; background: #b6f08a; box-shadow: 0 0 6px 2px #b6f08a99; }
@@ -123,6 +123,10 @@ h3::first-letter { text-transform: uppercase; }
 .agenda-body, .agenda-footer { position: relative; z-index: 1; }
 .agenda-footer .agenda-seal { position: absolute; left: 18px; top: -26px; animation-delay: .9s; }
 .agenda-footer .pu-btn { min-height: 46px; }
+.agenda-stamp { left: 50%; top: 42%; width: calc(18*var(--pu)*1px); height: calc(18*var(--pu)*1px); z-index: 5; margin: -18px 0 0 -18px; animation: agendaStamp .4s cubic-bezier(.3,1.9,.5,1) both !important; }
+.agenda-sheet.sellando { animation: agendaRoll .4s ease-in .55s both; pointer-events: none; }
+@keyframes agendaStamp { from { transform: scale(7) rotate(-30deg); opacity: 0; } 70% { transform: scale(3.3) rotate(4deg); opacity: 1; } to { transform: scale(3.6) rotate(0); opacity: 1; } }
+@keyframes agendaRoll { to { transform: scaleY(.04) scaleX(.9); opacity: 0; filter: brightness(1.6); } }
 @keyframes agendaUnroll { from { transform: scaleY(.08) scaleX(.94); opacity: 0; filter: brightness(1.8); } 70% { opacity: 1; } to { transform: none; opacity: 1; filter: drop-shadow(0 10px 10px #0008); } }
 @keyframes agendaDim { from { background-color: rgb(12 19 18 / 0); } }
 @keyframes agendaPeek { from { transform: translateY(70px) scale(.7); opacity: 0; } to { transform: none; opacity: 1; } }
