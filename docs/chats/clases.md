@@ -14,6 +14,13 @@
 - Paso 1 hecho: 3 versiones visuales de la estación Basicidad (`docs/clases-v2/estacion-basicidad.html`, SPEC en `docs/clases-v2/SPEC.md`). Decidido: mini juego "Atrapa el H⁺", habla la mascota.
 - Elegida la versión C (cristal-pantalla). Paso 2 hecho: prototipo en `dist/classes/estacion-prueba.html` (mascota real, textos cortos, animaciones fluidas). Niquito descartó "Atrapa el H⁺" (no prepara para la PEP): ahora Práctica + Demuestra con la pregunta 3 de la PEP (reloj, un intento, puntos asegurados, repaso). Aprobado. Paso 3 hecho: estructuras dibujadas (RDKit) y conectado a la app (`#/station/org-01/m4`, tarjeta en las misiones, evidencia + repaso). Falta: otras misiones, celular real.
 
+## Clases funcionales hasta la PEP 1 (18 oct 2026)
+- Prioridad de Niquito: que cada ramo tenga clases de verdad (PPT real, explicación a fondo, ejemplos, versión simple, práctica y prueba) al menos hasta su PEP 1. Orden pedido: Analítica (control 19 oct) → Orgánica → FQ → Fisiopatología.
+- Analítica: PPT de cátedra 2026 bajados de Classroom (Conceptos, Etapas, Errores, Análisis volumétrico, Volumetría ácido-base). ana-01 (89 diapositivas), ana-02 (35), ana-03 (61) ya muestran las diapositivas reales y cada actividad apunta a su página real. Pruebas OK.
+- Analítica control 1 (19 oct): bajados de Gmail el PPT «Clase 2 Ejercicios» y la «Guía 1 2026» (Vidal). Guía = errores y análisis de datos. ana-01 ahora enseña test Q de Dixon (diapositivas 83 y 86) y «elegir al mejor laboratorio/método» (misión m2, parte 3) y tiene 2 generadores nuevos (`dixon`, `comparar`). Pendiente: probar en celular (390) y que Niquito revise la química; la diapositiva 87 de Pizarro tiene un error (B: Er = 0,64 %, no 0,006 %).
+- Clases vacías para PEP 1: org-02 (pKa), org-03 (Aminas), fq-02 (Actividad), fq-03 (Nernst). Orgánica y FQ tienen Classroom (ids en el correo usach); Fisiopatología: correos de Hugo Cárdenas (sistema nervioso).
+- Prompt de continuación: «Chat Clases. Lee CLAUDE.md, la skill nexo-clase y docs/chats/clases.md. Sigue por Orgánica: baja los PPT desde su Classroom (Chrome) y construye org-02 y org-03 igual que ana-01.»
+
 ## Falta
 - Que la clase de Aminas → Basicidad se sienta increíble (corrección real, actividades variadas). Es lo más importante del producto.
 - Revisar las clases hechas en móvil (390 px).

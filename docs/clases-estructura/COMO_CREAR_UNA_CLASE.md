@@ -112,7 +112,7 @@ Se ve en el encabezado (★ Camino al 7), en el mapa de misiones (puntos por mis
 3. **Escribir el contenido:** reemplaza cada `REEMPLAZAR`. Una misión por grupo de diapositivas. Los ejercicios de transferencia deben copiar el formato de la prueba real.
 4. **Diapositivas reales**: Claude baja el PDF de cátedra desde tu Drive (conector de Google Drive) a `art-source/pdfs/` (no se sube a Git) y lo convierte:
    ```
-   python3 tools/classroom-art/slides.py RUTA/AL/ARCHIVO.pdf org-04
+   python tools/classroom-art/slides.py org-04 RUTA/UNO.pdf [RUTA/DOS.pdf ...]   (varios PDF = una sola clase, numerados seguidos; el texto queda en art-source/slides-text/org-04.txt para mapear cada actividad a su página real)
    ```
 5. **Revisar:** `npm test` (o solo `node tools/classroom-test.cjs`) comprueba que cada actividad tenga una sola respuesta correcta, que cada error tenga su explicación y su repaso, que todo tenga su versión más simple, que la meta sume el total de la prueba, que los caminos funcionen y, si hay `-gen.js`, arma 200 ejercicios por generador
    y concepto (40 por nivel) para revisar que cada uno tenga una sola correcta, su porqué, pista, explicación y diapositiva.
@@ -150,7 +150,7 @@ el grimorio (glosario, formulario con calculadoras, recetario, reglas, laborator
 la ronda del alba, el simulacro, Entrenar con su escalera de 5 niveles, el recorrido de bienvenida y todos los tipos de actividad.
 
 **Se escribe por ramo (contenido):** misiones con sus partes, conceptos, errores típicos, fórmulas, recetas o reglas, mini clases, diagnóstico y
-la meta de la prueba. Las diapositivas se cargan con `tools/classroom-art/slides.py`.
+la meta de la prueba. Las diapositivas se cargan con `tools/classroom-art/slides.py` (primero la clase, luego los PDF).
 
 **Ejercicios infinitos (`dist/classes/<id>-gen.js`, lo crea la plantilla):** `window.NexoClassGen['<id>'] = { LEVELS, source, generators, lab, creatures }`.
 Sin este archivo la clase funciona igual, pero sin Entrenar, sin laboratorio y con una ronda del alba que sí se agota. Ejemplo completo: `org-01-gen.js` (15 generadores).
