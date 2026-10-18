@@ -31,9 +31,10 @@ FONT = {
     '8': ['.XXX.', 'X...X', '.XXX.', 'X...X', '.XXX.'], '9': ['.XXX.', 'X...X', '.XXXX', '....X', '.XXX.'],
     '-': ['.....', '.....', 'XXXXX', '.....', '.....'], '+': ['.....', '..X..', '.XXX.', '..X..', '.....'],
     '>': ['X....', '.XX..', '...XX', '.XX..', 'X....'], '·': ['...', '...', '.X.', '...', '...'],
-    '=': ['.....', 'XXXXX', '.....', 'XXXXX', '.....'], '<': ['...X.', '..X..', '.X...', '..X..', '...X.'],
-    '.': ['.', '.', '.', '.', 'X'], 'Z': ['XXXXX', '...X.', '..X..', '.X...', 'XXXXX'],
-    ' ': ['...', '...', '...', '...', '...'],
+    ' ': ['...', '...', '...', '...', '...'], '=': ['.....', 'XXXXX', '.....', 'XXXXX', '.....'],
+    ',': ['..', '..', '..', '.X', 'X.'], '.': ['.', '.', '.', '.', 'X'], '%': ['XX..X', 'XX.X.', '..X..', '.X.XX', 'X..XX'],
+    'W': ['X...X', 'X...X', 'X.X.X', 'XX.XX', 'X...X'], 'Z': ['XXXXX', '...X.', '..X..', '.X...', 'XXXXX'],
+    '<': ['...X.', '..X..', '.X...', '..X..', '...X.'],
 }
 ACCENT = {'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U'}
 
@@ -939,6 +940,102 @@ def sala_pruebas(T):
 
 
 SALA = {'ejercicios': sala_ejercicios, 'guias': sala_guias, 'pruebas': sala_pruebas}
+
+
+# ---------------------------------------------------------------- Sala de Laboratorio (murales de estación, 96x72)
+def lab_calculos(T, p=0.0):
+    """Pizarra del prelab: dilución C1·V1 = C2·V2 que se despeja sola; `p` (0 a 1) avanza hasta la respuesta y su visto bueno."""
+    L = Lienzo(AW_, AH_)
+    L.title('PRELAB 3')
+    L.text(9, 14, 'C1 V1 = C2 V2', 2)
+    L.text(9, 25, 'C1 = 0,5 M', 1)
+    L.text(9, 33, 'C2 = 0,1 M', 1)
+    L.text(9, 41, 'V2 = 250 ML', 1)
+    L.line(6, 50, 90, 50, 1)
+    ans = 'V1 = 50 ML'
+    n = int(len(ans) * min(p / 0.7, 1.0))
+    L.text(9, 56, ans[:n], 3)
+    if n < len(ans) and int(T * 3) % 2:
+        L.line(9 + 6 * n, 61, 13 + 6 * n, 61, 4)
+    if p >= 0.8:
+        check(L, 76, 58)
+    return L.a
+
+
+def skull(L, cx, cy, c):
+    L.circle(cx, cy - 1, 4.2, c, fill=True)
+    L.line(cx - 2, cy + 4, cx + 2, cy + 4, c)
+    for dx in (-2, 2):
+        L.px(cx + dx, cy - 1, 0)
+        L.px(cx + dx, cy, 0)
+    L.line(cx - 6, cy + 6, cx + 6, cy + 8, c)
+    L.line(cx + 6, cy + 6, cx - 6, cy + 8, c)
+
+
+def flame(L, cx, cy, c, T):
+    w = 1 if int(T * 4) % 2 else 0
+    L.poly([(cx, cy - 7 - w), (cx + 4, cy + 1), (cx + 3, cy + 5), (cx - 3, cy + 5), (cx - 4, cy + 1)], c)
+    L.line(cx, cy - 2, cx, cy + 4, c)
+    L.line(cx - 5, cy + 7, cx + 5, cy + 7, c)
+
+
+def corrosive(L, cx, cy, c, T):
+    L.line(cx - 6, cy - 3, cx - 1, cy - 3, c)
+    L.line(cx + 1, cy - 3, cx + 6, cy - 3, c)
+    k = int(T * 4) % 3
+    L.px(cx - 3, cy - 1 + k, c)
+    L.px(cx + 4, cy - 1 + k, c)
+    L.line(cx - 7, cy + 4, cx - 1, cy + 4, c)
+    L.line(cx + 2, cy + 6, cx + 7, cy + 4, c, dash=1)
+
+
+REACTIVOS = [('ANILINA', 'TÓXICO', 'GUANTES', skull), ('ÉTER', 'INFLAMABLE', 'SIN LLAMA', flame), ('HCL', 'CORROSIVO', 'GAFAS', corrosive)]
+
+
+def lab_seguridad(T, p=0.0):
+    """Vitrina: un reactivo a la vez con su pictograma GHS (rombo rojo); se responde qué riesgo tiene y qué EPP llevas."""
+    L = Lienzo(AW_, AH_)
+    k = int(T / 4) % 3
+    name, riesgo, epp, sym = REACTIVOS[k]
+    L.title(name, 2)
+    cx, cy, r = 18, 40, 14
+    L.poly([(cx, cy - r), (cx + r, cy), (cx, cy + r), (cx - r, cy)], 5, 2)
+    if sym is skull:
+        sym(L, cx, cy - 1, 1)
+    else:
+        sym(L, cx, cy, 1, T)
+    t = (T % 4) / 4
+    L.text(36, 22, 'RIESGO', 1)
+    if t > 0.25 or p > 0:
+        L.text(36, 30, riesgo, 4)
+    L.text(36, 44, 'EPP', 1)
+    if t > 0.5 or p > 0:
+        L.text(36, 52, epp, 3)
+    if p >= 0.5:
+        check(L, 80, 64)
+    return L.a
+
+
+def lab_bitacora(T, p=0.0):
+    """Bitácora del informe: rendimiento real contra el teórico; `p` (0 a 1) calcula el % y escribe la discusión."""
+    L = Lienzo(AW_, AH_)
+    L.title('INFORME LAB 3')
+    L.text(5, 14, 'TEÓRICO  2,0 G', 1)
+    L.text(5, 23, 'OBTENIDO 1,4 G', 1)
+    q = ease(p / 0.6)
+    L.text(5, 34, 'REND.', 2)
+    L.text(40, 34, f'{int(round(70 * q))} %', 3)
+    L.poly([(5, 43), (90, 43), (90, 48), (5, 48)], 1)
+    L.line(7, 45, 7 + int(81 * 0.7 * q), 45, 2, w=2)
+    L.text(5, 55, 'DISCUSIÓN', 4)
+    for j in range(2):
+        w = int(60 * ease((p - 0.6 - 0.2 * j) / 0.2))
+        if w > 0:
+            L.line(5 + 8 * (1 - j), 64 + 4 * j - 2, 5 + 8 * (1 - j) + w, 64 + 4 * j - 2, 1)
+    return L.a
+
+
+LAB = {'calculos': lab_calculos, 'seguridad': lab_seguridad, 'bitacora': lab_bitacora}
 
 
 MURALES = {
