@@ -5,13 +5,21 @@
   const asset = p => new URL('../assets/tutorial/' + p, HERE).href;
   const FEliz = 4, COLS = 3;               // fila "feliz" de grimorio-hablar.png; columnas: boca cerrada, media, abierta
   const TEXTO = 'Antes de abrir la torre: si entras con Google, tu mascota, tus notas y tus repasos te siguen a cualquier celular. Si prefieres no hacerlo, pasa igual; solo que todo queda guardado en este navegador.';
-  let cssLoaded = false;
+  let cssLoaded = false, magiaLoading = null;
 
   function ensureCss() {
     if (cssLoaded) return; cssLoaded = true;
-    for (const f of ['../tutorial/tutorial.css?v=5', './entrada.css?v=1']) {
+    for (const f of ['../tutorial/tutorial.css?v=9', './entrada.css?v=1']) {
       const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = new URL(f, HERE).href; document.head.append(l);
     }
+  }
+  // Mismo fondo mágico que el tutorial (runas, luciérnagas, hojas).
+  function ensureMagia() {
+    if (window.NexoMagia) return Promise.resolve(window.NexoMagia);
+    magiaLoading = magiaLoading || new Promise((ok, fail) => {
+      const s = document.createElement('script'); s.src = new URL('../tutorial/magia.js?v=4', HERE).href; s.onload = () => ok(window.NexoMagia); s.onerror = fail; document.head.append(s);
+    });
+    return magiaLoading;
   }
 
   // opts.google(): abre el inicio de sesión de Google (promesa); opts.guest(): sigue como invitado.
@@ -33,12 +41,14 @@
         <button class="secondary-btn ent-guest" type="button">Seguir como invitado</button>
       </div>`;
     app.append(root);
+    ensureMagia().then(M => { if (root.isConnected) M.mount(root); }).catch(() => {});
 
     const small = innerWidth < 700;
     root.style.setProperty('--s', small ? 2 : 4);
     const grim = root.querySelector('.tut-grim'), text = root.querySelector('.tut-text'), err = root.querySelector('.tut-err');
     const google = root.querySelector('.ent-google'), guest = root.querySelector('.ent-guest');
 
+    grim.innerHTML = '<i class="tut-llama l"></i><i class="tut-llama r"></i>';
     const draw = col => {
       grim.style.backgroundImage = `url(${asset('grimorio-hablar.png')})`;
       grim.style.backgroundSize = 'calc(var(--s) * 204px) calc(var(--s) * 1140px)';

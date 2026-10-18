@@ -611,7 +611,7 @@
           google: () => cloud.signInWithGoogle({ volver: 'home' }),
           guest: () => { try { localStorage.setItem(ENTRADA_KEY, '1'); } catch (_) {} routeTo('home'); }
         }); };
-        if (window.NexoEntrada) go(); else { const sc = document.createElement('script'); sc.src = 'cuentas/entrada.js?v=1'; sc.onload = go; document.head.append(sc); }
+        if (window.NexoEntrada) go(); else { const sc = document.createElement('script'); sc.src = 'cuentas/entrada.js?v=2'; sc.onload = go; document.head.append(sc); }
       },
       learn: () => route[1] === 'course'
         ? (route[3] === 'lesson' ? (LESSONS[route[4]]?.subject===route[2] ? renderLesson(route[4]) : renderSubjects())
@@ -657,7 +657,7 @@
           finish: () => { state.tutorial.status = 'done'; saveState({ backup: false }); withAvisos(a => { state.tutorial.news = Math.max(state.tutorial.news || 0, a.VERSION); saveState({ backup: false }); }); }
         };
         const go = () => { if (parseRoute()[0] === 'tutorial') window.NexoTutorial.render(app, { mode, api: mode === 'test' ? null : api, sound: () => !!state.settings?.sound, exit: () => routeTo('home') }); };
-        if (window.NexoTutorial) go(); else { const sc = document.createElement('script'); sc.src = 'tutorial/tutorial.js?v=7'; sc.onload = go; document.head.append(sc); }
+        if (window.NexoTutorial) go(); else { const sc = document.createElement('script'); sc.src = 'tutorial/tutorial.js?v=9'; sc.onload = go; document.head.append(sc); }
       }
     };
     try { (renderers[route[0]] || renderHome)(); app.dataset.renderedRoute = route.join('/'); }

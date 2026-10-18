@@ -177,5 +177,77 @@
     };
   }
 
-  window.NexoMagia = { mount };
+  // Aura del Grimorio: lo que sale del libro. Canvas del tamaño del arte (68x76) más un margen, alineado al píxel con el sprite.
+  // Seis runas giran en órbita alrededor del libro (atenuadas al pasar por detrás), salen chispas de tinta y hojitas por arriba,
+  // y la luz del libro se enciende cuando habla (talk) o cambia de pose (burst).
+  const RUNES = Array.from({ length: 8 }, (_, k) => {
+    const r = rng(k * 31 + 7), px = [];
+    for (let y = -2; y <= 2; y++) px.push([0, y]);
+    for (const x of [-1, 1]) for (let y = -2; y <= 2; y++) if (r() < .34) px.push([x, y]);
+    return px;
+  });
+  const INK = [GOLD, ROSE, JADE];
+
+  function aura(grim) {
+    const PAD = 24, W = 68 + PAD * 2, H = 76 + PAD * 2, cx = PAD + 30, cy = PAD + 30;
+    const cv = document.createElement('canvas'); cv.width = W; cv.height = H; cv.setAttribute('aria-hidden', 'true');
+    cv.style.cssText = `position:absolute;left:calc(var(--s) * ${-PAD}px);top:calc(var(--s) * ${-PAD}px);width:calc(var(--s) * ${W}px);height:calc(var(--s) * ${H}px);pointer-events:none;image-rendering:pixelated;mix-blend-mode:screen;z-index:2`;
+    grim.append(cv);
+    const ctx = cv.getContext('2d');
+    let t = 0, last = 0, talk = 0, talking = false, energy = 0, acc = 0, sparks = [], raf = 0;
+
+    const spark = (fast) => sparks.push({
+      x: cx + (Math.random() - .5) * 26, y: cy - 14 + Math.random() * 6, vx: (Math.random() - .5) * 5, vy: -(6 + Math.random() * 8) * (fast ? 1.6 : 1),
+      life: 0, max: 1.2 + Math.random() * 1.2, page: Math.random() < .28, col: INK[Math.floor(Math.random() * 3)], ph: Math.random() * 6.3
+    });
+
+    function draw(dt) {
+      t += dt; energy = Math.max(0, energy - dt * 1.4); talk += ((talking ? 1 : 0) - talk) * Math.min(1, dt * 5);
+      const lit = Math.min(1, talk * .7 + energy);
+      ctx.clearRect(0, 0, W, H);
+      const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 36), a = .1 + .04 * Math.sin(t * 1.6) + lit * .2;
+      g.addColorStop(0, rgba(GOLD, a)); g.addColorStop(.5, rgba(ROSE, a * .45)); g.addColorStop(1, rgba(GOLD, 0));
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      // Runas en órbita (elipse inclinada). Delante = brillan; detrás = se apagan.
+      const n = 6, spin = t * (.55 + talk * .7), tilt = -.2;
+      for (let i = 0; i < n; i++) {
+        const an = spin + i * Math.PI * 2 / n, depth = Math.sin(an), ox = Math.cos(an) * 31, oy = depth * 9;
+        const x = Math.round(cx + ox * Math.cos(tilt) - oy * Math.sin(tilt)), y = Math.round(cy + 2 + ox * Math.sin(tilt) + oy * Math.cos(tilt));
+        const al = (depth > 0 ? .95 : .3) * (.75 + lit * .25), col = INK[i % 3];
+        for (let k = 1; k <= 3; k++) {                       // estela
+          const ak = an - k * .13, tx = Math.cos(ak) * 31, ty = Math.sin(ak) * 9;
+          ctx.fillStyle = rgba(col, al * .22 / k); ctx.fillRect(Math.round(cx + tx * Math.cos(tilt) - ty * Math.sin(tilt)), Math.round(cy + 2 + tx * Math.sin(tilt) + ty * Math.cos(tilt)), 1, 1);
+        }
+        ctx.fillStyle = rgba(col, al * .25); ctx.fillRect(x - 2, y - 3, 5, 7);
+        ctx.fillStyle = rgba(col, al); for (const [dx, dy] of RUNES[i]) ctx.fillRect(x + dx, y + dy, 1, 1);
+      }
+      // Chispas de tinta y hojitas que salen por arriba del libro.
+      acc += dt * (1.1 + talk * 5 + energy * 10);
+      while (acc >= 1) { acc -= 1; if (sparks.length < 60) spark(energy > .3); }
+      for (let i = sparks.length - 1; i >= 0; i--) {
+        const p = sparks[i]; p.life += dt;
+        if (p.life > p.max) { sparks.splice(i, 1); continue; }
+        p.x += (p.vx + Math.sin(p.life * 5 + p.ph) * (p.page ? 6 : 2)) * dt; p.y += p.vy * dt;
+        const al = Math.sin(p.life / p.max * Math.PI);
+        if (p.page) { ctx.fillStyle = `rgba(255,240,205,${al * .9})`; ctx.fillRect(p.x | 0, p.y | 0, 2, 3); ctx.fillStyle = rgba(GOLD, al * .7); ctx.fillRect((p.x | 0), (p.y | 0) + 1, 2, 1); }
+        else { ctx.fillStyle = rgba(p.col, al); ctx.fillRect(p.x | 0, p.y | 0, 1, 1); }
+      }
+    }
+
+    function loop(now) {
+      if (!cv.isConnected) return;
+      raf = requestAnimationFrame(loop);
+      const dt = Math.min(.05, (now - last) / 1000 || 0); last = now;
+      if (!document.hidden && cv.offsetWidth) draw(dt);
+    }
+    raf = requestAnimationFrame(loop);
+
+    return {
+      talk(on) { talking = !!on; },
+      burst() { energy = 1; for (let i = 0; i < 14; i++) spark(true); },
+      destroy() { cancelAnimationFrame(raf); cv.remove(); }
+    };
+  }
+
+  window.NexoMagia = { mount, aura };
 })();
