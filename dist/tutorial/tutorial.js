@@ -119,7 +119,7 @@
   function ensureRecorrido() {
     if (window.NexoRecorrido) return Promise.resolve(window.NexoRecorrido);
     recLoading = recLoading || new Promise((ok, fail) => {
-      const s = document.createElement('script'); s.src = new URL('./recorrido.js?v=10', HERE).href; s.onload = () => ok(window.NexoRecorrido); s.onerror = fail; document.head.append(s);
+      const s = document.createElement('script'); s.src = new URL('./recorrido.js?v=13', HERE).href; s.onload = () => ok(window.NexoRecorrido); s.onerror = fail; document.head.append(s);
     });
     return recLoading;
   }

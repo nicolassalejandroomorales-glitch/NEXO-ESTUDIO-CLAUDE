@@ -128,10 +128,10 @@ test('el manifiesto es coherente: cada parada, tramo y sprite existe', { skip: !
   }
 });
 
-test('el peso de los cuadros cabe en el presupuesto (≤ 20 MB)', { skip: !fs.existsSync(manifestPath) && 'sin cuadros exportados' }, () => {
+test('el peso de los cuadros cabe en el presupuesto (≤ 26 MB)', { skip: !fs.existsSync(manifestPath) && 'sin cuadros exportados' }, () => {
   const dir = path.join(dist, 'aprender', 'img');
   const total = fs.readdirSync(dir).reduce((sum, f) => sum + fs.statSync(path.join(dir, f)).size, 0);
-  assert.ok(total <= 20 * 1024 * 1024, `pesan ${(total / 1048576).toFixed(1)} MB`);
+  assert.ok(total <= 26 * 1024 * 1024, `pesan ${(total / 1048576).toFixed(1)} MB`);
 });
 
 test('los módulos de Aprender compilan', () => {

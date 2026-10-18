@@ -101,7 +101,9 @@
   function fit(G) {
     const availW = Math.min(G.root.clientWidth || innerWidth, 1280), top = G.el.stage.getBoundingClientRect().top;
     const availH = Math.max(200, innerHeight - Math.max(top, 70) - 80);
-    const w = Math.floor(Math.min(availW, availH * 1.6));
+    let w = Math.floor(Math.min(availW, availH * 1.6));
+    const up = Math.ceil(w / 320) * 320;
+    if (w >= 640 && up <= availW && w >= up * 0.88) w = up;   // casi un múltiplo entero: se usa justo ese (píxeles perfectos)
     G.el.stage.style.width = `${w}px`;
     G.el.stage.style.height = `${Math.floor(w / 1.6)}px`;
     const k = Math.max(1, Math.ceil(w / 320));

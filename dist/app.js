@@ -868,7 +868,7 @@
   function renderSubjects() {
     if (window.NexoAprender) return window.NexoAprender.render(app, aprenderContext());
     app.innerHTML = '<section class="page"><div class="app-loader" role="status"><span></span><p>Bajando al sótano…</p></div></section>';
-    Promise.all([window.NexoLoader.style('./aprender/sotano.css?v=611fbede'), window.NexoLoader.script('./aprender/estado.js?v=59f4873c').then(() => window.NexoLoader.script('./aprender/sotano.js?v=6461dd69'))])
+    Promise.all([window.NexoLoader.style('./aprender/sotano.css?v=4d21dcc9'), window.NexoLoader.script('./aprender/estado.js?v=59f4873c').then(() => window.NexoLoader.script('./aprender/sotano.js?v=2f0d6eab'))])
       .then(() => { if (['learn', 'subjects'].includes(parseRoute()[0])) renderRoute(false); })
       .catch(() => { app.innerHTML = '<section class="page"><div class="panel error-boundary"><h1>No se pudo abrir el sótano</h1><p>Revisa tu conexión y vuelve a intentarlo.</p><button class="primary-btn" data-route="learn">Reintentar</button></div></section>'; });
   }
