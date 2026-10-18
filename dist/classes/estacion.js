@@ -81,8 +81,14 @@
 
     host.innerHTML = `<section class="st"><canvas class="st-art" aria-hidden="true"></canvas>
       <canvas class="st-pet" width="40" height="44" aria-hidden="true"></canvas><div class="st-bubble" role="status"></div>
-      <div class="st-panel"><ol class="st-steps"></ol><div class="st-body"></div></div><div class="st-fx"></div></section>`;
+      <div class="st-panel"><ol class="st-steps"></ol><div class="st-body"></div></div><div class="st-fx"></div>${opts.onExit ? '<button class="st-exit" aria-label="Salir de la estación">← Salir</button>' : ''}</section>`;
     const root = host.firstElementChild, art = root.querySelector('.st-art'), bubble = root.querySelector('.st-bubble');
+    if (opts.fullscreen) root.classList.add('is-full');
+    if (opts.onExit) {
+      root.querySelector('.st-exit').addEventListener('click', opts.onExit);
+      const onEsc = e => { if (!root.isConnected) document.removeEventListener('keydown', onEsc); else if (e.key === 'Escape') opts.onExit(); };
+      document.addEventListener('keydown', onEsc);
+    }
     const stepsEl = root.querySelector('.st-steps'), body = root.querySelector('.st-body'), fx = root.querySelector('.st-fx');
     const stopPet = startPet(root.querySelector('.st-pet'), petInfo, mood);
     const paint = () => window.NexoStationArt.draw(art, { mode: root.clientWidth < 700 ? 'tall' : 'wide' });

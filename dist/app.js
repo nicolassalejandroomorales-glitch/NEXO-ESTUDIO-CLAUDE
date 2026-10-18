@@ -973,8 +973,8 @@
         .then(() => window.NexoLoader.script('./classes/estacion.js')).then(() => { if (parseRoute()[0] === 'station') renderRoute(false); }).catch(failed);
       return;
     }
-    app.innerHTML = '<section class="page station-page"><button class="back-btn" data-route="learn">← Aprender</button><div id="stationHost"></div></section>';
-    window.NexoStation.mount(app.querySelector('#stationHost'), { cls, mission: missionId, pet: state.mascot, onResult: result => {
+    app.innerHTML = '<section class="page station-page"><div id="stationHost"></div></section>';
+    window.NexoStation.mount(app.querySelector('#stationHost'), { cls, mission: missionId, pet: state.mascot, fullscreen: true, onExit: () => { location.hash = `#/lesson/${id}`; }, onResult: result => {
       const E = window.NexoClassEvidence; if (!E) return;
       const rec = E.record(state, id, { itemId: result.itemId, conceptId: 'am.orden', missionId, stage: 'transfer', step: 5, correct: result.correct, hint: false, retry: false, transfer: true, at: result.at });
       saveState({ backup: false });

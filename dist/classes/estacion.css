@@ -81,4 +81,12 @@
   .st-react{height:84px}
 }
 @media (prefers-reduced-motion:reduce){.st *{animation:none!important;transition:none!important}.st-hp{display:none}.st-prod{opacity:1}.st-n{display:none}}
-.station-page{padding-bottom:110px}
+
+/* Pantalla completa: la estación cubre toda la app y sus botones quedan dentro */
+.st.is-full{position:fixed;inset:0;z-index:1000;width:100vw;height:100dvh;min-height:0;aspect-ratio:auto;border:0}
+.st.is-full .st-panel{top:56px;bottom:3%}
+.st-exit{position:absolute;left:14px;top:12px;z-index:6;padding:8px 14px;background:rgba(20,12,16,.85);border:1px solid #9a8068;border-radius:8px;color:#f3e8cf;font:inherit;font-size:15px;cursor:pointer}
+.st-exit:hover{border-color:#9ce8f0}
+.st-next{position:sticky;bottom:6px;z-index:2;box-shadow:0 0 0 8px rgba(10,26,40,.92)}
+.st.is-full .st-bubble{top:70px}
+@media (max-width:700px){.st.is-full .st-bubble{top:12px;left:36%}.st.is-full .st-pet{top:56px}.st.is-full .st-panel{top:28%}.st-exit{top:10px}}

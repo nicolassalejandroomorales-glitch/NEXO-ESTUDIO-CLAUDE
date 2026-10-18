@@ -32,6 +32,9 @@ Una **estación** = 4 pasos jugados en la mesa de la alcoba del Sótano: Adivina
 - **Evidencia**: el resultado de Demuestra se guarda con `NexoClassEvidence.record` (concepto `am.orden`, escalón 5, transferencia, sin ayuda) y se agenda el repaso con `schedule` (FSRS). Probado en el navegador: queda el registro y `dueAt`.
 - Otras misiones/clases: agregar `stations: ['mX']` y un generador con `smiles`; la estación hoy está atada al generador `basicidad`.
 
+## Pantalla completa (18 oct)
+- A pedido de Niquito, la estación se ve a pantalla completa (`fullscreen: true`, cubre la barra de la app): botón **← Salir** (o Esc) dentro de la pantalla, que vuelve al aula, y botones de avanzar/comprobar fijos abajo del panel (siempre visibles). Probado en 1024 y 375.
+
 ## Las 3 versiones
 - **A Mesa del alquimista**: objetos sobre la mesa (pergamino, grimorio, frascos, sello). Más tangible, fiel al refugio.
 - **B Losa de piedra grabada**: losa con borde verde de Orgánica II; sobria y legible, afín a los letreros del pasillo.
