@@ -26,7 +26,7 @@ DEST = os.path.join(ROOT, 'dist', 'aprender')
 IMG = os.path.join(DEST, 'img')
 CACHE = os.path.join(tempfile.gettempdir(), 'nexo-aprender-cache')
 W, H, CELL_H, COLS = 320, 200, 208, 8      # alto de celda múltiplo de 16: la compresión no mezcla colores entre cuadros
-QUALITY = 80
+QUALITY = 90
 # milisegundos por cuadro según el tipo de tira (w caminar, u dar la vuelta, t girar a una puerta, e entrar, o orbitar, z acercarse, c llegada).
 # La app mezcla cuadros vecinos, por eso puede ir lento sin verse a saltos. 'ease' = la app suaviza arranque y frenada (las demás ya lo traen).
 MS_PER_FRAME = {'w': 60, 'u': 60, 't': 80, 'e': 145, 'o': 80, 'z': 150, 'c': 155, 'i': 0}
