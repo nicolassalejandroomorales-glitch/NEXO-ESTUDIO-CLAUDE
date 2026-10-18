@@ -25,8 +25,9 @@ Dentro de **Aprender** (las puertas / Sótano de los Cristales) aparecen **bicho
 - **Cola de pendientes** (`dist/academic/pending.js`): de dónde salen los bichos y su peso 1–3.
 - **Lógica del duelo** (`dist/game/duel.js`, `window.NexoDuel`, pura, sin pantalla): la mano sale de ejercicios reales de las clases: ordenar (`order`, 34), receta (`recipe`, 12, con cartas señuelo que explican por qué no) y elegir (`choice`, 343, una sola carta correcta). 389 ejercicios probados de punta a punta.
 - Reglas implementadas: la mano nunca empieza resuelta; carta equivocada = −1 corazón, combo roto y explicación; 3 corazones; pista anotada; **un duelo = un intento de evidencia y solo cuenta como acierto si saliste limpio** (ganar tras equivocarte enseña pero no cuenta por tu cuenta). XP = 20 × peso (1–3); con pista o errores, la mitad; combo hasta +30 %; perder no da XP.
-- Pruebas: `tools/pending-test.cjs`, `tools/duel-test.cjs`.
-- Falta: la pantalla (escena + mano), la música, el director de encuentros (cuándo sale un bicho), el registro de evidencia con `NexoAcademicBridge.record` y el rango de jugador.
+- **Director de encuentros** (`dist/game/director.js`, `window.NexoDirector`, puro): `choose` toma el pendiente que más te cuesta que tenga ejercicio de duelo (prefiere ordenar/receta), con su ramo, nombre, peso y mano. Reglas: como mucho 1 bicho cada 10 min; `snooze` ("ahora no") lo deja volver en 5; **tope diario de 300 XP**; el mismo ejercicio no vuelve antes de 3 días; sin pendientes, no sale nada. `classIdsFor(pendientes)` dice qué clases cargar (se cargan bajo demanda). El estado del director (`createState`) lo guarda quien lo llama. Cada una de las 11 clases tiene bichos con ejercicio real.
+- Pruebas: `tools/pending-test.cjs`, `tools/duel-test.cjs`, `tools/director-test.cjs`.
+- Falta: la pantalla (escena + mano), la música, el registro de evidencia con `NexoAcademicBridge.record` al terminar un duelo, y el rango de jugador (tabla de XP por definir con economía).
 
 ## Reglas contra "falsa sensación de dominio"
 - La XP se gana **solo con respuestas verificadas** (más con acierto sin ayuda; con pista, menos). Combos, velocidad y vida solo afectan la XP y lo cosmético, **nunca el estado de conocimiento**.

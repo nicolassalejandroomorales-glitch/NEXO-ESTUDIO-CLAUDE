@@ -87,5 +87,5 @@
     });
   }
 
-  window.NexoAcademicBridge = { record, ensureClass, ensureItem, conceptOf };
+  window.NexoAcademicBridge = { record, ensureClass, ensureItem, conceptOf, aliases: ALIAS };
 })();
