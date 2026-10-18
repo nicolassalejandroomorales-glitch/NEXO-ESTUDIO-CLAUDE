@@ -465,6 +465,16 @@ def moves():
     return nodes, edges
 
 
+def idle_group(name):
+    """Los reposos de varias paradas comparten una hoja (el Artifact admite 511 archivos): 'i-<parada>' -> nombre de la hoja."""
+    ramo, local = split_node(name[2:])
+    if local.startswith('c'):
+        return 'i-cam-' + ramo
+    if local[0] in 'hr':
+        return 'i-pasillo'
+    return 'i-puertas' if local.startswith('d-') else 'i-lateral'
+
+
 def clip_kind(name):
     if name.startswith('i-'):
         return 'i'
@@ -505,12 +515,20 @@ def main(which, ramos):
     old = json.load(open(manifest_path, encoding='utf-8')) if os.path.exists(manifest_path) else {}
     clips = old.get('clips', {})
     total = 0
+    groups = {}
     for name, specs in CL.clips.items():
         if ('clip', name, 0) not in results:
             continue
         frames = [results[('clip', name, i)] for i in range(len(specs))]
+        if name.startswith('i-'):                                    # reposos: varias paradas por hoja
+            group = groups.setdefault(idle_group(name), [])
+            clips[name] = {'n': len(frames), 'file': idle_group(name), 'off': sum(len(f) for _, f in group)}
+            group.append((name, frames))
+            continue
         total += save_sheet(name, frames)
         clips[name] = {'n': len(frames), 'ms': round(len(frames) * MS_PER_FRAME[clip_kind(name)]), 'ease': clip_kind(name) in ('w', 'u')}
+    for group, members in groups.items():
+        total += save_sheet(group, [fr for _, frames in members for fr in frames])
     overlay = old.get('overlay', {})
     for ramo, key, deg, jars, crys in alcoves_with_class():
         p = CAMARAS[ramo]['p']
@@ -522,6 +540,10 @@ def main(which, ramos):
             variants.update({('cr', i, st): results[('spr', ramo, key, view, 'cr', i, st)] for i in range(crys) for st in (1, 0)})
             overlay[view] = make_overlay(view, base, variants, dict(jars=jars, crys=crys))
     nodes, edges = moves()
+    keep = {c.get('file', n) + '.webp' for n, c in clips.items()} | {o['atlas'] for o in overlay.values()}
+    for f in os.listdir(IMG):                                        # hojas que ya no usa ninguna tira
+        if f not in keep:
+            os.remove(os.path.join(IMG, f))
     digest = hashlib.sha1()                                          # versión de los cuadros: cambia el ?v= de cada hoja
     for f in sorted(os.listdir(IMG)):
         digest.update(f.encode() + open(os.path.join(IMG, f), 'rb').read())

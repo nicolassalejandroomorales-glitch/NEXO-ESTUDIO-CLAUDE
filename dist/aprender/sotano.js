@@ -154,13 +154,14 @@
   function idle(G) {
     const token = ++G.idleToken;
     if (reduced()) return;
-    sheet(G, G.M.nodes[G.node].idle).then(img => {
+    const info = G.M.clips[G.M.nodes[G.node].idle], off = info.off || 0;
+    sheet(G, info.file || G.M.nodes[G.node].idle).then(img => {
       const n = G.M.idleN || 6, t0 = performance.now();
       const tick = now => {
         if (!G.alive || G.idleToken !== token) return;
         if (!document.hidden) {
           const cycle = (now - t0) / (G.M.idleMs || 280) % (2 * (n - 1)), pos = cycle <= n - 1 ? cycle : 2 * (n - 1) - cycle;
-          drawAt(G, img, pos, n, false);
+          drawAt(G, img, off + pos, off + n, false);
         }
         G.raf = requestAnimationFrame(tick);
       };
@@ -180,9 +181,10 @@
     G.idleToken++;
     G.pick = null;
     G.node = node;
-    const img = await sheet(G, G.M.nodes[node].idle);
+    const info = G.M.clips[G.M.nodes[node].idle];
+    const img = await sheet(G, info.file || G.M.nodes[node].idle);   // los reposos comparten hoja: 'off' = primer cuadro de esta parada
     if (!G.alive || G.node !== node) return;
-    draw(G, img, 0);
+    draw(G, img, info.off || 0);
     remember(node);
     refresh(G);
     idle(G);

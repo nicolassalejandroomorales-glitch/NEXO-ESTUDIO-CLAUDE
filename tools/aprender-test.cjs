@@ -94,7 +94,7 @@ test('el manifiesto es coherente: cada parada, tramo y sprite existe', { skip: !
   const img = name => path.join(dist, 'aprender', 'img', name + '.webp');
   assert.ok(M.v);
   for (const [name, clip] of Object.entries(M.clips)) {
-    assert.ok(fs.existsSync(img(name)), `falta la hoja ${name}`);
+    assert.ok(fs.existsSync(img(clip.file || name)), `falta la hoja ${name}`);
     if (!name.startsWith('i-')) assert.ok(clip.ms >= (name.startsWith('w-') ? 750 : 1000), `${name}: va demasiado rápido (${clip.ms} ms)`);
   }
   // Nunca se retrocede de espaldas: ningún botón reproduce al revés un tramo de caminata.
