@@ -304,15 +304,22 @@ body[data-nexo-room="home"] #app { padding-top:0;background:#28332a; }
 
 .home-room-hud { position:absolute;z-index:6;left:4%;bottom:23%; }
 .refuge .home-room-hud .streak-hud { background:#27372dba;border:1px solid #ceb97988;box-shadow:none;font-size:.875rem; }
-/* Tamaño del reloj: 4 pasos con píxeles ENTEROS (data-cs 1-4; nunca scale, que deformaría el pixel art). fr = marco, sp = sprites, ts = letras, dg = dígitos. */
-.home-clock { --fr:2;--sp:3;--ts:2;--dg:4;--px:var(--sp);--pu:var(--fr);--frame:calc(12*var(--fr)*1px);will-change:transform;position:absolute;z-index:9;left:50%;top:max(3%,64px);width:min(94%,calc(145px*var(--fr)*2));box-sizing:border-box;display:grid;grid-template-columns:auto 1fr auto;gap:calc(var(--ts)*2px) calc(var(--ts)*8px);align-items:center;padding:calc(var(--ts)*1px) calc(var(--ts)*5px) calc(var(--ts)*3px);border:var(--frame) solid transparent;border-image:url('../assets/pixel-ui/marco.png') 12 fill / var(--frame) round;image-rendering:pixelated;color:#f1e6c8;filter:drop-shadow(0 6px 10px #0007);transform-origin:50% 0;transform:translateX(-50%);animation:hcDrop 1.1s cubic-bezier(.3,1.4,.5,1) both,hcSway 7s ease-in-out 1.1s infinite alternate; }
-.home-clock[data-cs="1"] { --fr:1;--sp:2;--ts:1;--dg:2; }
-.home-clock[data-cs="3"] { --fr:3;--sp:4;--ts:3;--dg:6; }
-.home-clock[data-cs="4"] { --fr:4;--sp:5;--ts:4;--dg:8; }
-/* Si la sala es angosta, el reloj baja solo al paso que cabe (cada paso necesita 290px por cada punto de marco). */
-@container (max-width:1170px) { .home-clock[data-cs="4"] { --fr:3;--sp:4;--ts:3;--dg:6; } }
-@container (max-width:930px) { .home-clock[data-cs="3"],.home-clock[data-cs="4"] { --fr:2;--sp:3;--ts:2;--dg:4; } }
-@container (max-width:620px) { .home-clock[data-cs="2"],.home-clock[data-cs="3"],.home-clock[data-cs="4"] { --fr:1;--sp:2;--ts:1;--dg:2; } }
+/* Tamaño del reloj (data-cs): 1 mini (hora, cronómetro y botones) · 2 normal · 3 grande · 4 enorme. Píxeles ENTEROS, nunca scale (deforma el pixel art).
+   fr = tamaño de píxel del marco y los sprites, ts = letras, dg = dígitos. Grande y enorme quedan bajo los botones de la esquina. */
+.home-clock { --fr:2;--ts:2;--dg:4;--px:var(--fr);--pu:var(--fr);--frame:calc(12*var(--fr)*1px);will-change:transform;position:absolute;z-index:9;left:50%;top:12px;width:min(94%,calc(290px*var(--fr)));box-sizing:border-box;display:grid;grid-template-columns:auto 1fr auto;gap:calc(var(--ts)*2px) calc(var(--ts)*8px);align-items:center;padding:calc(var(--ts)*1px) calc(var(--ts)*5px) calc(var(--ts)*3px);border:var(--frame) solid transparent;border-image:url('../assets/pixel-ui/marco.png') 12 fill / var(--frame) round;image-rendering:pixelated;color:#f1e6c8;filter:drop-shadow(0 6px 10px #0007);transform-origin:50% 0;transform:translateX(-50%);animation:hcDrop 1.1s cubic-bezier(.3,1.4,.5,1) both,hcSway 7s ease-in-out 1.1s infinite alternate; }
+.home-clock[data-cs="1"] { width:auto; }
+.home-clock[data-cs="1"] :is(.hc-greet,.hc-label,.hc-plate) { display:none; }
+/* Mini: la hora va chica arriba y el cronómetro grande abajo (no dos números iguales lado a lado); los botones a la derecha. */
+.home-clock[data-cs="1"] { grid-template-columns:auto auto;row-gap:calc(var(--ts)*1px); }
+.home-clock[data-cs="1"] .hc-now { grid-column:1;grid-row:1; }
+.home-clock[data-cs="1"] .hc-hour { height:calc(7*var(--ts)*1px);opacity:.8; }
+.home-clock[data-cs="1"] .hc-timer { grid-column:1;grid-row:2;margin-left:var(--frame); }
+.home-clock[data-cs="1"] .hc-controls { grid-column:2;grid-row:1 / span 2;align-self:center; }
+.home-clock[data-cs="3"] { --fr:3;--ts:3;--dg:6;top:72px; }
+.home-clock[data-cs="4"] { --fr:4;--ts:4;--dg:8;top:72px; }
+/* Si la sala es angosta, el reloj baja solo al paso que cabe (cada paso necesita 290 px por punto de marco). */
+@container (max-width:1170px) { .home-clock[data-cs="4"] { --fr:3;--ts:3;--dg:6; } }
+@container (max-width:930px) { .home-clock[data-cs="3"],.home-clock[data-cs="4"] { --fr:2;--ts:2;--dg:4;top:12px; } }
 .home-clock .pixel-text { --s:var(--ts); }
 .home-clock .pu-btn { padding:calc(var(--ts)*1px) calc(var(--ts)*4px) 0; }
 .home-clock .pu-btn:active { padding-top:calc(var(--ts)*1px + 2*var(--pu)*1px); }
@@ -327,13 +334,13 @@ body[data-nexo-room="home"] #app { padding-top:0;background:#28332a; }
 .home-clock.is-running .hc-digits .pixel-digits { animation:hcGlow 2s ease-in-out infinite; }
 .home-clock .hc-controls { display:flex;gap:calc(var(--ts)*4px);margin-right:var(--frame); }
 
-.home-clock .hc-meta { grid-column:1/-1;margin:calc(var(--ts)*1px) var(--frame) 0;display:flex;gap:calc(var(--ts)*5px);flex-wrap:wrap;justify-content:space-between; }
+.home-clock .hc-meta { grid-column:1/-1;margin:calc(var(--ts)*1px) var(--frame) 0;display:flex;align-items:center;gap:calc(var(--ts)*5px);flex-wrap:wrap; }
 .home-clock .hc-plate { display:inline-flex;align-items:center;padding:calc(var(--ts)*2px) calc(var(--ts)*5px);border:calc(var(--ts)*1px) solid #1a0f13;border-radius:2px;background:#2b3d33;box-shadow:inset 0 calc(var(--ts)*1px) 0 #ffffff1c; }
 .home-clock .hc-plate .pixel-text {fill:#e9d9a4; }
 .home-clock .hc-plate { max-width:100%;overflow:hidden; }
 .home-clock .hc-plate-exam { background:#5b2a24; }
 .home-clock .hc-plate-exam .pixel-text { fill:#ffd9b0; }
-.home-clock .hc-size { position:absolute;left:var(--frame);top:calc(100% + 2px);display:flex;gap:calc(var(--ts)*2px); }
+.home-clock .hc-size { margin-left:auto;display:flex;gap:calc(var(--ts)*2px); }
 .home-clock .hc-size .pu-btn { padding:0 calc(var(--ts)*2px); }
 .home-clock i { position:absolute;display:block;pointer-events:none;image-rendering:pixelated;background-repeat:no-repeat; }
 .hc-gear { left:calc(-11*var(--px)*1px);top:calc(-11*var(--px)*1px);width:calc(20*var(--px)*1px);height:calc(20*var(--px)*1px);background-image:url('../assets/home-scenes/reloj-engranaje.png');background-size:calc(160*var(--px)*1px) 100%;animation:hcSheetGear 14s steps(8) infinite; }
@@ -668,7 +675,7 @@ body.reduce-motion #app>.page { animation:none!important; }
 .home-px-tarde { background-image:url('../assets/home-scenes/refugio-pixel-tarde.png');opacity:calc(var(--w-dusk,0) + var(--w-dawn,0) * .7); }
 .home-px-noche { background-image:url('../assets/home-scenes/refugio-pixel-noche.png');opacity:var(--w-night,0); }
 @media (max-width:700px) {
-  .home-clock[data-cs] { --fr:2;--sp:2;--ts:2;--dg:3;top:8px;width:calc(100% - 20px);grid-template-columns:1fr auto;gap:6px 10px;padding:0 4px 4px; }
+  .home-clock[data-cs] { --fr:2;--ts:2;--dg:3;top:8px;width:calc(100% - 20px);grid-template-columns:1fr auto;gap:6px 10px;padding:0 4px 4px; }
   .home-clock .hc-size { display:none; }
   .home-clock .hc-timer { grid-column:1/-1;grid-row:2; }
   .home-clock .hc-greet,.home-clock .hc-label { display:none; }
