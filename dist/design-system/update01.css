@@ -309,6 +309,12 @@ body[data-nexo-room="home"] #app { padding-top:0;background:#28332a; }
 .home-clock { --fr:2;--ts:2;--dg:4;--px:var(--fr);--pu:var(--fr);--frame:calc(12*var(--fr)*1px);will-change:transform;position:absolute;z-index:9;left:50%;top:12px;width:min(94%,calc(290px*var(--fr)));box-sizing:border-box;display:grid;grid-template-columns:auto 1fr auto;gap:calc(var(--ts)*2px) calc(var(--ts)*8px);align-items:center;padding:calc(var(--ts)*1px) calc(var(--ts)*5px) calc(var(--ts)*3px);border:var(--frame) solid transparent;border-image:url('../assets/pixel-ui/marco.png') 12 fill / var(--frame) round;image-rendering:pixelated;color:#f1e6c8;filter:drop-shadow(0 6px 10px #0007);transform-origin:50% 0;transform:translateX(-50%);animation:hcDrop 1.1s cubic-bezier(.3,1.4,.5,1) both,hcSway 7s ease-in-out 1.1s infinite alternate; }
 .home-clock[data-cs="1"] { width:auto; }
 .home-clock[data-cs="1"] :is(.hc-greet,.hc-label,.hc-plate) { display:none; }
+/* Mini: la hora va chica arriba y el cronómetro grande abajo (no dos números iguales lado a lado); los botones a la derecha. */
+.home-clock[data-cs="1"] { grid-template-columns:auto auto;row-gap:calc(var(--ts)*1px); }
+.home-clock[data-cs="1"] .hc-now { grid-column:1;grid-row:1; }
+.home-clock[data-cs="1"] .hc-hour { height:calc(7*var(--ts)*1px);opacity:.8; }
+.home-clock[data-cs="1"] .hc-timer { grid-column:1;grid-row:2;margin-left:var(--frame); }
+.home-clock[data-cs="1"] .hc-controls { grid-column:2;grid-row:1 / span 2;align-self:center; }
 .home-clock[data-cs="3"] { --fr:3;--ts:3;--dg:6;top:72px; }
 .home-clock[data-cs="4"] { --fr:4;--ts:4;--dg:8;top:72px; }
 /* Si la sala es angosta, el reloj baja solo al paso que cabe (cada paso necesita 290 px por punto de marco). */
