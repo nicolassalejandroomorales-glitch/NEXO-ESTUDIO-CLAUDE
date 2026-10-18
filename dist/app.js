@@ -128,6 +128,7 @@
       errors: [],
       practice: {},
       academicIntelligence: {attempts:[],evidence:[],reviewSchedules:[],structuredErrors:[],userSources:[],activeTimeSegments:[]},
+      studyEngine: null,
       guides: {},
       exams: {},
       labs: {},
@@ -539,7 +540,7 @@
   }
   function setActiveNav(route) {
     const primary = ['subject', 'lesson', 'subjects','library','knowledge','inspector'].includes(route[0]) ? 'learn'
-      : ['practice','reviews','rescue'].includes(route[0]) ? 'learn'
+      : ['practice','reviews','rescue','study'].includes(route[0]) ? 'learn'
       : ['planner','hub','timer'].includes(route[0]) ? 'planner'
       : ['profile', 'mascot', 'stats', 'settings','history'].includes(route[0]) ? 'profile' : route[0];
     document.querySelectorAll('.nav-btn, .profile-orb').forEach(button => {
@@ -604,6 +605,7 @@
       knowledge: () => renderAcademicExplorer('knowledge'),
       reviews: () => renderAcademicExplorer('reviews'),
       rescue: () => renderAcademicRescue(route[1]||'org.lone-pair'),
+      study: renderStudy,
       inspector: () => renderAcademicExplorer('inspector'),
       'ui-lab': () => renderWorkbench('ui-lab'),
       review: () => renderWorkbench('review'),
@@ -875,7 +877,7 @@
       <div class="subject-hero"><div><p class="eyebrow">${subject.short} · PRIORIDAD ${subject.priority}</p><h1>${subject.name}</h1><p>${subject.description}</p><div class="hero-stats"><b>${progress.understood}/${progress.total} comprendidas</b><b>${progress.mastered}/${progress.total} ${subject.id === 'organica' ? 'autoverificadas' : 'dominadas'}</b></div></div><span class="hero-icon" aria-hidden="true">${subject.icon}</span></div>
       <section class="route-switch panel" aria-labelledby="routeModeTitle"><div><p class="eyebrow">MODO DE ACCESO</p><h2 id="routeModeTitle">¿Construir base o ir directo a una prueba?</h2></div><div class="segmented" role="tablist" aria-label="Modo de acceso a las clases"><button role="tab" aria-selected="${mode === 'progression'}" class="${mode === 'progression' ? 'active' : ''}" data-route-mode="progression" data-subject="${subject.id}">Ruta progresiva</button><button role="tab" aria-selected="${mode === 'urgent'}" class="${mode === 'urgent' ? 'active' : ''}" data-route-mode="urgent" data-subject="${subject.id}">Prueba encima</button></div><p>${subject.id === 'organica' ? (mode === 'progression' ? 'El orden sugiere las bases necesarias, pero todas las clases se pueden abrir. En cada una eliges lectura completa, ejercicio directo o repaso.' : 'Entra a cualquier problema. Si aparece un bloqueo, vuelve al concepto preciso y reintenta sin pista.') : mode === 'progression' ? 'Las clases se abren en orden para que cada idea tenga base. La siguiente se libera con comprensión demostrada.' : 'Todas las clases quedan accesibles. Cada una ofrece una entrada compacta que conserva la teoría mínima y obliga a explicar el ejercicio.'}</p></section>
       <div class="pep-board">${subject.peps.map((pep, pepIndex) => `<section class="pep-column"><header><span>0${pepIndex + 1}</span><div><p>${pep.name.includes('PEP') ? 'EVALUACIÓN' : 'BLOQUE'}</p><h2>${pep.name}</h2></div></header><div class="lesson-list">${pep.lessons.map((id, index) => lessonNode(id, index, mode)).join('')}</div></section>`).join('')}</div>
-      ${subject.id==='organica'?'<section class="panel"><h2>Mapa de conocimiento · Aminas</h2><p>Explora conceptos, prerequisitos, evidencia y revisiones del piloto org-01.</p><div class="button-row"><button data-route="knowledge" class="secondary-btn">Abrir mapa</button><button data-route="reviews" class="secondary-btn">Revisiones</button></div></section>':''}
+      ${subject.id==='organica'?'<section class="panel"><h2>Estudiar hoy · Aminas</h2><p>Sesión corta que elige qué practicar según tus repasos y errores. Las pistas cuentan como ayuda.</p><div class="button-row"><button data-route="study" class="primary-btn">Estudiar ahora</button></div></section><section class="panel"><h2>Mapa de conocimiento · Aminas</h2><p>Explora conceptos, prerequisitos, evidencia y revisiones del piloto org-01.</p><div class="button-row"><button data-route="knowledge" class="secondary-btn">Abrir mapa</button><button data-route="reviews" class="secondary-btn">Revisiones</button></div></section>':''}
       <section class="panel lab-preview"><div><p class="eyebrow">LABORATORIO</p><h2>Preparación práctica del ramo</h2><p>Checklist prelab, cálculos, seguridad, datos crudos y cierre de informe. Lo que dependa del manual actual aparece explícitamente como pendiente.</p></div><button class="secondary-btn" data-route="practice" data-route-sub="labs" data-filter-subject="${subject.id}">Abrir laboratorio</button></section>
     </section>`;
   }
@@ -896,7 +898,7 @@
   let mascotAcademicSubscribed=false;
   function loadAcademicFoundation() {
     if(!academicFoundation)academicFoundation=['model','graph','diagnosis','knowledge','ranks','classifiers','sources','reviews','structured','engine','library','inspector','explorer','rescue']
-      .reduce((promise,name)=>promise.then(()=>window.NexoLoader.script(`./academic/${name}.js?v=9fd2b9aa`)),Promise.resolve())
+      .reduce((promise,name)=>promise.then(()=>window.NexoLoader.script(`./academic/${name}.js?v=a2a8bd73`)),Promise.resolve())
       .then(()=>{if(!mascotAcademicSubscribed){window.NexoAcademicEngine.subscribe(event=>
         window.NexoMascotController.react(event,app));mascotAcademicSubscribed=true;}})
       .catch(error=>{academicFoundation=null;throw error;});
@@ -915,6 +917,16 @@
     app.innerHTML='<section class="page"><p role="status">Abriendo Rescate…</p></section>';
     loadAcademicFoundation().then(()=>{if(parseRoute().join('/')===`rescue/${conceptId}`)renderRoute(false);})
       .catch(()=>{app.innerHTML='<section class="page"><h1>Rescate no disponible</h1><button data-route="knowledge">Volver al mapa</button></section>';});
+  }
+  function renderStudy() {
+    const context={getState:()=>state,saveState,showToast};
+    if(window.NexoStudyUI)return window.NexoStudyUI.render(app,context);
+    app.innerHTML='<section class="page"><p role="status">Abriendo el motor de estudio…</p></section>';
+    loadAcademicFoundation()
+      .then(()=>['./vendor/fsrs/index.umd.js','./study/content.js','./study/engine.js','./study/ui.js']
+        .reduce((promise,src)=>promise.then(()=>window.NexoLoader.script(src)),Promise.resolve()))
+      .then(()=>{if(parseRoute()[0]==='study')renderRoute(false);})
+      .catch(()=>{app.innerHTML='<section class="page"><h1>Motor de estudio no disponible</h1><button data-route="study">Reintentar</button></section>';});
   }
   function renderAcademicExplorer(view,conceptId) {
     if(window.NexoAcademicExplorer) {
