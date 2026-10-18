@@ -19,6 +19,7 @@ Dentro de **Aprender** (las puertas / Sótano de los Cristales) aparecen **bicho
 9. **Carta fuera de orden: el bicho te ataca un poco.** Pierdes vida del duelo (cosmética); si te quedas sin vida el bicho se va y regresa después, sin pérdida de progreso académico. El combo se rompe.
 10. **10 rangos de jugador, un cofre por rango** (los rangos 5 y 10 dan uno mejor). Sube rápido al inicio y más lento después. Tabla exacta de XP por definir con el chat de economía.
 11. **La XP depende de qué tan difícil era el bicho para ti:** un error viejo o un concepto débil da más XP que algo que ya dominas. Así lo que más necesitas estudiar es lo que más rinde.
+12. **Boceto aprobado (18 oct 2026):** escena arriba (pasillo en primera persona + bicho) y **mano de cartas abajo**, en la misma pantalla. El **bicho es una criatura con cara y el concepto encima** (ej. la N⁺ en la frente del amonio cuaternario). Cada **carta trae el paso escrito y un dibujito** (mini estructura o ícono); el número del paso solo aparece al jugarla bien. Arriba: rango de jugador y barra de XP; corazones del duelo y combo en la escena.
 
 ## Reglas contra "falsa sensación de dominio"
 - La XP se gana **solo con respuestas verificadas** (más con acierto sin ayuda; con pista, menos). Combos, velocidad y vida solo afectan la XP y lo cosmético, **nunca el estado de conocimiento**.
