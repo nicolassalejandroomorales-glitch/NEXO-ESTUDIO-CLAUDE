@@ -188,6 +188,14 @@
   });
   const INK = [GOLD, ROSE, JADE];
 
+  // Emoción de cada pose → color del aura y fuerza del brillo.
+  const MOOD = {
+    sorprendido: { c: [190, 150, 255], k: 1.5 }, nocreo: { c: [210, 160, 255], k: 1.2 }, enojado: { c: [255, 96, 72], k: 1.6 },
+    triste: { c: [120, 160, 255], k: .6 }, feliz: { c: [255, 205, 120], k: 1.5 }, guino: { c: [255, 190, 130], k: 1.3 },
+    pensativo: { c: [120, 220, 200], k: 1 }, espiral: { c: [120, 220, 200], k: 1.1 }, sudor: { c: [150, 210, 190], k: .8 },
+    dormido: { c: [150, 160, 220], k: .45 }
+  };
+
   function aura(grim) {
     const PAD = 24, W = 68 + PAD * 2, H = 76 + PAD * 2, cx = PAD + 30, cy = PAD + 30;
     const cv = document.createElement('canvas'); cv.width = W; cv.height = H; cv.setAttribute('aria-hidden', 'true');
@@ -195,6 +203,8 @@
     grim.append(cv);
     const ctx = cv.getContext('2d');
     let t = 0, last = 0, talk = 0, talking = false, energy = 0, acc = 0, sparks = [], raf = 0;
+    let tint = GOLD.slice(), tintTo = GOLD, kk = 1, kkTo = 1, smoke = [], embers = [], smokeAcc = 0, emberAcc = 0;
+    const CANDLES = [PAD + 14.5, PAD + 45.5], CANDLE_Y = PAD + 51;
 
     const spark = (fast) => sparks.push({
       x: cx + (Math.random() - .5) * 26, y: cy - 14 + Math.random() * 6, vx: (Math.random() - .5) * 5, vy: -(6 + Math.random() * 8) * (fast ? 1.6 : 1),
@@ -203,17 +213,42 @@
 
     function draw(dt) {
       t += dt; energy = Math.max(0, energy - dt * 1.4); talk += ((talking ? 1 : 0) - talk) * Math.min(1, dt * 5);
-      const lit = Math.min(1, talk * .7 + energy);
+      const lit = Math.min(1, talk * .7 + energy), f = Math.min(1, dt * 3);
+      for (let c = 0; c < 3; c++) tint[c] += (tintTo[c] - tint[c]) * f;
+      kk += (kkTo - kk) * f;
       ctx.clearRect(0, 0, W, H);
-      const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 36), a = .1 + .04 * Math.sin(t * 1.6) + lit * .2;
-      g.addColorStop(0, rgba(GOLD, a)); g.addColorStop(.5, rgba(ROSE, a * .45)); g.addColorStop(1, rgba(GOLD, 0));
+      // Humo: sube detrás del libro, se ensancha y se desvanece (bloques de 2 px con alfa irregular, para que no se vea liso).
+      smokeAcc += dt * (.9 + talk * 1.6);
+      while (smokeAcc >= 1) { smokeAcc -= 1; if (smoke.length < 14) smoke.push({ x: cx + (Math.random() - .5) * 22, y: cy + 10 + Math.random() * 6, r: 2.5, vy: -(3 + Math.random() * 3), life: 0, max: 3 + Math.random() * 1.6, ph: Math.random() * 6.3 }); }
+      for (let i = smoke.length - 1; i >= 0; i--) {
+        const q = smoke[i]; q.life += dt;
+        if (q.life > q.max) { smoke.splice(i, 1); continue; }
+        q.y += q.vy * dt; q.x += Math.sin(q.life * 1.3 + q.ph) * 3 * dt; q.r = 2.5 + q.life * 2.6;
+        const al = Math.sin(q.life / q.max * Math.PI) * (.1 + lit * .06);
+        for (let dy = -q.r; dy <= q.r; dy += 2) for (let dx = -q.r; dx <= q.r; dx += 2) {
+          if (dx * dx + dy * dy > q.r * q.r) continue;
+          ctx.fillStyle = `rgba(${(tint[0] * .5 + 120) | 0},${(tint[1] * .5 + 105) | 0},${(tint[2] * .5 + 130) | 0},${al * (.5 + ((dx * 7 + dy * 13 + i * 5) & 3) / 6)})`;
+          ctx.fillRect((q.x + dx) | 0, (q.y + dy) | 0, 2, 2);
+        }
+      }
+      const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 36), a = (.1 + .04 * Math.sin(t * 1.6) + lit * .2) * kk;
+      g.addColorStop(0, rgba(tint, a)); g.addColorStop(.5, rgba(ROSE, a * .45)); g.addColorStop(1, rgba(tint, 0));
       ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      // Brasas: salen de las dos velas, se mecen y se apagan.
+      emberAcc += dt * 3.2;
+      while (emberAcc >= 1) { emberAcc -= 1; if (embers.length < 18) embers.push({ x: CANDLES[Math.random() < .5 ? 0 : 1] + (Math.random() - .5) * 2, y: CANDLE_Y, vy: -(5 + Math.random() * 5), life: 0, max: .9 + Math.random() * .8, ph: Math.random() * 6.3 }); }
+      for (let i = embers.length - 1; i >= 0; i--) {
+        const e = embers[i]; e.life += dt;
+        if (e.life > e.max) { embers.splice(i, 1); continue; }
+        e.y += e.vy * dt; e.x += Math.sin(e.life * 7 + e.ph) * 4 * dt;
+        ctx.fillStyle = `rgba(255,${(150 + 80 * (1 - e.life / e.max)) | 0},70,${Math.sin(e.life / e.max * Math.PI) * .9})`; ctx.fillRect(e.x | 0, e.y | 0, 1, 1);
+      }
       // Runas en órbita (elipse inclinada). Delante = brillan; detrás = se apagan.
       const n = 6, spin = t * (.55 + talk * .7), tilt = -.2;
       for (let i = 0; i < n; i++) {
         const an = spin + i * Math.PI * 2 / n, depth = Math.sin(an), ox = Math.cos(an) * 31, oy = depth * 9;
         const x = Math.round(cx + ox * Math.cos(tilt) - oy * Math.sin(tilt)), y = Math.round(cy + 2 + ox * Math.sin(tilt) + oy * Math.cos(tilt));
-        const al = (depth > 0 ? .95 : .3) * (.75 + lit * .25), col = INK[i % 3];
+        const al = (depth > 0 ? .95 : .3) * (.75 + lit * .25), col = i % 3 === 0 ? tint.map(Math.round) : INK[i % 3];
         for (let k = 1; k <= 3; k++) {                       // estela
           const ak = an - k * .13, tx = Math.cos(ak) * 31, ty = Math.sin(ak) * 9;
           ctx.fillStyle = rgba(col, al * .22 / k); ctx.fillRect(Math.round(cx + tx * Math.cos(tilt) - ty * Math.sin(tilt)), Math.round(cy + 2 + tx * Math.sin(tilt) + ty * Math.cos(tilt)), 1, 1);
@@ -244,6 +279,7 @@
 
     return {
       talk(on) { talking = !!on; },
+      mood(pose) { const m = MOOD[pose]; tintTo = m ? m.c : GOLD; kkTo = m ? m.k : 1; },
       burst() { energy = 1; for (let i = 0; i < 14; i++) spark(true); },
       destroy() { cancelAnimationFrame(raf); cv.remove(); }
     };

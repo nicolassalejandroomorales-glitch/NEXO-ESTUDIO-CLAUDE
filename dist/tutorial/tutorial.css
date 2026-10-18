@@ -59,7 +59,15 @@
 /* Nube de diálogo con vida: borde que respira con brillo dorado, "pop" al empezar cada frase, chispas que titilan en las esquinas,
    chispitas que suben al empezar cada palabra y cada letra nueva que aparece con un destello. */
 .tut-box { animation: tutBoxGlow 3.2s ease-in-out infinite; }
-.tut-box.entra { transform-origin: 0 100%; animation: tutBoxGlow 3.2s ease-in-out infinite, tutBoxIn .38s cubic-bezier(.3, 1.5, .5, 1); }
+.tut-box.entra { transform-origin: 0 100%; animation: tutBoxGlow 3.2s ease-in-out infinite, tutDesenrolla .55s cubic-bezier(.25, .9, .3, 1); }
+/* Pergamino vivo: dos rodillos de madera (arriba y abajo) y, en cada frase, el papel se desenrolla desde el centro (--bh = alto de la nube, puesto por JS). */
+.tut-box::before, .tut-box::after { content: ""; position: absolute; left: calc(var(--s) * -3px); right: calc(var(--s) * -3px); height: calc(var(--s) * 4px); pointer-events: none; z-index: 2;
+  background: linear-gradient(#e0a860 0 20%, #b8793a 20% 55%, #7a4a22 55% 80%, #4a2c14 80%); border-radius: calc(var(--s) * 2px); box-shadow: 0 calc(var(--s) * 1px) 0 rgba(0, 0, 0, .35), inset calc(var(--s) * 2px) 0 #f0c878, inset calc(var(--s) * -2px) 0 #5a3418; }
+.tut-box::before { top: calc(var(--s) * -3px); } .tut-box::after { bottom: calc(var(--s) * -3px); }
+@keyframes tutDesenrolla { 0% { clip-path: inset(50% -16px 50% -16px); } 100% { clip-path: inset(-30px -16px -30px -16px); } }
+.tut-box.entra::before { animation: tutRodilloA .55s cubic-bezier(.25, .9, .3, 1); } .tut-box.entra::after { animation: tutRodilloB .55s cubic-bezier(.25, .9, .3, 1); }
+@keyframes tutRodilloA { from { translate: 0 calc(var(--bh, 0px) / 2); } to { translate: 0 0; } }
+@keyframes tutRodilloB { from { translate: 0 calc(var(--bh, 0px) / -2); } to { translate: 0 0; } }
 @keyframes tutBoxGlow { 0%, 100% { filter: drop-shadow(0 0 calc(var(--s) * 1px) rgba(255, 200, 90, .2)); } 50% { filter: drop-shadow(0 0 calc(var(--s) * 3px) rgba(255, 210, 110, .55)); } }
 @keyframes tutBoxIn { 0% { scale: .92 .8; opacity: 0; } 60% { scale: 1.02 1.04; opacity: 1; } 100% { scale: 1 1; opacity: 1; } }
 .tut-chispa { position: absolute; width: calc(var(--s) * 5px); height: calc(var(--s) * 5px); pointer-events: none; opacity: 0; animation: tutChispa 2.4s steps(1) infinite;
@@ -90,9 +98,10 @@
   .tut-talk { flex-direction: column; align-items: stretch; gap: 0; }
   .tut-grim { align-self: flex-start; margin-bottom: calc(var(--s) * -6px); position: relative; z-index: 1; }
   .tut-box { padding-top: calc(var(--s) * 8px); }
+  .tut-box::before, .tut-box::after { left: calc(var(--s) * -1px); right: calc(var(--s) * -1px); }
   .tut-tag { top: calc(var(--s) * -6px); left: auto; right: calc(var(--s) * 4px); }
 }
-@media (prefers-reduced-motion: reduce) { .tut-egg-btn, .tut-egg, .tut-egg.shake, .tut-box, .tut-box.entra, .tut-chispa, .tut-text .nl, .tut-box.done .tut-arrow { animation: none; } .tut-chispa { display: none; } }
+@media (prefers-reduced-motion: reduce) { .tut-egg-btn, .tut-egg, .tut-egg.shake, .tut-box, .tut-box.entra, .tut-box.entra::before, .tut-box.entra::after, .tut-chispa, .tut-text .nl, .tut-box.done .tut-arrow { animation: none; } .tut-chispa { display: none; } }
 
 @media (max-width: 1100px) { .tut { padding-bottom: 96px; } }
 
