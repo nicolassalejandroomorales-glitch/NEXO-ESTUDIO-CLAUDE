@@ -11,7 +11,9 @@
     ['org.basicity','Basicidad relativa','Justificar tendencias considerando base y ácido conjugado en un mismo medio.'],
     ['org.induction','Efecto inductivo','Seguir polarización por enlaces σ y distinguirla de resonancia.'],
     ['org.substituent','Sustituyentes y densidad electrónica','Separar efectos compartidos de los que discriminan anilinas.'],
-    ['org.pka','pKa del ácido conjugado','Usar el sentido de pKa sin invertir una comparación de basicidad.']
+    ['org.pka','pKa del ácido conjugado','Usar el sentido de pKa sin invertir una comparación de basicidad.'],
+    ['org.alkylation','Alquilación de aminas','Seguir cada sustitución con CH₃I hasta el amonio cuaternario.'],
+    ['org.hofmann','Eliminación de Hofmann','Pasar de un amonio cuaternario al alqueno y la amina, eligiendo el H β.']
   ].map(([id,title,description])=>({id,courseId:course.id,lessonIds:[lesson.id],title,description,version:1,tags:['aminas'],active:true}));
   const skills=['identify','draw','compare','justify','predict','calculate','transfer'].map(id=>({id,title:{identify:'Identificar',draw:'Dibujar',compare:'Comparar',justify:'Justificar',predict:'Predecir',calculate:'Calcular',transfer:'Transferir'}[id],version:1}));
   const prerequisites=[
@@ -19,8 +21,16 @@
     ['org.lone-pair','org.aromatic-pair','required'],['org.resonance','org.basicity','recommended'],
     ['org.protonation','org.basicity','required'],['org.aromatic-pair','org.basicity','recommended'],
     ['org.induction','org.substituent','required'],['org.substituent','org.basicity','recommended'],
-    ['org.pka','org.basicity','recommended']
+    ['org.pka','org.basicity','recommended'],
+    ['org.protonation','org.alkylation','required'],['org.alkylation','org.hofmann','required']
   ].map(([from,to,strength])=>({from,to,strength}));
+  // Banco del motor de estudio (dist/study/content.js): habilidad → conceptos y actividades [id local:nivel].
+  const studyBank={pair:{concepts:['org.lone-pair'],items:['pair-1:1','pair-2:2','pair-3:2','pair-4:3']},
+    resonance:{concepts:['org.resonance','org.basicity'],items:['res-1:1','res-2:2','res-3:2','res-4:3','res-5:2','res-6:2','res-7:3','res-8:3']},
+    pka:{concepts:['org.pka','org.basicity'],items:['pka-1:1','pka-2:2','pka-3:2','pka-4:3']},
+    protonation:{concepts:['org.protonation','org.lone-pair'],items:['prot-1:1','prot-2:2','prot-3:2','prot-4:3']},
+    alkylation:{concepts:['org.alkylation','org.protonation'],items:['alk-1:1','alk-2:2','alk-3:2','alk-4:3','alk-5:3']},
+    hofmann:{concepts:['org.hofmann','org.alkylation'],items:['hof-1:1','hof-2:2','hof-3:2','hof-4:3','hof-5:3','hof-6:3','hof-7:3','hof-8:3']}};
   const families=[
     {id:'org.protonation.charge',conceptIds:['org.protonation','org.lone-pair'],skillIds:['draw','identify'],difficulty:1,generatorType:'curated'},
     {id:'org.heterocycle.pair',conceptIds:['org.aromatic-pair','org.basicity'],skillIds:['identify','justify'],difficulty:2,generatorType:'curated'},
@@ -30,7 +40,9 @@
     {id:'org.basicity.integrated',conceptIds:['org.basicity','org.resonance','org.induction'],skillIds:['transfer','justify'],difficulty:3,generatorType:'curated'},
     {id:'org.heterocycle.transfer',conceptIds:['org.aromatic-pair','org.basicity'],skillIds:['identify','justify','transfer'],difficulty:3,generatorType:'curated'},
     {id:'org.pka.equilibrium',conceptIds:['org.pka','org.basicity'],skillIds:['calculate','predict'],difficulty:3,generatorType:'curated'}
-  ].map(f=>({...f,version:1,validator:'self_rubric',misconceptionIds:[],active:true,
+  ].concat(Object.entries(studyBank).map(([skill,row])=>({id:`org.study.${skill}`,conceptIds:row.concepts,
+    skillIds:['identify','justify'],difficulty:2,generatorType:'curated'})))
+  .map(f=>({...f,version:1,validator:f.id.startsWith('org.study.')?'study_bank':'self_rubric',misconceptionIds:[],active:true,
     transferLevel:f.difficulty===3?'novel_context':'standard',examStyle:f.difficulty===3}));
   const misconceptions=[
     ['org.charge.disappears','L-CARGA','Olvidar el H nuevo o la carga positiva del N protonado.'],
@@ -56,6 +68,13 @@
     b08:'org.pka.inverted',b10:'org.induction-is-resonance'};
   const responseTypes=['multiple_choice','numeric','math_expression','chemical_structure',
     'ordering','matching','structured_reasoning','structured_fields','short_text','diagram'];
+  const studyExercises=Object.entries(studyBank).flatMap(([skill,row])=>row.items.map(entry=>{
+    const [local,level]=entry.split(':'),family=`org.study.${skill}`;
+    return {id:`org-01:study-${local}`,lessonId:lesson.id,familyId:family,conceptIds:row.concepts,
+      skillIds:['identify','justify'],difficulty:Number(level),expectedResponseType:'structured_fields',
+      validator:'study_bank',version:1,active:true,misconceptionIds:[],examStyle:Number(level)===3,
+      transfer:Number(level)===3};
+  }));
   const exercises=Object.entries(mapping).map(([localId,familyId])=>({
     id:`org-01:${localId}`,lessonId:lesson.id,familyId,
     conceptIds:families.find(f=>f.id===familyId).conceptIds,
@@ -66,12 +85,13 @@
     misconceptionIds:misconceptionByExercise[localId]?[misconceptionByExercise[localId]]:[],
     examStyle:['b07','b08','transfer','sv-pka','sv-pep-order','sv-pep-hetero'].includes(localId),
     transfer:['b05','b06','b07','transfer','sv-pka','sv-pep-order','sv-pep-hetero'].includes(localId)
-  }));
+  })).concat(studyExercises);
   const sources=[
     {id:'org01.lecture-pair',type:'ppt',title:'Aminas · cátedra 2025',location:{page:5,topic:'reactividad del par libre'},url:null,private:true,authority:'course_official',version:1},
     {id:'org01.lecture-acid-base',type:'ppt',title:'Aminas · cátedra 2025',location:{pageStart:17,pageEnd:20,topic:'protonación y pKa'},url:null,private:true,authority:'course_official',version:1},
     {id:'org01.lecture-resonance',type:'ppt',title:'Aminas · cátedra 2025',location:{pageStart:22,pageEnd:25,topic:'resonancia y sustituyentes'},url:null,private:true,authority:'course_official',version:1},
     {id:'org01.lecture-heterocycles',type:'ppt',title:'Aminas · cátedra 2025',location:{pageStart:26,pageEnd:27,topic:'pirrol, piridina e hibridación'},url:null,private:true,authority:'course_official',version:1},
+    {id:'org01.guide-oficial',type:'guide',title:'Guía oficial: Aminas · Orgánica II, QyF',location:{page:2,exercise:3,topic:'metilación exhaustiva y Hofmann'},url:'https://drive.google.com/file/d/1SYyxKMpPfSisVN9nIKomUt7Zmeae6LbQ/view',private:false,authority:'course_official',version:1},
     {id:'org01.guide-1a',type:'guide',title:'Guía de aminas · edición 2021 (en Classroom)',location:{page:1,exercise:4},url:null,private:true,authority:'supplementary',version:1},
     {id:'openstax.amines-basicity',type:'web',title:'OpenStax · Basicity of Amines §24.3',location:{section:'24.3'},url:'https://openstax.org/books/organic-chemistry/pages/24-3-basicity-of-amines',private:false,authority:'supplementary',version:1},
     {id:'openstax.arylamines',type:'web',title:'OpenStax · Basicity of Arylamines §24.4',location:{section:'24.4'},url:'https://openstax.org/books/organic-chemistry/pages/24-4-basicity-of-arylamines',private:false,authority:'supplementary',version:1},
@@ -84,6 +104,7 @@
     ['org.basicity','openstax.amines-basicity'],
     ['org.resonance','org01.lecture-resonance'],['org.resonance','openstax.arylamines'],
     ['org.induction','org01.lecture-resonance'],['org.substituent','org01.lecture-resonance'],
+    ['org.alkylation','org01.guide-oficial'],['org.hofmann','org01.guide-oficial'],
     ['org.aromatic-pair','org01.lecture-heterocycles'],['org.aromatic-pair','openstax.heterocycles']
   ].map(([conceptId,sourceId])=>({conceptId,sourceId}));
   for(const exercise of exercises)exercise.sourceIds=[...new Set(conceptSources
