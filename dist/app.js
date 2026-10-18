@@ -980,7 +980,7 @@
     if(window.NexoDuelUI)return window.NexoDuelUI.render(app,context);
     app.innerHTML='<section class="page"><p role="status">Buscando un bicho…</p></section>';
     loadAcademicFoundation()
-      .then(()=>['./game/duel.js','./game/director.js','./game/encounter.js','./game/duel-ui.js']
+      .then(()=>['./game/duel.js','./game/director.js','./game/encounter.js','./game/duel-music.js','./game/duel-ui.js']
         .reduce((promise,src)=>promise.then(()=>window.NexoLoader.script(src)),Promise.resolve()))
       .then(()=>{if(parseRoute()[0]==='duelo')renderRoute(false);})
       .catch(()=>{app.innerHTML='<section class="page"><h1>Duelo no disponible</h1><button data-route="duelo">Reintentar</button></section>';});

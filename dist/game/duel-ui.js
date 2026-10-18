@@ -31,6 +31,8 @@
   const pt = text => (window.NexoPixelText ? window.NexoPixelText.render(text, { shadow: false }) : esc(text));
   const btn = (label, attrs = '') => `<button class="pu-btn" ${attrs}>${pt(label)}</button>`;
   let api = null, host = null, view = null;
+  const music = () => window.NexoDuelMusic;
+  window.addEventListener?.('hashchange', () => { if (!/duelo/.test(location.hash)) music()?.stop(true); });
 
   const store = () => api.getState().duel || (api.getState().duel = { director: window.NexoDirector.createState(), totalXp: 0 });
 
@@ -95,6 +97,7 @@
     const found = await nextBug(practice);
     if (!found) { if (note) note.textContent = practice ? 'No encontré un ejercicio de duelo.' : 'Hoy no hay bichos: no tienes repasos vencidos ni errores abiertos, o ya llegaste al tope. Prueba un bicho de práctica.'; return; }
     view = { ...found, duel: window.NexoDuel.start(found.encounter.item, { seed: Date.now() }), msg: 'Un bicho salió del pasillo. Juega los pasos en orden.', result: null, bad: null };
+    music()?.sfx('appear'); music()?.start(found.encounter.subject); music()?.setIntensity(1);
     render();
   }
 
@@ -104,6 +107,7 @@
     const r = await window.NexoEncounter.finish(api, { cls: view.cls, encounter: view.encounter, duel: d, dstate: store().director, practice: view.practice });
     store().director = r.dstate; store().totalXp += r.xp; api.saveState();
     view.result = r; view.msg = r.sum.won ? '¡Lo vencimos!' : 'Se fue el bicho.';
+    music()?.stop(); music()?.sfx(r.sum.won ? 'win' : 'lose');
     render();
   }
 
@@ -116,10 +120,11 @@
       if (d.duelNext !== undefined) { const again = view?.practice ?? false; view = null; return startBug(again); }
       if (!view || view.result) return;
       if (d.duelHint !== undefined) { const h = window.NexoDuel.hint(view.duel); view.duel = h.state; view.msg = `Pista: ${h.text} (con pista, menos xp)`; return render(); }
-      if (d.duelSnooze !== undefined) { if (!view.practice) { store().director = window.NexoDirector.snooze(store().director); api.saveState(); } view = null; return render(); }
+      if (d.duelSnooze !== undefined) { music()?.stop(); if (!view.practice) { store().director = window.NexoDirector.snooze(store().director); api.saveState(); } view = null; return render(); }
       if (d.duelCard) {
         const r = window.NexoDuel.play(view.duel, d.duelCard);
         view.duel = r.state; view.bad = r.result.right === false ? d.duelCard : null;
+        if (r.result.right === false) music()?.sfx('wrong'); else if (r.result.right) { music()?.sfx('right', r.result.combo); music()?.setIntensity(r.result.combo >= 2 ? 2 : 1); }
         view.msg = r.result.right ? (r.result.status === 'won' ? '' : `Bien: ese era el paso ${r.result.step}.`) : (r.result.note || 'Esa no.');
         render();
         if (r.result.right === false) { const bug = host.querySelector('#duelBug'); bug?.classList.add('hit'); setTimeout(() => bug?.classList.remove('hit'), 400); }
