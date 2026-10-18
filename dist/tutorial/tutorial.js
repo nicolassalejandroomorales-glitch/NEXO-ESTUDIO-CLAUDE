@@ -59,7 +59,7 @@
     { id: 'vest', who: 'M', text: 'Aquí me vistes y compras cosas con monedas. Sí, tengo opiniones sobre mi sombrero.', scene: 'refugio' },
     { id: 'rec-inicio', pose: 'senalar', text: 'Basta de maquetas. Ven, te enseño tu torre *de verdad*.', scene: 'mascota', next: 'Vamos', recorrido: 'inicio' },
     { id: 'dato1', pose: 'pensativo', text: 'Dato: volver cada día, aunque sea poco, pesa más que una sola noche heroica. El *espaciado* funciona.', scene: 'mascota' },
-    { id: 'rec-aprender', pose: 'senalar', text: 'Ahora mi *biblioteca*, donde se estudia de verdad. Sígueme.', scene: 'mascota', next: 'Vamos', recorrido: 'aprender' },
+    { id: 'rec-aprender', pose: 'senalar', text: 'Ahora *bajemos*: el sótano de los cristales, donde se estudia de verdad. Sígueme.', scene: 'mascota', next: 'Vamos', recorrido: 'aprender' },
     { id: 'evid', pose: 'dedo', text: 'Releer da *sensación* de dominio. Acertar sin ayuda da dominio *de verdad*. Por eso te pido responder antes de mostrarte nada.', scene: 'panel',
       panel: '<div class="tut-vs"><div><h4>Releer</h4><p>Se siente fácil.<br>Se olvida rápido.</p></div><div class="win"><h4>Responder sin mirar</h4><p>Cuesta un poco.<br>Se queda.</p></div></div><small class="tut-cite">Roediger y Karpicke, 2006: practicar recordando supera a releer cuando se evalúa días después.</small>' },
     { id: 'espac', pose: 'importante', text: 'Te haré volver a temas viejos justo antes de que se disuelvan en la niebla. Molesta un poco. Funciona.', scene: 'panel',
@@ -119,7 +119,7 @@
   function ensureRecorrido() {
     if (window.NexoRecorrido) return Promise.resolve(window.NexoRecorrido);
     recLoading = recLoading || new Promise((ok, fail) => {
-      const s = document.createElement('script'); s.src = new URL('./recorrido.js?v=8', HERE).href; s.onload = () => ok(window.NexoRecorrido); s.onerror = fail; document.head.append(s);
+      const s = document.createElement('script'); s.src = new URL('./recorrido.js?v=10', HERE).href; s.onload = () => ok(window.NexoRecorrido); s.onerror = fail; document.head.append(s);
     });
     return recLoading;
   }
@@ -450,7 +450,7 @@
       if (step.recorrido) {   // recorrido por la pantalla real: guarda el avance y, al terminar, vuelve aquí
         s.i++; save(s); clearAll(); busy = true; refresh();
         const volver = () => { location.hash = mode === 'test' ? '#/tutorial/test' : '#/tutorial'; };
-        ensureRecorrido().then(R => R.run(step.recorrido, { volver })).catch(() => { busy = false; show(s.i); });
+        ensureRecorrido().then(R => R.run(step.recorrido, { volver, voz: vozGrimorio })).catch(() => { busy = false; show(s.i); });
         return;
       }
       show(s.i + 1);

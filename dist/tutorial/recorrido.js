@@ -21,16 +21,16 @@
     aprender: {
       ruta: 'learn',
       pasos: [
-        { sel: '.grimoire-tabs', pose: 'abrir', texto: 'Mi biblioteca: un marcador por *ramo*. Cambia de ramo con ellos.' },
-        { sel: '.grimoire-index', pose: 'senalar', texto: 'Abre un ramo y elige la evaluación: ahí vive tu *ruta al 7*. Sigue el material de tu semestre y se curva según tu tiempo, lo que ya sabes… y tus errores.' },
-        { sel: '.folio-intro', pose: 'dedo', texto: 'Ahí te pediré responder *antes* de mostrarte nada. Acertar sin ayuda da dominio de verdad; releer solo da sensación de dominio.' }
+        { sel: '.sotano-stage', pose: 'abrir', texto: 'El *Sótano de los Cristales*: un pasillo con una puerta por ramo. Cada puerta lleva a su Cámara, y ahí vive tu *ruta al 7*.' },
+        { sel: '.sotano-pad', pose: 'senalar', texto: '*Avanzar* y *Dar la vuelta* te mueven por el pasillo. Si prefieres, usa las flechas del teclado.' },
+        { sel: '.sotano-stage', pose: 'dedo', texto: 'Sobre las piedras dibujo tu estado *real*: frascos y cristales según lo que has demostrado, no según lo que has releído.' }
       ]
     },
     juegos: {
       ruta: 'games',
       pasos: [
-        { sel: '.game-ready', pose: 'abrir', texto: 'La campaña *Boss Arena · Camino a la PEP 1*: combates y jefes que avanzan cuando tú estudias. Es lo único listo por ahora.' },
-        { sel: '.games-grid', pose: 'guino', texto: 'Estas máquinas aún duermen: *Memory Lab*, *Error Hunter* y *Blitz*. Jugar te obliga a recordar sin mirar, y eso es justo lo que funciona.' }
+        { sel: '.torre-scene', pose: 'abrir', texto: 'La *sala de juegos*: tres máquinas arcade y un portal. Jugar te obliga a recordar sin mirar, y eso es justo lo que funciona.' },
+        { sel: '.games-grid', pose: 'guino', texto: '*Memory Lab*, *Error Hunter* y *Blitz* aún duermen, igual que el portal del *juego nuevo*. Cuando despierten, aquí te aviso.' }
       ]
     },
     organizacion: {
@@ -54,7 +54,6 @@
   let cssLoaded = false, ui = null;
   const R = { active: false, SECCIONES };
   const esc = t => t.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
-  const rich = t => esc(t).replace(/\*(.+?)\*/g, '<b>$1</b>');
   const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function ensureCss() {
@@ -77,15 +76,44 @@
     const box = document.createElement('aside'); box.className = 'rec-box'; box.setAttribute('role', 'status'); box.setAttribute('aria-live', 'polite');
     box.innerHTML = '<div class="rec-grim"></div><div class="rec-body"><p></p><div class="rec-nav"><button class="secondary-btn rec-salir" type="button">Salir</button><span></span><button class="secondary-btn rec-atras" type="button">Atrás</button><button class="primary-btn rec-sig" type="button">Siguiente</button></div></div>';
     document.body.append(veil, halo, box);
-    ui = { veil, halo, box, raf: 0, target: null };
+    ui = { veil, halo, box, raf: 0, target: null, stop: () => clearTimeout(typeTimer) };
     const g = box.querySelector('.rec-grim'), txt = box.querySelector('p'), sig = box.querySelector('.rec-sig'), atras = box.querySelector('.rec-atras');
     let i = 0, token = 0, dir = 1;
 
-    const pose = name => {
+    let actual = 'reposo', typeTimer = 0, altoTexto = 0;
+    const pose = (name, col = 0) => {
+      actual = name;
       const row = Math.max(0, ROWS.indexOf(name));
       g.style.backgroundImage = `url(${asset('grimorio-hablar.png')})`;
       g.style.backgroundSize = `calc(var(--s) * 204px) calc(var(--s) * ${76 * ROWS.length}px)`;
-      g.style.backgroundPosition = `0 calc(var(--s) * ${-76 * row}px)`;
+      g.style.backgroundPosition = `calc(var(--s) * ${-68 * col}px) calc(var(--s) * ${-76 * row}px)`;
+    };
+    // Texto letra por letra con el blip del Grimorio (opts.voz) y la boca que se mueve; tocar el globo lo completa.
+    const PAUSA = { '…': 380, '.': 280, '?': 280, '!': 260, ':': 220, ',': 170, '—': 170 };
+    const escribe = raw => {
+      clearTimeout(typeTimer);
+      const plain = [], glow = []; let on = false;
+      for (const ch of raw) { if (ch === '*') { on = !on; continue; } plain.push(ch); glow.push(on); }
+      const n = plain.length;
+      const paint = k => {
+        let out = '', open = false;
+        for (let j = 0; j < k; j++) { if (glow[j] !== open) { out += open ? '</b>' : '<b>'; open = glow[j]; } out += esc(plain[j]); }
+        txt.innerHTML = out + (open ? '</b>' : '');
+      };
+      paint(n); txt.style.minHeight = ''; altoTexto = Math.max(altoTexto, txt.offsetHeight); txt.style.minHeight = altoTexto + 'px';   // reserva el alto: el globo no salta al escribir
+      if (reduced()) return;
+      let k = 0;
+      const termina = () => { clearTimeout(typeTimer); paint(n); pose(actual, 0); txt.onclick = null; };
+      txt.onclick = termina;
+      const tick = () => {
+        k++; paint(k);
+        const ch = plain[k - 1];
+        pose(actual, [1, 2, 1, 0][k % 4]);
+        if (/\p{L}/u.test(ch)) opts.voz?.('', glow[k - 1]);
+        if (k >= n) return termina();
+        typeTimer = setTimeout(tick, PAUSA[ch] || (glow[k - 1] ? 48 : 28));
+      };
+      tick();
     };
     const coloca = () => {
       const e = ui && ui.target;
@@ -106,7 +134,7 @@
       if (!e) { i += dir; if (i < 0) i = 0; if (i >= sec.pasos.length) return fin(); return mostrar(); }   // objetivo ausente: se salta
       e.scrollIntoView({ block: e.getBoundingClientRect().height > innerHeight * .7 ? 'start' : 'center', behavior: 'instant' });
       ui.target = e; halo.hidden = false; coloca();
-      pose(paso.pose); txt.innerHTML = rich(paso.texto);
+      pose(paso.pose); escribe(paso.texto);
       box.classList.remove('entra'); if (!reduced()) { void box.offsetWidth; box.classList.add('entra'); }
       atras.disabled = i === 0;
       sig.textContent = i === sec.pasos.length - 1 ? 'Listo' : 'Siguiente';
@@ -125,7 +153,7 @@
   R.close = function close() {
     R.active = false;
     if (!ui) return;
-    cancelAnimationFrame(ui.raf); ui.veil.remove(); ui.halo.remove(); ui.box.remove(); ui = null;
+    ui.stop(); cancelAnimationFrame(ui.raf); ui.veil.remove(); ui.halo.remove(); ui.box.remove(); ui = null;
   };
 
   window.NexoRecorrido = R;
