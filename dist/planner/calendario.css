@@ -263,3 +263,47 @@ h3::first-letter { text-transform: uppercase; }
 @media (prefers-reduced-motion: reduce) { .mes-papel.enrollar, .dia.hoy b, .hoja-dia { animation: none !important; } }
 body[data-nexo-ambient-motion="reduced"] .estudio-page .dia.hoy b, body[data-nexo-quality="low"] .estudio-page .dia.hoy b, body.ambient-paused .estudio-page .dia.hoy b,
 body[data-nexo-ambient-motion="reduced"] .estudio-page .mes-papel, body[data-nexo-quality="low"] .estudio-page .mes-papel { animation: none !important; }
+
+/* Hoy, Mes y Mis horarios vivos: papel con fibras, entrada escalonada, brillos de alquimista. */
+@keyframes vvEntra { from { opacity: 0; transform: translateY(12px) scale(.97); } }
+@keyframes vvPop { from { opacity: 0; transform: scale(.4) rotate(-12deg); } }
+@keyframes vvLatido { 0%, 100% { box-shadow: 0 3px 0 #8e7a58, 0 0 0 0 #fbe08a00; } 50% { box-shadow: 0 3px 0 #8e7a58, 0 0 12px 3px #fbe08acc; } }
+@keyframes vvDestello { 0%, 100% { opacity: .2; transform: scale(.7); } 50% { opacity: 1; transform: scale(1.1); } }
+/* Hoy: cada sesión es una tarjeta de papel; la primera pendiente late como poción lista. */
+.hoy .bloque { position: relative; background: #f3e6c4 url('../assets/pixel-ui/papel.png') 0 0 / 32px 32px; box-shadow: 0 3px 0 #8e7a58, inset 0 2px 0 #fff8dc; image-rendering: pixelated; transition: transform .18s cubic-bezier(.3,1.6,.5,1), box-shadow .18s; animation: vvEntra .5s cubic-bezier(.3,1.5,.5,1) backwards; }
+.hoy .plan-bloques > .bloque:nth-child(2) { animation-delay: .08s; } .hoy .plan-bloques > .bloque:nth-child(3) { animation-delay: .16s; } .hoy .plan-bloques > .bloque:nth-child(n+4) { animation-delay: .24s; }
+.hoy .bloque:not(.hecho):hover { transform: translateY(-3px); box-shadow: 0 6px 0 #8e7a58, inset 0 2px 0 #fff8dc; }
+.hoy .plan-bloques > .bloque:not(.hecho):nth-child(1) { animation: vvEntra .5s cubic-bezier(.3,1.5,.5,1) backwards, vvLatido 3s ease-in-out .7s infinite; }
+.hoy .bloque:not(.hecho) .bloque-n { background: #8c3234; box-shadow: 0 2px 0 #3e141e, inset 0 2px 0 #c46a5a; }
+.hoy .bloque.hecho { background-color: #cab692; filter: saturate(.7); }
+.hoy .bloque.hecho .bloque-n::after { content: "\2713"; }
+.hoy .bloque.hecho .bloque-n { font-size: 0; background: #30644a; }
+.hoy .bloque.hecho .bloque-n::after { font-size: 1rem; color: #e6f7c8; }
+.hoy .bloque-ok { animation: vvPop .5s cubic-bezier(.3,1.9,.5,1) backwards; }
+.today-capacity { position: relative; background: #d5ddc0 url('../assets/pixel-ui/papel.png') 0 0 / 32px 32px; background-blend-mode: multiply; border: 2px solid #8e9b74; box-shadow: 0 3px 0 #6d7a56; animation: vvEntra .45s cubic-bezier(.3,1.5,.5,1) backwards; }
+.today-capacity::before { content: ""; position: absolute; left: 8px; top: -3px; width: 4px; height: 4px; background: #fffbe0; box-shadow: 0 0 5px 2px #fff3a8; animation: vvDestello 2.8s ease-in-out infinite; }
+.today-commitments li { animation: vvEntra .4s ease-out backwards; } .today-commitments li:nth-child(2) { animation-delay: .06s; } .today-commitments li:nth-child(3) { animation-delay: .12s; } .today-commitments li:nth-child(n+4) { animation-delay: .18s; }
+.hoy .plan-total { padding: 8px 10px; background: #fbe08a44; border-left: 4px solid #ba8a30; }
+/* Mes: pergamino con fibras, cabecera de madera, días que se encienden en ola. */
+.mes-papel { background: #f3e6c4 url('../assets/pixel-ui/papel.png') 0 0 / 32px 32px; box-shadow: inset 0 0 0 2px #fff4d8, 0 4px 0 #8e7a58; image-rendering: pixelated; }
+.mes-sem { background: #673c23 url('../assets/torre/estudio/ui-madera.png') repeat; background-size: 128px 64px; border-bottom: 2px solid #1a0f13; image-rendering: pixelated; }
+.dia { transition: transform .15s cubic-bezier(.3,1.6,.5,1), background .15s; animation: vvEntra .4s cubic-bezier(.3,1.5,.5,1) backwards; }
+.mes-dias > :nth-child(7n+2) { animation-delay: .03s; } .mes-dias > :nth-child(7n+3) { animation-delay: .06s; } .mes-dias > :nth-child(7n+4) { animation-delay: .09s; }
+.mes-dias > :nth-child(7n+5) { animation-delay: .12s; } .mes-dias > :nth-child(7n+6) { animation-delay: .15s; } .mes-dias > :nth-child(7n) { animation-delay: .18s; }
+.dia:hover { z-index: 1; transform: translateY(-2px); box-shadow: 0 3px 0 #8e7a58, inset 0 2px 0 #fff8dc; background: #fff4d8; }
+.dia-ico .ico-px { animation: vvPop .4s cubic-bezier(.3,1.9,.5,1) .3s backwards; }
+.dia.hoy { box-shadow: inset 0 0 0 2px #fbe08a, inset 0 0 12px #fbe08a99; }
+.dia.hoy::after { content: ""; position: absolute; right: 6px; top: 6px; width: 4px; height: 4px; background: #fffbe0; box-shadow: 0 0 5px 2px #fff3a8; animation: vvDestello 2.6s ease-in-out infinite; }
+.dia.critica::after { content: ""; position: absolute; right: 5px; top: 5px; width: 6px; height: 6px; background: #b44c40; box-shadow: 0 0 6px 1px #b44c4099; animation: vvDestello 2s ease-in-out infinite; }
+.dia.hoy.critica::after { background: #fffbe0; box-shadow: 0 0 5px 2px #fff3a8; }
+/* Mis horarios: cada día es una tablilla de papel; los días desmarcados se apagan. */
+.agenda-callout { background: #f1e3b0; color: #5a3628; border-left: 4px solid #ba8a30; box-shadow: 0 2px 0 #cab692; }
+.availability-day { background: #f3e6c4 url('../assets/pixel-ui/papel.png') 0 0 / 32px 32px; border: 2px solid #a69070; box-shadow: 0 3px 0 #8e7a58, inset 0 2px 0 #fff8dc; image-rendering: pixelated; transition: transform .18s cubic-bezier(.3,1.6,.5,1), opacity .2s, filter .2s; animation: vvEntra .5s cubic-bezier(.3,1.5,.5,1) backwards; }
+.availability-day:nth-of-type(2) { animation-delay: .05s; } .availability-day:nth-of-type(3) { animation-delay: .1s; } .availability-day:nth-of-type(4) { animation-delay: .15s; }
+.availability-day:nth-of-type(5) { animation-delay: .2s; } .availability-day:nth-of-type(6) { animation-delay: .25s; } .availability-day:nth-of-type(7) { animation-delay: .3s; }
+.availability-day:hover { transform: translateY(-2px); }
+.availability-day legend { display: flex; align-items: center; background: #673c23; border: 2px solid #1a0f13; padding: 0 10px; color: #fff4d8; text-transform: capitalize; }
+.availability-day legend .check { color: #fff4d8; font-weight: 800; }
+.availability-day:has(input[name^="enabled-"]:not(:checked)) { opacity: .55; filter: grayscale(.5); }
+.availability-day:has(input[name^="enabled-"]:checked) legend::after { content: ""; display: inline-block; width: 6px; height: 6px; margin-left: 6px; background: #fbe08a; box-shadow: 0 0 6px 2px #fbe08aaa; animation: vvDestello 2.6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .hoy .bloque, .hoy .plan-bloques > .bloque, .hoy .bloque-ok, .today-capacity, .today-capacity::before, .today-commitments li, .dia, .dia-ico .ico-px, .dia.hoy::after, .dia.critica::after, .availability-day, .availability-day legend::after { animation: none !important; transition: none !important; } }

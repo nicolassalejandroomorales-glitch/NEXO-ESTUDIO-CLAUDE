@@ -41,6 +41,7 @@ Aprobación visual, integración con avances posteriores a la instantánea y pub
 - El editor reutiliza el kit `.pu-*`: marco de madera (`.pu-panel`), papel con fibras, título en `NexoPixelText`, botones `.pu-btn`, hiedra, sello (`.pu-seal`) y textos del alquimista ("Sellar en mi semana", "Mejor no").
 - Animaciones en `calendario.css`: pergamino que se despliega, luciérnagas, mascota que asoma (copia el cuadro de `.dock-pet`; `NexoEventEditor.peek`). En móvil se esconden mascota, hiedra y sello. Todo se apaga con `prefers-reduced-motion`.
 - Semana: días con papel y entrada escalonada, "hoy" con brillo, sesiones doradas con destello.
+- Hoy, Mes y Mis horarios (18 oct): mismo papel con fibras y entrada escalonada (`vv*` al final de `calendario.css`). Hoy: tarjetas de papel, primera sesión pendiente late, hechas con ✓; Mes: cabecera de madera, ola de entrada, brillo en hoy y punto rojo en semanas críticas; Mis horarios: tablillas por día, los desmarcados se apagan. Textos del alquimista en `estudio.js` y `event-editor.js`.
 - Pendiente: la mascota no reacciona aún a los campos (solo asoma); `¡` no existe en la fuente pixel (no usarlo en títulos).
 
 ## Límites concretos

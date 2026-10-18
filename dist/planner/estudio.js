@@ -459,7 +459,7 @@
           : `<button type="button" class="pix-btn" data-org-start="${esc(b.id)}">Empezar</button>
              <button type="button" class="pix-btn suave" data-org-done="${esc(b.id)}">Listo</button>
              <button type="button" class="pix-btn suave" data-org-skip="${esc(b.id)}">Hoy no</button>`}</div></li>`;
-    }).join('')}</ol>` : `<p class="pergamino-vacio">${mins <= 0 ? 'Hoy descansas: no hay plan. Descansar también es parte de estudiar.' : 'Nada urgente en las próximas semanas: buen día para adelantar o repasar.'}</p>`;
+    }).join('')}</ol>` : `<p class="pergamino-vacio">${mins <= 0 ? 'Hoy descansas: no hay plan. Descansar también es parte de estudiar.' : 'El caldero está tranquilo: nada urgente. Buen día para adelantar o repasar.'}</p>`;
     return `<article class="pergamino hoy" aria-labelledby="hoyTitle">
       <header class="pergamino-head"><p class="eyebrow">HOY · ${esc(longToday())}</p><h2 id="hoyTitle">Plan del día</h2>
         <div class="hoy-tiempo" role="group" aria-label="Tiempo para estudiar hoy">
@@ -473,7 +473,7 @@
       ${pending.length && info.configured ? `<p class="block-warning">Hay ${pending.length} sesión${pending.length === 1 ? '' : 'es'} con tiempo pendiente de ubicar. Revisa tu semana antes de añadir más.</p>` : ''}
       ${flash ? '<p class="modo-prueba">Día de prueba: solo un repaso flash. Sin materia nueva, calma y a rendir.</p>' : ''}
       ${blocks}
-      <p class="plan-total">Plan ${planned} de ${mins} min · llevas ${studied} min hoy. Nexo propone, tú decides: si hoy no se puede, lo reacomoda sin culpa.</p>
+      <p class="plan-total">Plan ${planned} de ${mins} min · llevas ${studied} min hoy. El alquimista propone, tú decides: si hoy no se puede, la poción se reacomoda sin culpa.</p>
     </article>
     <article class="pergamino viene" aria-labelledby="vieneTitle">
       <header class="pergamino-head"><p class="eyebrow">RELOJES DE ARENA</p><h2 id="vieneTitle">Lo que viene</h2></header>
