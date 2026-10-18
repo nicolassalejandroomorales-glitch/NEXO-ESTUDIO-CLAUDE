@@ -2357,16 +2357,37 @@
       <i class="pu-ivy agenda-ivy-l" aria-hidden="true"></i><i class="pu-ivy pu-ivy-b agenda-ivy-r" aria-hidden="true"></i><span class="agenda-wisps" aria-hidden="true">${wisps}</span><canvas class="agenda-pet" width="40" height="44" aria-hidden="true"></canvas>
       <header class="agenda-head"><div><p class="eyebrow">TU BITÁCORA · ORGANIZACIÓN</p><h2 id="agendaTitle" aria-label="${esc(title)}">${pt}</h2><p>${sub}</p></div><button type="button" class="agenda-close" data-cal-cancel aria-label="Cerrar sin guardar">×</button></header>${body}</section></dialog>`;
   }
-  // La mascota asoma por el borde: copia el cuadro de la que vive en la barra lateral.
+  // La mascota asoma por el borde y reacciona: base (queda) + gesto breve (flash).
+  const mood = { base: ['neutral', 'rest'], flash: null };
+  const REACT = { wow: ['deslumbrada', 'cheeks'], worry: ['nerviosa', 'fiddle'], sleep: ['dormida', 'sleep'], cheer: ['feliz', 'up'] };
+  const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function gesture(name, ms) { mood.flash = { pose: REACT[name], until: performance.now() + ms }; }
   function peek(root) {
-    const pet = root.querySelector('.agenda-pet'), dock = document.querySelector('.dock-pet');
-    if (!pet || !dock) { pet?.remove(); return; }
-    const ctx = pet.getContext('2d');
-    (function draw() {
-      if (!pet.isConnected) return;
-      ctx.clearRect(0, 0, 40, 44); ctx.drawImage(dock, 0, 0);
-      requestAnimationFrame(draw);
-    })();
+    const pet = root.querySelector('.agenda-pet');
+    if (!pet || !window.NexoPet?.mini) { pet?.remove(); return; }
+    mood.base = ['neutral', 'rest']; mood.flash = null;
+    const now = () => (mood.flash && performance.now() < mood.flash.until ? mood.flash.pose : mood.base);
+    window.NexoPet.mini({ canvas: pet, expr: () => now()[0], arm: () => now()[1] });
+  }
+  // Mira la fecha y la hora del borrador: se asombra al cambiarlas, se preocupa si chocan y duerme de madrugada.
+  function watch(form, { state, schedule }) {
+    const S = window.NexoSchedule, f = form.elements, start = S.time(f.time.value), end = S.time(f.endTime.value);
+    gesture('wow', 1400);
+    mood.base = ['neutral', 'rest'];
+    if (start === null || !f.date.value) return;
+    const id = form.dataset.calForm, info = S.dayInfo(state, f.date.value, schedule);
+    const clash = end !== null && info.occupied.some(o => o.id !== id && start < o.end && o.start < end);
+    if (clash) mood.base = REACT.worry; else if (start < 360 || start >= 1380) mood.base = REACT.sleep;
+  }
+  // Al guardar: sello grande, la mascota celebra y el pergamino se enrolla. Devuelve una promesa.
+  function farewell(dialog) {
+    const sheet = dialog?.querySelector('.agenda-sheet');
+    if (!sheet || reduced()) return Promise.resolve();
+    dialog.querySelectorAll('button').forEach(b => { b.disabled = true; });
+    sheet.insertAdjacentHTML('beforeend', '<i class="pu-seal pu-seal-3 agenda-stamp" aria-hidden="true"></i>');
+    gesture('cheer', 1200);
+    sheet.classList.add('sellando');
+    return new Promise(done => setTimeout(done, 950));
   }
   function render(ev, date, subjects, lastSubject) {
     const e = ev || {}, type = ['Prueba', 'control'].includes(e.type) ? 'exam' : e.type || 'exam';
@@ -2419,7 +2440,7 @@
     }
     return { availability, minutes, breakMinutes: Number(fd.get('breakMinutes')) || 0 };
   }
-  window.NexoEventEditor = Object.freeze({ render, update, availability, readAvailability, peek });
+  window.NexoEventEditor = Object.freeze({ render, update, availability, readAvailability, peek, watch, farewell });
 })();
 
 ;
@@ -3411,10 +3432,12 @@
       count: !id && fd.has('weekly') ? Number(fd.get('repeatCount')) || 8 : 1, uid: bridge().uid, today: today() });
     if (!r.ok) return formError(f, r.error);
     if (type === 'lab' && window.NexoLabPlan) st.events.filter(e => e.type === 'lab' && !e.lab).forEach(e => { e.lab = window.NexoLabPlan.normalize({}); });
-    ui.lastSubject = draft.subject; ui.edit = null; ui.add = false; ui.month = draft.date.slice(0, 7); ui.day = draft.date;
-    keep(); ctx.sound?.('sello'); refresh();
-    bridge().toast(r.count > 1 ? `${r.count} ocasiones guardadas. El plan se actualizó.` : 'Guardado. El plan se actualizó.', 'Deshacer', () => { r.revert(); keep(); refresh(); });
-    ctx.react?.('saludo', 'Anotado. Ya cuenta para tu semana.');
+    keep(); ctx.sound?.('sello');
+    window.NexoEventEditor.farewell(f.closest('dialog')).then(() => {
+      ui.lastSubject = draft.subject; ui.edit = null; ui.add = false; ui.month = draft.date.slice(0, 7); ui.day = draft.date; refresh();
+      bridge().toast(r.count > 1 ? `${r.count} ocasiones guardadas. El plan se actualizó.` : 'Guardado. El plan se actualizó.', 'Deshacer', () => { r.revert(); keep(); refresh(); });
+      ctx.react?.('saludo', 'Anotado. Ya cuenta para tu semana.');
+    });
   }
 
   function submit(e) {
@@ -3431,6 +3454,7 @@
   function change(e) {
     const t = e.target;
     if (t.closest('.cal-form') && ['type', 'weekly'].includes(t.name)) return window.NexoEventEditor.update(t.closest('.cal-form'));
+    if (t.closest('.cal-form') && ['date', 'time', 'endTime'].includes(t.name)) return window.NexoEventEditor.watch(t.closest('.cal-form'), { state: bridge().state, schedule: schedule() });
     if (t.matches('[data-cal-pasadas]')) { ui.showPast = t.checked; return refresh(); }
     if (t.dataset.calMover) return moverBloque(t.dataset.calMover, t.dataset.from, t.value);
     if (t.dataset.calSch) {
@@ -4869,7 +4893,7 @@
   'use strict';
   const sprite={click:[0,80],confirm:[100,150],purchase:[280,200],equip:[510,120],error:[650,180]};
   const tones={click:[540,690],confirm:[570,810],purchase:[390,570,790],equip:[640,880],error:[260,180]};
-  const rooms={home:'home',learn:'learn',lesson:'learn',subject:'learn',subjects:'learn',library:'learn',
+  const rooms={duelo:'games',home:'home',learn:'learn',lesson:'learn',subject:'learn',subjects:'learn',library:'learn',
     knowledge:'learn',reviews:'learn',rescue:'learn',practice:'learn',
     games:'games',profile:'profile',mascot:'profile',stats:'profile',settings:'profile',
     hub:'planner',planner:'planner',timer:'planner',shop:'profile'};
@@ -5642,6 +5666,7 @@
 
   window.NexoPet = Object.freeze({
     bind(a) { api = { ...api, ...a }; },
+    mini: addMini,   // sprite animado con expresión propia (hoja del Organizador)
     mountHome, cleanup, renderDock, celebrate, paintBig, wireProfile, wireShop, checkWeather, kinds: KINDS, names: NAMES,
     engine, current: pet, reduced   // los usa el mundo de la torre (world/torre-mundo.js)
     , homeSpot: () => home && { x: home.life.state.x, y: home.life.state.y, act: n => home.life.act(n) }   // globo de avisos del Inicio (planner/avisos.js)

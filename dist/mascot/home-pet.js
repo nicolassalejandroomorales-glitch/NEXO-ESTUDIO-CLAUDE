@@ -211,6 +211,7 @@
 
   window.NexoPet = Object.freeze({
     bind(a) { api = { ...api, ...a }; },
+    mini: addMini,   // sprite animado con expresión propia (hoja del Organizador)
     mountHome, cleanup, renderDock, celebrate, paintBig, wireProfile, wireShop, checkWeather, kinds: KINDS, names: NAMES,
     engine, current: pet, reduced   // los usa el mundo de la torre (world/torre-mundo.js)
     , homeSpot: () => home && { x: home.life.state.x, y: home.life.state.y, act: n => home.life.act(n) }   // globo de avisos del Inicio (planner/avisos.js)

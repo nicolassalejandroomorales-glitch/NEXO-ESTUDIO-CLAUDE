@@ -270,10 +270,12 @@
       count: !id && fd.has('weekly') ? Number(fd.get('repeatCount')) || 8 : 1, uid: bridge().uid, today: today() });
     if (!r.ok) return formError(f, r.error);
     if (type === 'lab' && window.NexoLabPlan) st.events.filter(e => e.type === 'lab' && !e.lab).forEach(e => { e.lab = window.NexoLabPlan.normalize({}); });
-    ui.lastSubject = draft.subject; ui.edit = null; ui.add = false; ui.month = draft.date.slice(0, 7); ui.day = draft.date;
-    keep(); ctx.sound?.('sello'); refresh();
-    bridge().toast(r.count > 1 ? `${r.count} ocasiones guardadas. El plan se actualizó.` : 'Guardado. El plan se actualizó.', 'Deshacer', () => { r.revert(); keep(); refresh(); });
-    ctx.react?.('saludo', 'Anotado. Ya cuenta para tu semana.');
+    keep(); ctx.sound?.('sello');
+    window.NexoEventEditor.farewell(f.closest('dialog')).then(() => {
+      ui.lastSubject = draft.subject; ui.edit = null; ui.add = false; ui.month = draft.date.slice(0, 7); ui.day = draft.date; refresh();
+      bridge().toast(r.count > 1 ? `${r.count} ocasiones guardadas. El plan se actualizó.` : 'Guardado. El plan se actualizó.', 'Deshacer', () => { r.revert(); keep(); refresh(); });
+      ctx.react?.('saludo', 'Anotado. Ya cuenta para tu semana.');
+    });
   }
 
   function submit(e) {
@@ -290,6 +292,7 @@
   function change(e) {
     const t = e.target;
     if (t.closest('.cal-form') && ['type', 'weekly'].includes(t.name)) return window.NexoEventEditor.update(t.closest('.cal-form'));
+    if (t.closest('.cal-form') && ['date', 'time', 'endTime'].includes(t.name)) return window.NexoEventEditor.watch(t.closest('.cal-form'), { state: bridge().state, schedule: schedule() });
     if (t.matches('[data-cal-pasadas]')) { ui.showPast = t.checked; return refresh(); }
     if (t.dataset.calMover) return moverBloque(t.dataset.calMover, t.dataset.from, t.value);
     if (t.dataset.calSch) {

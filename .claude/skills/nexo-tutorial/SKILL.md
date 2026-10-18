@@ -34,3 +34,7 @@ description: Tutorial guiado de Nexo (Grimorio que explica la app, elección y n
 - La mascota elegida y su nombre son **definitivos**: por eso `noBack` en los pasos posteriores al nacimiento.
 - Tono: humor + dato (los datos de estudio del guion se verifican antes de implementarlos).
 - Para subir: si hay cambios de otros chats sin subir, usar un worktree limpio sobre `origin/master` y regenerar el bundle ahí.
+
+## Voz y texto del Grimorio
+- Voz: `vozGrimorio` en `tutorial.js` = blip grave y hueco por letra (onda de pulso 25 %, ~140 Hz, tono casi fijo). Elegida por Niquito el 18 oct tras descartar guitarra/libro viejo, campanitas, tintineo y murmullo. Las mascotas conservan su `TIMBRE`.
+- Marcas en los textos: `*palabra*` brilla, `~` al inicio = susurro, `^` al inicio = temblor. Tono del texto: misterioso y poético con humor.

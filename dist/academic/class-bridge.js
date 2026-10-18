@@ -72,7 +72,7 @@
   }
 
   /* ev = registro de NexoClassEvidence.record. Reintentar tras ver la corrección cuenta como ayuda. */
-  async function record(api, cls, item, ev) {
+  async function record(api, cls, item, ev, { activityType = 'class' } = {}) {
     await window.NexoAcademicLoad?.();
     const engine = window.NexoAcademicEngine;
     if (!engine || !cls?.concepts) return null;
@@ -83,7 +83,7 @@
       confidence: ev.confidence ?? null, at: ev.at, review: ev.delayed, attemptNumber: ev.retry ? 2 : 1,
       misconceptionId: !ev.correct && ev.misconception && engine.model.byId(engine.model.misconceptions, `${cls.id}.${ev.misconception}`)
         ? `${cls.id}.${ev.misconception}` : null,
-      activityType: 'class', activityId: cls.id
+      activityType, activityId: cls.id
     });
   }
 

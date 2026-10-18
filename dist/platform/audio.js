@@ -3,7 +3,7 @@
   'use strict';
   const sprite={click:[0,80],confirm:[100,150],purchase:[280,200],equip:[510,120],error:[650,180]};
   const tones={click:[540,690],confirm:[570,810],purchase:[390,570,790],equip:[640,880],error:[260,180]};
-  const rooms={home:'home',learn:'learn',lesson:'learn',subject:'learn',subjects:'learn',library:'learn',
+  const rooms={duelo:'games',home:'home',learn:'learn',lesson:'learn',subject:'learn',subjects:'learn',library:'learn',
     knowledge:'learn',reviews:'learn',rescue:'learn',practice:'learn',
     games:'games',profile:'profile',mascot:'profile',stats:'profile',settings:'profile',
     hub:'planner',planner:'planner',timer:'planner',shop:'profile'};

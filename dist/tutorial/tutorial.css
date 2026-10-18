@@ -137,3 +137,11 @@
 .tut-links a { text-decoration: none; }
 .tut-prize { font-size: 1.8rem; font-weight: 700; color: #ffe08c; text-align: center; display: flex; flex-direction: column; gap: 2px; }
 .tut-prize small { font-size: .72rem; font-weight: 400; opacity: .7; }
+
+/* Texto con personalidad: palabras clave que brillan, susurro (~) y temblor (^) */
+.tut-text .gl { color: #a8560e; font-weight: 700; text-shadow: 0 0 6px rgba(255, 200, 80, .75); animation: tutBrilla 2.4s ease-in-out infinite; }
+@keyframes tutBrilla { 50% { text-shadow: 0 0 10px rgba(255, 210, 100, 1), 0 0 2px #fff0a8; } }
+.tut-box.susurro .tut-text { font-size: .85em; opacity: .75; letter-spacing: .04em; font-style: italic; }
+.tut-box.tiembla .tut-text { animation: tutTiembla .12s linear infinite; }
+@keyframes tutTiembla { 0% { translate: 0 0; } 25% { translate: 1px -1px; } 50% { translate: -1px 1px; } 75% { translate: 1px 1px; } }
+@media (prefers-reduced-motion: reduce) { .tut-text .gl, .tut-box.tiembla .tut-text { animation: none; } }

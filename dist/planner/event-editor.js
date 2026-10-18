@@ -12,16 +12,37 @@
       <i class="pu-ivy agenda-ivy-l" aria-hidden="true"></i><i class="pu-ivy pu-ivy-b agenda-ivy-r" aria-hidden="true"></i><span class="agenda-wisps" aria-hidden="true">${wisps}</span><canvas class="agenda-pet" width="40" height="44" aria-hidden="true"></canvas>
       <header class="agenda-head"><div><p class="eyebrow">TU BITÁCORA · ORGANIZACIÓN</p><h2 id="agendaTitle" aria-label="${esc(title)}">${pt}</h2><p>${sub}</p></div><button type="button" class="agenda-close" data-cal-cancel aria-label="Cerrar sin guardar">×</button></header>${body}</section></dialog>`;
   }
-  // La mascota asoma por el borde: copia el cuadro de la que vive en la barra lateral.
+  // La mascota asoma por el borde y reacciona: base (queda) + gesto breve (flash).
+  const mood = { base: ['neutral', 'rest'], flash: null };
+  const REACT = { wow: ['deslumbrada', 'cheeks'], worry: ['nerviosa', 'fiddle'], sleep: ['dormida', 'sleep'], cheer: ['feliz', 'up'] };
+  const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function gesture(name, ms) { mood.flash = { pose: REACT[name], until: performance.now() + ms }; }
   function peek(root) {
-    const pet = root.querySelector('.agenda-pet'), dock = document.querySelector('.dock-pet');
-    if (!pet || !dock) { pet?.remove(); return; }
-    const ctx = pet.getContext('2d');
-    (function draw() {
-      if (!pet.isConnected) return;
-      ctx.clearRect(0, 0, 40, 44); ctx.drawImage(dock, 0, 0);
-      requestAnimationFrame(draw);
-    })();
+    const pet = root.querySelector('.agenda-pet');
+    if (!pet || !window.NexoPet?.mini) { pet?.remove(); return; }
+    mood.base = ['neutral', 'rest']; mood.flash = null;
+    const now = () => (mood.flash && performance.now() < mood.flash.until ? mood.flash.pose : mood.base);
+    window.NexoPet.mini({ canvas: pet, expr: () => now()[0], arm: () => now()[1] });
+  }
+  // Mira la fecha y la hora del borrador: se asombra al cambiarlas, se preocupa si chocan y duerme de madrugada.
+  function watch(form, { state, schedule }) {
+    const S = window.NexoSchedule, f = form.elements, start = S.time(f.time.value), end = S.time(f.endTime.value);
+    gesture('wow', 1400);
+    mood.base = ['neutral', 'rest'];
+    if (start === null || !f.date.value) return;
+    const id = form.dataset.calForm, info = S.dayInfo(state, f.date.value, schedule);
+    const clash = end !== null && info.occupied.some(o => o.id !== id && start < o.end && o.start < end);
+    if (clash) mood.base = REACT.worry; else if (start < 360 || start >= 1380) mood.base = REACT.sleep;
+  }
+  // Al guardar: sello grande, la mascota celebra y el pergamino se enrolla. Devuelve una promesa.
+  function farewell(dialog) {
+    const sheet = dialog?.querySelector('.agenda-sheet');
+    if (!sheet || reduced()) return Promise.resolve();
+    dialog.querySelectorAll('button').forEach(b => { b.disabled = true; });
+    sheet.insertAdjacentHTML('beforeend', '<i class="pu-seal pu-seal-3 agenda-stamp" aria-hidden="true"></i>');
+    gesture('cheer', 1200);
+    sheet.classList.add('sellando');
+    return new Promise(done => setTimeout(done, 950));
   }
   function render(ev, date, subjects, lastSubject) {
     const e = ev || {}, type = ['Prueba', 'control'].includes(e.type) ? 'exam' : e.type || 'exam';
@@ -74,5 +95,5 @@
     }
     return { availability, minutes, breakMinutes: Number(fd.get('breakMinutes')) || 0 };
   }
-  window.NexoEventEditor = Object.freeze({ render, update, availability, readAvailability, peek });
+  window.NexoEventEditor = Object.freeze({ render, update, availability, readAvailability, peek, watch, farewell });
 })();

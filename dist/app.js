@@ -128,6 +128,7 @@
       errors: [],
       practice: {},
       academicIntelligence: {attempts:[],evidence:[],reviewSchedules:[],structuredErrors:[],userSources:[],activeTimeSegments:[]},
+      duel: null,
       studyEngine: null,
       guides: {},
       exams: {},
@@ -636,6 +637,7 @@
       knowledge: () => renderAcademicExplorer('knowledge'),
       reviews: () => renderAcademicExplorer('reviews'),
       rescue: () => renderAcademicRescue(route[1]||'org.lone-pair'),
+      duelo: renderDuel,
       study: renderStudy,
       inspector: () => renderAcademicExplorer('inspector'),
       'ui-lab': () => renderWorkbench('ui-lab'),
@@ -942,7 +944,7 @@
   let mascotAcademicSubscribed=false;
   function loadAcademicFoundation() {
     if(!academicFoundation)academicFoundation=['model','graph','diagnosis','knowledge','ranks','classifiers','sources','reviews','structured','engine','pending','library','inspector','explorer','rescue']
-      .reduce((promise,name)=>promise.then(()=>window.NexoLoader.script(`./academic/${name}.js?v=c56087e1`)),Promise.resolve())
+      .reduce((promise,name)=>promise.then(()=>window.NexoLoader.script(`./academic/${name}.js?v=528c3a29`)),Promise.resolve())
       .then(()=>{if(!mascotAcademicSubscribed){window.NexoAcademicEngine.subscribe(event=>
         window.NexoMascotController.react(event,app));mascotAcademicSubscribed=true;}})
       .catch(error=>{academicFoundation=null;throw error;});
@@ -972,6 +974,16 @@
         .reduce((promise,src)=>promise.then(()=>window.NexoLoader.script(src)),Promise.resolve()))
       .then(()=>{if(parseRoute()[0]==='study')renderRoute(false);})
       .catch(()=>{app.innerHTML='<section class="page"><h1>Motor de estudio no disponible</h1><button data-route="study">Reintentar</button></section>';});
+  }
+  function renderDuel() {
+    const context={getState:()=>state,saveState,showToast,loadClass:loadClassroom,loadAcademic:loadAcademicFoundation};
+    if(window.NexoDuelUI)return window.NexoDuelUI.render(app,context);
+    app.innerHTML='<section class="page"><p role="status">Buscando un bicho…</p></section>';
+    loadAcademicFoundation()
+      .then(()=>['./game/duel.js','./game/director.js','./game/encounter.js','./game/duel-music.js','./game/duel-ui.js']
+        .reduce((promise,src)=>promise.then(()=>window.NexoLoader.script(src)),Promise.resolve()))
+      .then(()=>{if(parseRoute()[0]==='duelo')renderRoute(false);})
+      .catch(()=>{app.innerHTML='<section class="page"><h1>Duelo no disponible</h1><button data-route="duelo">Reintentar</button></section>';});
   }
   function renderAcademicExplorer(view,conceptId) {
     if(window.NexoAcademicExplorer) {
@@ -1014,7 +1026,7 @@
         window.NexoLoader.script('./classes/willow-tower.js?v=09c21b87').catch(() => null), // Torre del Sauce (etapa 10); sin ella, quedan las hojas en lista
         window.NexoLoader.script(`./classes/${file}?v=18`),
         // Motor de evidencia y repaso espaciado (FSRS); si no cargan, la clase funciona igual sin agendar repasos.
-        window.NexoLoader.script('./classes/evidence.js?v=308f7a40'), window.NexoLoader.script('./classes/molecule.js?v=b3b2e5aa'), window.NexoLoader.script('./classes/editor.js?v=df0be94e'), window.NexoLoader.script('./academic/class-bridge.js?v=3f7db1b3').catch(() => null), window.NexoLoader.script('./academic/reviews.js?v=0273ea6c').catch(() => null)])
+        window.NexoLoader.script('./classes/evidence.js?v=308f7a40'), window.NexoLoader.script('./classes/molecule.js?v=b3b2e5aa'), window.NexoLoader.script('./classes/editor.js?v=df0be94e'), window.NexoLoader.script('./academic/class-bridge.js?v=34abe0b8').catch(() => null), window.NexoLoader.script('./academic/reviews.js?v=0273ea6c').catch(() => null)])
         .then(() => Promise.all([window.NexoLoader.script(`./classes/slides/${id}.js?v=268941af`).catch(() => null), // diapositivas reales, si ya se convirtieron
           window.NexoLoader.script(`./classes/${id}-gen.js?v=00c1b5a9`).catch(() => null)])) // generadores de ejercicios (etapa 8), si la clase los tiene
         .then(() => true);

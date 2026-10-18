@@ -224,10 +224,16 @@ Niquito: «el tutorial ya está súper bueno»: se da por **aprobado el tono, la
 
 ## Huevos y mascota (18 oct 2026, hecho, esperando aprobación de Niquito)
 
-- **Huevos vivos:** `dist/tutorial/huevos.js` (`NexoHuevos.attach(huevo, kind)`) pone un canvas pixelado encima de cada huevo: átomo = electrones con estela en sus órbitas; matraz = burbujas que suben, revientan y se escapan por arriba; slime = gotas gelatinosas, gotitas que caen y el huevo se estira como gelatina. Todos con destellos en cruz. Al pasar el cursor (o enfocar) se agitan. Sin «reducir movimiento» no se monta.
-- **Nacimiento:** la luz dorada se escapa por las grietas (`level` 1→3 con cada fase) y en el estallido: trozos de cáscara con gravedad, chispas, dos ondas de choque y `NexoMagia.pulse()`.
-- **Dab + grito por especie:** al nacer, la mascota hace el dab (`arm: 'dab'`) y da su grito: átomo «¡EUREKA!…», matraz «¡BLUP!…», slime «…bluuu». Cada especie tiene timbre propio en `beep` (`TIMBRE`: átomo seco, matraz burbujeante con tono que sube, slime blando con tono que cae).
-- Probado en escritorio; falta revisar en móvil (390).
+- **Huevos vivos:** `dist/tutorial/huevos.js` (`NexoHuevos.attach(huevo, kind)`) pone un canvas pixelado encima de cada huevo: átomo = electrones con estela en sus órbitas; matraz = burbujas que suben, revientan y se escapan por arriba; slime = gotas gelatinosas, gotitas que caen y el huevo se estira como gelatina. Todos con destellos en cruz. Al pasar el cursor (o enfocar) se agitan: más partículas y el huevo vibra. Sin «reducir movimiento» no se monta.
+- **Nacimiento:** la luz dorada se escapa por las grietas (`level` 1→3 sube con cada fase), y en el estallido: trozos de cáscara con gravedad, chispas, dos ondas de choque y `NexoMagia.pulse()`.
+- **Dab + grito por especie:** al nacer, la mascota hace el dab (`arm: 'dab'`, ya existía en `armPose`) y da su grito: átomo «¡EUREKA!…», matraz «¡BLUP!…», slime «…bluuu». Cada especie tiene timbre propio en `beep` (átomo seco y cuadrado, matraz burbujeante con tono que sube, slime blando con tono que cae).
+- Probado en el navegador (huevos, grietas, estallido, grito y dab); falta revisarlo en móvil (390) y que Niquito lo apruebe.
+
+## Voz y texto del Grimorio (18 oct 2026, aprobado por Niquito)
+
+- **Voz:** `vozGrimorio` = blip grave y hueco por letra (pulso 25 %, ~140 Hz, tono casi fijo). Se descartaron guitarra/libro viejo, campanitas, tintineo y murmullo. Las mascotas conservan su timbre.
+- **Texto:** tono misterioso y poético con humor. Marcas: `*palabra*` brilla, `~` susurro, `^` temblor; pausas más largas en `…` y `.`.
+- Pendiente: el «salto de pantalla hacia arriba» al apretar Siguiente no se reprodujo en escritorio (pasos 1–4); probar en móvil (390) y en pasos con panel.
 
 ## Pendiente (ideas a futuro, no bloquean)
 - Aparición y avisos ya hechos; las novedades nuevas se agregan en `NEWS` de `dist/tutorial/avisos.js`.
