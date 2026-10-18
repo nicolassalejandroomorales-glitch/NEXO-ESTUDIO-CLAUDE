@@ -869,6 +869,7 @@
           <span class="cr-mission-meta"><span>≈ ${m.minutes} min${m.pep ? ` · ${esc(m.pep)}` : ''}</span><span>${done}/${items.length} respondidas${done === items.length && items.length ? ' ✓' : ''}</span>
           ${worth ? `<em class="cr-mission-pts">${pts(goal.won(m.id))}/${pts(worth)} pts PEP</em>` : '<em class="cr-mission-pts is-base">base</em>'}</span></button></li>`;
       }).join('')}</ol>
+        ${(cls.stations || []).map(sid => { const m = cls.missions.find(x => x.id === sid); return m ? `<a class="cr-tip-card" href="#/station/${cls.id}/${sid}"><b>Estación nueva · ${esc(m.title)}</b><span>Adivina, clase, práctica y pregunta estilo PEP con tu mascota ▸</span></a>` : ''; }).join('')}
         ${cls.base?.length ? `<button class="cr-tip-card is-base" data-cr="path" data-path="base"><b>Repaso desde cero (opcional)</b><span>${cls.base.map(m => esc(m.title)).join(' · ')}</span></button>` : ''}`;
       return { sage, center };
     }

@@ -233,7 +233,18 @@ Niquito: «el tutorial ya está súper bueno»: se da por **aprobado el tono, la
 
 - **Voz:** `vozGrimorio` = blip grave y hueco por letra (pulso 25 %, ~140 Hz, tono casi fijo). Se descartaron guitarra/libro viejo, campanitas, tintineo y murmullo. Las mascotas conservan su timbre.
 - **Texto:** tono misterioso y poético con humor. Marcas: `*palabra*` brilla, `~` susurro, `^` temblor; pausas más largas en `…` y `.`.
-- Pendiente: el «salto de pantalla hacia arriba» al apretar Siguiente no se reprodujo en escritorio (pasos 1–4); probar en móvil (390) y en pasos con panel.
+- **Salto al apretar Siguiente (revisado en 390, 18 oct):** el scroll nunca se movía (`scrollY` = 0), pero el botón Siguiente se desplazaba hasta ~30 px entre pasos y la nube crecía línea a línea mientras se escribía. Arreglo en `say()` de `tutorial.js`: se reserva el alto del texto completo (`altoTexto`, solo crece). Resultado: en los 14 pasos con panel el botón queda fijo. Queda un cambio de ~100 px en el paso del nombre (por el formulario), que es otra pantalla.
+
+## Recorrido por la app real (18 oct 2026, primera sección hecha, esperando aprobación de Niquito)
+
+- **Motor modular:** `dist/tutorial/recorrido.js` + `recorrido.css` (carga perezosa desde `tutorial.js`). `SECCIONES` = `{ ruta, pasos: [{ sel, pose, texto }] }`. Lleva a la pantalla real, oscurece el resto con un halo dorado (recortado a la pantalla, porque los carteles del Inicio son más altos que ella), y el Grimorio explica en un globo (arriba o abajo según dónde esté el objetivo). Si un `sel` no existe se salta; «Atrás», «Siguiente» y «Salir».
+- **Primera sección: Inicio** (reloj, próximas pruebas, tu día, continuar). En `STEPS` es el paso `rec-inicio` (`recorrido: 'inicio'`); al terminar o salir vuelve a `#/tutorial` y sigue donde iba. `app.js`: `tutorialDue` no te manda de vuelta al tutorial mientras `NexoRecorrido.active`.
+- **Segunda sección: Aprender** (`rec-aprender`, reemplaza el paso de panel «ruta al 7»): marcadores de ramos, índice del ramo y nota de cómo se estudia.
+- **Tercera sección: Juegos** (`rec-juegos`, reemplaza los paneles falsos «campaña» y «desafíos»; hoy solo la campaña está lista, las otras máquinas dicen «Próximamente»: el texto lo dice honesto).
+- **Cuarta sección: Organización** (`rec-organizacion`, reemplaza los paneles «calendario» y «notas y labs»): pestañas del estudio de planos, plan del día y «lo que viene».
+- **Quinta sección: Perfil** (`rec-perfil`, reemplaza «rangos» y «ajustes»): compañero, rango arcano y botones de Vestuario/Estadísticas/Ajustes. Con esto ya no queda ninguna de las 5 pantallas en panel falso (quedan los paneles de evidencia/espaciado/error con sus estudios, que son dato, no pantalla).
+- Probado en 390 (Inicio y Aprender: pasan los pasos, el halo queda sobre el objetivo y se vuelve al tutorial). Falta: revisar Juegos/Organización/Perfil en 390 con captura, voz por letra y «hazlo tú».
+- No tiene voz por letra ni «hazlo tú» todavía.
 
 ## Pendiente (ideas a futuro, no bloquean)
 - Aparición y avisos ya hechos; las novedades nuevas se agregan en `NEWS` de `dist/tutorial/avisos.js`.

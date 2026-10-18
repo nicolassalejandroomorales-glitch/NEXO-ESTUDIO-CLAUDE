@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Estación Basicidad · prueba</title>
+<style>body{margin:0;background:#140c10;font-family:system-ui,sans-serif}#host{max-width:1200px;margin:0 auto;padding:8px}</style>
+<link rel="stylesheet" href="estacion.css">
+</head><body><div id="host"></div>
+<script src="../design-system/pixel-text.js"></script>
+<script src="org-01.js"></script>
+<script src="org-01-gen.js"></script>
+<script src="../mascot/pixelmascotas.js"></script>
+<script src="estacion-art.js"></script>
+<script src="estacion.js"></script>
+<script>
+/* Página de prueba suelta: no pasa por app.js. Usa la mascota guardada en el estado de la app (o el matraz).
+   El resultado de "Demuestra" queda en localStorage (nexo-station-proto). */
+let pet = {};
+try { pet = JSON.parse(localStorage.getItem('nexo-study-beta') || '{}').mascot || {}; } catch (e) {}
+window.station = NexoStation.mount(document.getElementById('host'), {
+  cls: window.NexoClasses['org-01'], mission: 'm4', pet,
+  onResult: r => { try { localStorage.setItem('nexo-station-proto', JSON.stringify(r)); } catch (e) {} }
+});
+</script></body></html>
