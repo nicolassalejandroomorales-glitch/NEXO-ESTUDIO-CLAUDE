@@ -15,6 +15,11 @@ Dentro de **Aprender** (las puertas / Sótano de los Cristales) aparecen **bicho
 6. **Qué da vencerlo: solo experiencia (XP). Nunca cofres directos.** La XP sube un **rango de jugador nuevo** (distinto de los rangos arcanos por concepto, que siguen dependiendo solo de evidencia verificada). **Ese rango da los cofres.** Esto reemplaza al hito "jefe vencido" de la economía.
 7. **Duelo "a la Vampire Crawlers"**: robas una **mano de cartas**; cada carta es un paso, concepto o respuesta con un número. Jugarlas **en el orden correcto encadena el combo** (cada efecto multiplica al anterior). Mezcla ordenar pasos con elegir respuestas. Referencia: [Vampire Crawlers](https://en.wikipedia.org/wiki/Vampire_Crawlers) (cartas en orden ascendente de maná, multiplicador, primera persona).
 
+8. **Mano de 4–5 cartas; el número de cada carta es el orden del paso** (ej. el mecanismo de Hofmann: cartas 1 a 4 = los pasos). Los números son la lógica de la química, no un costo arbitrario.
+9. **Carta fuera de orden: el bicho te ataca un poco.** Pierdes vida del duelo (cosmética); si te quedas sin vida el bicho se va y regresa después, sin pérdida de progreso académico. El combo se rompe.
+10. **10 rangos de jugador, un cofre por rango** (los rangos 5 y 10 dan uno mejor). Sube rápido al inicio y más lento después. Tabla exacta de XP por definir con el chat de economía.
+11. **La XP depende de qué tan difícil era el bicho para ti:** un error viejo o un concepto débil da más XP que algo que ya dominas. Así lo que más necesitas estudiar es lo que más rinde.
+
 ## Reglas contra "falsa sensación de dominio"
 - La XP se gana **solo con respuestas verificadas** (más con acierto sin ayuda; con pista, menos). Combos, velocidad y vida solo afectan la XP y lo cosmético, **nunca el estado de conocimiento**.
 - Como los bichos salen de repasos vencidos y errores abiertos, **no hay forma de farmear XP infinita**; además un tope diario de XP por juego.
@@ -34,7 +39,8 @@ Dentro de **Aprender** (las puertas / Sótano de los Cristales) aparecen **bicho
 - Se puede jugar con teclado y en 390 px; movimiento reducido sin animación obligatoria.
 
 ## Pendiente (preguntar a Niquito antes de programar)
-- Mazo y mano: cuántas cartas, qué es un "coste" en aprendizaje (¿el orden del paso?) y qué pasa si juegas una carta fuera de orden (sin castigo académico).
-- Tabla de XP y niveles del rango de jugador, y qué cofre da cada nivel (acordar con el chat de economía).
+- Tabla de XP por nivel (10 rangos) y qué cofre mejor dan los rangos 5 y 10 (acordar con el chat de economía).
+- Cómo se ve la vida del duelo y cuántos golpes aguantas.
+- Nombres, caras y música de los primeros bichos por ramo.
 - ¿Cuántos bichos distintos al inicio y cómo se llaman?
 - Coordinar con el chat de Aprender (`docs/chats/aprender.md`) dónde viven los bichos en las puertas.
