@@ -26,13 +26,14 @@
     const weaknesses = context.weaknesses || {};
     const prerequisites = context.prerequisites || {};
     const loadByDay = new Map();
-    for (const event of events || []) {
+    const academic = (events || []).filter(e => !['class', 'work', 'personal', 'activity', 'study', 'recess'].includes(e?.type));
+    for (const event of academic) {
       if (validDay(event?.date) && event.status !== 'done') {
         const date = target(event, now).date;
         loadByDay.set(date, (loadByDay.get(date) || 0) + 1);
       }
     }
-    return (events || []).filter(event => validDay(event?.date) && event.status !== 'done')
+    return academic.filter(event => validDay(event?.date) && event.status !== 'done')
       .filter(event => daysUntil(now, target(event, now).date) >= 0 || !['exam', 'Prueba', 'control'].includes(event.type))
       .map(event => {
         const focus = target(event, now);
