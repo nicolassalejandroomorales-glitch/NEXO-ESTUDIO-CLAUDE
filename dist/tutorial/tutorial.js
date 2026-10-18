@@ -57,31 +57,22 @@
     { id: 'ref1', who: 'M', text: 'Este es el refugio: tu base. Cambia con la hora del día y el clima, y siempre vuelves aquí.', scene: 'refugio', noBack: true },
     { id: 'ref2', who: 'M', text: 'Toca los objetos. Cada uno hace algo distinto.', scene: 'refugio', objetos: true, needs: 'seen', next: 'Ya los toqué todos' },
     { id: 'vest', who: 'M', text: 'Aquí me vistes y compras cosas con monedas. Sí, tengo opiniones sobre mi sombrero.', scene: 'refugio' },
+    { id: 'rec-inicio', pose: 'senalar', text: 'Basta de maquetas. Ven, te enseño tu torre *de verdad*.', scene: 'mascota', next: 'Vamos', recorrido: 'inicio' },
     { id: 'dato1', pose: 'pensativo', text: 'Dato: volver cada día, aunque sea poco, pesa más que una sola noche heroica. El *espaciado* funciona.', scene: 'mascota' },
-    { id: 'ruta', pose: 'senalar', text: 'Mira: tu *ruta al 7*. Sigue el material de tu semestre y se curva según tu tiempo, lo que ya sabes… y tus errores.', scene: 'panel',
-      panel: '<div class="tut-path"><b>Hoy</b><i></i><b>PEP 1</b><i></i><b>Un 7</b></div><div class="tut-chips"><span>tu tiempo</span><span>lo que ya sabes</span><span>tus errores</span></div>' },
+    { id: 'rec-aprender', pose: 'senalar', text: 'Ahora mi *biblioteca*, donde se estudia de verdad. Sígueme.', scene: 'mascota', next: 'Vamos', recorrido: 'aprender' },
     { id: 'evid', pose: 'dedo', text: 'Releer da *sensación* de dominio. Acertar sin ayuda da dominio *de verdad*. Por eso te pido responder antes de mostrarte nada.', scene: 'panel',
       panel: '<div class="tut-vs"><div><h4>Releer</h4><p>Se siente fácil.<br>Se olvida rápido.</p></div><div class="win"><h4>Responder sin mirar</h4><p>Cuesta un poco.<br>Se queda.</p></div></div><small class="tut-cite">Roediger y Karpicke, 2006: practicar recordando supera a releer cuando se evalúa días después.</small>' },
     { id: 'espac', pose: 'importante', text: 'Te haré volver a temas viejos justo antes de que se disuelvan en la niebla. Molesta un poco. Funciona.', scene: 'panel',
       panel: '<div class="tut-time"><span>Día 1</span><i></i><span>Día 3</span><i class="l"></i><span>Día 8</span><i class="xl"></i><span>Día 21</span></div><small class="tut-cite">Cepeda et al., 2006: repartir el repaso en el tiempo mejora el recuerdo a largo plazo frente a hacerlo todo junto.</small>' },
     { id: 'error', pose: 'pensativo', text: 'Equivocarte no es el fin. Es *información*: la ruta se ajusta a lo que fallaste.', scene: 'panel',
       panel: '<div class="tut-path"><b>Fallo</b><i></i><b>Pista</b><i></i><b>Ruta ajustada</b></div>' },
-    { id: 'camp', pose: 'abrir', text: 'La campaña *Camino a la PEP 1*: un mapa, jefes y combates que avanzan cuando tú estudias.', scene: 'panel',
-      panel: '<div class="tut-path"><b>Inicio</b><i></i><b>Combate</b><i></i><b>Jefe</b></div><div class="tut-chips"><span>mapa</span><span>jefes</span><span>combates</span></div>' },
-    { id: 'desaf', pose: 'senalar', text: 'Los *desafíos* son retos breves con premio. Ideales para un rato libre entre clases.', scene: 'panel',
-      panel: '<div class="tut-vs"><div><h4>Reto corto</h4><p>Unos minutos.<br>Una pregunta a la vez.</p></div><div class="win"><h4>Premio</h4><p>Monedas para<br>tu refugio.</p></div></div>' },
+    { id: 'rec-juegos', pose: 'abrir', text: 'Y ahora la sala de *juegos*. Ven.', scene: 'mascota', next: 'Vamos', recorrido: 'juegos' },
     { id: 'monedas', pose: 'feliz', text: 'Aquí ganas *monedas*… y las gastas en la tienda del refugio.', scene: 'panel',
       panel: '<div class="tut-path"><b>Juegas</b><i></i><b>Ganas monedas</b><i></i><b>Tienda</b></div>' },
     { id: 'dato2', pose: 'guino', text: 'Dato: jugar no es perder el tiempo. Te obliga a recordar sin mirar, que es justo lo que *funciona*.', scene: 'panel',
       panel: '<div class="tut-vs"><div><h4>Mirar la respuesta</h4><p>Se siente bien.<br>Enseña poco.</p></div><div class="win"><h4>Recordarla jugando</h4><p>Cuesta un poco.<br>Se queda.</p></div></div>' },
-    { id: 'cal', pose: 'senalar', text: 'El *calendario* y las prioridades: tus fechas de prueba. Con ellas sé qué estudiar primero.', scene: 'panel',
-      panel: '<div class="tut-path"><b>Tus fechas</b><i></i><b>Prioridades</b><i></i><b>Qué estudiar hoy</b></div>' },
-    { id: 'notas', pose: 'abrir', text: 'Notas y labs: tus apuntes y trabajos de laboratorio, bajo un mismo techo.', scene: 'panel',
-      panel: '<div class="tut-vs"><div><h4>Notas</h4><p>Tus apuntes<br>y calificaciones.</p></div><div><h4>Labs</h4><p>Trabajos de<br>laboratorio.</p></div></div>' },
-    { id: 'rangos', pose: 'importante', text: 'Estadísticas y *rangos arcanos*: tu avance real. Subes por evidencia, no por tiempo sentado.', scene: 'panel',
-      panel: '<div class="tut-path"><b>Evidencia</b><i></i><b>Avance real</b><i></i><b>Rango arcano</b></div>' },
-    { id: 'ajustes', pose: 'guino', text: 'Ajustes e inasistencias: sonido, tutoriales (aquí me vuelves a invocar) y control de faltas.', scene: 'panel',
-      panel: '<div class="tut-chips"><span>sonido</span><span>tutoriales</span><span>inasistencias</span></div>' },
+    { id: 'rec-organizacion', pose: 'senalar', text: 'Ahora tu *estudio de planos*: fechas, plan del día, notas y labs.', scene: 'mascota', next: 'Vamos', recorrido: 'organizacion' },
+    { id: 'rec-perfil', pose: 'importante', text: 'Por último, tu *perfil*. Sígueme.', scene: 'mascota', next: 'Vamos', recorrido: 'perfil' },
     { id: 'config', pose: 'importante', text: 'Último paso serio: dime tus *ramos*, las fechas de tus pruebas y cuánto tiempo tienes. Con eso la ruta nace a tu medida.', scene: 'panel',
       panel: '<div class="tut-chips"><span>ramos</span><span>fechas de pruebas</span><span>tiempo disponible</span></div><div class="tut-links"><a class="secondary-btn" href="#/planner/calendar">Ir al calendario</a><a class="secondary-btn" href="#/profile">Ir al perfil</a></div><small class="tut-cite">Cuando termines, vuelve a #/tutorial y seguimos donde quedaste.</small>' },
     { id: 'premio', who: 'M', text: '¡Terminamos! Esto es para ti. Gasta con cabeza.', scene: 'premio', noBack: true },
@@ -122,6 +113,15 @@
       const s = document.createElement('script'); s.src = new URL('./huevos.js?v=1', HERE).href; s.onload = () => ok(window.NexoHuevos); s.onerror = fail; document.head.append(s);
     });
     return huevosLoading;
+  }
+
+  let recLoading = null;
+  function ensureRecorrido() {
+    if (window.NexoRecorrido) return Promise.resolve(window.NexoRecorrido);
+    recLoading = recLoading || new Promise((ok, fail) => {
+      const s = document.createElement('script'); s.src = new URL('./recorrido.js?v=8', HERE).href; s.onload = () => ok(window.NexoRecorrido); s.onerror = fail; document.head.append(s);
+    });
+    return recLoading;
   }
 
   function render(app, opts = {}) {
@@ -254,12 +254,14 @@
       }
       textEl.innerHTML = out + (open ? '</b>' : '');
     }
-    let cur = parse('');
+    let cur = parse(''), altoTexto = 0;
     function say(text, who = 'G', then) {
       clearTimeout(typeTimer); curText = text; cur = parse(text);
       const { plain, glow, fx } = cur, n = plain.length;
       tagEl.textContent = who === 'M' ? (s.name || INFO[s.kind]?.nombre || '') : 'Grimorio';
       box.classList.remove('done', 'susurro', 'tiembla'); if (fx) box.classList.add(fx);
+      // Reserva el alto del texto completo (y nunca lo achica entre pasos): así la nube y el botón Siguiente no se mueven mientras se escribe ni al cambiar de paso.
+      paint(cur, n, false); textEl.style.minHeight = ''; altoTexto = Math.max(altoTexto, textEl.offsetHeight); textEl.style.minHeight = altoTexto + 'px';
       let k = 0; typing = true; textEl.textContent = ''; if (aura) aura.talk(who === 'G');
       if (!reduced()) { box.classList.remove('entra'); void box.offsetWidth; box.classList.add('entra'); }
       const hz = who === 'M' ? INFO[s.kind].tono / 2 : 210;
@@ -444,6 +446,12 @@
         try { localStorage.removeItem(STORE); } catch (_) {}
         if (mode !== 'test') { api.finish(); clearAll(); if (opts.exit) opts.exit(); else location.hash = '#/home'; return; }
         Object.assign(s, { kind: '', draft: '', name: '', seen: [] }); show(0); return;
+      }
+      if (step.recorrido) {   // recorrido por la pantalla real: guarda el avance y, al terminar, vuelve aquí
+        s.i++; save(s); clearAll(); busy = true; refresh();
+        const volver = () => { location.hash = mode === 'test' ? '#/tutorial/test' : '#/tutorial'; };
+        ensureRecorrido().then(R => R.run(step.recorrido, { volver })).catch(() => { busy = false; show(s.i); });
+        return;
       }
       show(s.i + 1);
     });

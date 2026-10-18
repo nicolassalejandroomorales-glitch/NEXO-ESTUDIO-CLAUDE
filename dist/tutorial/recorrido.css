@@ -1,0 +1,22 @@
+/* Recorrido por la app real (recorrido.js): velo que bloquea clics, halo dorado que oscurece el resto y globo del Grimorio. */
+.rec-veil { position: fixed; inset: 0; z-index: 70; }
+.rec-halo { position: fixed; z-index: 71; pointer-events: none; border: 2px solid #f0c860; border-radius: 12px; box-shadow: 0 0 0 100vmax #0a060ec7, 0 0 18px 2px #f0c860aa; transition: left .25s ease-out, top .25s ease-out, width .25s ease-out, height .25s ease-out; animation: rec-pulso 1.8s ease-in-out infinite; }
+@keyframes rec-pulso { 50% { border-color: #fff0a8; } }
+.rec-box { --s: 1.5; position: fixed; z-index: 72; left: 16px; width: min(520px, calc(100vw - 32px)); display: flex; align-items: flex-end; gap: 4px; color: #fff0c4; }
+.rec-box[data-pos="bottom"], .rec-box:not([data-pos]) { bottom: 16px; }
+.rec-box[data-pos="top"] { top: 16px; }
+.rec-grim { flex: none; width: calc(var(--s) * 68px); height: calc(var(--s) * 76px); background-repeat: no-repeat; image-rendering: pixelated; }
+.rec-body { flex: 1; display: grid; gap: 8px; padding: 12px 14px; border: 2px solid #b0743d; border-radius: 10px; background: #1a1226f7; box-shadow: 0 6px 20px #0008; }
+.rec-body p { margin: 0; font-size: .95rem; line-height: 1.45; }
+.rec-body b { color: #ffd870; }
+.rec-nav { display: flex; gap: 8px; align-items: center; }
+.rec-nav span { flex: 1; }
+.rec-nav button { padding: 6px 12px; font-size: .85rem; }
+.rec-nav button:disabled { opacity: .4; }
+.rec-box.entra .rec-body { animation: rec-pop .3s cubic-bezier(.3, 1.5, .5, 1); }
+@keyframes rec-pop { from { transform: scale(.94); opacity: .4; } }
+@media (max-width: 700px) {
+  .rec-box { --s: 1; left: 10px; width: calc(100vw - 20px); }
+  .rec-box[data-pos="bottom"], .rec-box:not([data-pos]) { bottom: 76px; }
+}
+@media (prefers-reduced-motion: reduce) { .rec-halo, .rec-box.entra .rec-body { animation: none; transition: none; } }

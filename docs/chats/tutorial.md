@@ -15,7 +15,8 @@
 - Leer `docs/tutorial/FEEDBACK-15OCT.md` (crítica de Niquito, por sección) y conversar con él el orden antes de programar.
 - Animación fluida del Grimorio, el libro, el altar con velas y la nube de diálogo (hoy parecen PNG).
 - (18 oct) Voz (blip grave por letra) y texto con personalidad hechos y aprobados. Falta confirmar el «salto hacia arriba» de la pantalla (no se reproduce en pasos 1–4 en escritorio; probar en 390 y en pasos con panel).
-- Hacer el tutorial **modular por secciones**, porque Aprender y otras pantallas van a cambiar.
+- (18 oct) Salto de pantalla revisado en 390: era el botón Siguiente moviéndose (nube que crecía al escribir); arreglado reservando el alto del texto. 
+- (18 oct) Recorrido modular hecho: motor `recorrido.js` + las 5 secciones (Inicio, Aprender, Juegos, Organización, Perfil). Esperan aprobación de Niquito. Falta revisión con captura en 390, voz por letra y «hazlo tú».
 - Premio con nube (necesita permiso explícito, hoy no se toca Supabase).
 - Revisar que 150 ⚛ siga bien si cambian los precios de la tienda.
 
@@ -33,6 +34,7 @@ Al terminar, usa nexo-cierre y actualiza docs/chats/tutorial.md.
 
 ## Prompt de continuación
 ```
-Chat: Tutorial. Lee CLAUDE.md, la skill nexo-tutorial, docs/tutorial/SPEC.md (secciones "Inicio mágico", "Huevos y mascota" y "Voz y texto del Grimorio") y docs/chats/tutorial.md.
-Inicio mágico, huevos vivos, estallido, dab, voz por especie y voz/texto del Grimorio ya están. Parte desde "Falta": primero revisa el salto de pantalla al apretar Siguiente (móvil 390 y pasos con panel) y pregúntame con selección múltiple si seguimos con el recorrido por la app real (modular por secciones).
+Chat: Tutorial. Lee CLAUDE.md, la skill nexo-tutorial, docs/tutorial/SPEC.md (sección "Recorrido por la app real") y docs/chats/tutorial.md.
+El recorrido por la app real ya tiene sus 5 secciones (Inicio, Aprender, Juegos, Organización, Perfil) en dist/tutorial/recorrido.js y el salto del botón Siguiente está arreglado.
+Parte desde "Falta": revisa las 5 secciones en móvil 390 con una sola captura, y pregúntame con selección múltiple si sumamos voz por letra al globo del recorrido y los 3–4 momentos "hazlo tú".
 ```
