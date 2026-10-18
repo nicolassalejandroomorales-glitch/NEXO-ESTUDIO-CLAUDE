@@ -21,6 +21,13 @@ Dentro de **Aprender** (las puertas / Sótano de los Cristales) aparecen **bicho
 11. **La XP depende de qué tan difícil era el bicho para ti:** un error viejo o un concepto débil da más XP que algo que ya dominas. Así lo que más necesitas estudiar es lo que más rinde.
 12. **Boceto aprobado (18 oct 2026):** escena arriba (pasillo en primera persona + bicho) y **mano de cartas abajo**, en la misma pantalla. El **bicho es una criatura con cara y el concepto encima** (ej. la N⁺ en la frente del amonio cuaternario). Cada **carta trae el paso escrito y un dibujito** (mini estructura o ícono); el número del paso solo aparece al jugarla bien. Arriba: rango de jugador y barra de XP; corazones del duelo y combo en la escena.
 
+## Hecho (18 oct 2026)
+- **Cola de pendientes** (`dist/academic/pending.js`): de dónde salen los bichos y su peso 1–3.
+- **Lógica del duelo** (`dist/game/duel.js`, `window.NexoDuel`, pura, sin pantalla): la mano sale de ejercicios reales de las clases: ordenar (`order`, 34), receta (`recipe`, 12, con cartas señuelo que explican por qué no) y elegir (`choice`, 343, una sola carta correcta). 389 ejercicios probados de punta a punta.
+- Reglas implementadas: la mano nunca empieza resuelta; carta equivocada = −1 corazón, combo roto y explicación; 3 corazones; pista anotada; **un duelo = un intento de evidencia y solo cuenta como acierto si saliste limpio** (ganar tras equivocarte enseña pero no cuenta por tu cuenta). XP = 20 × peso (1–3); con pista o errores, la mitad; combo hasta +30 %; perder no da XP.
+- Pruebas: `tools/pending-test.cjs`, `tools/duel-test.cjs`.
+- Falta: la pantalla (escena + mano), la música, el director de encuentros (cuándo sale un bicho), el registro de evidencia con `NexoAcademicBridge.record` y el rango de jugador.
+
 ## Reglas contra "falsa sensación de dominio"
 - La XP se gana **solo con respuestas verificadas** (más con acierto sin ayuda; con pista, menos). Combos, velocidad y vida solo afectan la XP y lo cosmético, **nunca el estado de conocimiento**.
 - Como los bichos salen de repasos vencidos y errores abiertos, **no hay forma de farmear XP infinita**; además un tope diario de XP por juego.
