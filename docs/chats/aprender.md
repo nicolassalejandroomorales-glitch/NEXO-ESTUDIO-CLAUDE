@@ -23,9 +23,11 @@
 - **Sótano v1 en la app (18 oct)**: `#/learn` es el pasillo en primera persona con tiras de cuadros (`dist/aprender/`, SPEC "Implementación v1"). Paradas y tramos con reproducción hacia atrás, 4 puertas con portal, pasillo lateral, Cámara de Orgánica II con anillo de alcobas y vista de mesa.
   Estado real encima del cuadro: frascos (misiones respondidas), cristales (conceptos por repasar), cuenta regresiva (calendario). Tocar un frasco abre la clase en esa misión. Las otras 3 puertas muestran las clases reales del ramo. Exportador: `tools/aprender-pasillo/export_app.py`; pruebas: `tools/aprender-test.cjs`.
 
+- **Ajustes tras verlo (18 oct)**: animación más lenta (~1,2 s por unidad) con mezcla de cuadros y arranque/frenada suaves; "Volver" ahora es **Dar la vuelta** y se camina mirando atrás (paradas `r*`/`q*`); se quitó el botón "Ver el sauce" (llevaba a la Torre vieja). Clases nuevas: sesión de diseño propuesta (Opus, solo conversar).
+
 ## Falta
 - Cámaras de Analítica, Fisicoquímica II y Fisiopatología en la app (`RAMOS` de `build_camara.py` ya las renderiza; falta `ALC` en `export_app.py`, alcobas en `estado.js` y sus clases).
-- Sauce central con el estado real (hoy sale neutro): render por capas.
+- Sauce y torre dentro de la Cámara con el estado real (hoy el sauce sale neutro y no se toca): render por capas; reemplaza la pantalla vieja `#/torre`.
 - Grietas de error en la Cámara y grimorio-formulario del pedestal (por aprobar).
 - Sala de entrenamiento y Sala de Laboratorio dentro del flujo (hoy solo hay bocetos).
 - Mapas de evaluación (`learn/course/<ramo>/evaluation/...`) todavía en el grimorio viejo: pasarlos a la Cámara y limpiar `grimoireShell`.

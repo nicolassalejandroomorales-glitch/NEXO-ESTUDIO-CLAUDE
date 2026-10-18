@@ -27,6 +27,9 @@ IMG = os.path.join(DEST, 'img')
 CACHE = os.path.join(tempfile.gettempdir(), 'nexo-aprender-cache')
 W, H, CELL_H, COLS = 320, 200, 208, 8      # alto de celda múltiplo de 16: la compresión no mezcla colores entre cuadros
 QUALITY = 80
+# milisegundos por cuadro según el tipo de tira (w caminar, u dar la vuelta, t girar a una puerta, e entrar, o orbitar, z acercarse, c llegada).
+# La app mezcla cuadros vecinos, por eso puede ir lento sin verse a saltos. 'ease' = la app suaviza arranque y frenada (las demás ya lo traen).
+MS_PER_FRAME = {'w': 200, 'u': 115, 't': 125, 'e': 145, 'o': 135, 'z': 150, 'c': 155, 'i': 0}
 IDLE_N = 6                                  # cuadros de la animación de reposo de cada parada (ida y vuelta)
 LOOK = 0.12
 JAR_LEVELS = [0.0, 0.25, 0.5, 0.75, 1.0]
@@ -117,26 +120,37 @@ def door_geometry(idx):
     return s, zd, st, ('M', idx), bs.OPEN_DEFAULT[st]
 
 
-def walk(pos, dist, pose):
-    """Tira de caminata: ~9 cuadros por unidad; cada unidad es un paso (arranca y frena) con balanceo, como en el boceto."""
-    n = max(4, round(dist * 9))
+WALK_PER_UNIT = 6                           # la app mezcla cuadros vecinos, así que no hacen falta tantos
+
+
+def walk(pos, dist, pose, k='h'):
+    """Tira de caminata a velocidad constante (la app suaviza arranque y frenada) con un balanceo suave por paso."""
+    n = max(4, round(dist * WALK_PER_UNIT))
     steps = max(1, round(dist))
     out = []
     for i in range(1, n + 1):
-        p = i / n * steps
-        k = min(int(p), steps - 1)
-        fr = p - k
-        q = (k + ease(fr)) / steps
-        x, z = pos((q,))
-        out.append({'k': 'h', 'cam': CL.cam(*pose(x, z), 1.6 * math.sin(math.pi * fr), 0.0, i)})
+        p = i / n
+        x, z = pos(p)
+        out.append({'k': k, 'cam': CL.cam(*pose(x, z), 1.3 * abs(math.sin(math.pi * steps * p)), 0.0, i)})
     return out
+
+
+def turn_around(z, x=0.0, yaw0=0.0, yaw1=math.pi, n=16):
+    """Darse la vuelta en el lugar (giro lineal; la app lo suaviza)."""
+    return [{'k': 'h', 'cam': CL.cam(x, z, yaw0 + (yaw1 - yaw0) * i / n, 0.9 * math.sin(math.pi * i / n), 0.0, i)} for i in range(1, n + 1)]
 
 
 def build_hall():
     names = list(HALL_Z)
     for a, b in zip(names, names[1:]):                              # caminar: ~9 cuadros por unidad, un paso con balanceo por unidad
         z0, z1 = HALL_Z[a], HALL_Z[b]
-        CL.add(f'w-{a}-{b}', walk(lambda p: (0.0, z0 + (z1 - z0) * p[0]), z1 - z0, lambda x, z: (x, z, 0.0)))
+        CL.add(f'w-{a}-{b}', walk(lambda p: (0.0, z0 + (z1 - z0) * p), z1 - z0, lambda x, z: (x, z, 0.0)))
+    ids = list(HALL_Z)
+    for i, name in enumerate(ids):                                   # darse la vuelta y volver mirando hacia la entrada
+        CL.add(f'u-{name}', turn_around(HALL_Z[name]))
+        if i:
+            z0, z1 = HALL_Z[name], HALL_Z[ids[i - 1]]
+            CL.add(f'w-r{i}-r{i - 1}', walk(lambda p: (0.0, z0 + (z1 - z0) * p), z0 - z1, lambda x, z: (x, z, math.pi)))
     for name, (stop, idx) in DOOR.items():                           # girar hacia la puerta y acercarse a la pared de enfrente
         s, zd, st, key, d0 = door_geometry(idx)
         xb, yaw = -s * 0.65, s * math.pi / 2
@@ -157,7 +171,12 @@ def build_hall():
     lat = list(LATERAL_Z)
     for a, b in zip(lat, lat[1:]):
         x0, x1 = LATERAL_Z[a], LATERAL_Z[b]
-        CL.add(f'w-{a}-{b}', walk(lambda p: (x0 + (x1 - x0) * p[0], ZB), x1 - x0, lambda x, z: (x, z, math.pi / 2)))
+        CL.add(f'w-{a}-{b}', walk(lambda p: (x0 + (x1 - x0) * p, ZB), x1 - x0, lambda x, z: (x, z, math.pi / 2)))
+        CL.add(f'w-q{lat.index(b)}-q{lat.index(a)}', walk(lambda p: (x1 + (x0 - x1) * p, ZB), x1 - x0, lambda x, z: (x, z, -math.pi / 2)))
+    for name in lat[1:]:                                             # en el pasillo lateral también se da la vuelta (pasando por la pared opuesta)
+        CL.add(f'u-{name}', turn_around(ZB, LATERAL_Z[name], math.pi / 2, 3 * math.pi / 2))
+    CL.add('t-q0-h3', [{'k': 'h', 'cam': CL.cam(0.0, ZB + (HALL_Z['h3'] - ZB) * i / 12, -math.pi / 2 + (math.pi / 2) * i / 12, 0.8 * math.sin(math.pi * i / 12), 0.0, i)}
+                       for i in range(1, 13)])
 
 
 def orbit(deg):
@@ -209,6 +228,10 @@ def stop_cam(node, i=0):
         return CL.cam(-s * 0.65, zd, s * math.pi / 2, 0.0, 0.0, i)
     if node in LATERAL_Z:
         return CL.cam(LATERAL_Z[node], ZB, math.pi / 2, 0.0, 0.0, i)
+    if node[0] == 'r' and node[1:].isdigit():
+        return CL.cam(0.0, list(HALL_Z.values())[int(node[1:])], math.pi, 0.0, 0.0, i)
+    if node[0] == 'q' and node[1:].isdigit():
+        return CL.cam(list(LATERAL_Z.values())[int(node[1:])], ZB, -math.pi / 2, 0.0, 0.0, i)
     if node == 'c-in':
         return CL.cam(0.0, -(bc.R + 0.35) + 0.35, 0.0, 0.0, 0.16, i)
     if node.startswith('cz'):
@@ -224,7 +247,7 @@ def stop_spec(node, i):
     return spec
 
 
-NODES = ['h0', 'h1', 'h2', 'h3', 'h4', 'd-org', 'd-ana', 'd-fis', 'd-fisio', 'b0', 'b1', 'b2', 'b3',
+NODES = ['h0', 'h1', 'h2', 'h3', 'h4', 'r0', 'r1', 'r2', 'r3', 'r4', 'd-org', 'd-ana', 'd-fis', 'd-fisio', 'b0', 'b1', 'b2', 'b3', 'q0', 'q1', 'q2', 'q3',
          'c-in', 'c0', 'c60', 'c120', 'c180', 'c-120', 'c-60', 'cz0', 'cz60']
 
 
@@ -330,10 +353,16 @@ def moves():
     def mv(node, d, to, label):
         nodes[node]['moves'].append({'dir': d, 'to': to, 'label': label})
     hall = list(HALL_Z)
-    for a, b in zip(hall, hall[1:]):
-        edge(a, b, f'w-{a}-{b}')
-        mv(a, 'fwd', b, 'Avanzar')
-        mv(b, 'back', a, 'Volver')
+    for i, a in enumerate(hall):
+        edge(a, f'r{i}', f'u-{a}')                                  # dar la vuelta: nunca se retrocede de espaldas
+        mv(a, 'turn', f'r{i}', 'Dar la vuelta')
+        mv(f'r{i}', 'turn', a, 'Dar la vuelta')
+        if i:
+            edge(f'r{i}', f'r{i - 1}', f'w-r{i}-r{i - 1}')
+            mv(f'r{i}', 'fwd', f'r{i - 1}', 'Avanzar')
+        if i < len(hall) - 1:
+            edge(a, hall[i + 1], f'w-{a}-{hall[i + 1]}')
+            mv(a, 'fwd', hall[i + 1], 'Avanzar')
     for d, (stop, idx) in DOOR.items():
         edge(stop, d, f't-{stop}-{d}')
         mv(stop, 'right' if bs.DOORS['M'][idx][0] > 0 else 'left', d, names[d])
@@ -342,12 +371,20 @@ def moves():
         nodes[d]['name'] = names[d]
     edge('h3', 'b0', 't-h3-b0')
     mv('h3', 'right', 'b0', 'Pasillo lateral')
-    mv('b0', 'back', 'h3', 'Volver')
+    mv('b0', 'back', 'h3', 'Volver al pasillo')
     lat = list(LATERAL_Z)
-    for a, b in zip(lat, lat[1:]):
-        edge(a, b, f'w-{a}-{b}')
-        mv(a, 'fwd', b, 'Avanzar')
-        mv(b, 'back', a, 'Volver')
+    for k, a in enumerate(lat):
+        if k < len(lat) - 1:
+            edge(a, lat[k + 1], f'w-{a}-{lat[k + 1]}')
+            mv(a, 'fwd', lat[k + 1], 'Avanzar')
+        if k:
+            edge(a, f'q{k}', f'u-{a}')
+            mv(a, 'turn', f'q{k}', 'Dar la vuelta')
+            mv(f'q{k}', 'turn', a, 'Dar la vuelta')
+            edge(f'q{k}', f'q{k - 1}', f'w-q{k}-q{k - 1}')
+            mv(f'q{k}', 'fwd', f'q{k - 1}', 'Avanzar')
+    edge('q0', 'h3', 't-q0-h3')
+    mv('q0', 'right', 'h3', 'Seguir al pasillo')
     names_c = {'c0': 'Aminas', 'c60': 'Aromáticos', 'c120': 'PEP 2', 'c180': 'Portal', 'c-120': 'PEP 2', 'c-60': 'Heterociclos'}
     edge('c-in', 'c0', 'o-c-in-c0')
     mv('c-in', 'fwd', 'c0', 'Rodear el sauce')
@@ -399,7 +436,8 @@ def main(which):
             continue
         frames = [results[('clip', name, i)] for i in range(len(specs))]
         total += save_sheet(name, frames)
-        clips[name] = {'n': len(frames)}
+        clips[name] = {'n': len(frames), 'ms': round(len(frames) * MS_PER_FRAME[name.split('-')[0] if not name.startswith('c-') else 'c']),
+                       'ease': name.startswith(('w-', 'u-'))}
     overlay = old.get('overlay', {})
     for key, c in ALC.items():
         if ('spr', key, f'c{c["deg"]}', 'base') not in results:
@@ -413,7 +451,7 @@ def main(which):
     digest = hashlib.sha1()                                          # versión de los cuadros: cambia el ?v= de cada hoja
     for f in sorted(os.listdir(IMG)):
         digest.update(f.encode() + open(os.path.join(IMG, f), 'rb').read())
-    manifest = {'v': digest.hexdigest()[:8], 'w': W, 'h': H, 'cellH': CELL_H, 'cols': COLS, 'frameMs': 80, 'idleMs': 150, 'idleN': IDLE_N, 'clips': clips,
+    manifest = {'v': digest.hexdigest()[:8], 'w': W, 'h': H, 'cellH': CELL_H, 'cols': COLS, 'idleMs': 280, 'idleN': IDLE_N, 'clips': clips,
                 'nodes': nodes, 'edges': edges, 'overlay': overlay}
     json.dump(manifest, open(manifest_path, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
     print('listo:', len(clips), 'tiras,', round(total / 1e6, 2), 'MB de hojas nuevas')

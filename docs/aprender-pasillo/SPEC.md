@@ -117,8 +117,10 @@ Decisiones: **tiras de cuadros por paso** (fluido como el boceto), **reemplazar 
 
 ### Cómo se mueve (grafo de paradas)
 - Cada **parada** (nodo) es un cuadro fijo; cada **tramo** (arista) es una tira de cuadros que se reproduce hacia adelante o al revés (volver = la tira en reversa). Un BFS elige la ruta.
-- Pasillo: paradas `h0 · h1(Orgánica) · h2(Analítica) · h3(Fisico + cruce) · h4(Fisio)`, vistas de puerta `d-*`, pasillo lateral `b0..b3`.
+- Pasillo: paradas `h0 · h1(Orgánica) · h2(Analítica) · h3(Fisico + cruce) · h4(Fisio)`, sus gemelas mirando atrás `r0..r4`, vistas de puerta `d-*`, pasillo lateral `b0..b3` y `q0..q3`.
 - Cámara: llegada `c-in`, anillo `c0 · c60 · c120 · c180(portal) · c-120 · c-60`, y vista de mesa `ct0 · ct60 · ct-60`.
+- **Nunca se retrocede de espaldas** (Niquito, 18 oct): "Volver" no existe en el pasillo. Se usa **Dar la vuelta** (giro de 180° en el lugar) y se camina hacia adelante mirando hacia la entrada. Por eso cada parada tiene su gemela mirando atrás (`r0..r4` en el pasillo, `q0..q3` en el lateral) y sus tramos de caminata propios. Salir de una puerta o de la mesa sí es un giro/acercamiento al revés, no una caminata.
+- **Ritmo** (Niquito, 18 oct: "muy rápido, muy GIF"): ~1,2 s por unidad caminada, giros de ~1,8 s; la app **mezcla cuadros vecinos** (movimiento continuo aunque sea lento) y suaviza arranque y frenada. La prueba exige ≥ 100 ms por cuadro en cada tira.
 - Controles: botones contextuales (Avanzar, Volver, ◀ ▶ girar/mirar puerta, Entrar), flechas y Enter del teclado, toque en las mitades del cuadro. Móvil (390) y escritorio (1440) usan el mismo lienzo de 320×200 escalado sin suavizar (`image-rendering: pixelated`).
 
 ### Formato de los cuadros
@@ -130,7 +132,7 @@ Decisiones: **tiras de cuadros por paso** (fluido como el boceto), **reemplazar 
 - Encima del cuadro, en las paradas de alcoba y de mesa, se dibujan **sprites** (recortes pre-renderizados con el mismo motor): 5 niveles de llenado por frasco (0 · ¼ · ½ · ¾ · 1) y cristales «al día» / «toca repasar» (sin empezar = el apagado de fondo).
 - Datos (reutiliza lo que ya hay, nada nuevo en el motor): frasco = misiones con actividades respondidas / totales (`NexoClassroom.itemsOf` + `state.classSessions[id].answers`); cristal = un grupo de conceptos seguidos de la clase (Aminas tiene 18 conceptos y 6 cristales, así que 3 por cristal; Aromáticos 16 y 5): se apaga si algún concepto del grupo tiene la hoja `seca` (`NexoClassEvidence.leaves`), queda sin empezar si todos son `semilla` y brilla en cualquier otro caso; cuenta regresiva = `NexoClassroom.nextExam` (calendario real). Repasos del ramo = cristales `seca`.
 - La ficha bajo el cuadro repite todo en botones (una ficha por alcoba, con los frascos numerados): sirve en celular, donde los frascos del cuadro son chicos, y para lectores de pantalla.
-- Tocar un frasco abre la clase en esa misión; tocar el pedestal abre la Torre del Sauce (`#/torre/<ramo>`); tocar un cristal explica su concepto.
+- Tocar un frasco abre la clase en esa misión; el pedestal y el sauce quedan sin acción en v1 (Niquito, 18 oct: el botón "Ver el sauce" llevaba a la pantalla vieja de la Torre del Sauce y estaba mal; se quitó: el sauce debe vivir dentro de la Cámara, con su estado real, en v2); tocar un cristal explica su concepto.
 - Alcoba «de hoy»: queda grabada en el cuadro (Aminas, el tema vigente). El sauce central no refleja aún el estado real (v2: pasada de render por capas).
 
 ### Criterios de aceptación v1
@@ -140,7 +142,7 @@ Decisiones: **tiras de cuadros por paso** (fluido como el boceto), **reemplazar 
 - Peso: ≤ ~8 MB de cuadros en total, cada tira carga sola. Pruebas `tools/aprender-test.cjs` en `npm test`.
 
 ### Pendiente de v2
-Cámaras de los otros 3 ramos (cambiar `RAMOS` en `build_camara.py` ya los renderiza), sauce con estado real, grietas de error, grimorio-formulario del pedestal, Sala de entrenamiento y Sala de Laboratorio dentro del flujo, mapas de evaluación dentro de la Cámara, sonido por portal.
+Sauce y torre dentro de la Cámara (reemplaza la pantalla vieja `#/torre`), cámaras de los otros 3 ramos (cambiar `RAMOS` en `build_camara.py` ya los renderiza), sauce con estado real, grietas de error, grimorio-formulario del pedestal, Sala de entrenamiento y Sala de Laboratorio dentro del flujo, mapas de evaluación dentro de la Cámara, sonido por portal.
 
 ## Pendiente
 - **Sala de Laboratorio** (aprobada): el mural del informe queda chico (el arco del nicho lo limita); la campana se ve poco desde el banco.

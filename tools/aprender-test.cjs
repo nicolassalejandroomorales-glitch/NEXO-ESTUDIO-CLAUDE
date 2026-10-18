@@ -89,7 +89,15 @@ test('el manifiesto es coherente: cada parada, tramo y sprite existe', { skip: !
   const M = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
   const img = name => path.join(dist, 'aprender', 'img', name + '.webp');
   assert.ok(M.v);
-  for (const name of Object.keys(M.clips)) assert.ok(fs.existsSync(img(name)), `falta la hoja ${name}`);
+  for (const [name, clip] of Object.entries(M.clips)) {
+    assert.ok(fs.existsSync(img(name)), `falta la hoja ${name}`);
+    if (!name.startsWith('i-')) assert.ok(clip.ms >= clip.n * 100, `${name}: va demasiado rápido (${clip.ms} ms para ${clip.n} cuadros)`);
+  }
+  // Nunca se retrocede de espaldas: ningún botón reproduce al revés un tramo de caminata.
+  for (const [id, node] of Object.entries(M.nodes)) for (const m of node.moves.filter(x => x.to)) {
+    const edge = M.edges.find(e => (e.a === id && e.b === m.to) || (e.b === id && e.a === m.to));
+    if (edge.clip.startsWith('w-')) assert.equal(edge.a, id, `${id} → ${m.to}: caminaría al revés`);
+  }
   for (const [id, node] of Object.entries(M.nodes)) {
     assert.ok(M.clips[node.idle], `${id}: falta su reposo`);
     for (const m of node.moves) {

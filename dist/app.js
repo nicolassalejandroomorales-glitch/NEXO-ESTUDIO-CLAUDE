@@ -821,7 +821,7 @@
   // Aprender = el Sótano de los Cristales (dist/aprender/, docs/aprender-pasillo/SPEC.md). Carga bajo demanda.
   function aprenderContext() {
     return { getState: () => state, subjects: SUBJECTS, hasClass: id => Boolean(window.NexoClassCatalog?.[id]), lessonTitle: id => LESSONS[id]?.title || id,
-      loadClass: id => loadClassroom(id), go: (...route) => routeTo(...route),
+      loadClass: id => loadClassroom(id),
       openLesson: (id, mission) => {
         if (mission) { // abrir la clase directo en esa misión (como el botón "Misión" del aula)
           const session = (state.classSessions ||= {})[id] ||= {};
@@ -834,7 +834,7 @@
   function renderSubjects() {
     if (window.NexoAprender) return window.NexoAprender.render(app, aprenderContext());
     app.innerHTML = '<section class="page"><div class="app-loader" role="status"><span></span><p>Bajando al sótano…</p></div></section>';
-    Promise.all([window.NexoLoader.style('./aprender/sotano.css?v=2b7b33a0'), window.NexoLoader.script('./aprender/estado.js?v=30392929').then(() => window.NexoLoader.script('./aprender/sotano.js?v=f4a1280d'))])
+    Promise.all([window.NexoLoader.style('./aprender/sotano.css?v=2b7b33a0'), window.NexoLoader.script('./aprender/estado.js?v=30392929').then(() => window.NexoLoader.script('./aprender/sotano.js?v=914f43f0'))])
       .then(() => { if (['learn', 'subjects'].includes(parseRoute()[0])) renderRoute(false); })
       .catch(() => { app.innerHTML = '<section class="page"><div class="panel error-boundary"><h1>No se pudo abrir el sótano</h1><p>Revisa tu conexión y vuelve a intentarlo.</p><button class="primary-btn" data-route="learn">Reintentar</button></div></section>'; });
   }

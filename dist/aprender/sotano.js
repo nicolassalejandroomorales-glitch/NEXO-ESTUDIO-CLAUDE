@@ -2,7 +2,7 @@
    Pasillo y Cámara de piedra en primera persona hechos con cuadros pre-renderizados (tools/aprender-pasillo/export_app.py):
    cada parada es un cuadro, cada tramo una tira de cuadros que se reproduce hacia adelante o al revés. Encima del cuadro
    se dibuja el estado real (frascos, cristales) con sprites. Datos: aprender/manifest.json + aprender/img/*.webp.
-   Uso: NexoAprender.render(app, ctx). ctx: { getState, subjects, hasClass, lessonTitle, loadClass, openLesson, go }. */
+   Uso: NexoAprender.render(app, ctx). ctx: { getState, subjects, hasClass, lessonTitle, loadClass, openLesson }. */
 (() => {
   'use strict';
   const BASE = './aprender/';
@@ -13,8 +13,8 @@
   const sleep = ms => new Promise(done => setTimeout(done, ms));
   const MEMORY = 'nexo-sotano-parada';
   const DOOR_SUBJECT = { org: 'organica', ana: 'analitica', fis: 'fisico', fisio: 'fisio' };
-  const ICON = { fwd: '▲', back: '▼', left: '◀', right: '▶', enter: '✦' };
-  const KEYS = { ArrowUp: 'fwd', w: 'fwd', ArrowDown: 'back', s: 'back', ArrowLeft: 'left', a: 'left', ArrowRight: 'right', d: 'right', Enter: 'enter', ' ': 'enter' };
+  const ICON = { fwd: '▲', back: '▼', turn: '↻', left: '◀', right: '▶', enter: '✦' };
+  const KEYS = { ArrowUp: 'fwd', w: 'fwd', ArrowDown: 'turn', s: 'turn', ArrowLeft: 'left', a: 'left', ArrowRight: 'right', d: 'right', Enter: 'enter', ' ': 'enter' };
   let manifestPromise = null;
   let live = null;
 
@@ -116,34 +116,44 @@
     const { w, h, cellH, cols } = G.M;
     G.vctx.drawImage(img, (i % cols) * w, Math.floor(i / cols) * cellH, w, h, 0, 0, w, h);
   }
+  // Posición fraccionaria: el cuadro de abajo más el de arriba mezclado por la parte decimal. Así un tramo puede ir lento y verse continuo (no "a GIF").
+  function drawAt(G, img, pos, n, reverse) {
+    const k = Math.min(n - 1, Math.floor(pos)), f = pos - k, at = j => (reverse ? n - 1 - j : j);
+    draw(G, img, at(k));
+    if (f > 0.02 && k < n - 1) {
+      G.vctx.globalAlpha = f;
+      draw(G, img, at(k + 1));
+      G.vctx.globalAlpha = 1;
+    }
+  }
+  const smooth = p => 0.5 - 0.5 * Math.cos(Math.PI * p); // arranque y frenada suaves
 
   async function playClip(G, name, reverse) {
-    const n = G.M.clips[name].n, img = await sheet(G, name);
+    const info = G.M.clips[name], n = info.n, img = await sheet(G, name);
     if (reduced()) { draw(G, img, reverse ? 0 : n - 1); return; }
     await new Promise(done => {
       const t0 = performance.now();
       const tick = now => {
         if (!G.alive) return done();
-        const k = Math.min(n - 1, Math.floor((now - t0) / G.M.frameMs));
-        draw(G, img, reverse ? n - 1 - k : k);
-        if (k >= n - 1) done(); else G.raf = requestAnimationFrame(tick);
+        const p = Math.min(1, (now - t0) / info.ms);
+        drawAt(G, img, (info.ease ? smooth(p) : p) * (n - 1), n, reverse);
+        if (p >= 1) done(); else G.raf = requestAnimationFrame(tick);
       };
       G.raf = requestAnimationFrame(tick);
     });
   }
 
-  // Reposo: la parada respira (murales, antorchas, partículas) yendo y viniendo por unos cuadros.
+  // Reposo: la parada respira (murales, antorchas, partículas) yendo y viniendo despacio entre unos cuadros, con mezcla.
   function idle(G) {
     const token = ++G.idleToken;
     if (reduced()) return;
     sheet(G, G.M.nodes[G.node].idle).then(img => {
-      let last = 0, k = 0, dir = 1;
+      const n = G.M.idleN, t0 = performance.now();
       const tick = now => {
         if (!G.alive || G.idleToken !== token) return;
-        if (!document.hidden && now - last >= G.M.idleMs) {
-          last = now; k += dir;
-          if (k >= G.M.idleN - 1 || k <= 0) dir = -dir;
-          draw(G, img, k);
+        if (!document.hidden) {
+          const cycle = (now - t0) / G.M.idleMs % (2 * (n - 1)), pos = cycle <= n - 1 ? cycle : 2 * (n - 1) - cycle;
+          drawAt(G, img, pos, n, false);
         }
         G.raf = requestAnimationFrame(tick);
       };
@@ -183,7 +193,7 @@
 
   async function act(G, dir) {
     if (!G.alive || !G.M || G.busy || G.mode === 'door') return;
-    const move = find(G, dir);
+    const move = find(G, dir) || (dir === 'back' ? find(G, 'turn') : dir === 'turn' ? find(G, 'back') : null);
     if (!move) return;
     G.busy = true;
     G.idleToken++;
@@ -245,7 +255,7 @@
     const exam = subjectId && G.loaded ? window.NexoClassroom?.nextExam({ subject: subjectId }, { getState: G.ctx.getState }) : null;
     G.el.chip.hidden = !exam;
     if (exam) G.el.chip.textContent = `${exam.title || 'Prueba'} ${exam.label}`;
-    const order = ['fwd', 'left', 'right', 'enter', 'back'];
+    const order = ['fwd', 'left', 'right', 'enter', 'turn', 'back'];
     G.el.pad.innerHTML = [...node.moves].sort((x, y) => order.indexOf(x.dir) - order.indexOf(y.dir)).map(m => `<button class="pu-btn sotano-move" data-move="${m.dir}" data-dir="${m.dir}" aria-label="${esc(m.label)}"><i aria-hidden="true">${ICON[m.dir]}</i>${pt(m.label)}</button>`).join('');
     G.el.live.textContent = `${title}. ${node.moves.map(m => m.label).join(', ')}.`;
     renderCard(G);
@@ -285,7 +295,7 @@
       if (j >= 0 || c >= 0) { G.pick = j >= 0 ? { kind: 'jar', i: j } : { kind: 'crystal', i: c }; renderCard(G); return; }
     }
     const want = y > 164 ? 'back' : x < 107 ? 'left' : x > 213 ? 'right' : 'fwd';
-    const dir = find(G, want) ? want : want === 'fwd' && find(G, 'enter') ? 'enter' : null;
+    const dir = find(G, want) ? want : want === 'back' && find(G, 'turn') ? 'turn' : want === 'fwd' && find(G, 'enter') ? 'enter' : null;
     if (dir) act(G, dir);
   }
 
@@ -310,14 +320,13 @@
     card.innerHTML = `<h2>${esc(a.name)}</h2><p>${esc(S.summary(a))}</p>
       <ol class="sotano-jars" aria-label="Misiones">${a.jars.map((j, i) => `<li><button class="sotano-jar${pick?.kind === 'jar' && pick.i === i ? ' is-pick' : ''}" data-jar="${i}" aria-label="Misión ${i + 1}: ${esc(j.title)}, ${j.done} de ${j.total}"><span class="sotano-fill" style="--p:${j.level * 25}%"></span><b>${i + 1}</b></button></li>`).join('')}</ol>
       ${detail}
-      <div class="sotano-actions">${a.classes.map(id => `<button class="pu-btn" data-open="${esc(id)}">${pt(('Clase: ' + G.ctx.lessonTitle(id)).slice(0, 36))}</button>`).join('')}<button class="pu-btn" data-willow>${pt('Ver el sauce')}</button></div>`;
+      <div class="sotano-actions">${a.classes.map(id => `<button class="pu-btn" data-open="${esc(id)}">${pt(('Clase: ' + G.ctx.lessonTitle(id)).slice(0, 36))}</button>`).join('')}</div>`;
   }
 
   function onCard(G, ev) {
     const open = ev.target.closest('[data-open]'), jar = ev.target.closest('[data-jar]');
     if (open) return G.ctx.openLesson(open.dataset.open, open.dataset.mission);
-    if (jar) { G.pick = { kind: 'jar', i: Number(jar.dataset.jar) }; return renderCard(G); }
-    if (ev.target.closest('[data-willow]')) G.ctx.go('torre', 'organica');
+    if (jar) { G.pick = { kind: 'jar', i: Number(jar.dataset.jar) }; renderCard(G); }
   }
 
   window.NexoAprender = { render, destroy };
