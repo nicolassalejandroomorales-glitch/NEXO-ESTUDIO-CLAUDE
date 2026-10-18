@@ -3,6 +3,11 @@
 Estado: **paso 1 del plan de pilotaje** (18 oct 2026). Boceto en `docs/clases-v2/estacion-basicidad.html` (3 versiones lado a lado). Aún no está en la app.
 Nota: `docs/clases-estructura/DISENO-V2.md` no existe; el diseño parte de la skill `nexo-clase`, `docs/aprender-pasillo/SPEC.md` y `dist/classes/org-01.js`.
 
+## Aula vieja borrada (18 oct, Niquito)
+La torre del alquimista (pantalla pintada) ya no existe: se borraron `classroom.css`, `tower-art.js`, `assets/classroom/` y todo el dibujo/clics de `player.js` (de 171 KB a 38 KB).
+`player.js` queda como **solo lógica** (`window.NexoClassroom`: pasos, puntos al 7, corrección, evidencia, hojas) porque la usan el Sótano, la Torre del Sauce y las pruebas.
+`#/lesson/<clase>` muestra "Disponible próximamente" con el botón a la estación (org-01). Falta la **Cámara** del ramo, donde cada misión es un objeto de la sala (decisión 18 oct).
+
 ## Qué
 Una **estación** = 4 pasos jugados en la mesa de la alcoba del Sótano: Adivina → Clase → Práctica → Demuestra.
 
