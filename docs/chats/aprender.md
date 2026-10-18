@@ -1,6 +1,6 @@
 # Aprender (Sótano de los Cristales)
 - modelo: Opus 5.5 para dirección de arte y motor; Sonnet 5.5 · alto para portar a la app
-- estado: pasillo, Cámara de Orgánica II y Sala de entrenamiento aprobados en bocetos (17 oct); falta diseñar el laboratorio y llevar todo a la app
+- estado: pasillo, Cámara de Orgánica II, Sala de entrenamiento y Sala de Laboratorio aprobados en bocetos (17 oct); falta llevar todo a la app
 - fase: desarrollo
 - prioridad: 1
 - spec: docs/aprender-pasillo/SPEC.md
@@ -15,13 +15,13 @@
 - Boceto animado de la Cámara de Orgánica II aprobado (17 oct, `tools/aprender-pasillo/build_camara.py`): llegada desde el remolino, sauce de cristal con una rama por alcoba, alcobas Aminas / Aromáticos / Heterociclos con murales (basicidad, Hückel→SEA, piridina vs pirrol), frascos por misión, cristales de repaso, alcobas veladas de la PEP 2 y "PEP 1 · 10 DÍAS" en el pedestal.
 - Dónde va el resto de Aprender (17 oct): formulario = grimorio en el pedestal del sauce; ejercicios, guías y pruebas antiguas = sala de entrenamiento al fondo del pasillo; errores = grietas brillantes en su alcoba; laboratorio = sala propia del pasillo.
 - Sala de entrenamiento diseñada y boceto aprobado (17 oct, `tools/aprender-pasillo/build_sala.py`): arena circular con yunque de ejercicios (tanda de hoy mezclada), atril de guías, archivo de pruebas antiguas con reloj de arena (simulacro o práctica) y un cristal en bruto al centro que crece con aciertos sin ayuda (hilos de luz).
+- Sala de Laboratorio diseñada y boceto aprobado (17 oct, `tools/aprender-pasillo/build_lab.py`): nave larga por fases con pizarra de cálculos, vitrina de seguridad GHS, banco de montaje con reflujo bajo campana de cobre, bitácora del informe y estante con un matraz por lab (3 fases). El lab de la Torre queda como lugar del mundo.
 
 ## Falta
-- Diseñar (conversando) la sala de Laboratorio; después, boceto.
 - Sala de entrenamiento: ¿cristal general o uno por ramo? ¿premio al terminar la tanda (economía)?
 - Sumar a la Cámara el grimorio-formulario del pedestal y las grietas de errores.
 - Llevar el pasillo a la app con cuadros pre-renderizados y probar en 1440 y 390 (chat aparte, Sonnet · alto).
-- Pulir: tronco del sauce en bloques, cristales que aún parecen pegados, legibilidad de murales vistos de lado.
+- Pulir: mural del informe chico y campana poco visible desde el banco (Laboratorio), tronco del sauce en bloques, cristales que aún parecen pegados, legibilidad de murales vistos de lado.
 
 ## Ideas
 - Murales que muestran el tema que te toca repasar hoy.
@@ -38,8 +38,8 @@ Al terminar, usa nexo-cierre y actualiza docs/chats/aprender.md.
 ## Prompt de continuación
 ```
 Chat: Aprender (Sótano de los Cristales). Lee CLAUDE.md, docs/aprender-pasillo/SPEC.md y docs/chats/aprender.md.
-Dónde quedamos: aprobados el pasillo, la Cámara de Orgánica II (build_camara.py) y la Sala de entrenamiento (build_sala.py: yunque de ejercicios, atril de guías, archivo de pruebas antiguas con reloj de arena y cristal central que crece con aciertos sin ayuda).
-Siguiente paso: diseñemos (solo conversar, sin dibujar) la sala de Laboratorio: cómo se ve, qué estaciones tiene y cómo se usa (ojo: la Torre tiene un laboratorio caminable sin página, ver docs/mundo-torre/SPEC.md). Máximo 3 preguntas de selección múltiple. Cuando diga "hazlo", boceto animado con el mismo motor.
-Pendiente de la Sala: ¿cristal general o uno por ramo? ¿premio al terminar la tanda?
-Usa Opus para el boceto; el port del pasillo a la app va en otro chat con Sonnet · alto. Al terminar, usa nexo-cierre.
+Dónde quedamos: aprobados en bocetos el pasillo, la Cámara de Orgánica II (build_camara.py), la Sala de entrenamiento (build_sala.py) y la Sala de Laboratorio (build_lab.py: nave por fases con pizarra de cálculos, vitrina GHS, banco de montaje con reflujo, bitácora y estante de prácticas).
+Siguiente paso: cerremos conversando (máximo 3 preguntas de selección múltiple) los pendientes de la Sala de entrenamiento: ¿cristal general o uno por ramo? ¿premio al terminar la tanda (economía)? Luego sumemos a la Cámara el grimorio-formulario del pedestal y las grietas de errores.
+Después, en otro chat con Sonnet · alto: llevar el pasillo a la app (cuadros pre-renderizados, 1440 y 390).
+Usa Opus para diseño y bocetos. Al terminar, usa nexo-cierre.
 ```

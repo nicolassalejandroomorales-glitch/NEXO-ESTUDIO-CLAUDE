@@ -123,6 +123,7 @@ Una **torre de varios pisos** que se recorre con la mascota y que **refleja tu p
 ## Pendiente (fase 2)
 
 - Aprobar el laboratorio caminable.
+- Decisión del chat Aprender (17 oct): el lab caminable **queda como lugar del mundo** (decorativo y de mascota); el lab de estudio es la sala de piedra del sótano. Falta darle página o entrada en la Torre.
 - Paso 3: vestíbulo (escalera + ascensor + viaje del menú). Paso 4 (Opus): progreso real por objeto, que reemplace el provisorio.
 
 - Aprobar el estilo de la muestra.

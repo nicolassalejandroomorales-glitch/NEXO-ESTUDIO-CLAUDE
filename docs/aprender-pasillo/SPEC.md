@@ -67,6 +67,17 @@ Al fondo del pasillo, para todos los ramos: Ejercicios, Guías y Pruebas antigua
 - Boceto: `tools/aprender-pasillo/build_sala.py` (geometría propia + piezas de `build_camara.py`/`build_sotano.py`; muebles de piedra como parte del trazado de rayos). Murales de estación en `murales.py` (`SALA`: tanda 4/10 con A-B-C, guía con P1–P6 y barra, PEP 1 · 2024 simulacro/práctica). Recorrido: entra por el pasillo → rodea el cristal → yunque (acierta: chispas, ✓ y hilo de luz) → atril (pasa la hoja) → archivo (cae la arena) → vuelve a mirar el cristal: llegan 3 hilos y crece.
 - Correr: `python tools/aprender-pasillo/build_sala.py` → `sala-entrenamiento.gif` (~5 min, no se sube) · `... cuadros` → `sala-cuadros.png`.
 
+## Sala de Laboratorio (diseño y boceto animado, 17 oct, aprobado: "me gusta")
+Para todos los ramos. Meta: **llegar preparado al lab real y salir con el informe resuelto** (la preparación previa baja la carga mental en el lab: Johnstone y Al-Shuaili 2001; Agustian y Seery 2017). Reemplaza el formulario "Laboratorio" de `renderPractice`.
+- **Forma: nave larga por fases** (Niquito): cripta alargada de piedra (estilo B) con una gran mesa de mármol y alambiques al centro, campana de cobre hasta la bóveda, tuberías de latón y luz verde que burbujea. Bordes y letreros en **cobre/verdín** (distinto del dorado de la Sala y de los colores de ramo). Se camina a lo largo de la mesa: PRE al entrar, DURANTE al medio, DESPUÉS al fondo.
+- **Estaciones**: **Pizarra de cálculos** (PRE: diluciones, estequiometría, rendimiento teórico, con corrección real del motor) · **Vitrina de seguridad** (PRE: reactivos con pictogramas GHS; qué riesgo y qué EPP) · **Banco de montaje** (DURANTE: armar reflujo/destilación/titulación pieza por pieza y en orden; si te equivocas, gotea o humea) · **Cuaderno de bitácora** (DESPUÉS: datos crudos, % de rendimiento, % de error, discusión del informe).
+- **Progreso: estante de prácticas** (Niquito): un matraz por lab del semestre (sale del calendario del Organizador: fechas de prelab e informe), se llena en 3 fases (pre ✓, montaje ✓, informe ✓); el próximo lab burbujea con su fecha grabada ("LAB 3 · JUEVES").
+- Lo que dependa del manual del semestre (cantidades, protocolo) sigue marcado como pendiente del manual, como hoy.
+- Boceto: `tools/aprender-pasillo/build_lab.py` (geometría propia: nave de 3,4 × 7,4 con bóveda de cañón, 3 arcos fajones con antorchas, 4 nichos + entrada, banco de mármol con vetas de verdín y campana de cobre con chimenea; usa piezas de `build_sotano.py`/`build_camara.py`). Rampas nuevas `copper` y `verdin`. Murales de estación en `murales.py` (`LAB`: prelab con C1·V1 = C2·V2 que se despeja; vitrina con rombo GHS que rota ANILINA tóxico / ÉTER inflamable / HCL corrosivo y su EPP; informe con rendimiento 70 % y discusión). Fuente: se sumaron `= , . % W Z`.
+  Recorrido: entra (se ve "LABORATORIO" en el tímpano del fondo) → pizarra → vitrina → banco de montaje (aparece el matraz, calienta **sin refrigerante y el vapor se escapa**, baja el refrigerante y gotea de vuelta: reflujo) → estante (LAB 3 sube a 2/3) → bitácora → mira el estante y el LAB 3 se completa.
+- Correr: `python tools/aprender-pasillo/build_lab.py` → `sala-laboratorio.gif` (~6 min, no se sube) · `... cuadros` → `lab-cuadros.png` (segundos).
+- **El laboratorio caminable de la Torre queda como lugar del mundo** (decorativo y de mascota), no como sala de estudio: no se mezcla madera con piedra.
+
 ## Criterios de aceptación (de la prueba)
 - Avanzar, girar y abrir una puerta se ven fluidos y con profundidad real (no "PNG plano").
 - Cada puerta se distingue a primera vista por color, emblema, letrero y murales del ramo; el letrero se lee de frente.
@@ -78,10 +89,9 @@ Al fondo del pasillo, para todos los ramos: Ejercicios, Guías y Pruebas antigua
 - Cuando Niquito no sabe explicar qué falla: ofrecer **3 versiones lado a lado** y que elija.
 
 ## Pendiente
-- Diseñar (conversando) la **sala de Laboratorio** y bocetarla. Sala de entrenamiento: decidir si el cristal es uno general o uno por ramo, y qué premio da terminar la tanda (¿economía?). Sumar a la Cámara el grimorio-formulario del pedestal y las grietas de errores.
+- **Sala de Laboratorio** (aprobada): detalles por pulir: el mural del informe queda chico (el arco del nicho lo limita); la campana se ve poco desde el banco. Sala de entrenamiento: decidir si el cristal es uno general o uno por ramo, y qué premio da terminar la tanda (¿economía?). Sumar a la Cámara el grimorio-formulario del pedestal y las grietas de errores.
 - Cámara: el tronco del sauce aún se ve en bloques; la fecha de la PEP 2 de Orgánica no está en `semester-2026.js` (las veladas dicen "EN CAMINO").
 - Llevar el pasillo a la app con cuadros pre-renderizados (Sonnet · alto): peso, móvil (390) y escritorio (1440).
 - Pulir: cristales que aún parecen pegados, legibilidad de murales vistos de lado.
 - Relación con la Torre (`docs/mundo-torre/SPEC.md`: pisos, escalera, ascensor).
-- El laboratorio caminable de la Torre (`dist/world/torre-mundo.js`) quedó sin página: evaluar si es la sala de Laboratorio o de entrenamiento del sótano (avisado en `docs/mundo-torre/SPEC.md`).
 - Tutorial: su recorrido de Aprender espera a este rediseño (`docs/chats/tutorial.md`).
