@@ -7,9 +7,7 @@
 
 ## Hecho
 - (v1) Aula inmersiva "torre del alquimista" (`dist/classes/`), 11 clases (Aminas completo, Aromáticos, Analítica, Fisiopatología, FQ II), ejercicios infinitos con regla de calidad, guía `COMO_CREAR_UNA_CLASE.md` y `node tools/new-class.cjs`.
-- **18 oct 2026 · Diseño v2 aprobado** (solo conversado): Niquito ve las 11 clases "muy desordenadas, muy feas" (orden, visual, contenido y ritmo; ninguna se salva).
-  Nuevo formato: **estaciones mixtas** (una idea c/u, ~10 min; alternan **clase**, **mini juego** y **reto PEP**; abren con Adivina, cierran con Demuestra; preguntas todo el rato).
-  Plantilla "pedido de clase" aprobada. Todo en `docs/clases-estructura/DISENO-V2.md`.
+- **18 oct 2026 · Diseño v2 aprobado** (solo conversado): Niquito ve las 11 clases "muy desordenadas, muy feas" (orden, visual, contenido y ritmo; ninguna se salva). Nuevo formato: **estaciones mixtas** (una idea c/u, ~10 min; alternan **clase**, **mini juego** y **reto PEP**; abren con Adivina, cierran con Demuestra; preguntas todo el rato). Plantilla "pedido de clase" aprobada. Todo en `docs/clases-estructura/DISENO-V2.md`.
 
 ## Falta
 - **Piloto paso 1**: maqueta de una estación de Aminas → Basicidad (Adivina → Clase → Juego → Demuestra) en **3 versiones visuales lado a lado** para que Niquito elija.
