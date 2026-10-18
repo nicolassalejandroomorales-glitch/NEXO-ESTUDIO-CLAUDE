@@ -16,7 +16,8 @@ FONT = {
     'C': ['.XXXX', 'X....', 'X....', 'X....', '.XXXX'], 'D': ['XXXX.', 'X...X', 'X...X', 'X...X', 'XXXX.'],
     'E': ['XXXXX', 'X....', 'XXX..', 'X....', 'XXXXX'], 'F': ['XXXXX', 'X....', 'XXX..', 'X....', 'X....'],
     'G': ['.XXXX', 'X....', 'X..XX', 'X...X', '.XXXX'], 'H': ['X...X', 'X...X', 'XXXXX', 'X...X', 'X...X'],
-    'I': ['XXXXX', '..X..', '..X..', '..X..', 'XXXXX'], 'K': ['X..X.', 'X.X..', 'XX...', 'X.X..', 'X..X.'],
+    'I': ['XXXXX', '..X..', '..X..', '..X..', 'XXXXX'], 'J': ['..XXX', '...X.', '...X.', 'X..X.', '.XX..'],
+    'Y': ['X...X', '.X.X.', '..X..', '..X..', '..X..'], '/': ['....X', '...X.', '..X..', '.X...', 'X....'], 'K': ['X..X.', 'X.X..', 'XX...', 'X.X..', 'X..X.'],
     'L': ['X....', 'X....', 'X....', 'X....', 'XXXXX'], 'M': ['X...X', 'XX.XX', 'X.X.X', 'X...X', 'X...X'],
     'N': ['X...X', 'XX..X', 'X.X.X', 'X..XX', 'X...X'], 'O': ['.XXX.', 'X...X', 'X...X', 'X...X', '.XXX.'],
     'P': ['XXXX.', 'X...X', 'XXXX.', 'X....', 'X....'], 'Q': ['.XXX.', 'X...X', 'X...X', 'X..XX', '.XXXX'],
@@ -25,19 +26,27 @@ FONT = {
     'V': ['X...X', 'X...X', 'X...X', '.X.X.', '..X..'], 'X': ['X...X', '.X.X.', '..X..', '.X.X.', 'X...X'],
     '0': ['.XXX.', 'X..XX', 'X.X.X', 'XX..X', '.XXX.'], '1': ['..X..', '.XX..', '..X..', '..X..', '.XXX.'],
     '2': ['XXXX.', '....X', '.XXX.', 'X....', 'XXXXX'], '7': ['XXXXX', '....X', '...X.', '..X..', '..X..'],
+    '3': ['XXXX.', '....X', '.XXX.', '....X', 'XXXX.'], '4': ['X..X.', 'X..X.', 'XXXXX', '...X.', '...X.'],
+    '5': ['XXXXX', 'X....', 'XXXX.', '....X', 'XXXX.'], '6': ['.XXX.', 'X....', 'XXXX.', 'X...X', '.XXX.'],
+    '8': ['.XXX.', 'X...X', '.XXX.', 'X...X', '.XXX.'], '9': ['.XXX.', 'X...X', '.XXXX', '....X', '.XXX.'],
     '-': ['.....', '.....', 'XXXXX', '.....', '.....'], '+': ['.....', '..X..', '.XXX.', '..X..', '.....'],
-    ' ': ['...', '...', '...', '...', '...'],
+    '>': ['X....', '.XX..', '...XX', '.XX..', 'X....'], '·': ['...', '...', '.X.', '...', '...'],
+    ' ': ['...', '...', '...', '...', '...'], '=': ['.....', 'XXXXX', '.....', 'XXXXX', '.....'],
+    ',': ['..', '..', '..', '.X', 'X.'], '.': ['.', '.', '.', '.', 'X'], '%': ['XX..X', 'XX.X.', '..X..', '.X.XX', 'X..XX'],
+    'W': ['X...X', 'X...X', 'X.X.X', 'XX.XX', 'X...X'], 'Z': ['XXXXX', '...X.', '..X..', '.X...', 'XXXXX'],
+    '<': ['...X.', '..X..', '.X...', '..X..', '...X.'],
 }
 ACCENT = {'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U'}
 
 
 class Lienzo:
-    def __init__(self):
-        self.a = np.zeros((PH, PW), np.uint8)
+    def __init__(self, w=PW, h=PH):
+        self.w, self.h = w, h
+        self.a = np.zeros((h, w), np.uint8)
 
     def px(self, x, y, c):
         x, y = int(round(x)), int(round(y))
-        if 0 <= x < PW and 0 <= y < PH:
+        if 0 <= x < self.w and 0 <= y < self.h:
             self.a[y, x] = c
 
     def line(self, x0, y0, x1, y1, c, w=1, dash=0):
@@ -60,7 +69,7 @@ class Lienzo:
             self.line(a[0], a[1], b[0], b[1], c, w)
 
     def circle(self, cx, cy, r, c, fill=False):
-        yy, xx = np.mgrid[0:PH, 0:PW]
+        yy, xx = np.mgrid[0:self.h, 0:self.w]
         d = np.hypot(xx + 0.5 - cx, yy + 0.5 - cy)
         m = d <= r if fill else np.abs(d - r) < 0.6
         self.a[m] = c
@@ -76,7 +85,7 @@ class Lienzo:
 
     def title(self, s, c=1):
         w = sum(len(FONT[ACCENT.get(ch, ch)][0]) + 1 for ch in s) - 1
-        self.text((PW - w) // 2, 3, s, c)
+        self.text((self.w - w) // 2, 3, s, c)
 
     def curve(self, p0, p1, p2, c, prog=1.0, head=True):
         """Flecha curva (Bézier cuadrática) que se dibuja sola hasta `prog`."""
@@ -395,6 +404,638 @@ def fisio_ecg(T):
         L.line(32 - half, y, 32 + half, y, 5)
     L.text(24, 116, '72', 1)
     return L.a
+
+
+# ---------------------------------------------------------------- Cámara de Orgánica II (murales de alcoba, más anchos)
+AW_, AH_ = 96, 72
+
+
+def check(L, x, y, c=2):
+    L.line(x, y, x + 2, y + 2, c)
+    L.line(x + 2, y + 2, x + 7, y - 3, c)
+
+
+def cross(L, x, y, c=5):
+    L.line(x, y, x + 5, y + 5, c)
+    L.line(x + 5, y, x, y + 5, c)
+
+
+def alc_aminas(T):
+    """Basicidad: el H+ se pega al par libre de una amina; en la anilina el par se reparte en el anillo y el H+ se va."""
+    L = Lienzo(AW_, AH_)
+    L.title('BASICIDAD')
+    t = T % 8
+    L.line(48, 13, 48, 54, 1, dash=2)
+    # izquierda: amina alifática, su par libre atrapa al H+
+    stuck = t >= 3
+    L.text(9, 36, 'R-NH', 2)
+    L.text(33, 36, '3' if stuck else '2', 2)
+    if not stuck:
+        blink = 3 if int(T * 2) % 2 == 0 else 1
+        L.px(22, 32, blink)
+        L.px(24, 32, blink)
+        u = ease(t / 3.0)
+        hx, hy = 36 - 14 * u, 13 + 10 * u
+        L.text(int(hx), int(hy), 'H+', 4)
+        L.curve((23, 31), (18, 22), (hx - 1, hy + 3), 4, ease((t - 0.4) / 2.0))
+    else:
+        L.text(39, 31, '+', 4)
+        L.line(23, 33, 23, 27, 2)
+        L.text(21, 20, 'H', 2)
+        check(L, 34, 23)
+    # derecha: anilina, el par libre entra al anillo y el H+ rebota
+    v = ring(L, 72, 46, 9, int((T % 4) // 2), w=1)
+    L.line(72, 37, 72, 32, 2)
+    L.text(66, 26, 'NH', 2)
+    L.text(78, 29, '2', 2)
+    L.px(70, 23, 3)
+    L.px(73, 23, 3)
+    L.curve((69, 24), (58, 30), (v[1][0] + 2, v[1][1] + 3), 4, ease(t / 2.5))
+    if t < 3:
+        u = ease(t / 3.0)
+        L.text(int(90 - 14 * u), int(8 + 9 * u), 'H+', 4)
+    else:
+        u = ease((t - 3) / 3.0)
+        L.text(int(76 + 12 * u), int(17 - 9 * u), 'H+', 4 if int(T * 3) % 2 else 1)
+        cross(L, 84, 36)
+    L.text(10, 62, 'AMINA', 2)
+    L.text(44, 62, '>', 4)
+    L.text(53, 62, 'ANILINA', 1)
+    return L.a
+
+
+def alc_aromaticos(T):
+    """Primero Hückel (cuenta los electrones pi: 6 = 4n+2) y después la SEA: entra E+, complejo sigma, sale H+."""
+    L = Lienzo(AW_, AH_)
+    t = T % 16
+    if t < 8:
+        L.title('AROMÁTICO')
+        v = ring(L, 28, 40, 15, 0)
+        npairs = min(3, int(t / 1.2))
+        for k in range(npairs):                                     # cada doble enlace aporta 2 electrones pi
+            a, b = v[2 * k], v[2 * k + 1]
+            mx, my = (a[0] + b[0]) / 2 * 0.55 + 28 * 0.45, (a[1] + b[1]) / 2 * 0.55 + 40 * 0.45
+            L.px(mx - 1, my, 3)
+            L.px(mx + 1, my, 3)
+        if npairs:
+            L.text(60, 16, str(2 * npairs), 3)
+            L.text(67, 16, 'PI', 1)
+        if t >= 4.2:
+            L.text(54, 31, '4N+2', 4)
+            check(L, 82, 33)
+        if t >= 5.4:                                                # ciclobutadieno: 4 electrones, antiaromático
+            L.poly([(60, 47), (72, 47), (72, 59), (60, 59)], 2)
+            L.line(62, 50, 62, 56, 2)
+            L.line(70, 50, 70, 56, 2)
+            L.text(76, 50, '4', 1)
+            if int(T * 3) % 2:
+                cross(L, 84, 50)
+        return L.a
+    s = t - 8
+    L.title('SEA')
+    cx, cy = 34, 42
+    if s < 2.2 or s >= 6:
+        v = ring(L, cx, cy, 14, 0)
+    else:                                                           # complejo sigma: un carbono sp3 y la carga deslocalizada
+        v = hexv(cx, cy, 14)
+        L.poly(v, 2, 2)
+        L.line(v[2][0] + 3, v[2][1] + 1, v[3][0] + 3, v[3][1] - 1, 2)
+        L.line(v[4][0] - 3, v[4][1] - 1, v[5][0] - 3, v[5][1] + 1, 2)
+        L.text(cx - 2, cy - 2, '+', 5)
+    top = v[1]
+    if s < 2.2:
+        u = ease(s / 2.0)
+        ex, ey = 74 - 20 * u, 12 + 8 * u
+        L.text(int(ex), int(ey), 'E+', 4)
+        L.curve((cx + 6, cy - 9), (cx + 16, cy - 16), (ex - 1, ey + 4), 4, ease((s - 0.3) / 1.6))
+    elif s < 6:
+        L.line(top[0], top[1], top[0] + 7, top[1] - 6, 2)
+        L.text(int(top[0]) + 8, int(top[1]) - 11, 'E', 4)
+        if s < 4.2:
+            L.line(top[0], top[1], top[0] + 9, top[1] + 1, 1)
+            L.text(int(top[0]) + 10, int(top[1]) - 2, 'H', 3)
+            L.text(56, 60, 'SIGMA', 1)
+        else:
+            u = ease((s - 4.2) / 1.6)
+            L.text(int(top[0] + 10 + 26 * u), int(top[1] - 2 - 12 * u), 'H+', 3)
+            L.curve((top[0] + 6, top[1] + 1), (top[0] + 2, top[1] + 8), (cx + 5, cy - 2), 4, u)
+    else:
+        L.line(top[0], top[1], top[0] + 7, top[1] - 6, 2)
+        L.text(int(top[0]) + 8, int(top[1]) - 11, 'E', 4)
+        check(L, 72, 44)
+        L.text(56, 60, 'AROMÁTICO', 1)
+    return L.a
+
+
+def alc_heterociclos(T):
+    """Dónde está el par libre: en la piridina queda fuera del anillo y atrapa al H+; en el pirrol es parte de los 6 pi."""
+    L = Lienzo(AW_, AH_)
+    L.title('PAR LIBRE')
+    t = T % 8
+    L.line(48, 13, 48, 56, 1, dash=2)
+    # piridina: N arriba, par libre hacia afuera
+    v = ring(L, 24, 40, 12, int((T % 4) // 2), w=1)
+    nx, ny = v[0]
+    for dx in range(-3, 4):
+        for dy in range(-3, 4):
+            L.px(nx + dx, ny + dy, 0)
+    L.text(int(nx) - 2, int(ny) - 2, 'N', 7)
+    if t < 3:
+        u = ease(t / 3.0)
+        L.px(nx - 1, ny - 6, 3)
+        L.px(nx + 1, ny - 6, 3)
+        L.text(int(nx) - 4, int(4 + 8 * u) - 4, 'H+', 4)
+        L.curve((nx, ny - 7), (nx - 7, ny - 11), (nx - 1, 4 + 8 * u + 2), 4, ease((t - 0.6) / 1.8))
+    else:
+        L.line(nx, ny - 4, nx, ny - 8, 2)
+        L.text(int(nx) - 2, int(ny) - 14, 'H', 2)
+        L.text(int(nx) + 4, int(ny) - 15, '+', 4)
+        check(L, 38, 18)
+    # pirrol: anillo de 5, el par libre del N gira dentro de la nube pi
+    cx, cy, r = 72, 38, 11
+    pv = [(cx + r * math.cos(math.radians(90 + 72 * k)), cy + r * math.sin(math.radians(90 + 72 * k))) for k in range(5)]
+    L.poly(pv, 2, 2)
+    L.line(pv[1][0] - 2, pv[1][1] - 3, pv[2][0] + 1, pv[2][1] + 3, 2)
+    L.line(pv[4][0] + 2, pv[4][1] - 3, pv[3][0] - 1, pv[3][1] + 3, 2)
+    bx, by = pv[0]
+    for dx in range(-3, 4):
+        for dy in range(-3, 4):
+            L.px(bx + dx, by + dy, 0)
+    L.text(int(bx) - 2, int(by) - 2, 'N', 7)
+    L.line(bx, by + 4, bx, by + 7, 1)
+    L.text(int(bx) - 2, int(by) + 8, 'H', 1)
+    for k in range(6):
+        a = T * 1.4 + k * math.pi / 3
+        L.px(cx + 5.5 * math.cos(a), cy - 1 + 5.5 * math.sin(a), 3 if k < 2 else 2)
+    if t < 3:
+        u = ease(t / 3.0)
+        L.text(int(90 - 8 * u), int(8 + 12 * u), 'H+', 4)
+    else:
+        u = ease((t - 3) / 3.0)
+        L.text(int(82 + 6 * u), int(20 - 12 * u), 'H+', 4 if int(T * 3) % 2 else 1)
+        cross(L, 87, 30)
+    L.text(1, 62, 'PIRIDINA', 2)
+    L.text(57, 62, 'PIRROL', 1)
+    return L.a
+
+
+# ---------------------------------------------------------------- Cámara de Fisicoquímica II
+def alc_fq_equilibrio(T):
+    """[A] baja y [B] sube hasta que Q = K; al agregar A el sistema se corre (Le Chatelier) y vuelve al equilibrio."""
+    L = Lienzo(AW_, AH_)
+    L.title('EQUILIBRIO')
+    L.line(8, 56, 90, 56, 1)
+    L.line(8, 56, 8, 14, 1)
+    q = (T % 12) / 10
+    xp = 58
+
+    def conc(x):
+        if x < xp:
+            e = math.exp(-(x - 8) / 10)
+            return 0.35 + 0.6 * e, 0.65 * (1 - e)
+        e = math.exp(-(x - xp) / 7)
+        return 0.45 + 0.25 * e, 0.65 + 0.12 * (1 - e)
+    xe = 8 + min(q, 1.0) * 82
+    prev = None
+    for x in range(9, int(xe) + 1):
+        a, b = conc(x)
+        pa, pb = (x, 56 - a * 38), (x, 56 - b * 38)
+        if prev:
+            L.line(prev[0][0], prev[0][1], pa[0], pa[1], 2, 2)
+            L.line(prev[1][0], prev[1][1], pb[0], pb[1], 7, 2)
+        prev = (pa, pb)
+    if prev:
+        L.circle(prev[0][0], prev[0][1], 1.8, 3, fill=True)
+        L.circle(prev[1][0], prev[1][1], 1.8, 3, fill=True)
+    L.text(80, 12, 'A', 2)
+    L.text(87, 12, 'B', 7)
+    if xe > xp:
+        L.line(xp, 15, xp, 55, 1, dash=2)
+        L.text(xp - 6, 14, '+A', 4)
+    if xe < 34:
+        msg, col = 'Q < K', 1
+    elif xe < xp or xe > xp + 22:
+        msg, col = 'Q = K', 2
+    else:
+        msg, col = 'Q < K', 4
+    L.text(30, 62, msg, col)
+    return L.a
+
+
+def alc_fq_ionico(T):
+    """La sal se disuelve en iones y cada catión queda rodeado de su atmósfera iónica (por eso la actividad no es la concentración)."""
+    L = Lienzo(AW_, AH_)
+    L.title('ELECTROLITOS')
+    q = (T % 10) / 10
+    rg = np.random.RandomState(6)
+    for i in range(3):
+        for j in range(3):
+            k = i * 3 + j
+            x0, y0 = 14 + j * 9, 22 + i * 9
+            tx, ty = 6 + rg.rand() * 36, 14 + rg.rand() * 40
+            u = ease(q * 1.6 - k * 0.06)
+            x = x0 + (tx - x0) * u + 1.2 * math.sin(T * 2 + k) * u
+            y = y0 + (ty - y0) * u + 1.2 * math.cos(T * 1.7 + k) * u
+            L.circle(x, y, 2.0, 4 if (i + j) % 2 == 0 else 7, fill=True)
+    L.line(48, 13, 48, 56, 1, dash=2)
+    cx, cy = 71, 35
+    L.circle(cx, cy, 13, 1)
+    L.circle(cx, cy, 3.6, 4, fill=True)
+    for k in range(6):
+        a = T * 0.9 + k * math.pi / 3
+        L.circle(cx + 12 * math.cos(a), cy + 12 * math.sin(a), 1.7, 7, fill=True)
+    for k in range(3):
+        a = -T * 0.6 + k * 2 * math.pi / 3
+        L.circle(cx + 19 * math.cos(a), cy + 17 * math.sin(a), 1.4, 4, fill=True)
+    L.text(12, 62, 'SAL', 2)
+    L.text(42, 62, 'ATMÓSFERA', 1)
+    return L.a
+
+
+def alc_fq_pila(T):
+    """Pila de Daniell: el zinc se oxida, los electrones viajan por el cable al cobre y el voltímetro marca 1.1 V."""
+    L = Lienzo(AW_, AH_)
+    L.title('PILA')
+    for x0, sol in ((8, 1), (60, 7)):
+        L.poly([(x0, 30), (x0 + 28, 30), (x0 + 28, 58), (x0, 58)], 1)
+        for y in range(40, 58, 3):
+            L.line(x0 + 1, y, x0 + 27, y, sol)
+    for y in range(23, 55):
+        L.line(19, y, 23, y, 3 if y % 6 else 1)
+        L.line(73, y, 77, y, 4)
+    L.line(21, 22, 21, 16, 1)
+    L.line(21, 16, 75, 16, 1)
+    L.line(75, 16, 75, 22, 1)
+    L.circle(48, 16, 4.5, 2, fill=False)
+    ang = -math.pi / 2 + 0.6 + 0.08 * math.sin(T * 3)
+    L.line(48, 16, 48 + 3.5 * math.cos(ang), 16 + 3.5 * math.sin(ang), 4)
+    L.text(39, 22, '1.1V', 2)
+    path = [(21, 22), (21, 16), (75, 16), (75, 22)]
+    lens = [6, 54, 6]
+    for k in range(4):
+        dpos = (T * 22 + k * 16.5) % 66
+        for (a, b), ln in zip(zip(path[:-1], path[1:]), lens):
+            if dpos <= ln:
+                f = dpos / ln
+                L.circle(a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, 1.2, 3, fill=True)
+                break
+            dpos -= ln
+    L.line(30, 40, 30, 30, 1, 2)
+    L.line(30, 30, 66, 30, 1, 2)
+    L.line(66, 30, 66, 40, 1, 2)
+    for k in range(2):
+        f = (T * 0.6 + k * 0.5) % 1
+        L.text(int(24 + f * 8), int(44 + f * 8), '+', 4)
+    L.text(12, 62, 'ZN', 2)
+    L.text(26, 62, '-', 5)
+    L.text(68, 62, 'CU', 2)
+    L.text(82, 62, '+', 4)
+    return L.a
+
+
+# ---------------------------------------------------------------- Cámara de Química Analítica
+def alc_ana_errores(T):
+    """Dos dianas: a la izquierda tiros agrupados pero corridos (error sistemático); a la derecha, dispersos en torno al centro (aleatorio)."""
+    L = Lienzo(AW_, AH_)
+    L.title('ERRORES')
+    n = min(8, int((T % 10) * 1.1))
+    rg = np.random.RandomState(11)
+    for cx, sx, sy, spread in ((25, 6.5, -5.5, 1.6), (71, 0.0, 0.0, 7.0)):
+        for r in (13, 9, 5):
+            L.circle(cx, 35, r, 1)
+        L.circle(cx, 35, 1.6, 2, fill=True)
+        for k in range(8):
+            ox, oy = rg.randn() * spread, rg.randn() * spread
+            if k < n:
+                col = 4 if (k == n - 1 and int(T * 4) % 2) else 5
+                L.circle(cx + sx + ox, 35 + sy + oy, 1.1, col, fill=True)
+        if n >= 8 and sx:
+            L.line(cx, 35, cx + sx, 35 + sy, 4)
+    L.text(4, 62, 'SISTEM.', 2)
+    L.text(56, 62, 'ALEAT.', 7)
+    return L.a
+
+
+def alc_ana_acidobase(T):
+    """H+ y OH- se encuentran y forman agua; el pH-metro sube y el indicador vira al pasar 7."""
+    L = Lienzo(AW_, AH_)
+    L.title('NEUTRALIZACIÓN')
+    for k, y in enumerate((15, 27, 39)):
+        u = (T * 0.35 + k * 0.33) % 1
+        if u < 0.6:
+            f = ease(u / 0.6)
+            L.text(int(4 + 30 * f), y, 'H+', 4)
+            L.text(int(78 - 28 * f), y, 'OH', 7)
+            L.text(int(78 - 28 * f) + 12, y - 2, '-', 7)
+        else:
+            L.text(40, y, 'H2O', 3 if u < 0.8 else 1)
+    v = 2 + 10 / (1 + math.exp(-((T % 12) - 6) * 1.2))
+    L.poly([(26, 50), (70, 50), (70, 66), (26, 66)], 1)
+    L.text(30, 56, 'PH', 1)
+    L.text(44, 56, '%.1f' % v, 6 if v > 7 else 2)
+    return L.a
+
+
+def alc_ana_polipro(T):
+    """Curva de un ácido diprótico: dos saltos (dos puntos de equivalencia) y dos zonas tampón donde pH = pKa."""
+    L = Lienzo(AW_, AH_)
+    L.title('POLIPRÓTICOS')
+    L.line(8, 58, 90, 58, 1)
+    L.line(8, 58, 8, 13, 1)
+
+    def ph(v):
+        return 2 + 4.5 / (1 + math.exp(-(v - 0.4) * 30)) + 5 / (1 + math.exp(-(v - 0.8) * 30))
+    q = min((T % 12) / 10, 1.0)
+    prev = None
+    for i in range(int(q * 100) + 1):
+        v = i / 100
+        p = (9 + v * 80, 58 - ph(v) * 3.4)
+        if prev:
+            L.line(prev[0], prev[1], p[0], p[1], 7 if v < 0.8 else 6, 2)
+        prev = p
+    if prev:
+        L.circle(prev[0], prev[1], 1.8, 3, fill=True)
+    for v, lab in ((0.2, 'PK1'), (0.6, 'PK2')):
+        if q > v:
+            x, y = 9 + v * 80, 58 - ph(v) * 3.4
+            L.circle(x, y, 1.6, 4, fill=True)
+            L.text(int(x) - 7, int(y) - 9, lab, 4)
+    L.text(70, 62, 'H2A' if q < 0.4 else ('HA-' if q < 0.8 else 'A2-'), 2)
+    L.text(10, 62, 'V', 1)
+    return L.a
+
+
+# ---------------------------------------------------------------- Cámara de Fisiopatología
+def alc_fisio_potencial(T):
+    """Potencial de acción: reposo en -70, entra Na+ (sube a +30), sale K+ (baja), hiperpolariza y vuelve al reposo."""
+    L = Lienzo(AW_, AH_)
+    L.title('POTENCIAL')
+    L.line(22, 58, 22, 13, 1)
+    L.line(22, 46, 92, 46, 1, dash=2)
+    L.line(22, 40, 92, 40, 1, dash=1)
+
+    def mv(v):
+        if v < 0.25:
+            return 46
+        if v < 0.33:
+            return 46 - 30 * ease((v - 0.25) / 0.08)
+        if v < 0.5:
+            return 16 + 38 * ease((v - 0.33) / 0.17)
+        if v < 0.75:
+            return 54 - 8 * ease((v - 0.5) / 0.25)
+        return 46
+    q = min((T % 10) / 8, 1.0)
+    prev = None
+    for i in range(int(q * 160) + 1):
+        v = i / 160
+        p = (23 + v * 68, mv(v))
+        if prev:
+            L.line(prev[0], prev[1], p[0], p[1], 4 if 0.25 <= v < 0.33 else (7 if 0.33 <= v < 0.5 else 5), 2)
+        prev = p
+    if prev:
+        L.circle(prev[0], prev[1], 1.8, 3, fill=True)
+    if q > 0.3:
+        L.text(28, 20, 'NA+', 4)
+    if q > 0.45:
+        L.text(58, 26, 'K+', 7)
+    L.text(2, 44, '-70', 1)
+    L.text(2, 14, '+30', 1)
+    L.text(12, 62, 'UMBRAL', 1)
+    return L.a
+
+
+def alc_fisio_resp(T):
+    """Alvéolo que respira junto a un capilar: el O2 pasa a la sangre y el CO2 sale; los glóbulos se ponen rojos al pasar."""
+    L = Lienzo(AW_, AH_)
+    L.title('ALVÉOLO')
+    r = 15 + 1.6 * math.sin(T * 1.4)
+    L.circle(32, 38, r, 2)
+    L.circle(32, 38, r - 1, 2)
+    L.line(60, 12, 60, 64, 5)
+    L.line(76, 12, 76, 64, 5)
+    for k in range(5):
+        y = 12 + (T * 9 + k * 11) % 52
+        L.circle(68, y, 2.2, 5 if y > 36 else 1, fill=True)
+    for k in range(3):
+        f = (T * 0.5 + k / 3) % 1
+        L.circle(40 + 20 * f, 30 + 2 * math.sin(k + T), 1.2, 7, fill=True)
+        g = (T * 0.5 + k / 3 + 0.17) % 1
+        L.circle(60 - 20 * g, 46 + 2 * math.cos(k + T), 1.2, 4, fill=True)
+    L.text(44, 20, 'O2', 7)
+    L.text(40, 52, 'CO2', 4)
+    L.text(12, 62, 'AIRE', 1)
+    L.text(58, 66, 'SANGRE', 5)
+    return L.a
+
+
+def alc_fisio_digest(T):
+    """Peristalsis: una onda de contracción recorre el tubo y empuja el bolo hacia adelante."""
+    L = Lienzo(AW_, AH_)
+    L.title('PERISTALSIS')
+    wx = 2 + (T * 16) % 110
+    prev = None
+    for x in range(4, 92):
+        r = 10 - 6 * math.exp(-((x - wx) / 6) ** 2)
+        p = (x, 36 - r, 36 + r)
+        if prev:
+            L.line(prev[0], prev[1], p[0], p[1], 2)
+            L.line(prev[0], prev[2], p[0], p[2], 2)
+        prev = p
+    bx = min(max(wx + 12, 12), 80)
+    for dy in range(-5, 6):
+        half = math.sqrt(max(0, 1 - (dy / 6) ** 2)) * 8
+        L.line(bx - half, 36 + dy, bx + half, 36 + dy, 4)
+    for k in range(4):
+        L.px(10 + (T * 7 + k * 23) % 80, 36 + 6 * math.sin(T + k), 3)
+    L.text(int(bx) - 11, 50, 'BOLO', 4)
+    L.text(4, 62, 'ESÓFAGO', 1)
+    return L.a
+
+
+CAMARA = {'aminas': alc_aminas, 'aromaticos': alc_aromaticos, 'heterociclos': alc_heterociclos,
+          'fq_equilibrio': alc_fq_equilibrio, 'fq_ionico': alc_fq_ionico, 'fq_pila': alc_fq_pila,
+          'ana_errores': alc_ana_errores, 'ana_acidobase': alc_ana_acidobase, 'ana_polipro': alc_ana_polipro,
+          'fisio_potencial': alc_fisio_potencial, 'fisio_resp': alc_fisio_resp, 'fisio_digest': alc_fisio_digest}
+
+
+# ---------------------------------------------------------------- Sala de entrenamiento (murales de estación)
+def sala_ejercicios(T, ok=0.0):
+    """Tanda de hoy: diez fichas mezcladas de varios temas; `ok` (0 a 1) es el acierto sin ayuda de la ficha actual."""
+    L = Lienzo(AW_, AH_)
+    L.title('TANDA DE HOY')
+    hechas = [2, 5, 2] + ([2] if ok >= 0.5 else [])            # 2 acierto, 5 error
+    for k in range(10):
+        cx = 7 + k * 9
+        if k < len(hechas):
+            if hechas[k] == 2:
+                check(L, cx - 4, 16)
+            else:
+                cross(L, cx - 2, 13)
+        elif k == len(hechas):
+            L.circle(cx, 16, 2.6, 4 if int(T * 3) % 2 else 1)
+        else:
+            L.circle(cx, 16, 2.6, 1)
+    temas = ['AMINAS', 'SN2', 'AROMÁTICOS']
+    tema = temas[len(hechas) % 3]
+    w = len(tema) * 6 - 1
+    L.text((AW_ - w) // 2, 27, tema, 2)
+    sel = int(T * 1.6) % 3 if ok < 0.25 else 1
+    for j, ch in enumerate('ABC'):
+        x0 = 13 + j * 26
+        col = 2 if (ok >= 0.25 and j == 1) else 1
+        L.poly([(x0, 38), (x0 + 18, 38), (x0 + 18, 52), (x0, 52)], col)
+        L.text(x0 + 7, 43, ch, 3 if col == 2 else 1)
+        if j == sel and ok < 0.5:
+            L.text(x0 - 7, 43, '>', 4)
+    L.text(3, 62, 'SIN PISTAS', 1)
+    L.text(68, 62, f'{len(hechas)}/10', 4)
+    return L.a
+
+
+def sala_guias(T):
+    """Guía del profe pregunta por pregunta, con corrección real; la P4 se resuelve y la barra avanza."""
+    L = Lienzo(AW_, AH_)
+    L.title('GUÍA 3 · AMINAS')
+    t = T % 10
+    res = [2, 2, 5, 2 if t >= 5 else 0, 0, 0]
+    for k, r in enumerate(res):
+        x, y = (8 if k < 3 else 54), 16 + (k % 3) * 13
+        L.text(x, y, f'P{k + 1}', 2 if r else 1)
+        if r == 2:
+            check(L, x + 16, y + 2)
+        elif r == 5:
+            cross(L, x + 17, y)
+        elif k == 3:
+            L.text(x + 16, y, '-', 4 if int(T * 3) % 2 else 1)
+    n = sum(1 for r in res if r == 2)
+    L.poly([(8, 57), (88, 57), (88, 62), (8, 62)], 1)
+    L.line(10, 59, 10 + int(76 * n / 6), 59, 2, w=2)
+    return L.a
+
+
+def sala_pruebas(T):
+    """Prueba antigua en dos modos: simulacro (reloj real, nota al final) o práctica (sin tiempo, corrige cada pregunta)."""
+    L = Lienzo(AW_, AH_)
+    L.title('PEP 1 · 2024')
+    t = T % 12
+    sim = t < 6
+    L.text(14, 14, 'SIMULACRO', 4 if sim else 1)
+    L.text(14, 23, 'PRÁCTICA', 4 if not sim else 1)
+    L.text(6, 14 if sim else 23, '>', 4)
+    if sim:
+        L.text(20, 40, f'{90 - int(t * 4)} MIN', 3)
+        L.poly([(70, 34), (80, 34), (75, 41)], 4)
+        L.poly([(75, 41), (80, 48), (70, 48)], 4)
+        L.line(75, 41, 75, 47, 4)
+        L.text(10, 58, 'NOTA AL FINAL', 1)
+    else:
+        L.text(10, 36, 'P1', 2)
+        check(L, 26, 38)
+        L.text(10, 46, 'P2', 2)
+        if t >= 8:
+            cross(L, 27, 46)
+            L.line(42, 48, 42 + int(min(t - 8, 2) * 20), 48, 1)
+        L.text(10, 58, 'SIN TIEMPO', 1)
+    return L.a
+
+
+SALA = {'ejercicios': sala_ejercicios, 'guias': sala_guias, 'pruebas': sala_pruebas}
+
+
+# ---------------------------------------------------------------- Sala de Laboratorio (murales de estación, 96x72)
+def lab_calculos(T, p=0.0):
+    """Pizarra del prelab: dilución C1·V1 = C2·V2 que se despeja sola; `p` (0 a 1) avanza hasta la respuesta y su visto bueno."""
+    L = Lienzo(AW_, AH_)
+    L.title('PRELAB 3')
+    L.text(9, 14, 'C1 V1 = C2 V2', 2)
+    L.text(9, 25, 'C1 = 0,5 M', 1)
+    L.text(9, 33, 'C2 = 0,1 M', 1)
+    L.text(9, 41, 'V2 = 250 ML', 1)
+    L.line(6, 50, 90, 50, 1)
+    ans = 'V1 = 50 ML'
+    n = int(len(ans) * min(p / 0.7, 1.0))
+    L.text(9, 56, ans[:n], 3)
+    if n < len(ans) and int(T * 3) % 2:
+        L.line(9 + 6 * n, 61, 13 + 6 * n, 61, 4)
+    if p >= 0.8:
+        check(L, 76, 58)
+    return L.a
+
+
+def skull(L, cx, cy, c):
+    L.circle(cx, cy - 1, 4.2, c, fill=True)
+    L.line(cx - 2, cy + 4, cx + 2, cy + 4, c)
+    for dx in (-2, 2):
+        L.px(cx + dx, cy - 1, 0)
+        L.px(cx + dx, cy, 0)
+    L.line(cx - 6, cy + 6, cx + 6, cy + 8, c)
+    L.line(cx + 6, cy + 6, cx - 6, cy + 8, c)
+
+
+def flame(L, cx, cy, c, T):
+    w = 1 if int(T * 4) % 2 else 0
+    L.poly([(cx, cy - 7 - w), (cx + 4, cy + 1), (cx + 3, cy + 5), (cx - 3, cy + 5), (cx - 4, cy + 1)], c)
+    L.line(cx, cy - 2, cx, cy + 4, c)
+    L.line(cx - 5, cy + 7, cx + 5, cy + 7, c)
+
+
+def corrosive(L, cx, cy, c, T):
+    L.line(cx - 6, cy - 3, cx - 1, cy - 3, c)
+    L.line(cx + 1, cy - 3, cx + 6, cy - 3, c)
+    k = int(T * 4) % 3
+    L.px(cx - 3, cy - 1 + k, c)
+    L.px(cx + 4, cy - 1 + k, c)
+    L.line(cx - 7, cy + 4, cx - 1, cy + 4, c)
+    L.line(cx + 2, cy + 6, cx + 7, cy + 4, c, dash=1)
+
+
+REACTIVOS = [('ANILINA', 'TÓXICO', 'GUANTES', skull), ('ÉTER', 'INFLAMABLE', 'SIN LLAMA', flame), ('HCL', 'CORROSIVO', 'GAFAS', corrosive)]
+
+
+def lab_seguridad(T, p=0.0):
+    """Vitrina: un reactivo a la vez con su pictograma GHS (rombo rojo); se responde qué riesgo tiene y qué EPP llevas."""
+    L = Lienzo(AW_, AH_)
+    k = int(T / 4) % 3
+    name, riesgo, epp, sym = REACTIVOS[k]
+    L.title(name, 2)
+    cx, cy, r = 18, 40, 14
+    L.poly([(cx, cy - r), (cx + r, cy), (cx, cy + r), (cx - r, cy)], 5, 2)
+    if sym is skull:
+        sym(L, cx, cy - 1, 1)
+    else:
+        sym(L, cx, cy, 1, T)
+    t = (T % 4) / 4
+    L.text(36, 22, 'RIESGO', 1)
+    if t > 0.25 or p > 0:
+        L.text(36, 30, riesgo, 4)
+    L.text(36, 44, 'EPP', 1)
+    if t > 0.5 or p > 0:
+        L.text(36, 52, epp, 3)
+    if p >= 0.5:
+        check(L, 80, 64)
+    return L.a
+
+
+def lab_bitacora(T, p=0.0):
+    """Bitácora del informe: rendimiento real contra el teórico; `p` (0 a 1) calcula el % y escribe la discusión."""
+    L = Lienzo(AW_, AH_)
+    L.title('INFORME LAB 3')
+    L.text(5, 14, 'TEÓRICO  2,0 G', 1)
+    L.text(5, 23, 'OBTENIDO 1,4 G', 1)
+    q = ease(p / 0.6)
+    L.text(5, 34, 'REND.', 2)
+    L.text(40, 34, f'{int(round(70 * q))} %', 3)
+    L.poly([(5, 43), (90, 43), (90, 48), (5, 48)], 1)
+    L.line(7, 45, 7 + int(81 * 0.7 * q), 45, 2, w=2)
+    L.text(5, 55, 'DISCUSIÓN', 4)
+    for j in range(2):
+        w = int(60 * ease((p - 0.6 - 0.2 * j) / 0.2))
+        if w > 0:
+            L.line(5 + 8 * (1 - j), 64 + 4 * j - 2, 5 + 8 * (1 - j) + w, 64 + 4 * j - 2, 1)
+    return L.a
+
+
+LAB = {'calculos': lab_calculos, 'seguridad': lab_seguridad, 'bitacora': lab_bitacora}
 
 
 MURALES = {

@@ -22,15 +22,15 @@ const launch = () => fs.existsSync('/opt/pw-browsers/chromium') ? chromium.launc
   const origin = `http://127.0.0.1:${server.address().port}/`;
   try {
     for (const width of [390, 1440]) {
-      const page = await browser.newPage({ viewport: { width, height: 844 } });
+      const page = await browser.newPage({ viewport: { width, height: 844 }, reducedMotion: 'reduce' });
       const errors = [];
       page.on('pageerror', error => errors.push(error.message));
-      await page.addInitScript(() => { if (!localStorage.getItem('nexo-study-beta')) localStorage.setItem('nexo-study-beta', JSON.stringify({ version: 19, tutorial: { status: 'done', rewarded: true, sections: {}, news: 99 } })); });
+      await page.addInitScript(() => { document.startViewTransition = undefined; if (!localStorage.getItem('nexo-study-beta')) localStorage.setItem('nexo-study-beta', JSON.stringify({ version: 19, tutorial: { status: 'done', rewarded: true, sections: {}, news: 99 } })); });
       await page.clock.setFixedTime(new Date('2026-10-14T16:30:00'));
       const overflow = () => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       // Rutas viejas → estudio nuevo.
       for (const [from, to] of [['#/hub/calendar', '#/planner/hoy'], ['#/hub/grades', '#/planner/notas'], ['#/planner/calendar', '#/planner/calendar']]) {
-        await page.goto(origin + from); await page.locator('.estudio-page').waitFor();
+        await page.goto(origin + from); await page.waitForURL(url => url.hash === to); await page.locator('.estudio-page').waitFor();
         assert.equal(await page.evaluate(() => location.hash), to);
         assert.equal(await page.locator('.calendar-interactive, .grades-view').count(), 0, 'el diseño viejo no se ve');
       }
@@ -72,14 +72,17 @@ const launch = () => fs.existsSync('/opt/pw-browsers/chromium') ? chromium.launc
       assert.match(await page.locator('.hoja-dia .evento').innerText(), /Hecha|Informe/);
       await page.locator('.hoja-dia [data-cal-estado$=":pendiente"]').click();
       await page.locator('.hoja-dia .ev-mover input[name=date]').fill('2026-10-23'); await page.locator('.hoja-dia .ev-mover button').click();
+      await page.locator('[data-cal-day="2026-10-23"] .ico-px').waitFor();
       assert.equal(await page.locator('[data-cal-day="2026-10-23"] .ico-px').count(), 1, 'la fecha se movió');
+      await page.locator('[data-cal-cerrar]').click();
       await page.locator('[data-cal-day="2026-10-23"]').click();
       await page.locator('.historial summary').click(); assert.match(await page.locator('.historial').innerText(), /20 oct → 23 oct/);
       await page.locator('[data-cal-deshacer]').click();
       assert.equal(await page.locator('[data-cal-day="2026-10-20"] .ico-px').count(), 1, 'deshacer devuelve la fecha');
+      await page.locator('[data-cal-cerrar]').click();
       await page.locator('[data-cal-day="2026-10-20"]').click();
-      await page.locator('[data-cal-editar]').click(); await page.fill('.hoja-dia .cal-form input[name=title]', 'Informe P-2 (editado)');
-      await page.locator('.hoja-dia .cal-form button[type=submit]').click();
+      await page.locator('[data-cal-editar]').click(); await page.fill('.agenda-overlay .cal-form input[name=title]', 'Informe P-2 (editado)');
+      await page.locator('.agenda-overlay .cal-form button[type=submit]').click();
       assert.match(await page.locator('.hoja-dia').innerText(), /editado/);
       await page.locator('[data-cal-borrar]').click(); await page.locator('#toast button').click();
       assert.match(await page.locator('.hoja-dia').innerText(), /editado/, 'borrar se puede deshacer');
@@ -106,6 +109,7 @@ const launch = () => fs.existsSync('/opt/pw-browsers/chromium') ? chromium.launc
       await page.locator('[data-cal-view="semestre"]').click();
       assert.equal(await page.locator('.sem-fila').count(), 4); assert.ok(await page.locator('.banda').count() >= 1); assert.equal(await page.locator('.linea-hoy').count(), 1);
       await page.locator('.marca[data-cal-day="2026-10-27"]').click(); assert.equal(await page.locator('.hoja-dia').count(), 1);
+      await page.locator('[data-cal-cerrar]').click();
       await page.locator('[data-cal-view="lista"]').click();
       assert.ok(await page.locator('.semana li').count() >= 6);
       const [descarga] = await Promise.all([page.waitForEvent('download', { timeout: 3000 }).catch(() => null), page.locator('[data-cal-ics]').click()]);
@@ -152,7 +156,7 @@ const launch = () => fs.existsSync('/opt/pw-browsers/chromium') ? chromium.launc
       await page.locator('.evaluation-note.u-hoy').waitFor();
       assert.equal(await page.locator('.scene-hotspot.org-brilla[data-scene-hotspot="parchment-calendar"]').count(), 1);
       assert.match(await page.locator('.cinta-tablon').innerText(), /4 evaluaciones/);
-      await page.locator('[data-org-home-start]').first().click();
+      await page.locator('[data-org-home-start]').first().focus(); await page.keyboard.press('Enter');
       assert.equal(await page.evaluate(() => location.hash), '#/hub/timer');
       assert(await overflow() <= 1, `desborde horizontal a ${width}px`);
       assert.equal(errors.length, 0, errors.join('\n'));

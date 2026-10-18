@@ -6,7 +6,7 @@
   const buttons=[
     ['Inicio','home'],['Aprender','learn'],['Orgánica 01','lesson/org-01'],
     ['Feedback · muestras','ui-lab/feedback'],['Rescate','rescue/org.lone-pair'],
-    ['Entrenar','train'],['Revisiones','reviews'],['Errores','practice/errors'],
+    ['Revisiones','reviews'],['Errores','practice/errors'],
     ['Mapa de conceptos','knowledge'],['Bitácora','planner/calendar'],
     ['Perfil','profile'],['Mascota · estados','ui-lab/mascot'],['Rangos arcanos','knowledge'],
     ['Tienda','shop'],['Juegos','games'],
@@ -29,7 +29,7 @@
       <section class="panel dev-panel" id="dev-feedback"><h2>Académico · feedback</h2><div class="dev-rank-grid">${[0,1,2,3,4,5].map(sampleRank).join('')}</div><div class="dev-component-grid"><div class="dev-paper dev-component-card"><h3>Evidencia</h3><p>Dos casos distintos resueltos sin pista.</p><span class="dev-badge">Verificada</span></div><div class="dev-component-card"><h3>Error conceptual</h3><p>Se señaló el primer eslabón equivocado. El siguiente intento exige una variante.</p><span class="dev-badge">Revisión pendiente</span></div></div><div class="dev-component-grid"><div class="dev-feedback incorrect"><b>Decisión no coincidente</b><p>Qué falló → por qué → qué comparar ahora.</p></div><div class="dev-feedback correct"><b>Error reparado</b><p>La variante nueva aún debe resolverse sin pauta.</p></div></div><div class="dev-component-card"><h3>Revisión</h3><p>Concepto: par libre · Recuperación diferida · No mostrar solución antes del intento.</p></div></section>
       <section class="panel dev-panel"><h2>Movimiento</h2><div class="dev-state-grid"><p>Página · transición corta</p><p>Arcano · brillo contenido</p><p>Físico · leve flotación</p><p>Reducido · sin movimiento decorativo</p></div><p>Preferencia actual: ${document.body.dataset.nexoAmbientMotion||'normal'}.</p></section>
       <section class="panel dev-panel" id="dev-mascot"><h2>Mascota y equipamiento</h2>${api.avatarMarkup({large:true})}<div class="dev-state-grid"><p>Habitación · ${document.body.dataset.nexoRoom||'home'}</p><p>Actividad · Idle (rig disponible)</p><p>Ranuras · cabeza / cara / cuerpo / espalda / cola / aura / fondo / manos</p><p>Fallback · composición Canvas cuando el rig carece de anclas</p></div></section>
-      <section class="panel dev-panel"><h2>Habitaciones y ajustes</h2><div class="dev-swatches">${Object.entries(rooms).filter(([id])=>['home','learn','train','games','profile'].includes(id)).map(([id,room])=>`<div><i style="background:${room.accent}"></i><b>${room.name}</b><code>${id}</code></div>`).join('')}</div><p>Calidad: ${window.NexoPerformance.snapshot().quality} · Partículas: ${document.body.dataset.nexoParticles||'low'}.</p></section></section>`;
+      <section class="panel dev-panel"><h2>Habitaciones y ajustes</h2><div class="dev-swatches">${Object.entries(rooms).filter(([id])=>['home','learn','games','profile'].includes(id)).map(([id,room])=>`<div><i style="background:${room.accent}"></i><b>${room.name}</b><code>${id}</code></div>`).join('')}</div><p>Calidad: ${window.NexoPerformance.snapshot().quality} · Partículas: ${document.body.dataset.nexoParticles||'low'}.</p></section></section>`;
     const section=location.hash.split('/')[2];
     if(['feedback','mascot'].includes(section))setTimeout(()=>document.getElementById(`dev-${section}`)?.scrollIntoView({block:'start'}),60);
   }

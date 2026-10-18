@@ -1,8 +1,8 @@
 /* Context decisions only. Actual artboard animation remains Idle until the rig supports named states. */
 (() => {
   'use strict';
-  const intents={home:'idle',learn:'read',train:'ready',games:'play',profile:'rest',shop:'preview',planner:'watch'};
-  const props={home:'window',learn:'book',train:'spellbook',games:null,profile:'cushion',shop:null,planner:'calendar'};
+  const intents={home:'idle',learn:'read',games:'play',profile:'rest',shop:'preview',planner:'watch'};
+  const props={home:'window',learn:'book',games:null,profile:'cushion',shop:null,planner:'calendar'};
   let effectTimer=null;
   const roomOf=input=>typeof input==='string'?input:input?.id||'home';
   function plan({currentMascot={},currentEquipment={},currentRoom='home',currentActivity='',academicEvent=null,ambientEvent=null,

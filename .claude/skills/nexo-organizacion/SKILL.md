@@ -18,6 +18,7 @@ description: Área de Organización de Nexo (UPDATE 02: plan semanal, calendario
 - Calendario (Fase 3): `dist/planner/calendar-model.js` (puro: mes, semana, mover con historial, semestre; `tools/calendario-test.cjs`) y `calendario.js` + `.css` (pantalla). El plan de cualquier día sale de `NexoTodayPlan.planDay(bridge, día)` (minutos del día, bloques movidos, receso, dificultad).
 - Sonido: `dist/planner/estudio-audio.js` (`NexoEstudioAudio.play(nombre, state.settings)` / `start` / `stop`; prueba `tools/estudio-audio-test.cjs`). Perfil ya no tiene Notas/Inasistencias.
 - Estado: `state.organization` (minutos por día, marcas del plan, avisos vistos). Los tres módulos van en el bundle (`node tools/build-startup.cjs`).
+- Organizador semanal (copia de revisión del 17 oct): `planner/schedule.js` asigna huecos reales y `event-editor.js` pinta la hoja modal. `state.organization.availability` y `breakMinutes` son opcionales; eventos personales conservan `subject: personal`. La hoja usa el kit `.pu-*` (marco, papel, botones, sello) y `peek` (mascota que asoma); sin `¡` en títulos pixel. Ver `docs/organizador-semanal/SPEC.md`; pruebas `schedule-test.cjs` y `organizador-e2e.cjs`.
 
 ## Qué existe hoy (reutilizar, no reescribir)
 - Eventos en `state.events` (sincronizados como `academic_events`). UI vieja de Bitácora en `dist/app.js` (`renderPlanner`, `renderCalendarInteractive`, `renderGrades`).

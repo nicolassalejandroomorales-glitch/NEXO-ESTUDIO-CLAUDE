@@ -9,7 +9,6 @@
       layers:{background:0,ambientBack:1,modularObjects:2,mascotBack:3,mascot:4,mascotFront:5,ambientFront:6,integratedUI:7,hotspots:8},
       slots:[{id:'window',type:'window',zone:'window-area',bounds:[.045,.08,.235,.40],layer:'modularObjects',renderMode:'baked',asset:null,foregroundAsset:null,replacementReady:false}],
       hotspots:[
-        {id:'window-focus',slot:'window',inset:[.04,.04,.76,.60],action:'focus-light',accessibleLabel:'Ventana: resaltar suavemente la luz de entrada'},
         // Navegación diegética: cada objeto usa el MISMO router que los botones normales (data-route).
         {id:'staff-shop',bounds:[1078/1672,292/941,62/1672,318/941],action:'route',route:'shop',accessibleLabel:'Báculo estelar: abrir la Tienda'},
         {id:'armchair-profile',bounds:[1255/1672,395/941,240/1672,280/941],action:'route',route:'profile',accessibleLabel:'Sillón: abrir tu Perfil'},
@@ -52,7 +51,7 @@
         {id:'window-tone',className:'home-window-tone',slot:'window',inset:[.025531914893617,.0375,.817021276595745,.8875],depth:2},
         {id:'light-rays',className:'refuge-light',bounds:[0,0,1,1],depth:3}
       ],
-      lightingProfile:{sourceSlot:'window',driver:'NexoAmbientTime',states:['dawn','day','dusk','night'],continuous:true,feedback:{duration:600,peakBrightness:1.12}}
+      lightingProfile:{sourceSlot:'window',driver:'NexoAmbientTime',states:['dawn','day','dusk','night'],continuous:true}
     },
     // 5 oct 2026 — refugio en pixel art (tools/home-pixel/build_refugio.py). 418×235 px de arte ×4.
     // Coordenadas en el mismo sistema 1672×941; por ahora solo tintes de hora (las capas animadas vienen después).
@@ -62,7 +61,6 @@
       layers:{background:0,ambientBack:1,modularObjects:2,mascotBack:3,mascot:4,mascotFront:5,ambientFront:6,integratedUI:7,hotspots:8},
       slots:[{id:'window',type:'window',zone:'window-area',bounds:[72/1672,64/941,280/1672,344/941],layer:'modularObjects',renderMode:'baked',asset:null,foregroundAsset:null,replacementReady:false}],
       hotspots:[
-        {id:'window-focus',slot:'window',inset:[.08,.06,.84,.86],action:'focus-light',accessibleLabel:'Ventana: resaltar suavemente la luz de entrada'},
         {id:'staff-shop',bounds:[1196/1672,192/941,104/1672,448/941],action:'route',route:'shop',accessibleLabel:'Báculo estelar: abrir la Tienda'},
         {id:'armchair-profile',bounds:[1264/1672,368/941,264/1672,296/941],action:'route',route:'profile',accessibleLabel:'Sillón: abrir tu Perfil'},
         {id:'map-logbook',bounds:[616/1672,620/941,176/1672,60/941],action:'route',route:'planner',routeSub:'grades',accessibleLabel:'Mapa enrollado: abrir la Bitácora'},
@@ -84,7 +82,7 @@
         {id:'px-tarde',className:'home-light-layer home-px-light home-px-tarde',bounds:[0,0,1,1],depth:1},
         {id:'px-noche',className:'home-light-layer home-px-light home-px-noche',bounds:[0,0,1,1],depth:1}
       ],
-      lightingProfile:{sourceSlot:'window',driver:'NexoAmbientTime',states:['dawn','day','dusk','night'],continuous:true,feedback:{duration:600,peakBrightness:1.12}}
+      lightingProfile:{sourceSlot:'window',driver:'NexoAmbientTime',states:['dawn','day','dusk','night'],continuous:true}
     }
   });
   // ?scene=refugio-012 abre el arte anterior (respaldo).
@@ -128,8 +126,6 @@
     const anchors=Object.fromEntries(Object.entries(profile.mascotAnchors).map(([id,a])=>[id==='rest'?'rest-area':id,{...a,selector:`[data-scene-zone="${a.zone}"]`}]));
     return freeze({artSize:[profile.referenceWidth,profile.referenceHeight],layers:{...profile.layers,scene:profile.layers.modularObjects,interactive:profile.layers.hotspots},currentSeat:{zone:desk.zone,x:desk.point[0],y:desk.point[1],...desk.seat},anchors});
   }
-  let pulse=null;
-  function cleanup() {pulse?.cancel();pulse=null;}
   function activate(id,root,profile=getProfile()) {
     const hotspot=profile.hotspots.find(item=>item.id===id);
     if(hotspot?.action==='continue') {
@@ -137,16 +133,7 @@
       root.querySelector('.continue-volume .primary-btn')?.click();
       return true;
     }
-    if(!hotspot||hotspot.action!=='focus-light')return false;
-    cleanup();
-    if(matchMedia('(prefers-reduced-motion: reduce)').matches||document.body.classList.contains('reduce-motion')||document.body.dataset.nexoAmbientMotion==='reduced')return true;
-    const tone=root.querySelector('[data-ambient-layer="window-tone"]');
-    if(!tone?.animate)return true;
-    const feedback=profile.lightingProfile.feedback;
-    pulse=tone.animate([{filter:'brightness(1)'},{filter:`brightness(${feedback.peakBrightness})`,offset:.5},{filter:'brightness(1)'}],{duration:feedback.duration,easing:'ease-in-out'});
-    const active=pulse;
-    active.finished.then(()=>{if(pulse===active)pulse=null;}).catch(()=>{});
-    return true;
+    return false;
   }
   // Móvil: la sala es más ancha que la pantalla y se desliza de lado (CSS en update01.css).
   // Parte mostrando el escritorio y la mascota; el aviso "Desliza" se oculta al primer deslizamiento.
@@ -163,7 +150,5 @@
     pan.addEventListener('scroll',()=>{if(pan.scrollLeft>4)pan.dataset.touched='1';update();},{passive:true});
     update();
   }
-  if(typeof matchMedia==='function')matchMedia('(prefers-reduced-motion: reduce)').addEventListener?.('change',cleanup);
-  if(typeof document!=='undefined')document.addEventListener('visibilitychange',()=>{if(document.hidden)cleanup();});
-  window.NexoHomeScene=Object.freeze({profiles,getProfile,ambientBounds,replacementReady,render,legacyContract,activate,cleanup,enhancePan});
+  window.NexoHomeScene=Object.freeze({profiles,getProfile,ambientBounds,replacementReady,render,legacyContract,activate,enhancePan});
 })();

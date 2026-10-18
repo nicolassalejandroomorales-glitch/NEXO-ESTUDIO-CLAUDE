@@ -443,19 +443,23 @@
       .reduce((a, x) => a + (Number(x.seconds) || Number(x.minutes || 0) * 60), 0) / 60);
     const planned = S.blocks.reduce((a, b) => a + b.minutes, 0);
     const flash = S.blocks.some(b => b.flash);
+    const o = org(), schedule = Array.isArray(o.schedule) ? o.schedule : (typeof NEXO_SEMESTER !== 'undefined' ? NEXO_SEMESTER.schedule : []);
+    const info = window.NexoSchedule.dayInfo(bridge.state, S.today, schedule);
+    const pending = S.blocks.filter(b => !b.done && (!b.start || b.remainingMinutes));
+    const commitments = info.occupied.slice().sort((a, b) => a.start - b.start);
     const blocks = S.blocks.length ? `<ol class="plan-bloques">${S.blocks.map(b => {
       const s = bridge.subjectFor(b.subject);
       return `<li class="bloque${b.done ? ' hecho' : ''}" data-bloque="${esc(b.id)}">
         <span class="bloque-n" aria-hidden="true">${b.order}</span>
-        <div class="bloque-txt"><p class="bloque-ramo">${tag(s)} <b>${b.minutes} min</b></p>
+        <div class="bloque-txt"><p class="bloque-ramo">${b.start ? `<time class="agenda-slot">${b.start}–${b.end}</time>` : ''}${tag(s)} <b>${b.minutes} min</b></p>
           <h3><span class="tinta">${esc(b.text)}</span></h3>
-          <p class="bloque-razon">${esc(b.reason)}</p><p class="bloque-porque">${esc(b.why)}</p></div>
+          <p class="bloque-razon">${esc(b.reason)}</p><p class="bloque-porque">${esc(b.why)}</p>${b.unplaced ? `<p class="block-warning">${esc(b.unplaced)}</p>` : ''}${b.remainingMinutes ? `<p class="block-warning">Quedan ${b.remainingMinutes} min de esta sesión por ubicar.</p>` : ''}</div>
         <div class="bloque-acciones">${b.done
           ? `<span class="bloque-ok">Hecho${b.auto ? ' (cronómetro)' : ''}</span>${b.auto ? '' : `<button type="button" class="pix-btn suave" data-org-undo="${esc(b.id)}">Deshacer</button>`}`
           : `<button type="button" class="pix-btn" data-org-start="${esc(b.id)}">Empezar</button>
              <button type="button" class="pix-btn suave" data-org-done="${esc(b.id)}">Listo</button>
              <button type="button" class="pix-btn suave" data-org-skip="${esc(b.id)}">Hoy no</button>`}</div></li>`;
-    }).join('')}</ol>` : `<p class="pergamino-vacio">${mins <= 0 ? 'Hoy descansas: no hay plan. Descansar también es parte de estudiar.' : 'Nada urgente en las próximas semanas: buen día para adelantar o repasar.'}</p>`;
+    }).join('')}</ol>` : `<p class="pergamino-vacio">${mins <= 0 ? 'Hoy descansas: no hay plan. Descansar también es parte de estudiar.' : 'El caldero está tranquilo: nada urgente. Buen día para adelantar o repasar.'}</p>`;
     return `<article class="pergamino hoy" aria-labelledby="hoyTitle">
       <header class="pergamino-head"><p class="eyebrow">HOY · ${esc(longToday())}</p><h2 id="hoyTitle">Plan del día</h2>
         <div class="hoy-tiempo" role="group" aria-label="Tiempo para estudiar hoy">
@@ -463,9 +467,13 @@
           <b>${mins} min</b><button type="button" class="pix-btn mini" data-org-min="15" aria-label="15 minutos más">+</button>
           <small>los ${esc(new Intl.DateTimeFormat('es-CL', { weekday: 'long' }).format(new Date()))}</small></div></header>
       ${ribbon(S.crit)}
+      <div class="today-capacity"><div><b>${info.configured ? `${info.available} min disponibles en lo que queda del día` : 'Dale un horario a tu plan'}</b><p>${info.configured ? 'Las propuestas respetan tus compromisos y las pausas.' : 'Indica cuándo puedes estudiar para que Nexo encuentre espacios reales.'}</p></div><button type="button" class="pix-btn suave" data-org-availability>Mis horarios</button></div>
+      ${commitments.length ? `<details class="today-commitments" open><summary>Tus compromisos de hoy · ${commitments.length}</summary><ul>${commitments.map(c => `<li><time>${window.NexoSchedule.clock(c.start)}–${window.NexoSchedule.clock(c.end)}</time><span>${esc(c.title)}</span></li>`).join('')}</ul></details>` : ''}
+      ${info.conflicts.length || info.warnings.length ? `<p class="block-warning">${info.conflicts.map(c => `Se superponen ${esc(c.a)} y ${esc(c.b)}.`).concat(info.warnings.map(esc)).join(' ')}</p>` : ''}
+      ${pending.length && info.configured ? `<p class="block-warning">Hay ${pending.length} sesión${pending.length === 1 ? '' : 'es'} con tiempo pendiente de ubicar. Revisa tu semana antes de añadir más.</p>` : ''}
       ${flash ? '<p class="modo-prueba">Día de prueba: solo un repaso flash. Sin materia nueva, calma y a rendir.</p>' : ''}
       ${blocks}
-      <p class="plan-total">Plan ${planned} de ${mins} min · llevas ${studied} min hoy. Nexo propone, tú decides: si hoy no se puede, lo reacomoda sin culpa.</p>
+      <p class="plan-total">Plan ${planned} de ${mins} min · llevas ${studied} min hoy. El alquimista propone, tú decides: si hoy no se puede, la poción se reacomoda sin culpa.</p>
     </article>
     <article class="pergamino viene" aria-labelledby="vieneTitle">
       <header class="pergamino-head"><p class="eyebrow">RELOJES DE ARENA</p><h2 id="vieneTitle">Lo que viene</h2></header>
@@ -521,6 +529,7 @@
       const b = e.target.closest('button'); if (!b) return;
       const S = W?.sit || situation();
       const block = id => S.blocks.find(x => x.id === id);
+      if (b.dataset.orgAvailability !== undefined) { window.NexoCalendario.openAvailability(); return bridge.go('planner', 'calendario'); }
       if (b.dataset.orgMin) {
         const o = org(), wd = new Date().getDay();
         o.minutes[wd] = clamp(minutesToday() + Number(b.dataset.orgMin), 0, 360);

@@ -52,6 +52,7 @@ que se pueda recorrer con la mascota. Que no quede todo tan "anti ambiental".
 - `tools/torre-mundo-test.cjs` en verde; `npm test` 26/26. ANTES/AHORA: `docs/mundo-torre/antes-ahora.png`.
 
 ## Pendiente
+- (Desde Aprender, 17 oct) El Sótano de los Cristales tendrá una **sala de Laboratorio** y una **Sala de entrenamiento** propias (`docs/aprender-pasillo/SPEC.md`): el laboratorio caminable sin página podría reengancharse ahí.
 
 - Esperar aprobación visual de Niquito.
 - La campaña (`games/pep1/index.html`) no tiene botón "Volver a Nexo" (anotado en el SPEC de juegos).
@@ -122,6 +123,7 @@ Una **torre de varios pisos** que se recorre con la mascota y que **refleja tu p
 ## Pendiente (fase 2)
 
 - Aprobar el laboratorio caminable.
+- Decisión del chat Aprender (17 oct): el lab caminable **queda como lugar del mundo** (decorativo y de mascota); el lab de estudio es la sala de piedra del sótano. Falta darle página o entrada en la Torre.
 - Paso 3: vestíbulo (escalera + ascensor + viaje del menú). Paso 4 (Opus): progreso real por objeto, que reemplace el provisorio.
 
 - Aprobar el estilo de la muestra.

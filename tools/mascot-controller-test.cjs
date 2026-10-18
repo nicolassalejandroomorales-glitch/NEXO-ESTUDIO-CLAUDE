@@ -13,8 +13,6 @@ assert.equal(learn.intent,'read');
 assert.equal(learn.availableAnimation,'Idle');
 assert.equal(learn.rigAnimationAvailable,false);
 assert.equal(learn.slots.head,'hat-beanie');
-assert.equal(controller.plan({currentMascot:mascot,currentRoom:'train'}).intent,'ready');
-assert.equal(controller.plan({currentMascot:{species:'pig',slots:{}},currentRoom:'train'}).availableAnimation,'Ready');
 assert.equal(controller.plan({currentMascot:{species:'pig',slots:{}},currentRoom:'learn'}).availableAnimation,'Read');
 assert.equal(controller.plan({currentMascot:mascot,currentRoom:'home',hour:3}).intent,'sleep');
 assert.equal(controller.plan({currentMascot:mascot,currentRoom:'learn',

@@ -18,7 +18,8 @@ const SALTAR = {
   'update01-test.cjs': 'desactualizada: espera "Bloque del catálogo" y la app muestra "Evaluación"',
   'update01-dom-test.cjs': 'necesita jsdom, que no está en package.json',
   'update01-integrity-test.cjs': 'lee un manifiesto fuera del repo (Desktop/MANIFIESTO_SHA256.tsv)',
-  'web-vitals-test.cjs': 'necesita navegador (Playwright)'
+  'web-vitals-test.cjs': 'necesita navegador (Playwright)',
+  'torre-mundo-test.cjs': 'el laboratorio de la Torre colgaba de Entrenar, que se borró el 17 oct: se rehace en el chat Torre'
 };
 
 const tests = ['smoke-test.cjs'];

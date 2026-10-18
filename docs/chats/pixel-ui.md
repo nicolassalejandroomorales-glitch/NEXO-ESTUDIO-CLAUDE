@@ -1,11 +1,13 @@
 # Aspecto y navegación de toda la app
 - modelo: Sonnet 5.5 · alto (solo conversar y diseñar al inicio)
-- estado: crítica recibida el 15 oct, sin decisiones
-- fase: por-hacer
+- estado: kit + Inicio + barra aprobados y en master (17 oct 2026); falta fuente de párrafos y kit en el resto de pantallas
+- fase: desarrollo
 - prioridad: 2
-- spec: docs/ux-app/FEEDBACK-15OCT.md
+- spec: docs/ux-app/SPEC.md
 
 ## Hecho
+- 17 oct: kit `tools/pixel-ui/` (+ `pixel-ui.css/js`), Inicio y barra lateral con él. Detalle en docs/ux-app/SPEC.md.
+- Barra nueva (17 oct): Inicio · Aprender · Organización · Perfil. Entrenar se borró (pantalla, entrenamiento, sala Taller y pruebas); Repasos y Rescate siguen en Aprender. Juegos salió de la barra (sigue en #/games).
 - Refugio y mascotas ya en pixel art con las rampas de `tools/home-pixel/pixel.py`.
 - Grimorio del tutorial, marcos de diálogo y huevos en pixel art.
 
@@ -13,7 +15,7 @@
 - Decidir la **navegación**: la barra lateral convive con las escenas tocables; Niquito duda de que haga falta.
 - Diseñar **botones y paneles con personalidad** (hoy "feos, sin personalidad") como un kit compartido en `tools/pixel-ui/`.
 - Mejorar la **versión de computador**, que no le gusta.
-- Rehacer **Aprender** (su grimorio es "antiestético") y preguntar a qué se refiere con "la biblioteca Nexo".
+- Aprender se rehace en su propio chat (`docs/chats/aprender.md`, Sótano de los Cristales). Falta preguntar a qué se refiere con "la biblioteca Nexo".
 - Decidir si grimorio, clases, tienda y juegos pasan a pixel art con el mismo kit.
 
 ## Ideas
