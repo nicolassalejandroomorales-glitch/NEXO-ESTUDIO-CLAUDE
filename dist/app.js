@@ -1045,7 +1045,7 @@
     const promise = Promise.resolve(window.NexoClassCatalog || window.NexoLoader.script('./classes/catalog.js?v=8dec702d')).then(() => {
       const file = window.NexoClassCatalog?.[id];
       if (!file) return false;
-      return Promise.all([window.NexoLoader.style('./classes/classroom.css?v=7f1c7bf7'), window.NexoLoader.script('./classes/tower-art.js?v=9099c2df').then(() => window.NexoLoader.script('./classes/player.js?v=589cb0af')),
+      return Promise.all([window.NexoLoader.script('./classes/player.js?v=1b787554'),
         window.NexoLoader.script('./classes/willow-tower.js?v=09c21b87').catch(() => null), // Torre del Sauce (etapa 10); sin ella, quedan las hojas en lista
         window.NexoLoader.script(`./classes/${file}?v=19`),
         // Motor de evidencia y repaso espaciado (FSRS); si no cargan, la clase funciona igual sin agendar repasos.
@@ -1063,11 +1063,6 @@
     const source = LESSONS[id];
     if (!source) return routeTo('subjects');
     const subject = subjectFor(source.subject);
-    if (window.NexoClassroom && window.NexoClasses?.[id]) {
-      return window.NexoClassroom.render(id, { app, getState: () => state, saveState: () => saveState({ backup: false }),
-        avatarMarkup, hydrate: () => {}, // sin avatares (se borraron en la Fase 0 de la mascota) track: (...args) => cloud.track(...args),
-        subject: { id: subject.id, name: subject.name, color: subject.color }, exit: () => { if (lessonReturnHash) location.hash = lessonReturnHash; else routeTo('learn', 'course', subject.id); } });
-    }
     if (!classroomLoads.has(id)) {
       app.innerHTML = '<section class="page"><div class="app-loader" role="status"><span></span><p>Abriendo el aula…</p></div></section>';
       const onLessonRoute = () => { const route = parseRoute(); return route.join('/') === `lesson/${id}` ||
@@ -1078,7 +1073,7 @@
     }
     app.innerHTML = `<section class="page lesson-soon" style="--course:${subject.color}">
       <button class="back-btn" data-open-subject="${subject.id}">← Ruta de ${subject.name}</button>
-      <div class="panel lesson-soon-card"><p class="eyebrow">${esc(subject.short)} · CLASE</p><h1>${esc(source.title)}</h1><p><b>Disponible próximamente</b></p><p>Estamos rehaciendo esta clase desde cero para que enseñe de verdad. Vuelve pronto.</p><div class="button-row"><button class="primary-btn" data-open-subject="${subject.id}">Volver a ${subject.name}</button><button class="secondary-btn" data-route="home">Ir al refugio</button></div></div>
+      <div class="panel lesson-soon-card"><p class="eyebrow">${esc(subject.short)} · CLASE</p><h1>${esc(source.title)}</h1><p><b>Disponible próximamente</b></p><p>Estamos rehaciendo el aula dentro de la Cámara del ramo. Vuelve pronto.</p><div class="button-row">${(window.NexoClasses?.[id]?.stations || []).map(sid => `<a class="primary-btn" href="#/station/${id}/${sid}">Probar la estación nueva</a>`).join('')}<button class="${window.NexoClasses?.[id]?.stations?.length ? 'secondary-btn' : 'primary-btn'}" data-open-subject="${subject.id}">Volver a ${subject.name}</button><button class="secondary-btn" data-route="home">Ir al refugio</button></div></div>
     </section>`;
   }
 

@@ -22,7 +22,7 @@
       ruta: 'learn',
       pasos: [
         { sel: '.sotano-stage', pose: 'abrir', texto: 'El *Sótano de los Cristales*: un pasillo con una puerta por ramo. Cada puerta lleva a su Cámara, y ahí vive tu *ruta al 7*.' },
-        { sel: '.sotano-pad', pose: 'senalar', texto: '*Avanzar* y *Dar la vuelta* te mueven por el pasillo. Si prefieres, usa las flechas del teclado.' },
+        { sel: '.sotano-pad [data-move="fwd"]', toca: true, pose: 'senalar', texto: 'Pruébalo tú: toca *Avanzar* y caminamos un tramo. Con *Dar la vuelta* regresas; también sirven las flechas del teclado.' },
         { sel: '.sotano-stage', pose: 'dedo', texto: 'Sobre las piedras dibujo tu estado *real*: frascos y cristales según lo que has demostrado, no según lo que has releído.' }
       ]
     },
@@ -120,15 +120,31 @@
       if (e && e.isConnected && visible(e)) {
         const r = e.getBoundingClientRect(), p = 8, top = Math.max(r.top - p, 6), bottom = Math.min(r.bottom + p, innerHeight - 6);   // recortado a la pantalla: algunos carteles son más altos que ella
         Object.assign(halo.style, { left: r.left - p + 'px', top: top + 'px', width: r.width + 2 * p + 'px', height: Math.max(bottom - top, 20) + 'px' });
-        box.dataset.pos = (top + bottom) / 2 > innerHeight * .5 ? 'top' : 'bottom';
+        box.dataset.pos = bottom - top < innerHeight * .6 && top > innerHeight - bottom ? 'top' : 'bottom';   // el globo va donde hay más espacio libre; si el objetivo es muy alto (carteles en móvil), abajo, para ver su título
       }
     };
     const sigue = () => { coloca(); if (ui) ui.raf = requestAnimationFrame(sigue); };   // sigue al objetivo si la página se mueve o cambia de tamaño
     const fin = () => { R.close(); opts.volver?.(); };
+    const suelta = () => { if (ui?.libre) { ui.libre(); ui.libre = null; } veil.style.pointerEvents = ''; };
+    // «Hazlo tú» (paso con toca: true): el velo deja pasar los toques, pero solo el objetivo responde; al tocarlo se avanza solo.
+    const esperaToque = (paso, mi) => {
+      const dentro = ev => !!ev.target.closest?.(paso.sel);
+      const filtro = ev => { if (box.contains(ev.target) || dentro(ev)) return; ev.preventDefault(); ev.stopPropagation(); };
+      const alTocar = ev => {
+        if (!dentro(ev)) return;
+        suelta();
+        setTimeout(() => { if (mi !== token || !ui) return; dir = 1; i++; if (i >= sec.pasos.length) return fin(); mostrar(); }, 1400);
+      };
+      const evs = ['pointerdown', 'pointerup', 'click'];
+      evs.forEach(n => document.addEventListener(n, filtro, true));
+      document.addEventListener('click', alTocar, true);
+      veil.style.pointerEvents = 'none';
+      ui.libre = () => { evs.forEach(n => document.removeEventListener(n, filtro, true)); document.removeEventListener('click', alTocar, true); };
+    };
 
     async function mostrar() {
       const mi = ++token, paso = sec.pasos[i];
-      halo.hidden = true; ui.target = null;
+      halo.hidden = true; ui.target = null; suelta();
       const e = await esperar(paso.sel, i === 0 ? 4000 : 1500);
       if (mi !== token || !ui) return;
       if (!e) { i += dir; if (i < 0) i = 0; if (i >= sec.pasos.length) return fin(); return mostrar(); }   // objetivo ausente: se salta
@@ -137,7 +153,8 @@
       pose(paso.pose); escribe(paso.texto);
       box.classList.remove('entra'); if (!reduced()) { void box.offsetWidth; box.classList.add('entra'); }
       atras.disabled = i === 0;
-      sig.textContent = i === sec.pasos.length - 1 ? 'Listo' : 'Siguiente';
+      sig.textContent = paso.toca ? 'Saltar' : i === sec.pasos.length - 1 ? 'Listo' : 'Siguiente';
+      if (paso.toca) esperaToque(paso, mi);
       if (!ui.raf) ui.raf = requestAnimationFrame(sigue);
     }
     sig.addEventListener('click', () => { dir = 1; i++; if (i >= sec.pasos.length) return fin(); mostrar(); });
@@ -153,7 +170,7 @@
   R.close = function close() {
     R.active = false;
     if (!ui) return;
-    ui.stop(); cancelAnimationFrame(ui.raf); ui.veil.remove(); ui.halo.remove(); ui.box.remove(); ui = null;
+    ui.stop(); ui.libre?.(); cancelAnimationFrame(ui.raf); ui.veil.remove(); ui.halo.remove(); ui.box.remove(); ui = null;
   };
 
   window.NexoRecorrido = R;

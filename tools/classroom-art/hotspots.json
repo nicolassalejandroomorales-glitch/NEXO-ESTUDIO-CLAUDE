@@ -1,7 +1,0 @@
-{
-  "_nota": "Objetos tocables de la torre en % de la pintura 16:9: [x, y, ancho, alto]. Única fuente de verdad: build_tower.py genera dist/classes/tower-art.js.",
-  "amanecer": { "sage": [10, 24, 15, 70], "book": [20, 49, 12, 15], "board": [36, 20, 28, 35], "window": [22.5, 12, 9.5, 43], "flasks": [73, 50, 26, 30] },
-  "mediodia": { "sage": [12, 20, 12, 68], "book": [19, 40, 13, 14], "board": [45.5, 17, 31.5, 33], "window": [5, 7, 15.5, 58], "flasks": [80, 56, 16, 24] },
-  "atardecer": { "sage": [12, 20, 12, 68], "book": [19, 40, 13, 14], "board": [45.5, 17, 31.5, 33], "window": [5, 7, 15.5, 58], "flasks": [80, 56, 16, 24] },
-  "noche": { "sage": [9.5, 24, 22, 71], "book": [24.5, 46, 15, 14], "board": [36, 9, 30, 57], "window": [8, 4, 16, 31], "flasks": [77, 54, 21, 20] }
-}
