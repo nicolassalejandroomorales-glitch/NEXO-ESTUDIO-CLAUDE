@@ -29,7 +29,7 @@ W, H, CELL_H, COLS = 320, 200, 208, 8      # alto de celda múltiplo de 16: la c
 QUALITY = 80
 # milisegundos por cuadro según el tipo de tira (w caminar, u dar la vuelta, t girar a una puerta, e entrar, o orbitar, z acercarse, c llegada).
 # La app mezcla cuadros vecinos, por eso puede ir lento sin verse a saltos. 'ease' = la app suaviza arranque y frenada (las demás ya lo traen).
-MS_PER_FRAME = {'w': 200, 'u': 60, 't': 80, 'e': 145, 'o': 80, 'z': 150, 'c': 155, 'i': 0}
+MS_PER_FRAME = {'w': 60, 'u': 60, 't': 80, 'e': 145, 'o': 80, 'z': 150, 'c': 155, 'i': 0}
 IDLE_N = 6                                  # cuadros de la animación de reposo de cada parada (ida y vuelta)
 LOOK = 0.12
 JAR_LEVELS = [0.0, 0.25, 0.5, 0.75, 1.0]
@@ -123,7 +123,7 @@ def door_geometry(idx):
 
 
 TURN_N = 20                                 # cuadros de un giro de 60-90°: con pocos, la mezcla de cuadros deja doble imagen
-WALK_PER_UNIT = 6                           # la app mezcla cuadros vecinos, así que no hacen falta tantos
+WALK_PER_UNIT = 12                          # ~17 cuadros reales por segundo al caminar; la app además mezcla vecinos
 
 
 def walk(pos, dist, pose, k='h'):
@@ -526,7 +526,7 @@ def main(which, ramos):
             group.append((name, frames))
             continue
         total += save_sheet(name, frames)
-        clips[name] = {'n': len(frames), 'ms': round(len(frames) * MS_PER_FRAME[clip_kind(name)]), 'ease': clip_kind(name) in ('w', 'u')}
+        clips[name] = {'n': len(frames), 'ms': max(round(len(frames) * MS_PER_FRAME[clip_kind(name)]), 750 if clip_kind(name) == 'w' else 0), 'ease': clip_kind(name) in ('w', 'u')}
     for group, members in groups.items():
         total += save_sheet(group, [fr for _, frames in members for fr in frames])
     overlay = old.get('overlay', {})

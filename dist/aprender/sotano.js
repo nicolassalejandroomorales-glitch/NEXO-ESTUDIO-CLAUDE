@@ -96,14 +96,26 @@
     return G.loading[ramo];
   }
 
-  // El cuadro mantiene 16:10 y ocupa casi todo el alto libre (deja a la vista la fila de botones); desde 2x crece de a medio píxel-escala (160 px) para que los píxeles queden parejos.
+  // El cuadro mantiene 16:10 y ocupa casi todo el alto libre (deja a la vista la fila de botones).
+  // Los lienzos se agrandan a un múltiplo entero de 320×200 (píxeles parejos) y el navegador los ajusta al tamaño exacto.
   function fit(G) {
     const availW = Math.min(G.root.clientWidth || innerWidth, 1280), top = G.el.stage.getBoundingClientRect().top;
     const availH = Math.max(200, innerHeight - Math.max(top, 70) - 80);
-    let w = Math.min(availW, availH * 1.6);
-    if (w >= 640) w = Math.floor(w / 160) * 160;
-    G.el.stage.style.width = `${Math.floor(w)}px`;
+    const w = Math.floor(Math.min(availW, availH * 1.6));
+    G.el.stage.style.width = `${w}px`;
     G.el.stage.style.height = `${Math.floor(w / 1.6)}px`;
+    const k = Math.max(1, Math.ceil(w / 320));
+    if (k === G.k) return;
+    G.k = k;
+    for (const [canvas, ctx] of [[G.el.view, G.vctx], [G.el.over, G.octx]]) {
+      const keep = document.createElement('canvas');
+      keep.width = canvas.width; keep.height = canvas.height;
+      keep.getContext('2d').drawImage(canvas, 0, 0);
+      canvas.width = 320 * k; canvas.height = 200 * k;
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(keep, 0, 0, canvas.width, canvas.height);
+      ctx.setTransform(k, 0, 0, k, 0, 0);
+    }
   }
 
   // ---------- cuadros ----------

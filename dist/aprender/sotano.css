@@ -1,11 +1,11 @@
-/* El Sótano de los Cristales (Aprender). Cuadros pre-renderizados de 320×200 escalados sin suavizar. */
+/* El Sótano de los Cristales (Aprender). Cuadros pre-renderizados de 320×200 ampliados por múltiplos enteros en el lienzo. */
 .sotano { max-width: 1280px; margin: 0 auto; padding: 8px 12px 28px; display: grid; justify-items: center; gap: 10px; }
 .sotano-top { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 .sotano-title { margin: 0; font: 700 1.05rem/1.2 Georgia, 'Palatino Linotype', serif; letter-spacing: .06em; text-transform: uppercase; color: var(--pu-brass, #fbe08a); text-shadow: 0 2px 0 #0008; }
 .sotano-chip { padding: 3px 10px; border: 2px solid #b58a3c; background: #1a0f13cc; color: #fbe08a; font: 600 .85rem/1.3 Georgia, serif; }
 
 .sotano-stage { position: relative; max-width: 100%; box-shadow: 0 0 0 3px #0b0f16, 0 0 0 5px #b58a3c, 0 14px 26px #000a; background: #06080e; overflow: hidden; touch-action: manipulation; cursor: pointer; }
-.sotano-view, .sotano-over { position: absolute; inset: 0; width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+.sotano-view, .sotano-over { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .sotano-over { opacity: 0; transition: opacity .35s ease; pointer-events: none; }
 .sotano-over.on { opacity: 1; }
 .sotano-flash { position: absolute; inset: 0; background: #f3ffe0; opacity: 0; transition: opacity .16s ease; pointer-events: none; }
