@@ -40,7 +40,7 @@
         byConcept.get(key).push({ classId: cls.id, subject: cls.subject, item: node, name: title(node.concept) });
       }
       for (const k in node) walk(node[k]);
-    })(cls.missions);
+    })([cls.missions, cls.duelos]);
     indexCache.set(cls, byConcept);
     return byConcept;
   }
