@@ -106,6 +106,42 @@ Para todos los ramos. Meta: **llegar preparado al lab real y salir con el inform
 - **Grietas de errores en la Cámara: cada error abre una grieta** en la pared con el concepto fallado; se sella al acertarlo sin ayuda y de nuevo días después.
 - **Grimorio-formulario del pedestal** (propuesta, por aprobar): se abre al tocarlo y muestra fórmulas/mecanismos del ramo con páginas por tema; lo no dominado queda borroso.
 
+## Implementación v1 (Niquito, 18 oct 2026)
+Decisiones: **tiras de cuadros por paso** (fluido como el boceto), **reemplazar del todo** el índice del grimorio y **partir por Orgánica II**.
+
+### Qué entra
+- `#/learn` pasa a ser el Sótano (código en `dist/aprender/`, carga bajo demanda desde `renderSubjects` de `app.js`). Se borró el índice-grimorio (su contenido y su CSS en `update01.css`); `renderSubjects` quedó como el cargador del Sótano y `grimoireShell` sigue sirviendo a las evaluaciones.
+  Las rutas `learn/course/<ramo>/evaluation/...` y `learn/course/<ramo>/lesson/...` **siguen vivas** (las usan Inicio, el tutorial y el aula); su rediseño dentro de la Cámara queda pendiente.
+- Pasillo con las 4 puertas + pasillo lateral con candado; **solo la Cámara de Orgánica II** funciona de punta a punta. Las otras 3 puertas hacen la animación del portal y muestran una tarjeta con las clases reales del ramo (de `catalog.js`) hasta que tengan su Cámara.
+- Cámara de Orgánica II: Aminas → `org-01` (8 misiones = 8 frascos), Aromáticos → `org-04` + `org-05` (3+3 misiones = 6 frascos), Heterociclos → sin clase (cristales apagados, "próximamente").
+
+### Cómo se mueve (grafo de paradas)
+- Cada **parada** (nodo) es un cuadro fijo; cada **tramo** (arista) es una tira de cuadros que se reproduce hacia adelante o al revés (volver = la tira en reversa). Un BFS elige la ruta.
+- Pasillo: paradas `h0 · h1(Orgánica) · h2(Analítica) · h3(Fisico + cruce) · h4(Fisio)`, vistas de puerta `d-*`, pasillo lateral `b0..b3`.
+- Cámara: llegada `c-in`, anillo `c0 · c60 · c120 · c180(portal) · c-120 · c-60`, y vista de mesa `ct0 · ct60 · ct-60`.
+- Controles: botones contextuales (Avanzar, Volver, ◀ ▶ girar/mirar puerta, Entrar), flechas y Enter del teclado, toque en las mitades del cuadro. Móvil (390) y escritorio (1440) usan el mismo lienzo de 320×200 escalado sin suavizar (`image-rendering: pixelated`).
+
+### Formato de los cuadros
+- 320×200, WebP con pérdida q≈80 (~12 KB por cuadro; casi idéntico al original, medido el 18 oct). Una **hoja de cuadros por tira** (cuadrícula), cargada bajo demanda y precargando las tiras vecinas.
+- Se generan con `tools/aprender-pasillo/export_app.py` (reproducible, usa los motores `build_sotano.py` y `build_camara.py`, en paralelo). Salida en `dist/aprender/img/` + `dist/aprender/manifest.json`. Los GIF del boceto siguen sin subirse.
+
+### El estado real va ENCIMA (no horneado)
+- En la Cámara los cuadros se renderizan **neutros**: sin frascos, sin texto de cuenta regresiva, cristales apagados y ramas del sauce verdes.
+- Encima del cuadro, en las paradas de alcoba y de mesa, se dibujan **sprites** (recortes pre-renderizados con el mismo motor): 5 niveles de llenado por frasco (0 · ¼ · ½ · ¾ · 1) y cristales «al día» / «toca repasar» (sin empezar = el apagado de fondo).
+- Datos (reutiliza lo que ya hay, nada nuevo en el motor): frasco = misiones con actividades respondidas / totales (`NexoClassroom.itemsOf` + `state.classSessions[id].answers`); cristal = un grupo de conceptos seguidos de la clase (Aminas tiene 18 conceptos y 6 cristales, así que 3 por cristal; Aromáticos 16 y 5): se apaga si algún concepto del grupo tiene la hoja `seca` (`NexoClassEvidence.leaves`), queda sin empezar si todos son `semilla` y brilla en cualquier otro caso; cuenta regresiva = `NexoClassroom.nextExam` (calendario real). Repasos del ramo = cristales `seca`.
+- La ficha bajo el cuadro repite todo en botones (una ficha por alcoba, con los frascos numerados): sirve en celular, donde los frascos del cuadro son chicos, y para lectores de pantalla.
+- Tocar un frasco abre la clase en esa misión; tocar el pedestal abre la Torre del Sauce (`#/torre/<ramo>`); tocar un cristal explica su concepto.
+- Alcoba «de hoy»: queda grabada en el cuadro (Aminas, el tema vigente). El sauce central no refleja aún el estado real (v2: pasada de render por capas).
+
+### Criterios de aceptación v1
+- Avanzar, girar, mirar una puerta y entrar se ven fluidos en 1440 y 390; el cuadro no se deforma ni se suaviza.
+- Con datos reales: los frascos de Aminas/Aromáticos reflejan las misiones respondidas, los cristales apagan o encienden según repaso, la cuenta regresiva sale del calendario.
+- Cada puerta abre su portal; Orgánica II entra a la Cámara y las clases abren con el player existente; Analítica, Fisicoquímica y Fisiopatología muestran sus clases reales.
+- Peso: ≤ ~8 MB de cuadros en total, cada tira carga sola. Pruebas `tools/aprender-test.cjs` en `npm test`.
+
+### Pendiente de v2
+Cámaras de los otros 3 ramos (cambiar `RAMOS` en `build_camara.py` ya los renderiza), sauce con estado real, grietas de error, grimorio-formulario del pedestal, Sala de entrenamiento y Sala de Laboratorio dentro del flujo, mapas de evaluación dentro de la Cámara, sonido por portal.
+
 ## Pendiente
 - **Sala de Laboratorio** (aprobada): el mural del informe queda chico (el arco del nicho lo limita); la campana se ve poco desde el banco.
 - Aprobar el grimorio-formulario del pedestal y bocetar las grietas en la Cámara.

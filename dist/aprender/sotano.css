@@ -1,0 +1,50 @@
+/* El Sótano de los Cristales (Aprender). Cuadros pre-renderizados de 320×200 escalados sin suavizar. */
+.sotano { max-width: 1280px; margin: 0 auto; padding: 8px 12px 28px; display: grid; justify-items: center; gap: 10px; }
+.sotano-top { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.sotano-title { margin: 0; font: 700 1.05rem/1.2 Georgia, 'Palatino Linotype', serif; letter-spacing: .06em; text-transform: uppercase; color: var(--pu-brass, #fbe08a); text-shadow: 0 2px 0 #0008; }
+.sotano-chip { padding: 3px 10px; border: 2px solid #b58a3c; background: #1a0f13cc; color: #fbe08a; font: 600 .85rem/1.3 Georgia, serif; }
+
+.sotano-stage { position: relative; max-width: 100%; box-shadow: 0 0 0 3px #0b0f16, 0 0 0 5px #b58a3c, 0 14px 26px #000a; background: #06080e; overflow: hidden; touch-action: manipulation; cursor: pointer; }
+.sotano-view, .sotano-over { position: absolute; inset: 0; width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+.sotano-over { opacity: 0; transition: opacity .35s ease; pointer-events: none; }
+.sotano-over.on { opacity: 1; }
+.sotano-flash { position: absolute; inset: 0; background: #f3ffe0; opacity: 0; transition: opacity .16s ease; pointer-events: none; }
+.sotano-flash.on { opacity: 1; }
+.sotano-load { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 12px; background: #06080e; color: #cfe6d4; font: 1rem Georgia, serif; text-align: center; padding: 16px; }
+.sotano-load[hidden] { display: none; }
+.sotano-load span { width: 30px; height: 30px; border: 3px solid #25407055; border-top-color: #7fe0f0; border-radius: 50%; animation: spin .8s linear infinite; }
+.sotano-load p { margin: 0; }
+
+.sotano-live { margin: 0; min-height: 1.2em; max-width: 640px; text-align: center; color: #b9c8c4; font: .92rem/1.35 Georgia, serif; }
+.sotano-pad { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.sotano-move i { font-style: normal; color: var(--pu-ink, #2a1a0a); font-size: .8rem; margin-right: 2px; }
+.sotano-hint { margin: 0; color: #8fa3a0; font-size: .8rem; text-align: center; }
+
+.sotano-card { box-sizing: border-box; width: min(100%, 720px); padding: 12px 16px 14px; background: #1a0f13e6; border: 3px solid #b58a3c; color: #efe4c8; font: 1rem/1.45 Georgia, 'Palatino Linotype', serif; box-shadow: 0 10px 22px #0009; }
+.sotano-card[hidden] { display: none; }
+.sotano-card h2 { margin: 0 0 4px; font-size: 1.2rem; color: #fbe08a; }
+.sotano-card p { margin: 4px 0 8px; }
+.sotano-jars { list-style: none; margin: 8px 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.sotano-jar { position: relative; width: 38px; height: 38px; padding: 0; border: 2px solid #6e8a96; background: #0b0f16; color: #fff; cursor: pointer; overflow: hidden; font: 700 .85rem Georgia, serif; }
+.sotano-jar.is-pick { border-color: #fbe08a; box-shadow: 0 0 0 2px #fbe08a55; }
+.sotano-jar b { position: relative; text-shadow: 0 1px 0 #000; }
+.sotano-fill { position: absolute; left: 0; right: 0; bottom: 0; height: var(--p, 0%); background: linear-gradient(#b6f070, #5e9a38); opacity: .85; }
+.sotano-detail { border-left: 3px solid #fbe08a; padding-left: 10px; }
+.sotano-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.sotano-concepts { list-style: none; margin: 4px 0 8px; padding: 0; display: grid; gap: 3px; font-size: .92rem; }
+.sotano-concepts li { display: flex; justify-content: space-between; gap: 10px; }
+.sotano-concepts li small { color: #9fb2ad; }
+.sotano-concepts li[data-state="review"] small { color: #ffb36b; }
+.sotano-concepts li[data-state="ok"] small { color: #b6f070; }
+.sotano-classes { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; justify-items: start; }
+.sotano-soon { color: #9fb2ad; font-size: .92rem; }
+
+@media (max-width: 640px) {
+  .sotano { padding: 6px 8px 24px; }
+  .sotano-title { font-size: .95rem; }
+  .sotano-jar { width: 44px; height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sotano-over, .sotano-flash { transition: none; }
+  .sotano-load span { animation: none; }
+}

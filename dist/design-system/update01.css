@@ -69,12 +69,6 @@ body[data-nexo-time="night"] .refuge-light { z-index:0;background:radial-gradien
 .folio-mark { display:block;color:#85683c;font-size:2rem;margin-top:35px; }
 .folio-intro { color:#5d4b34;font:.87rem/1.7 var(--font-ui);margin:0 0 22px; }
 .folio-footer { margin-top:28px;padding-top:16px;border-top:1px solid #a38a5b77;text-align:center;font:.62rem/1.5 var(--font-ui);letter-spacing:.13em;color:#785b36; }
-.grimoire-index { display:grid; }
-body[data-nexo-room="learn"] .grimoire .grimoire-index-entry { display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;min-width:0;width:100%;padding:23px 0;text-align:left;border:0;border-top:1px solid #9e794977;border-radius:0;background:none;box-shadow:none;color:#3c2f20;cursor:pointer;transform:none; }
-.grimoire-index-entry:hover { background:#684a2c0c!important; }
-.grimoire-index-entry h2 { font-size:1.3rem;margin:0 0 9px; }
-body[data-nexo-room="learn"] .grimoire-index-entry p { color:#574633;font-size:.8rem;line-height:1.6;margin:0 0 9px; }
-.grimoire-index-entry small { color:#5f593c;font-size:.72rem;line-height:1.55;display:block; }
 .index-symbol { font:1.9rem/1 var(--font-title);color:#89623c; }
 .grimoire-evaluations { display:grid;gap:0; }
 .evaluation-chapter { padding:19px 0;text-align:left;border:0;border-top:1px solid #9e794977;background:none;color:#3c2f20;cursor:pointer; }
@@ -130,8 +124,6 @@ body[data-nexo-room="learn"] .grimoire-index-entry p { color:#574633;font-size:.
   .grimoire-margin-note { margin:0;padding:19px 0;font-size:.9rem; }
   .map-record { margin:0;padding-top:20px; }
   .map-record strong { font-size:1.65rem; }
-  .grimoire-index-entry { gap:12px!important; }
-  .grimoire-index-entry h2 { font-size:1.2rem; }
   .index-symbol { font-size:1.6rem; }
   .preparation-node { width:130px; }
   .map-node-label b { font-size:.75rem; }
@@ -217,15 +209,6 @@ body[data-nexo-ambient-motion="reduced"] :is(.refuge-light,.refuge-foliage),body
 .grimoire .ink-link { font-size:1rem;color:#314f36;min-height:48px; }
 .grimoire :is(.ink-link,.evaluation-chapter,.grimoire-tab):focus-visible { outline:3px solid #31593d;outline-offset:3px; }
 .grimoire-margin-note { margin:26px 0;padding:17px 5px; }
-.book-colophon { margin:35px 0 0;text-align:left;font-size:1rem;border-top:1px solid #a2885e;border-bottom:1px solid #a2885e;padding:14px 0; }
-.book-colophon>div { display:flex;justify-content:space-between;gap:18px;padding:10px 0; }
-.book-colophon dd { margin:0;font:700 1.25rem var(--font-title);color:#38573c; }
-.course-opening-number { font-size:.75rem;letter-spacing:.13em;color:#855834;margin:4px 0 13px; }
-.course-opening-title { font:700 2.1rem/1.2 var(--font-title);margin:0 0 12px;color:#643f2b!important; }
-.course-opening-description { font:1rem/1.7 var(--font-title);color:#59452d; }
-body[data-nexo-room="learn"] .grimoire .grimoire-index-entry { display:block;padding:17px 0;font-size:1rem;font-weight:700;color:#314f36;border-bottom:1px solid #a2885e; }
-.course-registration,.book-reading-note { color:#5f5037;font-size:.875rem;line-height:1.6; }
-.book-reading-note { font-style:italic;margin:23px 0 0; }
 .course-plate { margin:25px 0;padding:16px 0 18px;border-block:1px solid #a68a5b88;text-align:left; }
 .course-plate figcaption { display:grid;gap:7px;color:var(--book-accent,#885c3a);font-family:var(--font-title);font-size:1.15rem; }
 .course-plate figcaption>span { font:.75rem var(--font-ui);letter-spacing:.1em;color:#77583c; }
@@ -278,8 +261,8 @@ body[data-nexo-room="learn"] .grimoire .grimoire-index-entry { display:block;pad
   .grimoire-folio { padding:27px 20px 20px; }.grimoire-frontispiece { padding:0 20px 20px; }
   .page-turn-leaf.grimoire-folio { inset:8px 8px 100px; }
   .grimoire-frontispiece>.course-plate,.grimoire-frontispiece>.course-outline { display:block; }
-  .grimoire h1 { font-size:1.85rem; }.course-opening-title { font-size:1.8rem; }
-  .book-colophon { margin:0; }.folio-navigation { padding:12px 5px 0;gap:10px; }.folio-navigation .ink-link { font-size:.875rem; }
+  .grimoire h1 { font-size:1.85rem; }
+  .folio-navigation { padding:12px 5px 0;gap:10px; }.folio-navigation .ink-link { font-size:.875rem; }
   .folio-navigation .ink-link small { max-width:110px; }.folio-navigation>span { font-size:.875rem; }
   .evaluation-chapter { padding-left:12px; }.evaluation-chapter h2 { font-size:1.35rem; }
   
@@ -664,7 +647,6 @@ body.reduce-motion #app>.page { animation:none!important; }
 
 /* Grimorio: tintas más oscuras sobre el papel beige (contraste ≥ 4.5:1) */
 .course-plate figcaption b { color:#46562f; }
-.course-opening-number { color:#74482a; }
 .grimoire-frontispiece>.eyebrow { color:#6a4a31; }
 .folio-footer { color:#6a4a2c; }
 /* 5 oct 2026 — refugio en pixel art: el navegador agranda el arte sin difuminar (píxeles nítidos). */

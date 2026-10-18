@@ -23,22 +23,22 @@ const out=path.resolve('tmp/update01');fs.mkdirSync(out,{recursive:true});
   await page.goto(base+'#/home');await page.locator('.refuge').waitFor();
   const data=()=>page.evaluate(()=>{const state=JSON.parse(localStorage.getItem('nexo-study-beta'));return {events:state.events,mastery:state.mastery,organicProgress:state.organicProgress,documents:state.documents,mascot:state.mascot,inventory:state.inventory};});
   const before=await data();
-  await page.locator('.rail-nav [data-route="learn"]').click();await page.locator('.grimoire-index').waitFor();
+  await page.locator('.rail-nav [data-route="learn"]').click();await page.locator('.sotano').waitFor();
   assert.equal(await page.locator('#app').getAttribute('data-world-transition'),'book-first');
-  await page.locator('.grimoire-index-entry').first().click();await page.locator('.grimoire-evaluations').waitFor();
+  await page.goto(base+'#/learn/course/organica');await page.locator('.grimoire-evaluations').waitFor();
   await page.locator('.evaluation-chapter').first().click();await page.locator('.preparation-map').waitFor();
   assert.equal(await page.locator('.preparation-node').count(),5);
   await page.locator('.preparation-node').first().click();await page.locator('.preparation-detail').waitFor();
   assert.match(await page.locator('.preparation-detail').textContent(),/próximamente/);
   await page.locator('.grimoire-wayfinding [data-route="home"]').click();await page.locator('.refuge').waitFor();
   assert.equal(await page.locator('#app').getAttribute('data-world-transition'),'book-close');
-  await page.locator('.rail-nav [data-route="learn"]').click();await page.locator('.grimoire-index').waitFor();
+  await page.locator('.rail-nav [data-route="learn"]').click();await page.locator('.sotano').waitFor();
   assert.equal(await page.locator('#app').getAttribute('data-world-transition'),'book-return');
   const routes=['home','learn','learn/course/organica','learn/course/organica/evaluation/pep-1','learn/course/organica/evaluation/pep-1/org-01','learn/course/fisio','learn/course/fisico/evaluation/event-official-fq-c1'];
   for(const viewport of [{width:375,height:812},{width:390,height:844},{width:768,height:1024},{width:1440,height:1000},{width:844,height:390}]){
    await page.setViewportSize(viewport);
    for(const route of routes){
-    await page.goto(base+'#/'+route);await page.locator(route==='home'?'.refuge':'.grimoire').waitFor();await page.waitForTimeout(700);
+    await page.goto(base+'#/'+route);await page.locator(route==='home'?'.refuge':route==='learn'?'.sotano':'.grimoire').waitFor();await page.waitForTimeout(700);
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`${route} overflow at ${viewport.width}`);
     const overlaps=await page.locator('.preparation-node').evaluateAll(nodes=>nodes.slice(1).some((node,index)=>nodes[index].getBoundingClientRect().bottom>node.getBoundingClientRect().top));
     assert.equal(overlaps,false,'Map nodes overlap');

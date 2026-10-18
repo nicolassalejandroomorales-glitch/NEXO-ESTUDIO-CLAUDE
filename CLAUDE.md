@@ -44,6 +44,7 @@ node tools/limpieza.cjs             # LIMPIEZA: revisa restos sin usar (solo lee
 | `dist/classes/` | Aula "torre del alquimista" y clases. Antes de tocarlas: skill **`nexo-clase`**. |
 | `dist/academic/*` | Motor académico: conceptos, evidencia, estados de conocimiento y FSRS. Piloto: **org-01 / Aminas**. Skill **`nexo-motor`**. |
 | `dist/mascot/pixelmascotas.js`, `dist/mascot/` | Mascotas en pixel art. Skill **`nexo-mascota`**. Cualquier arte en pixel: skill **`nexo-pixel-art`**. |
+| `dist/aprender/`, `tools/aprender-pasillo/` | Aprender (`#/learn`) = Sótano de los Cristales: cuadros pre-renderizados + estado real encima. Se regeneran con `python tools/aprender-pasillo/export_app.py`. Ver `docs/aprender-pasillo/SPEC.md`. |
 | `dist/games/` | Juegos (campaña "Camino a la PEP 1"). Antes de tocarlos: skill **`nexo-juegos`**. |
 | `dist/planner/` | Organización: calendario, notas, prioridades, labs (UPDATE 02). Skill **`nexo-organizacion`**. |
 | Perfil (`renderProfile` en `app.js`), `dist/academic/ranks.js` | Mascota, notas, inasistencias, estadísticas, ajustes, rangos. Skill **`nexo-perfil`**. |

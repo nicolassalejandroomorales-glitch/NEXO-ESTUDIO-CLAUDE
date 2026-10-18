@@ -40,10 +40,10 @@ const until=async check=>{for(let attempt=0;attempt<100;attempt++){if(check())re
   const immutableKeys=['mastery','organicProgress','completedLessons','events','grades','documents','inventory','mascot'];
   const academicBefore=Object.fromEntries(immutableKeys.map(key=>[key,stored()?.[key]]));
   d.querySelector('.continue-volume [data-route="learn"]').click();
-  await until(()=>d.querySelector('.grimoire-index'));
-  assert.equal(d.querySelectorAll('.grimoire-index-entry').length,4);
+  await until(()=>d.querySelector('.sotano'));
+  assert.equal(d.querySelector('.sotano-title').textContent,'Sótano de los Cristales');
   assert.equal(d.querySelector('#app').dataset.worldTransition,'book-first');
-  d.querySelector('.grimoire-index-entry').click();
+  await route('learn/course/organica');
   await until(()=>d.querySelector('.grimoire-evaluations'));
   assert.equal(d.querySelector('#app').dataset.renderedRoute,'learn/course/organica');
   d.querySelector('.evaluation-chapter').click();
@@ -63,7 +63,7 @@ const until=async check=>{for(let attempt=0;attempt<100;attempt++){if(check())re
   assert.equal(d.querySelectorAll('.preparation-node').length,0);
   await route('learn/course/fisico/evaluation/missing');
   assert.ok(d.querySelector('.grimoire-evaluations'));
-  await route('learn/course/missing');assert.ok(d.querySelector('.grimoire-index'));
+  await route('learn/course/missing');await until(()=>d.querySelector('.sotano'));
   await route('subject/organica');assert.ok(d.querySelector('[data-open-lesson="org-01"]'));
   await route('home');assert.equal(d.querySelector('#app').dataset.worldTransition,'book-close');
   await route('learn');assert.equal(d.querySelector('#app').dataset.worldTransition,'book-return');

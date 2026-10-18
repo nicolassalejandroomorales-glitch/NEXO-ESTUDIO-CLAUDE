@@ -818,12 +818,25 @@
     return `<section class="page grimoire-scene"><nav class="grimoire-wayfinding" aria-label="Ubicación en el grimorio"><button class="wood-link" data-route="home">Volver al refugio</button><button class="wood-link" data-route="learn">Índice de ramos</button><button class="wood-link" data-route="learn" data-route-sub="library">Biblioteca</button></nav><div class="grimoire" data-book-course="${subject?.id||'index'}" style="--book-accent:${subject?window.NexoRooms.courses[subject.id]?.accent:'#5e7047'}"><nav class="grimoire-tabs" aria-label="Marcadores de ramo">${courses}</nav><span class="book-spine" aria-hidden="true"></span><div class="grimoire-spread"><header class="grimoire-frontispiece"><p class="eyebrow">NEXO · CUADERNO DE ESTUDIO</p><div class="grimoire-crest" aria-hidden="true">${subject?window.NexoRooms.courses[subject.id]?.symbol||subject.icon:'✧'}</div><h2>${subject?esc(subject.name):'El grimorio del conocimiento'}</h2><p>${subject?esc(subject.description):'Cuatro ramos, un lugar para volver a tus preguntas.'}</p>${overview}${aside}<span class="folio-mark" aria-hidden="true">✦</span></header><div class="grimoire-folio"><p class="eyebrow">${esc(pageLabel)}</p><h1>${esc(title)}</h1><p class="folio-intro">${esc(subtitle)}</p>${content}<footer class="folio-footer">${subject?esc(subject.short):'NEXO'} · ${esc(pageLabel)}</footer></div></div>${pagination}</div></section>`;
   }
 
+  // Aprender = el Sótano de los Cristales (dist/aprender/, docs/aprender-pasillo/SPEC.md). Carga bajo demanda.
+  function aprenderContext() {
+    return { getState: () => state, subjects: SUBJECTS, hasClass: id => Boolean(window.NexoClassCatalog?.[id]), lessonTitle: id => LESSONS[id]?.title || id,
+      loadClass: id => loadClassroom(id), go: (...route) => routeTo(...route),
+      openLesson: (id, mission) => {
+        if (mission) { // abrir la clase directo en esa misión (como el botón "Misión" del aula)
+          const session = (state.classSessions ||= {})[id] ||= {};
+          session.path = 'misiones'; session.mission = mission; session.beat = (session.far?.[mission] || 0) > 1 ? session.far[mission] : 1; session.panel = null;
+          saveState({ backup: false });
+        }
+        openLesson(id);
+      } };
+  }
   function renderSubjects() {
-    const subject=SUBJECTS[0],progress=subjectProgress(subject.id);
-    const content=`<div class="grimoire-index"><p class="course-opening-number">PRIMERA APERTURA · 01</p><h2 class="course-opening-title">${esc(subject.name)}</h2><p class="course-opening-description">${esc(subject.description)}</p><button class="grimoire-index-entry ink-link" data-grimoire-route="learn/course/${subject.id}">Abrir evaluaciones de ${esc(subject.name)}</button><p class="course-registration">${progress.understood} / ${progress.total} temas con registro de comprensión</p><p class="book-reading-note">Recorre los otros ramos con los marcadores o pasando página.</p></div>`;
-    const chapters=SUBJECTS.reduce((sum,item)=>sum+item.peps.length,0),themes=SUBJECTS.reduce((sum,item)=>sum+allLessons(item.id).length,0);
-    const aside=`<dl class="book-colophon"><div><dt>Ramos</dt><dd>${SUBJECTS.length}</dd></div><div><dt>Capítulos del catálogo</dt><dd>${chapters}</dd></div><div><dt>Temas disponibles</dt><dd>${themes}</dd></div></dl><p class="grimoire-margin-note">Ramo · evaluación · mapa<br>Una apertura a la vez.</p>`;
-    app.innerHTML=grimoireShell(null,'Índice del grimorio','Abre un ramo y elige la evaluación que quieres preparar.',content,aside,'I · ÍNDICE');
+    if (window.NexoAprender) return window.NexoAprender.render(app, aprenderContext());
+    app.innerHTML = '<section class="page"><div class="app-loader" role="status"><span></span><p>Bajando al sótano…</p></div></section>';
+    Promise.all([window.NexoLoader.style('./aprender/sotano.css?v=2b7b33a0'), window.NexoLoader.script('./aprender/estado.js?v=30392929').then(() => window.NexoLoader.script('./aprender/sotano.js?v=f4a1280d'))])
+      .then(() => { if (['learn', 'subjects'].includes(parseRoute()[0])) renderRoute(false); })
+      .catch(() => { app.innerHTML = '<section class="page"><div class="panel error-boundary"><h1>No se pudo abrir el sótano</h1><p>Revisa tu conexión y vuelve a intentarlo.</p><button class="primary-btn" data-route="learn">Reintentar</button></div></section>'; });
   }
 
   function evaluationDates(evaluation) {

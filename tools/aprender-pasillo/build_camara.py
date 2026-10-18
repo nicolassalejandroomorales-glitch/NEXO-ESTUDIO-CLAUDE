@@ -24,6 +24,7 @@ CTR = 0.38                               # profundidad de la mesa del fondo de c
 TOP = 0.12                               # altura de la cubierta de la mesa
 STAND = 0.45                             # distancia al centro desde donde se mira cada alcoba
 TREE_TOP = -1.72
+CRYSTAL_LIGHT = True                       # los cristales encendidos alumbran la pared (la app lo apaga: así cada cristal cambia solo sus píxeles)
 
 # una alcoba por tema de la PEP 1 (sus murales están en murales.CAMARA); las de la PEP 2, veladas; atrás, el portal.
 # jars = frascos por misión (lleno según la evidencia), crystals = 1 al día / 0 toca repasar / None sin empezar,
@@ -442,7 +443,7 @@ def build(swirl=0.0, flash=0.0, scale=3):
         if a['kind'] == 'tema':
             add(wpt(a, R + DEP - 0.55, 0, -0.55), 1.9 if a['hoy'] else 1.1, warm)
             for base, nrm, st, _ in crystal_sites(a):
-                if st:
+                if st and CRYSTAL_LIGHT:
                     add(base + nrm * 0.18, 0.35, cold)
         elif a['kind'] == 'portal':
             add(wpt(a, R + DEP - 0.3, 0, -0.3), 1.6, cold)
@@ -606,6 +607,8 @@ def build(swirl=0.0, flash=0.0, scale=3):
         for base, nrm, st, i in crystal_sites(a):
             items.append((float(bs.to_cam(base)[2]), 'cr', (a, base, nrm, st, i)))
         for j, fill in enumerate(a.get('jars', [])):
+            if fill is None:                                    # hueco: se usa para renderizar un solo frasco (sprites de la app)
+                continue
             n = len(a['jars'])
             uj = -0.82 + 1.64 * (j + 0.5) / n
             items.append((float(bs.to_cam(wpt(a, R + DEP - 0.18, uj, 0))[2]), 'ja', (a, R + DEP - 0.18, uj, fill)))

@@ -1,5 +1,5 @@
 # Aprender (Sótano de los Cristales)
-- modelo: Opus 5.5 para dirección de arte y motor; Sonnet 5.5 · alto para portar a la app
+- modelo: Opus 5.5 para dirección de arte y motor; Sonnet 5.5 · medio para portar y extender (v1 hecha así)
 - estado: pasillo, las 4 puertas con sus Cámaras, Sala de entrenamiento y Sala de Laboratorio aprobados en bocetos (17 oct); falta llevar todo a la app
 - fase: desarrollo
 - prioridad: 1
@@ -20,10 +20,16 @@
 
 - Cerrado (18 oct): cristal de la Sala por ramo, premio según evidencia real, una grieta por error (se sella acertando sin ayuda y días después).
 
+- **Sótano v1 en la app (18 oct)**: `#/learn` es el pasillo en primera persona con tiras de cuadros (`dist/aprender/`, SPEC "Implementación v1"). Paradas y tramos con reproducción hacia atrás, 4 puertas con portal, pasillo lateral, Cámara de Orgánica II con anillo de alcobas y vista de mesa.
+  Estado real encima del cuadro: frascos (misiones respondidas), cristales (conceptos por repasar), cuenta regresiva (calendario). Tocar un frasco abre la clase en esa misión. Las otras 3 puertas muestran las clases reales del ramo. Exportador: `tools/aprender-pasillo/export_app.py`; pruebas: `tools/aprender-test.cjs`.
+
 ## Falta
-- Aprobar y bocetar en la Cámara el grimorio-formulario del pedestal y las grietas de errores.
-- Llevar el pasillo a la app con cuadros pre-renderizados y probar en 1440 y 390 (chat aparte, Sonnet · alto).
-- Pulir: mural del informe chico y campana poco visible desde el banco (Laboratorio), tronco del sauce en bloques, cristales que aún parecen pegados, legibilidad de murales vistos de lado.
+- Cámaras de Analítica, Fisicoquímica II y Fisiopatología en la app (`RAMOS` de `build_camara.py` ya las renderiza; falta `ALC` en `export_app.py`, alcobas en `estado.js` y sus clases).
+- Sauce central con el estado real (hoy sale neutro): render por capas.
+- Grietas de error en la Cámara y grimorio-formulario del pedestal (por aprobar).
+- Sala de entrenamiento y Sala de Laboratorio dentro del flujo (hoy solo hay bocetos).
+- Mapas de evaluación (`learn/course/<ramo>/evaluation/...`) todavía en el grimorio viejo: pasarlos a la Cámara y limpiar `grimoireShell`.
+- Pulir: cristales que aún parecen pegados, legibilidad de murales vistos de lado, sonido por portal.
 
 ## Ideas
 - Murales que muestran el tema que te toca repasar hoy.
@@ -39,10 +45,8 @@ Al terminar, usa nexo-cierre y actualiza docs/chats/aprender.md.
 
 ## Prompt de continuación
 ```
-Chat: Aprender (Sótano de los Cristales). Lee CLAUDE.md, docs/aprender-pasillo/SPEC.md y docs/chats/aprender.md.
-Dónde quedamos: aprobados en bocetos el pasillo, las 4 puertas con sus Cámaras (build_camara.py gif <ramo>: Orgánica II, Fisicoquímica II, Química Analítica y Fisiopatología), la Sala de entrenamiento (build_sala.py) y la Sala de Laboratorio (build_lab.py: nave por fases con pizarra de cálculos, vitrina GHS, banco de montaje con reflujo, bitácora y estante de prácticas).
-Cerrado el 18 oct: cristal por ramo, premio según evidencia real, una grieta por error.
-Siguiente paso: conversar y aprobar el grimorio-formulario del pedestal de la Cámara y bocetar las grietas de errores.
-Después, en otro chat con Sonnet · alto: llevar el pasillo a la app (cuadros pre-renderizados, 1440 y 390).
-Usa Opus para diseño y bocetos. Al terminar, usa nexo-cierre.
+Chat: Aprender — Sótano v2. Lee CLAUDE.md, docs/aprender-pasillo/SPEC.md (sección "Implementación v1") y docs/chats/aprender.md.
+Dónde quedamos: el Sótano v1 funciona en la app con la Cámara de Orgánica II y el estado real encima (dist/aprender/, tools/aprender-pasillo/export_app.py, tools/aprender-test.cjs). Las otras 3 puertas muestran sus clases en una tarjeta.
+Siguiente paso (dime en una línea qué entendiste y haz máximo 3 preguntas de selección múltiple): llevar a la app la Cámara de otro ramo (Fisicoquímica II o Química Analítica) o la Sala de entrenamiento.
+Trabaja en un worktree limpio desde origin/master. Sonnet 5.5 · medio. No toques Supabase. Al terminar, usa nexo-cierre.
 ```
