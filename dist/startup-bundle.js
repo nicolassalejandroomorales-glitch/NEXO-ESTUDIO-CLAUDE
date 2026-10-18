@@ -483,9 +483,9 @@
         .select('concept_id,rank,reward_tier,achieved_at,status'));
       return result;
     }
-    async signInWithGoogle() {
+    async signInWithGoogle({ volver = 'profile/settings' } = {}) {
       if (!this.client || !this.googleOAuthEnabled) throw new Error('cloud_unconfigured');
-      sessionStorage.setItem('nexo-google-return','profile/settings');
+      sessionStorage.setItem('nexo-google-return',volver);
       try {
         await this.call(this.client.auth.signInWithOAuth({provider:'google',
           options:{redirectTo:location.origin+location.pathname}}));
@@ -884,7 +884,9 @@
     let done = false;
     const once = () => { if (done) return; done = true; busy = false; update(); };
     try {
-      document.startViewTransition(once).finished.catch(() => {}).finally(() => { busy = false; });
+      const run = document.startViewTransition(once);
+      run.ready.catch(() => {}); run.updateCallbackDone.catch(() => {}); // si el navegador salta la animación, no es un error
+      run.finished.catch(() => {}).finally(() => { busy = false; });
       setTimeout(once, 800); // si el navegador no alcanza a pintar el cuadro (pestaña oculta), la pantalla igual cambia
     } catch (_) { once(); }
   }
@@ -5463,7 +5465,8 @@
   }
   const pet = () => {
     const m = api.get() || {};
-    return { kind: KINDS.includes(m.kind) ? m.kind : 'matraz', name: m.name || '', outfit: m.outfit && typeof m.outfit === 'object' ? m.outfit : {} };
+    const kind = KINDS.includes(m.kind) ? m.kind : 'matraz';
+    return { kind, owned: [...new Set([kind, ...(Array.isArray(m.owned) ? m.owned : [])])], name: m.name || '', outfit: m.outfit && typeof m.outfit === 'object' ? m.outfit : {} };
   };
   const petName = () => { const p = pet(); return p.name && p.name !== 'Nexo' ? p.name : NAMES[p.kind]; };
   const reduced = () => api.motion() === 'reduced' || matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -5547,11 +5550,19 @@
     if (home) home.life.celebrate(Math.max(0, Math.round(atoms) || 0));
   }
 
-  // ——— Perfil › Mascota ———
+  // Retrato animado de tu mascota (Perfil › Vestuario y la carta del Perfil).
+  async function paintBig(canvas) {
+    await engine().catch(() => null);
+    if (!canvas?.isConnected) return;
+    addMini({ canvas, expr: t => EXPRS[Math.floor(t / 2.5) % EXPRS.length], arm: e => e === 'picara' ? 'sixseven' : e === 'feliz' ? 'wave' : 'rest',
+      get outfit() { return pet().outfit; } });
+  }
+
+  // ——— Perfil › Vestuario ———
   async function wireProfile(root) {
     const P = await engine().catch(() => null); if (!P || !root.isConnected) return;
     const pets = root.querySelector('#petPick'), wardrobe = root.querySelector('#petWardrobe'), name = root.querySelector('#petName');
-    pets.innerHTML = P.list.map(([k, l]) => `<button type="button" class="pet-pick" data-kind="${k}" aria-pressed="${k === pet().kind}" style="border:3px solid transparent;border-radius:10px;background:#e9d9b4;color:#3b2418;font-weight:bold;padding:4px;cursor:pointer"><canvas width="40" height="44" style="width:96px;height:106px;display:block;image-rendering:pixelated"></canvas>${l}</button>`).join('');
+    pets.innerHTML = P.list.map(([k, l]) => `<button type="button" class="pet-pick" data-kind="${k}" aria-pressed="${k === pet().kind}"${pet().owned.includes(k) ? '' : ' disabled'} style="border:3px solid transparent;border-radius:10px;background:#e9d9b4;color:#3b2418;font-weight:bold;padding:4px;cursor:pointer${pet().owned.includes(k) ? '' : ';opacity:.5;filter:grayscale(1)'}"><canvas width="40" height="44" style="width:96px;height:106px;display:block;image-rendering:pixelated"></canvas>${l}${pet().owned.includes(k) ? '' : '<small style="display:block">🔒 En la Tienda</small>'}</button>`).join('');
     pets.querySelectorAll('.pet-pick').forEach(b => addMini({ canvas: b.querySelector('canvas'), kind: b.dataset.kind, naked: true }));
     const paintPick = () => pets.querySelectorAll('.pet-pick').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.kind === pet().kind)); b.style.borderColor = b.dataset.kind === pet().kind ? '#e8b65a' : 'transparent'; });
     const big = root.querySelector('#petBig'); let tryOn = null;
@@ -5562,7 +5573,7 @@
       Object.entries(P.ACCESORIOS).filter(([id, a]) => a.slot === slot && (owned.includes(id) || o[slot] === id)).map(([id]) => `<option value="${id}"${o[slot] === id ? ' selected' : ''}>${esc(P.NOMBRES[id])}</option>`).join('') + '</select></label>').join(''); };
     paintPick(); paintWardrobe();
     name.value = pet().name === 'Nexo' ? '' : pet().name; name.placeholder = NAMES[pet().kind];
-    pets.onclick = e => { const b = e.target.closest('.pet-pick'); if (!b) return; api.set({ kind: b.dataset.kind }); name.placeholder = NAMES[b.dataset.kind]; paintPick(); home?.life.setKind(b.dataset.kind); };
+    pets.onclick = e => { const b = e.target.closest('.pet-pick'); if (!b || b.disabled) return; api.set({ kind: b.dataset.kind }); name.placeholder = NAMES[b.dataset.kind]; paintPick(); home?.life.setKind(b.dataset.kind); };
     name.oninput = () => api.set({ name: name.value.trim().slice(0, 20) });
     wardrobe.onchange = e => { const o = { ...pet().outfit, [e.target.dataset.slot]: e.target.value }; api.set({ outfit: o }); home?.life.setOutfit(o); };
   }
@@ -5631,7 +5642,7 @@
 
   window.NexoPet = Object.freeze({
     bind(a) { api = { ...api, ...a }; },
-    mountHome, cleanup, renderDock, celebrate, wireProfile, wireShop, checkWeather, kinds: KINDS, names: NAMES,
+    mountHome, cleanup, renderDock, celebrate, paintBig, wireProfile, wireShop, checkWeather, kinds: KINDS, names: NAMES,
     engine, current: pet, reduced   // los usa el mundo de la torre (world/torre-mundo.js)
     , homeSpot: () => home && { x: home.life.state.x, y: home.life.state.y, act: n => home.life.act(n) }   // globo de avisos del Inicio (planner/avisos.js)
   });
@@ -5639,23 +5650,125 @@
 
 ;
 
+/* mascot/reacciones.js */
+/* Reacciones de la mascota en la habitación del Perfil (docs/perfil-alcoba/SPEC.md).
+   Módulo puro: pick(ctx) elige UNA frase y un gesto que ya existe en pixel-vida.js, según lo que pasa en tu semestre.
+   ctx = { days: días a la próxima prueba | null, away: días sin estudiar | null, streak: racha, grade: nota reciente (1-7) | null }.
+   Prioridad: prueba muy cerca > nota > vuelves tras días > racha > prueba lejana. app.js entrega el ctx con bind(). */
+(() => {
+  'use strict';
+  const MILESTONES = [3, 7, 14, 30, 60, 100];
+  let provider = null;
+
+  function pick(ctx = {}) {
+    const { days = null, away = null, streak = 0, grade = null } = ctx;
+    if (days === 0) return { say: '¡Hoy es la prueba! Respira, ya hiciste lo que podías.', act: 'nerviosa' };
+    if (days !== null && days <= 3) return { say: `La prueba es en ${days === 1 ? '1 día' : days + ' días'}… ¿repasamos un poquito?`, act: 'nerviosa' };
+    if (grade !== null && grade >= 5.5) return { say: `¡Un ${grade.toFixed(1)}! Eso se celebra.`, act: 'baile' };
+    if (grade !== null && grade < 4) return { say: `Un ${grade.toFixed(1)} duele, pero ya sabemos qué repasar. Vamos de a poco.`, act: 'confundida' };
+    if (away !== null && away >= 3) return { say: `¡Volviste! Te extrañé estos ${away} días.`, act: 'saludo' };
+    if (MILESTONES.includes(streak)) return { say: `¡${streak} días seguidos estudiando! Estoy orgullosa.`, act: 'deslumbrada' };
+    if (days !== null && days <= 7) return { say: 'Esta semana hay prueba: un bloque corto hoy ayuda harto.', act: 'idea' };
+    return null;
+  }
+
+  window.NexoReacciones = Object.freeze({
+    pick, bind(fn) { provider = fn; },
+    now() { try { return provider ? pick(provider()) : null; } catch (_) { return null; } }
+  });
+})();
+
+;
+
+/* perfil/carta.js */
+/* Perfil = carta de jugador (docs/perfil-alcoba/SPEC.md). Arte: tools/perfil-carta/build_carta.py → assets/perfil/carta.png.
+   render(app, data): pinta la carta y los 3 botones (Vestuario, Estadísticas, Ajustes).
+   wrapSection(page, tab): envuelve una sección (mascota, estadísticas, ajustes) en madera + pergamino, con "← Mi carta".
+   data = { name, kind, rank: { level, name }, streak, minutes, badges: [6 booleanos] }. app.js arma el data (profileCardData). */
+(() => {
+  'use strict';
+  const V = '1';
+  const ART = { w: 120, h: 170 };
+  const ZONES = {
+    nombre: [14, 9, 106, 22], ventana: [12, 26, 108, 100], rango: [28, 105, 107, 121],
+    racha: [12, 125, 58, 141], minutos: [62, 125, 108, 141],
+    insignias: [0, 1, 2, 3, 4, 5].map(i => [13 + i * 16, 146, 26 + i * 16, 159])
+  };
+  const BADGES = ['Racha de 3 días', 'Racha de 7 días', '10 horas de estudio', 'Una clase dominada', 'Un desafío cobrado', 'Vestuario puesto'];
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const place = ([x0, y0, x1, y1]) => `left:${x0 / ART.w * 100}%;top:${y0 / ART.h * 100}%;width:${(x1 - x0) / ART.w * 100}%;height:${(y1 - y0) / ART.h * 100}%`;
+  let said = false;                       // la mascota comenta tu semestre 1 vez por sesión
+
+  function css() {
+    for (const href of ['perfil/carta.css?v=' + V, 'planner/estudio.css?v=1']) {
+      if (document.querySelector(`link[href^="${href.split('?')[0]}"]`)) continue;
+      const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href; document.head.append(l);
+    }
+  }
+  const minutesLabel = m => m >= 60 ? `${Math.floor(m / 60)} h ${m % 60 ? String(m % 60).padStart(2, '0') + ' min' : ''}`.trim() : `${m} min`;
+
+  function render(app, d) {
+    css();
+    const flame = window.NexoArcaneRanks?.flame?.(d.rank.level) || '';
+    app.innerHTML = `<section class="page profile-page perfil-carta-page">
+      <div class="carta" role="img" aria-label="Carta de ${esc(d.name)}: ${esc(d.rank.name)}, racha de ${d.streak} días">
+        <p class="carta-nombre" style="${place(ZONES.nombre)}">${esc(d.name)}</p>
+        <div class="carta-ventana" style="${place(ZONES.ventana)}"><canvas class="carta-mascota" width="40" height="44" aria-hidden="true"></canvas><p class="carta-say" hidden></p></div>
+        <p class="carta-rango" style="${place(ZONES.rango)}"><span>${esc(d.rank.name)}</span></p>
+        <span class="carta-llama level-${d.rank.level}" style="${place([9, 109, 27, 127])}">${flame}</span>
+        <p class="carta-dato" style="${place(ZONES.racha)}"><b>${d.streak}</b><small>${d.streak === 1 ? 'día' : 'días'} de racha</small></p>
+        <p class="carta-dato" style="${place(ZONES.minutos)}"><b>${minutesLabel(d.minutes)}</b><small>de estudio</small></p>
+        ${ZONES.insignias.map((z, i) => `<i class="carta-insignia${d.badges[i] ? '' : ' apagada'}" style="${place(z)};--i:${i}" title="${BADGES[i]}${d.badges[i] ? '' : ' (aún no)'}"></i>`).join('')}
+      </div>
+      <nav class="carta-botones" aria-label="Perfil">
+        <button data-profile-tab="mascot"><strong>Vestuario</strong><small>Tu compañero y accesorios</small></button>
+        <button data-profile-tab="stats"><strong>Estadísticas</strong><small>Tu esfuerzo y tu avance</small></button>
+        <button data-profile-tab="settings"><strong>Ajustes</strong><small>Cuenta, sonido y más</small></button>
+      </nav></section>`;
+    const canvas = app.querySelector('.carta-mascota');
+    window.NexoPet?.paintBig(canvas);
+    if (!said) {
+      const r = window.NexoReacciones?.now();
+      if (r) { said = true; const b = app.querySelector('.carta-say'); b.textContent = r.say; b.hidden = false; setTimeout(() => { b.hidden = true; }, 6500); }
+    }
+  }
+
+  function wrapSection(page, tab) {
+    css();
+    const nodes = [...page.childNodes];
+    const pergamino = document.createElement('div');
+    pergamino.className = 'pergamino';
+    pergamino.append(...nodes);
+    const madera = document.createElement('div');
+    madera.className = 'madera perfil-madera';
+    madera.append(pergamino);
+    page.replaceChildren(madera);
+    pergamino.insertAdjacentHTML('afterbegin', '<button class="carta-volver" data-profile-close>← Mi carta</button>');
+    page.classList.add('perfil-seccion', 'perfil-' + tab);
+  }
+
+  window.NexoCarta = Object.freeze({ render, wrapSection });
+})();
+
+;
+
 /* world/torre-mundo.js */
 /* Mundo de la torre (docs/mundo-torre/SPEC.md).
    Entrenar (#/train) = Laboratorio de Orgánica II, por capas con parallax (fase 2, tools/torre-pixel/build_lab_muestra.py).
-   Juegos (#/games) = Arcade arcano (v1, tools/torre-pixel/build_torre.py). El Perfil tiene su propia habitación. Tocas el piso o un objeto y la mascota camina hasta ahí; el objeto hace su acción.
+   Juegos (#/games) = Arcade arcano (v1, tools/torre-pixel/build_torre.py). Tocas el piso o un objeto y la mascota camina hasta ahí; el objeto hace su acción.
    Se inserta solo cuando aparece la página (observa #app): no hay que tocar las pantallas. Arte: tools/torre-pixel/build_torre.py. */
 (() => {
   'use strict';
   const V = '1';
   const BASE = 'assets/torre/';
-  const ROOM_NAMES = { train: 'Laboratorio de Orgánica II', games: 'Arcade arcano', profile: 'Habitación de tu mascota' };
+  const ROOM_NAMES = { train: 'Laboratorio de Orgánica II', games: 'Arcade arcano' };
   const HINT = 'Toca el piso para caminar o un objeto para usarlo';
   const pick = list => list[Math.floor(Math.random() * list.length)];
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
   let data = null, loading = null, cssDone = false;
-  const worlds = {};          // 'mundo' | 'lab' | 'habitacion' → estado persistente (la mascota no "salta" al cambiar de pantalla)
+  const worlds = {};          // 'mundo' | 'lab' → estado persistente (la mascota no "salta" al cambiar de pantalla)
   const layerCache = {};
   const query = new URLSearchParams(location.search);       // para probar: ?hora=dia|tarde|noche  ?estado=0|1|2
 
@@ -5668,13 +5781,13 @@
       const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'world/torre-mundo.css?v=' + V; document.head.append(l);
     }
     loading = loading || Promise.all([
-      fetch(BASE + 'torre.json?v=' + V).then(r => r.json()), img('mundo.png'), img('habitacion.png'),
+      fetch(BASE + 'torre.json?v=' + V).then(r => r.json()), img('mundo.png'),
       fetch(BASE + 'lab/lab.json?v=' + V).then(r => r.json()),
       window.NexoPet?.engine ? window.NexoPet.engine() : Promise.reject(new Error('sin mascota'))
-    ]).then(([json, mundo, habitacion, lab]) => {
+    ]).then(([json, mundo, lab]) => {
       lab.objects.forEach(o => { o.room = 'lab'; });
       json.lab = lab;
-      data = { json, imgs: { mundo, habitacion } }; return data;
+      data = { json, imgs: { mundo } }; return data;
     });
     return loading;
   }
@@ -5699,7 +5812,7 @@
     const view = wrap.querySelector('.torre-view'), vctx = view.getContext('2d');
     const W = {
       key, meta, base, bg, bctx, stage, life, wrap, view, vctx, reduced, layered,
-      room: key === 'mundo' ? 'games' : key === 'lab' ? 'lab' : 'profile', camX: 0, vw: meta.w, scale: 1, raf: 0, last: performance.now(),
+      room: key === 'mundo' ? 'games' : 'lab', camX: 0, vw: meta.w, scale: 1, raf: 0, last: performance.now(),
       lastInput: performance.now(), nextIdle: 9000, sayTimer: 0, tab: null, crossing: false, hover: null, t: 0
     };
     wireInput(W);
@@ -5904,7 +6017,7 @@
   }
   function keys(W) {
     const box = W.wrap.querySelector('.torre-keys');
-    const list = W.meta.objects.filter(o => o.room === W.room && o.action !== 'nap');
+    const list = W.meta.objects.filter(o => o.room === W.room);
     const sig = list.map(o => o.id).join();
     if (box.dataset.sig === sig) return;
     box.dataset.sig = sig;
@@ -5941,8 +6054,6 @@
     if (!arrived) return;
     if (o.action === 'mode') return chooseMode(W, o);
     if (o.action === 'game') return openGame(W, o);
-    if (o.action === 'tab') { say(W, o.say); W.tab = o.tab; location.hash = '#/profile/' + o.tab; return; }
-    if (o.action === 'nap') { say(W, o.say); W.life.sleep(true); }
   }
   function chooseMode(W, o) {
     const form = document.querySelector('form[data-training-setup]');
@@ -5958,7 +6069,6 @@
     const card = document.querySelector(`[data-game-card="${o.game}"]`);
     if (o.game === 'campaign') {
       say(W, o.say); W.life.act('deslumbrada');
-      setTimeout(() => { location.href = 'games/pep1/index.html'; }, W.reduced ? 200 : 1300);
       return;
     }
     say(W, o.say); W.life.act('nerviosa');
@@ -5972,7 +6082,6 @@
     if (W.night !== night) { W.night = night; if (!W.layered) W.life.night(night); }   // el laboratorio ya trae su noche
     if (W.reduced || A.moving || W.life.busy || A.mode === 'sleep' || now - W.lastInput < W.nextIdle) return;
     W.lastInput = now; W.nextIdle = 9000 + Math.random() * 8000;
-    if (W.key === 'habitacion' && night) { const bed = W.meta.objects.find(o => o.id === 'bed'); use(W, bed); return; }
     if (Math.random() < .5) { W.life.act(pick(['saludo', 'idea', 'baile', 'seisSiete', 'dab', 'deslumbrada'])); return; }
     const room = W.key === 'mundo' ? W.meta.rooms[W.room] : { x0: 0, x1: W.meta.w };
     const [y0, y1] = W.meta.walk;
@@ -5981,14 +6090,13 @@
 
   // ——— Montaje en cada pantalla ———
   function anchorFor(kind, page) {
-    if (kind === 'profile') return page.querySelector('.profile-room-header');
     if (kind === 'games') return page.querySelector('.page-header');
     return page.firstElementChild;
   }
   async function mount(kind, page) {
     try { await load(); } catch (_) { return; }
     if (!page.isConnected) return;
-    const key = kind === 'profile' ? 'habitacion' : kind === 'train' ? 'lab' : 'mundo';
+    const key = kind === 'train' ? 'lab' : 'mundo';
     const W = worlds[key] = worlds[key] || createWorld(key);
     const pet = window.NexoPet.current();
     W.life.setKind(pet.kind); W.life.setOutfit(pet.outfit);
@@ -5998,7 +6106,7 @@
     // El título de la pantalla va encima del arte (como "Un lugar para aprender" en el Inicio).
     const title = W.wrap.querySelector('.torre-title');
     title.replaceChildren();
-    if (kind !== 'profile' && anchor && (anchor.matches('h1') || anchor.matches('.page-header'))) title.append(anchor);
+    if (anchor && (anchor.matches('h1') || anchor.matches('.page-header'))) title.append(anchor);
     const bg = getComputedStyle(document.querySelector('main') || document.body).backgroundColor;
     W.wrap.style.setProperty('--torre-fade', bg && bg !== 'rgba(0, 0, 0, 0)' ? bg : getComputedStyle(document.body).backgroundColor);
     W.wrap.setAttribute('aria-label', ROOM_NAMES[kind]);
@@ -6009,13 +6117,6 @@
     } else if (key === 'lab') {
       W.progress = labProgress();
       layersFor(W);
-    } else {
-      const tab = page.querySelector('[data-profile-tab][aria-selected="true"]')?.dataset.profileTab || 'mascot';
-      const o = W.meta.objects.find(k => k.tab === tab);
-      if (o && W.tab !== tab) {
-        if (W.tab === null) W.life.place(o.stand[0], o.stand[1], false); else go(W, o.stand[0], o.stand[1]);
-      }
-      W.tab = tab;
     }
     keys(W);
     resize(W);
@@ -6028,8 +6129,7 @@
     const app = document.getElementById('app'); if (!app) return;
     const page = app.querySelector(':scope > .page');
     if (!page) return;
-    const kind = page.classList.contains('arcane-training') ? 'train' : page.classList.contains('games-room') ? 'games'
-      : page.classList.contains('profile-page') ? 'profile' : null;
+    const kind = page.classList.contains('arcane-training') ? 'train' : page.classList.contains('games-room') ? 'games' : null;
     if (!kind || page.querySelector('.torre-scene')) return;
     mount(kind, page);
   }

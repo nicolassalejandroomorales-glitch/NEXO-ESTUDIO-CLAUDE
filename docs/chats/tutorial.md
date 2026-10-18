@@ -1,6 +1,6 @@
 # Tutorial (Grimorio guía)
 - modelo: Sonnet 5.5 · medio
-- estado: conectado a la app; Niquito pidió rehacer su aspecto y animación (crítica del 15 oct)
+- estado: conectado a la app; Inicio mágico y huevos/mascota hechos (18 oct); faltan voz, texto y recorrido
 - prioridad: 2
 - spec: docs/tutorial/SPEC.md
 
@@ -9,16 +9,15 @@
 - Guion completo programado y conectado: cuenta nueva lo ve sola, guarda mascota y nombre reales, premio de 150 ⚛ una vez, Ajustes › Tutoriales, filtro de nombres.
 - Avisos del Grimorio (primera vez por sección y novedades con versión) y revisión en móvil (390).
 - Objetos del refugio resaltados, voz por letra con botón de silencio.
+- **Inicio mágico (18 oct)**: fondo mágico con tema de química (`magia.js`), velas con llama animada, aura del Grimorio (runas en órbita, chispas) y nube de diálogo con vida. Aprobado por Niquito.
+- **Huevos y mascota (18 oct)**: huevos vivos por especie (`huevos.js`), nacimiento con estallido, dab y grito/timbre por especie. Falta revisar en 390.
 
 ## Falta
-- Leer `docs/tutorial/FEEDBACK-15OCT.md` (crítica de Niquito, por sección) y conversar con él el orden antes de programar.
-- Animación fluida del Grimorio, el libro, el altar con velas y la nube de diálogo (hoy parecen PNG).
-- Fondo con runas y magia que se mueve (el azul liso no le gusta); huevos con textura y movimiento.
-- Mascota que habla con la personalidad de su especie y hace un "dab" al nacer (confirmar).
-- Texto con personalidad (hoy "NPC") y cambiar la voz del mago; revisar el salto de la pantalla hacia arriba.
-- Hacer el tutorial **modular por secciones**, porque Aprender y otras pantallas van a cambiar.
-- Premio con nube (necesita permiso explícito, hoy no se toca Supabase).
-- Revisar que 150 ⚛ siga bien si cambian los precios de la tienda.
+- **Voz del mago**: no le gusta la actual (voz por letra estilo videojuego); probar otras o solo un blip suave, y dejarlo elegir.
+- **Texto con personalidad** (hoy suena "NPC") y arreglar el salto de pantalla hacia arriba al apretar Siguiente.
+- **Recorrido por la app real**, modular por secciones (ver SPEC › REDISEÑO), con animaciones y explicando lo que hay detrás.
+- Opcional: separar el libro del altar y animar barba/páginas por piezas (hay que avisar al chat de Cuentas: `entrada.js` usa el mismo sprite).
+- Premio con nube (necesita permiso explícito) y revisar 150 ⚛ si cambian los precios.
 
 ## Ideas
 - Mini tutoriales por sección que se activan la primera vez que entras.
@@ -34,6 +33,6 @@ Al terminar, usa nexo-cierre y actualiza docs/chats/tutorial.md.
 
 ## Prompt de continuación
 ```
-Chat: Tutorial. Lee CLAUDE.md, la skill nexo-tutorial, docs/tutorial/FEEDBACK-15OCT.md y docs/chats/tutorial.md.
-Parte desde "Falta" y pregúntame qué sección sigue.
+Chat: Tutorial. Lee CLAUDE.md, la skill nexo-tutorial, docs/tutorial/SPEC.md (secciones "Inicio mágico" y "Huevos y mascota") y docs/chats/tutorial.md.
+Inicio mágico, huevos vivos, estallido, dab y voz por especie ya están. Parte desde "Falta" y pregúntame con selección múltiple cuál sigue: voz del mago y texto con personalidad, o el recorrido por la app real (modular por secciones).
 ```

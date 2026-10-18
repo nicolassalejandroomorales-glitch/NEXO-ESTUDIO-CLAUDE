@@ -10,6 +10,7 @@
 - Precios de ejemplo de 14 accesorios (60–260 ⚛) en `PRICES` de `home-pet.js`.
 
 ## Falta
+- **Cambio del 18 oct 2026**: ya no hay "jefe vencido" (se borró el juego). Los cofres por hitos pasan a darse **al subir de rango de jugador**, que sube con la XP del juego nuevo de Aprender (`docs/juegos/SPEC.md`). Falta definir la tabla de niveles → cofres y cambiar `awardHitos()` (lee `nexo-pep1-campana`, que ya no existe).
 - (17 oct) Hecho: Tienda del alquimista con kit de UI, apertura animada del cofre, cofres por categoría y ⚛ por evidencia con tope. Falta: pagar transferencia/recuerdo desde el motor académico, cofres por ramo, objetos del refugio y skins, rachas con perdón.
 - Diseñar la economía: cómo se gana y se gasta (átomos, monedas), cuándo se siente justo y cuándo no.
 - Que "Comprar" funcione en la Tienda.

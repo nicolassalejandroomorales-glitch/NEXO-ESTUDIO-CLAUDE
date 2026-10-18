@@ -1,12 +1,11 @@
-"""Mundo de la torre (docs/mundo-torre/SPEC.md): Sala de prácticas + arco + Arcade arcano, y la habitación del Perfil.
+"""Mundo de la torre (docs/mundo-torre/SPEC.md): Sala de prácticas + arco + Arcade arcano.
 
 Pixel art de verdad con el motor del refugio (tools/home-pixel/pixel.py): material + nivel por píxel, rampas compartidas.
 Uso:   python tools/torre-pixel/build_torre.py
 Escribe:
   dist/assets/torre/mundo.png        780x150 px de arte (la app lo amplía con image-rendering: pixelated)
-  dist/assets/torre/habitacion.png   360x150
   dist/assets/torre/torre.json       objetos tocables, piso y puntos animados (llamas, burbujas, pantallas)
-  docs/mundo-torre/vista-previa.png  las dos escenas x3 para revisar
+  docs/mundo-torre/vista-previa.png  la escena x2 para revisar
 """
 from pathlib import Path
 import json
@@ -550,7 +549,7 @@ def build_world():
     cabinet(478, 'hunter', 'Error Hunter', scr_hunter, 'red', 'Error Hunter: próximamente')
     cabinet(526, 'blitz', 'Blitz', scr_blitz, 'rune', 'Blitz: próximamente')
 
-    # Portal de la campaña (Camino a la PEP 1 / Boss Arena)
+    # Portal del juego nuevo (aún sin juego)
     PCX, PTOP = 628, 34
     prx = 26
     outer = (np.hypot((xx - PCX) / (prx + 7), (yy - (PTOP + prx)) / (prx + 7)) <= 1) | (
@@ -574,8 +573,8 @@ def build_world():
     s.anim['portal'] = {'cx': PCX, 'cy': PTOP + prx + 14, 'r': prx}
     s.torch(PCX - prx - 18, 60)
     s.torch(PCX + prx + 14, 60)
-    s.obj('campaign', 'Portal: Camino a la PEP 1', 'games', (PCX - prx - 8, PTOP - 12, PCX + prx + 9, FLOOR_Y), (PCX, 124),
-          'game', game='campaign', say='¡Al Camino a la PEP 1!')
+    s.obj('campaign', 'Portal: juego nuevo', 'games', (PCX - prx - 8, PTOP - 12, PCX + prx + 9, FLOOR_Y), (PCX, 124),
+          'game', game='campaign', say='Aquí llegará un juego nuevo')
 
     # Rincón: mesa redonda con dados y cartas + tablero de puntajes
     TX = 726
@@ -612,173 +611,10 @@ def build_world():
 
 
 # ====================================================================== HABITACIÓN DEL PERFIL
-def build_room():
-    W = 360
-    s = Scene(W, 23)
-    c, xx, yy = s.c, s.xx, s.yy
-    # empapelado lavanda con rayas finas y florcitas, zócalo de madera
-    m = yy < FLOOR_Y
-    c.mask(m, 'lav', (2.9 + 0.3 * ((xx // 12) % 2)).astype(np.float32))
-    c.mask(m & (xx % 24 == 0), 'lav', 2.2)
-    for y in range(22, 86, 16):
-        for x in range(6 + (y // 16 % 2) * 6, W, 12):
-            c.sprite(x - 1, y - 1, [".x.", "xyx", ".x."], 'lav', {'x': 4.4, 'y': ('rune', 4)})
-    wainscot(s, 0, W, top=90)
-    plank_floor(s, 0, W, 180)
-    beam(s, 0, W)
-    rug(s, 110, 250, 122, 142, 'green')
-
-    # 1) Armario (Mascota)
-    X0, X1, Y0 = 8, 62, 26
-    s.box(X0, Y0, X1, FLOOR_Y, 'wood', 3.6)
-    c.rect(X0 - 2, Y0 - 4, X1 + 2, Y0, 'wood', 4.6); c.rect(X0 - 2, Y0 - 4, X1 + 2, Y0 - 3, 'wood', 6.4)
-    mid = (X0 + X1) // 2
-    c.rect(X0 + 3, Y0 + 4, mid - 1, FLOOR_Y - 8, 'wood', 1)                     # puerta izquierda abierta: interior
-    for k, (col, lv) in enumerate([('red', 4), ('blue', 4.4), ('green', 4.4)]):
-        hx = X0 + 6 + k * 7
-        c.line(hx + 2, Y0 + 8, hx + 2, Y0 + 11, 'brass', 4)
-        c.rect(hx, Y0 + 11, hx + 5, Y0 + 34 - k * 3, col, lv); c.rect(hx, Y0 + 11, hx + 1, Y0 + 34 - k * 3, col, lv + 1.2)
-    c.rect(X0 + 4, Y0 + 6, mid - 2, Y0 + 7, 'brass', 3.6)
-    c.sprite(X0 + 6, Y0 + 44, HAT, 'arcane', {'k': 2.4, 'x': 4})
-    c.sprite(X0 + 15, Y0 + 46, BOOT_HAT, 'clay', {'k': 2.4, 'x': 4.4})
-    c.rect(X0 - 4, Y0 + 4, X0 + 1, FLOOR_Y - 8, 'wood', 5)                     # hoja abierta
-    c.rect(X0 - 4, Y0 + 4, X0 - 3, FLOOR_Y - 8, 'wood', 6.5)
-    s.box(mid, Y0 + 4, X1 - 3, FLOOR_Y - 8, 'wood', 4.2, outline=False)
-    c.rect(mid + 3, Y0 + 8, X1 - 6, FLOOR_Y - 12, 'wood', 3.4)
-    c.rect(mid + 2, Y0 + 44, mid + 4, Y0 + 48, 'brass', 5)
-    c.rect(X0 + 3, FLOOR_Y - 7, X1 - 3, FLOOR_Y - 2, 'wood', 4); c.rect(X1 - 30, FLOOR_Y - 5, X1 - 24, FLOOR_Y - 4, 'brass', 5)
-    c.rect(X0 + 10, Y0 - 12, X0 + 30, Y0 - 4, 'red', 3.4); c.rect(X0 + 10, Y0 - 12, X0 + 30, Y0 - 11, 'red', 5)
-    c.rect(X0 + 10, Y0 - 9, X0 + 30, Y0 - 8, 'rune', 4)
-    s.obj('mascot', 'Armario de la mascota', 'profile', (X0 - 4, Y0 - 12, X1 + 2, FLOOR_Y), (40, 124), 'tab', tab='mascot',
-          say='Vestuario y nombre')
-
-    # 2) Escritorio con libreta (Notas)
-    DX0, DX1, DY = 74, 146, 84
-    c.rect(DX0 + 6, 22, DX1 - 6, 56, 'clay', 3)                                 # corcho con notas
-    s.frame(DX0 + 5, 21, DX1 - 5, 57, 'wood', 2.4)
-    c.lvl[(yy >= 22) & (yy < 56) & (xx >= DX0 + 6) & (xx < DX1 - 6)] += (0.3 * ((xx + yy * 3) % 5 == 0))[
-        (yy >= 22) & (yy < 56) & (xx >= DX0 + 6) & (xx < DX1 - 6)]
-    for (nx, ny, col) in [(84, 26, 'paper'), (102, 30, 'rune'), (120, 25, 'paper'), (94, 40, 'crystal'), (116, 41, 'paper')]:
-        c.rect(nx, ny, nx + 12, ny + 11, col, 4.6); c.rect(nx, ny, nx + 12, ny + 1, col, 5.4)
-        for ly in range(ny + 3, ny + 10, 2):
-            c.rect(nx + 2, ly, nx + 10, ly + 1, 'paper', 2)
-        c.px(nx + 6, ny + 1, 'red', 4.6)
-    c.rect(DX0, DY, DX1, DY + 4, 'wood', 4.6); c.rect(DX0, DY, DX1, DY + 1, 'wood', 6.6); c.rect(DX0, DY + 4, DX1, DY + 5, 'wood', 1)
-    s.box(DX0 + 2, DY + 5, DX0 + 24, FLOOR_Y, 'wood', 3.2)
-    for dy in (DY + 10, DY + 18):
-        c.rect(DX0 + 4, dy, DX0 + 22, dy + 1, 'wood', 1.4); c.rect(DX0 + 11, dy + 3, DX0 + 15, dy + 4, 'brass', 5)
-    c.rect(DX1 - 5, DY + 5, DX1 - 2, FLOOR_Y, 'wood', 3)
-    c.rect(DX0 + 30, DY - 3, DX0 + 58, DY, 'paper', 5); c.rect(DX0 + 44, DY - 3, DX0 + 45, DY, 'paper', 2.4)
-    for lx in range(DX0 + 32, DX0 + 57, 3):
-        if lx != DX0 + 44:
-            c.px(lx, DY - 2, 'blue', 3.6)
-    c.rect(DX0 + 62, DY - 4, DX0 + 67, DY, 'blue', 1.4); c.line(DX0 + 64, DY - 4, DX0 + 70, DY - 14, 'petal', 3)
-    c.px(DX0 + 70, DY - 15, 'petal', 4)
-    LX = DX1 - 12                                                            # lámpara de escritorio
-    c.rect(LX - 4, DY - 2, LX + 5, DY, 'brass', 3.4); c.line(LX, DY - 2, LX - 3, DY - 14, 'brass', 4)
-    c.sprite(LX - 9, DY - 20, ["..xxxx..", ".xxxxxx.", "xxxxxxxx"], 'brass', {'x': 4.6})
-    c.rect(LX - 7, DY - 17, LX + 1, DY - 16, 'glow', 5)
-    s.lights.append((LX - 3, DY - 6, 44, 1.2, 1.1)); s.glows.append((LX - 3, DY - 10, 14, '#ffd270', 0.4, 1))
-    s.obj('grades', 'Escritorio: notas', 'profile', (DX0, 20, DX1, FLOOR_Y), (110, 124), 'tab', tab='grades',
-          say='Tus notas y ponderaciones')
-
-    # 3) Calendario (Inasistencias)
-    KX0, KX1, KY0, KY1 = 156, 194, 26, 66
-    c.px((KX0 + KX1) // 2, KY0 - 4, 'brass', 5)
-    c.line((KX0 + KX1) // 2, KY0 - 4, KX0 + 4, KY0, 'stem', 2); c.line((KX0 + KX1) // 2, KY0 - 4, KX1 - 4, KY0, 'stem', 2)
-    s.box(KX0, KY0, KX1, KY1, 'paper', 4.4)
-    c.rect(KX0 + 1, KY0 + 1, KX1 - 1, KY0 + 8, 'red', 3.6); c.rect(KX0 + 1, KY0 + 1, KX1 - 1, KY0 + 2, 'red', 5)
-    for j in range(5):
-        for i in range(6):
-            x, y = KX0 + 3 + i * 6, KY0 + 11 + j * 6
-            c.rect(x, y, x + 4, y + 4, 'paper', 3.4)
-            if (i, j) in [(1, 1), (4, 2), (2, 3)]:
-                c.sprite(x, y, ["x..x", ".xx.", ".xx.", "x..x"], 'red', {'x': 4})
-            if (i, j) in [(0, 0), (2, 0), (3, 1), (5, 1), (0, 2), (1, 2), (3, 3)]:
-                c.sprite(x, y, ["....", "...x", "x.x.", ".x.."], 'green', {'x': 4.6})
-    s.plant(175, FLOOR_Y, 13, 10, 7)
-    s.obj('absences', 'Calendario de asistencia', 'profile', (KX0, KY0 - 5, KX1, KY1), (175, 124), 'tab', tab='absences',
-          say='Asistencia por ramo')
-
-    # 4) Vitrina de trofeos (Estadísticas)
-    VX0, VX1, VY0 = 202, 252, 30
-    s.box(VX0, VY0, VX1, FLOOR_Y, 'wood', 3.4)
-    c.rect(VX0 + 3, VY0 + 3, VX1 - 3, FLOOR_Y - 10, 'glass', 1.6)
-    for sy in (52, 76):
-        c.rect(VX0 + 3, sy, VX1 - 3, sy + 2, 'wood', 4.6)
-    c.sprite(VX0 + 6, 44, TROPHY, 'brass', {'x': 4.6}); c.px(VX0 + 9, 45, 'brass', 6.5)
-    c.sprite(VX0 + 20, 41, TROPHY + [".xxxxx."], 'rune', {'x': 5}); c.px(VX0 + 23, 42, 'rune', 6.6)
-    c.sprite(VX0 + 36, 46, TROPHY[2:], 'stone', {'x': 5}); c.px(VX0 + 38, 47, 'stone', 6.4)
-    for k, col in enumerate(['red', 'blue', 'green']):
-        c.sprite(VX0 + 7 + k * 13, 64, MEDAL, 'brass', {'r': (col, 4), 'o': 4.6, 'x': 6})
-    c.sprite(VX0 + 10, 84, ["..x..", ".xxx.", "xxxxx", ".xxx.", "..x.."], 'crystal', {'x': 5.4})
-    c.sprite(VX0 + 28, 82, [".xx.", "xxxx", "xxxx", "xxxx", "xxxx", ".xx."], 'arcane', {'x': 4.6})
-    c.rect(VX0 + 3, VY0 + 3, VX0 + 4, FLOOR_Y - 12, 'glass', 6); c.rect(VX0 + 6, VY0 + 3, VX0 + 7, VY0 + 18, 'glass', 6)
-    c.rect(VX0 + 3, FLOOR_Y - 9, VX1 - 3, FLOOR_Y - 2, 'wood', 4); c.rect(VX0 + 22, FLOOR_Y - 6, VX0 + 28, FLOOR_Y - 5, 'brass', 5)
-    s.glows.append(((VX0 + VX1) / 2, 60, 22, '#fbe08a', 0.3, 1))
-    s.obj('stats', 'Vitrina de logros', 'profile', (VX0, VY0, VX1, FLOOR_Y), (227, 124), 'tab', tab='stats',
-          say='Tus estadísticas y rangos')
-
-    # 5) Reloj de pie con engranajes (Ajustes)
-    RX0, RX1 = 262, 290
-    s.box(RX0, 18, RX1, FLOOR_Y, 'wood', 3.4)
-    c.sprite(RX0 - 1, 12, ["....xxxxxxxxxxxxxxxxxxxxxx....", "..xxxxxxxxxxxxxxxxxxxxxxxxxx..", "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"][:3], 'wood', {'x': 4.6})
-    fx, fy = (RX0 + RX1) / 2, 32
-    d = np.hypot(xx - fx, yy - fy)
-    c.mask(d <= 10, 'paper', 5); c.mask((d <= 11) & (d > 10), 'brass', 4)
-    for k in range(12):
-        a = k * math.pi / 6
-        c.px(fx + 8 * math.cos(a), fy + 8 * math.sin(a), 'wood', 1.4)
-    c.line(fx, fy, fx, fy - 6, 'wood', 0.8); c.line(fx, fy, fx + 4, fy + 2, 'wood', 0.8)
-    c.rect(RX0 + 4, 46, RX1 - 4, 96, 'wood', 1.2)
-    c.rect(RX0 + 5, 47, RX0 + 6, 95, 'glass', 4)
-    for (gx, gy, gr, col) in [(fx - 4, 54, 5, 'brass'), (fx + 5, 60, 3.5, 'rune'), (fx - 2, 64, 3, 'brass')]:
-        dd = np.hypot(xx - gx, yy - gy); ang = np.arctan2(yy - gy, xx - gx)
-        teeth = (dd <= gr + 1) & (np.sin(ang * 8) > 0.2)
-        c.mask((dd <= gr) | teeth, col, 3.8); c.mask(dd <= gr * 0.45, col, 1.6); c.mask((dd <= gr) & (yy < gy - gr * 0.4), col, 5)
-    c.line(fx, 68, fx, 86, 'brass', 4)
-    s.ellipse(fx, 89, 4, 4, 'brass', lambda d, dx, dy: 4.5 - dy * 0.3)
-    s.anim['pendulum'] = {'x': int(fx), 'y': 68, 'len': 21}
-    s.obj('settings', 'Reloj de engranajes: ajustes', 'profile', (RX0 - 1, 12, RX1 + 1, FLOOR_Y), (276, 124), 'tab', tab='settings',
-          say='Ajustes de la app')
-
-    # 6) Cama bajo la ventana redonda (de noche duerme aquí)
-    round_window(s, 328, 40, 15)
-    BX0, BX1 = 298, 358
-    s.box(BX0, 72, BX0 + 6, FLOOR_Y, 'wood', 4)                                # cabecera
-    c.rect(BX0 - 1, 70, BX0 + 7, 73, 'wood', 5.6)
-    s.box(BX0 + 6, 94, BX1, 102, 'wood', 3.4)                                  # estructura
-    c.rect(BX0 + 6, 102, BX0 + 9, FLOOR_Y, 'wood', 2); c.rect(BX1 - 4, 102, BX1 - 1, FLOOR_Y, 'wood', 2)
-    s.box(BX0 + 7, 84, BX0 + 22, 94, 'petal', 2.6)                             # almohada
-    c.rect(BX0 + 18, 86, BX1, 98, 'green', 3.2)                                # frazada a cuadros
-    for k in range(BX0 + 18, BX1, 6):
-        c.rect(k, 86, k + 3, 98, 'green', 4.2)
-    for k in range(88, 98, 5):
-        c.rect(BX0 + 18, k, BX1, k + 1, 'rune', 2.6)
-    c.rect(BX0 + 18, 86, BX1, 87, 'green', 5.2)
-    c.rect(BX0 + 18, 98, BX1, 100, 'green', 1.6)
-    s.candle(BX0 - 8, FLOOR_Y - 14, 6)
-    c.rect(BX0 - 12, FLOOR_Y - 14, BX0, FLOOR_Y - 12, 'wood', 5); c.rect(BX0 - 8, FLOOR_Y - 12, BX0 - 4, FLOOR_Y, 'wood', 3)
-    s.obj('bed', 'Cama', 'profile', (BX0, 70, BX1, FLOOR_Y), (318, 126), 'nap', say='Una siestita…')
-
-    for (a, b) in [(8, 62), (74, 98), (202, 252), (262, 290), (298, 358)]:
-        mm = (xx >= a - 2) & (xx < b + 2) & (yy >= FLOOR_Y) & (yy < FLOOR_Y + 5)
-        c.add_light(np.where(mm, -1.2, 0))
-    img = s.finish(ambient=0.2)
-    meta = {'w': W, 'h': H, 'floor': FLOOR_Y, 'walk': WALK, 'home': [180, 132], 'objects': s.objects, 'anim': s.anim}
-    return img, meta
-
-
 if __name__ == '__main__':
     OUT.mkdir(parents=True, exist_ok=True); DOCS.mkdir(parents=True, exist_ok=True)
     world, wmeta = build_world()
-    room, rmeta = build_room()
     world.save(OUT / 'mundo.png', optimize=True)
-    room.save(OUT / 'habitacion.png', optimize=True)
-    (OUT / 'torre.json').write_text(json.dumps({'mundo': wmeta, 'habitacion': rmeta}, ensure_ascii=False, separators=(',', ':')),
-                                    encoding='utf-8')
-    prev = Image.new('RGB', (780 * 2, (H * 2) * 2 + 8), (20, 12, 16))
-    prev.paste(world.resize((780 * 2, H * 2), Image.NEAREST), (0, 0))
-    prev.paste(room.resize((360 * 2, H * 2), Image.NEAREST), (0, H * 2 + 8))
-    prev.save(DOCS / 'vista-previa.png')
-    print('ok', len(wmeta['objects']), 'objetos en el mundo,', len(rmeta['objects']), 'en la habitación')
+    (OUT / 'torre.json').write_text(json.dumps({'mundo': wmeta}, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
+    world.resize((780 * 2, H * 2), Image.NEAREST).save(DOCS / 'vista-previa.png')
+    print('ok', len(wmeta['objects']), 'objetos en el mundo')

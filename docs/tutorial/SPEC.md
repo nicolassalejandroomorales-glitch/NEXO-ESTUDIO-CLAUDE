@@ -206,6 +206,29 @@ Niquito: «el tutorial ya está súper bueno»: se da por **aprobado el tono, la
 
 **Criterios de aceptación:** cuenta nueva ve el tutorial sola; elegir mascota y nombre se guarda; el premio se da una sola vez (o la decisión de nube queda escrita); saltarlo no da monedas; Ajustes → Tutoriales lo repite sin premio; `npm test` sin fallas nuevas.
 
+## Inicio mágico (18 oct 2026, crítica del 15 oct; aprobado por Niquito: "hazlo", capas y partículas)
+
+**Qué:** el tutorial "se ve como PNG que se mueve" y el fondo azul liso no gusta. Se rehace en este orden (una etapa por vez, cada una se prueba y se aprueba):
+1. **Fondo mágico (hecho, esperando aprobación):** `dist/tutorial/magia.js` (carga perezosa; lo monta `tutorial.js`). Un canvas de baja resolución (1 px = 3 de pantalla, escalado pixelado) detrás de todo el tutorial:
+   círculo de transmutación con runas inventadas (dos anillos que giran en sentidos contrarios), luz cálida que respira, estrellas, luciérnagas, polvo, runas que suben, hojas y enredaderas en las esquinas.
+   Fondo base ciruela/verde oscuro (sin azul). `NexoMagia.mount(el).pulse()` hace un destello: se usa en el estallido del nacimiento.
+   Respeta "reducir movimiento" (un solo cuadro quieto), se pausa con la pestaña oculta y se apaga solo al salir.
+2. **Altar con velas (hecho, esperando aprobación):** la vela del arte ya solo trae la mecha; las llamas son `dist/assets/tutorial/llama.png` (4 cuadros de 3×8, `tools/tutorial-pixel/build_llama.py`) y parpadean por cuadros con ritmo distinto en cada vela. Encima, una luz cálida pulsa (mezcla `screen`). Se arma en `tutorial.js` (dos `<i class="tut-llama">` dentro del Grimorio) y `tutorial.css`. Se quitó del arte el brillo naranja fijo de las velas.
+3. **Aura del Grimorio (hecha, esperando aprobación):** `NexoMagia.aura(grimEl)` en `magia.js`: un canvas alineado al píxel con el sprite (68×76 + margen) con 6 runas en órbita alrededor del libro (se apagan al pasar por detrás, con estela), chispas de tinta y hojitas que salen por arriba, y luz que respira. Se enciende al hablar (`talk`) y da un chorro al cambiar de pose (`burst`); en `tutorial.js`, dentro de `say`/`finishType`/`drawGrim`. Sin «reducir movimiento» no se monta.
+   **No se separó el libro del altar en el arte** (decisión técnica): `dist/cuentas/entrada.js` reutiliza el mismo sprite `.tut-grim` y se habría roto. Si más adelante quieres piezas sueltas (barba que se mece, páginas que aletean), hay que rehacer las hojas en `build_grimorio.py` y avisar al chat de Cuentas.
+4. **Nube de diálogo con vida (hecha, esperando aprobación):** el borde respira con brillo dorado (`drop-shadow` que pulsa), cada frase entra con un «pop» elástico, cuatro chispas en cruz titilan en las esquinas, sube una chispita dorada al empezar cada palabra y cada letra nueva aparece con destello (`.nl`). Todo en `tutorial.css` / `say()` de `tutorial.js`; se apaga con «reducir movimiento». Como `entrada.js` reutiliza el CSS, su nube también brilla, pero sin chispas (no las crea).
+
+**Fuera de esta tanda (después, uno por uno):** voz/sonido del mago, texto con personalidad y el salto de pantalla hacia arriba, huevos con textura, la mascota hablando con su personalidad y el dab, y el recorrido por la app real (modular por secciones).
+
+**Criterios (etapa 1):** en 1440 y 390 el fondo se mueve sin tapar ni ensuciar el texto; no hay azul liso; no baja de ~50 fps; con reducir movimiento queda quieto; `npm test` sin fallas nuevas.
+
+## Huevos y mascota (18 oct 2026, hecho, esperando aprobación de Niquito)
+
+- **Huevos vivos:** `dist/tutorial/huevos.js` (`NexoHuevos.attach(huevo, kind)`) pone un canvas pixelado encima de cada huevo: átomo = electrones con estela en sus órbitas; matraz = burbujas que suben, revientan y se escapan por arriba; slime = gotas gelatinosas, gotitas que caen y el huevo se estira como gelatina. Todos con destellos en cruz. Al pasar el cursor (o enfocar) se agitan. Sin «reducir movimiento» no se monta.
+- **Nacimiento:** la luz dorada se escapa por las grietas (`level` 1→3 con cada fase) y en el estallido: trozos de cáscara con gravedad, chispas, dos ondas de choque y `NexoMagia.pulse()`.
+- **Dab + grito por especie:** al nacer, la mascota hace el dab (`arm: 'dab'`) y da su grito: átomo «¡EUREKA!…», matraz «¡BLUP!…», slime «…bluuu». Cada especie tiene timbre propio en `beep` (`TIMBRE`: átomo seco, matraz burbujeante con tono que sube, slime blando con tono que cae).
+- Probado en escritorio; falta revisar en móvil (390).
+
 ## Pendiente (ideas a futuro, no bloquean)
 - Aparición y avisos ya hechos; las novedades nuevas se agregan en `NEWS` de `dist/tutorial/avisos.js`.
 - Si Niquito cambia los precios de la tienda (`PRICES` en `dist/mascot/home-pet.js`), revisar que 150 ⚛ siga sintiéndose bien.

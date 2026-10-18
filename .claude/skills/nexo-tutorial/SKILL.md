@@ -16,8 +16,15 @@ description: Tutorial guiado de Nexo (Grimorio que explica la app, elección y n
 - La mascota que nace se dibuja con `window.PixelMascotas.render` (mismo código que `home-pet.js`), no con las hojas de huevos.
 - Bips de 8 bits con WebAudio; respetan `state.settings.sound`.
 
+## Fondo mágico
+- `dist/tutorial/magia.js` (`NexoMagia.mount(el).pulse()`): canvas de baja resolución detrás del tutorial (círculo de runas con símbolos de elementos, benceno con grupo amino, órbitas con electrones, burbujas, moléculas, hojas y enredaderas). Lo carga `tutorial.js`; respeta «reducir movimiento».
+
+## Huevos vivos
+- `dist/tutorial/huevos.js` (`NexoHuevos.attach(huevoEl, kind)` → `excite(bool)`, `level(0-3)`, `burst()`): canvas encima del huevo con partículas por especie y el estallido del nacimiento. `eggEl` en `tutorial.js` lo monta (no con «reducir movimiento»). En el nacimiento la mascota hace `arm='dab'` y su `grito` (INFO); el timbre de voz por especie está en `TIMBRE` de `beep`.
+
 ## Arte (scripts reproducibles en `tools/tutorial-pixel/`, salida en `dist/assets/tutorial/`)
 - `build_grimorio.py` → `grimorio-v1.png` (5 poses, incl. dormido) y `grimorio-hablar.png` + `.json` (15 poses × 3 bocas, 68×76; el orden de filas está en el JSON y en `ROWS` de tutorial.js).
+- `build_llama.py` → `llama.png` (4 cuadros 3×8): llamas de las velas del altar, animadas por CSS (`.tut-llama`). Las posiciones salen del arte del Grimorio (68×76); si mueves las velas en `build_grimorio.py`, ajusta `.tut-llama.l/.r` en `tutorial.css`.
 - `build_marco.py` → `marco-dialogo.png` (9-slice 12), `marco-nombre.png` (9-slice 6), `flecha-siguiente.png`.
 - `build_huevos.py` → `huevo-{atomo,matraz,slime}.png` (9 cuadros de 56×64).
 - Cambios de arte: seguir `nexo-pixel-art`. Si cambia el orden de filas del Grimorio, actualizar `ROWS`.

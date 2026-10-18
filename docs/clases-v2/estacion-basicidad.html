@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Estación Basicidad · 3 versiones</title>
+<style>
+:root{--bg:#140c10;--ink:#efe3c8;--mut:#a89880;--ok:#70a46a;--crys:#5cc4dc;--rune:#e0b030}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,Segoe UI,sans-serif}
+h1{font-size:18px;margin:14px 16px 2px}
+.sub{margin:0 16px 10px;color:var(--mut);font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 10px 14px}
+.col>h2{margin:0 0 4px;font-size:14px;color:var(--rune)}
+.col>p{margin:0 0 8px;font-size:12px;color:var(--mut);min-height:48px}
+.step{font-size:11px;color:var(--mut);margin:8px 0 3px;letter-spacing:.08em;text-transform:uppercase}
+.frame{position:relative;aspect-ratio:16/9;container-type:inline-size;overflow:hidden;border:2px solid #3a2f33;background:#000}
+.frame canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated}
+.ov{position:absolute;color:#f3e8cf;font-size:2.55cqw;line-height:1.3}
+.ov .pixel-text{height:3.4cqw;width:auto;color:#ffd860;display:block;margin-bottom:1cqw}
+.ov b{color:#9ce8f0}
+.ov[style*="ecd29c"] b{color:#18506a}.ov[style*="ecd29c"] .pixel-text{color:#673c23}.ov[style*="ecd29c"] .btn{background:#d4ae7c;color:#2b1d22;border-color:#2b1d22}
+.btn{display:inline-block;margin:.5cqw .6cqw 0 0;padding:.7cqw 1.6cqw;background:#231b22;border:2px solid #776152;color:#f3e8cf;font-size:2.3cqw}
+.btn.ok{border-color:#70a46a;color:#cfeccb}
+.bubble{position:absolute;max-width:30cqw;padding:1.2cqw 1.6cqw;background:#ecd29c;color:#2b1d22;font-size:2.3cqw;line-height:1.25;border:2px solid #2b1d22}
+.bubble:after{content:"";position:absolute;left:3cqw;bottom:-2cqw;border:1cqw solid transparent;border-top:1cqw solid #2b1d22;border-bottom:0;border-top-width:1.6cqw}
+.tag{position:absolute;right:1.2cqw;top:1cqw;font-size:2cqw;color:#b4a68c;background:#140c10cc;padding:.4cqw 1cqw;border:1px solid #564641}
+/* animaciones */
+.mol{display:flex;align-items:center;gap:1.4cqw;font-size:3.2cqw;margin:1cqw 0;position:relative}
+.hp{color:#ffd860;display:inline-block;animation:slide 2.4s ease-in-out infinite}
+@keyframes slide{0%{transform:translateX(-5cqw);opacity:.3}60%,100%{transform:translateX(0);opacity:1}}
+.pulse{animation:pl 1.6s ease-in-out infinite}@keyframes pl{50%{text-shadow:0 0 1.4cqw #9ce8f0}}
+.rain{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.rain i{position:absolute;top:-6cqw;font-style:normal;color:#ffd860;font-size:3cqw;text-shadow:0 0 .8cqw #e0b030;animation:fall 2.8s linear infinite}
+@keyframes fall{to{transform:translateY(60cqw)}}
+.fl{position:absolute;bottom:3cqw;text-align:center;font-size:2cqw;width:15cqw}
+.fl s{display:block;margin:0 auto .4cqw;width:6cqw;height:8cqw;background:#2c4440;border:2px solid #86aa98;text-decoration:none;box-shadow:inset 0 -3cqw 0 #3098b888}
+.fl.big s{border-color:#ffd860;box-shadow:inset 0 -3cqw 0 #5cc4dc,0 0 1.6cqw #5cc4dc}
+.note{padding:10px 16px 20px;font-size:13px;color:var(--mut);max-width:1100px}
+.note b{color:var(--ink)}
+</style></head><body>
+<h1>Aminas → Basicidad · Estación 1 (misión 4: pKa y equilibrio)</h1>
+<p class="sub">Adivina → Clase → Mini juego "Atrapa el H⁺" → Demuestra · habla la mascota · se juega en la mesa de la alcoba del Sótano</p>
+<div class="grid" id="grid"></div>
+<div class="note">
+<b>Química usada (org-01, m4 y m5):</b> lidocaína = amina terciaria + amida (solo la terciaria se protona) · ácido acético pKa 4,76 vs ion trietilamonio 10,76 (K = 10⁶) · anilinio 4,6 · piridinio 5,2 · HA pKa 5 + ion amonio pKa 9 → equilibrio hacia la sal.<br>
+Bocetos: el arte es pixel art en canvas (rampas de pixel.py); los textos son HTML encima para que se lean bien, y los rótulos usan la fuente pixel de la app.
+</div>
+<script>/* Letras pixel art de Nexo: una fuente propia de 5×7 (mayúsculas, números y signos) dibujada como SVG de cuadritos.
+   Sirve para carteles, títulos y etiquetas cortas. El texto largo sigue en la fuente normal para que se lea bien.
+   NexoPixelText.render('Próximas pruebas', { shadow: true }) -> <svg class="pixel-text"> con fill: currentColor. */
+(() => {
+  'use strict';
+  const G = {
+    A: ['01110', '10001', '10001', '11111', '10001', '10001', '10001'], B: ['11110', '10001', '10001', '11110', '10001', '10001', '11110'],
+    C: ['01110', '10001', '10000', '10000', '10000', '10001', '01110'], D: ['11110', '10001', '10001', '10001', '10001', '10001', '11110'],
+    E: ['11111', '10000', '10000', '11110', '10000', '10000', '11111'], F: ['11111', '10000', '10000', '11110', '10000', '10000', '10000'],
+    G: ['01110', '10001', '10000', '10111', '10001', '10001', '01111'], H: ['10001', '10001', '10001', '11111', '10001', '10001', '10001'],
+    I: ['01110', '00100', '00100', '00100', '00100', '00100', '01110'], J: ['00111', '00010', '00010', '00010', '00010', '10010', '01100'],
+    K: ['10001', '10010', '10100', '11000', '10100', '10010', '10001'], L: ['10000', '10000', '10000', '10000', '10000', '10000', '11111'],
+    M: ['10001', '11011', '10101', '10101', '10001', '10001', '10001'], N: ['10001', '11001', '10101', '10011', '10001', '10001', '10001'],
+    O: ['01110', '10001', '10001', '10001', '10001', '10001', '01110'], P: ['11110', '10001', '10001', '11110', '10000', '10000', '10000'],
+    Q: ['01110', '10001', '10001', '10001', '10101', '10010', '01101'], R: ['11110', '10001', '10001', '11110', '10100', '10010', '10001'],
+    S: ['01111', '10000', '10000', '01110', '00001', '00001', '11110'], T: ['11111', '00100', '00100', '00100', '00100', '00100', '00100'],
+    U: ['10001', '10001', '10001', '10001', '10001', '10001', '01110'], V: ['10001', '10001', '10001', '10001', '10001', '01010', '00100'],
+    W: ['10001', '10001', '10001', '10101', '10101', '11011', '10001'], X: ['10001', '10001', '01010', '00100', '01010', '10001', '10001'],
+    Y: ['10001', '10001', '01010', '00100', '00100', '00100', '00100'], Z: ['11111', '00001', '00010', '00100', '01000', '10000', '11111'],
+    0: ['01110', '11011', '10001', '10001', '10001', '11011', '01110'], 1: ['00100', '01100', '00100', '00100', '00100', '00100', '01110'],
+    2: ['01110', '10001', '00001', '00010', '00100', '01000', '11111'], 3: ['11110', '00001', '00001', '01110', '00001', '00001', '11110'],
+    4: ['10010', '10010', '10010', '11111', '00010', '00010', '00010'], 5: ['11111', '10000', '10000', '11110', '00001', '00001', '11110'],
+    6: ['01111', '10000', '10000', '11110', '10001', '10001', '01110'], 7: ['11111', '00001', '00010', '00100', '01000', '01000', '01000'],
+    8: ['01110', '10001', '10001', '01110', '10001', '10001', '01110'], 9: ['01110', '10001', '10001', '01111', '00001', '00001', '11110'],
+    '.': ['0', '0', '0', '0', '0', '0', '1'], ',': ['0', '0', '0', '0', '0', '1', '1'], ':': ['0', '1', '0', '0', '1', '0', '0'],
+    '!': ['1', '1', '1', '1', '1', '0', '1'], '?': ['01110', '10001', '00001', '00110', '00100', '00000', '00100'],
+    '-': ['00000', '00000', '00000', '11111', '00000', '00000', '00000'], '·': ['0', '0', '0', '1', '0', '0', '0'],
+    '/': ['00001', '00010', '00010', '00100', '01000', '01000', '10000'], '%': ['11001', '11010', '00010', '00100', '01000', '01011', '10011'],
+    '→': ['00000', '00100', '00010', '11111', '00010', '00100', '00000'], "'": ['1', '1', '0', '0', '0', '0', '0'],
+    ' ': ['000', '000', '000', '000', '000', '000', '000'],
+  };
+  // Letras con marca arriba (2 filas extra sobre la letra).
+  const MARKS = { 'Á': ['A', ['00010', '00100']], 'É': ['E', ['00010', '00100']], 'Í': ['I', ['00010', '00100']], 'Ó': ['O', ['00010', '00100']],
+    'Ú': ['U', ['00010', '00100']], 'Ñ': ['N', ['01010', '10100']], 'Ü': ['U', ['01010', '00000']] };
+
+  function render(text, { shadow = true } = {}) {
+    const chars = [...String(text).toUpperCase()];
+    const accented = chars.some(ch => MARKS[ch]), top = accented ? 0 : 2;
+    let x = 0, cells = '';
+    for (const ch of chars) {
+      const mark = MARKS[ch], rows = mark ? G[mark[0]] : G[ch] || G['?'];
+      rows.forEach((row, y) => [...row].forEach((cell, dx) => { if (cell === '1') cells += `<rect x="${x + dx}" y="${y + 2}" width="1" height="1"/>`; }));
+      if (mark) mark[1].forEach((row, y) => [...row].forEach((cell, dx) => { if (cell === '1') cells += `<rect x="${x + dx}" y="${y}" width="1" height="1"/>`; }));
+      x += rows[0].length + 1;
+    }
+    const w = Math.max(1, x - 1), h = 9 - top, pad = shadow ? 1 : 0;
+    const body = shadow ? `<g class="pt-shadow" transform="translate(1 1)">${cells}</g><g class="pt-ink">${cells}</g>` : `<g class="pt-ink">${cells}</g>`;
+    return `<svg class="pixel-text" style="--u:${h + pad}" viewBox="0 ${top} ${w + pad} ${h + pad}" role="img" aria-label="${String(text).replace(/"/g, '&quot;')}" shape-rendering="crispEdges" focusable="false">${body}</svg>`;
+  }
+  window.NexoPixelText = Object.freeze({ render });
+})();
+</script>
+<script>
+const RAMP = {
+  stone:['#231b22','#3a2f33','#564641','#776152','#9a8068','#bea282'],
+  wood:['#2c1916','#47281b','#673c23','#8a552e','#b0743d','#d29a55'],
+  flame:['#a83818','#dc6420','#f89a30','#ffc850','#ffe890'],
+  crystal:['#123448','#18506a','#1e7090','#3098b8','#5cc4dc','#9ce8f0','#e0fcff'],
+  green:['#14302c','#20483a','#30644a','#4c845a','#70a46a'],
+  leaf:['#1c3a23','#2a5228','#3f6e2d','#5d8c36','#83ad42','#b2cf5c'],
+  paper:['#7a6650','#a69070','#cab692','#e6d6b2','#fff4d8'],
+  brass:['#5a3616','#8a5c20','#ba8a30','#e2b850','#fbe08a']
+};
+const W=192,H=108;
+function mk(seed){let s=seed;return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296}}
+function R(c,x,y,w,h,col){c.fillStyle=col;c.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))}
+function wall(c,seed,y0=0,y1=H){const r=mk(seed);const bh=9;for(let y=y0;y<y1;y+=bh){const off=((y/bh)|0)%2?9:0;for(let x=-off;x<W;x+=18){const t=1+(r()*2.4|0);R(c,x,y,17,bh-1,RAMP.stone[t]);R(c,x,y,17,1,RAMP.stone[Math.min(5,t+1)]);for(let k=0;k<7;k++)R(c,x+r()*16,y+r()*8,1,1,RAMP.stone[Math.max(0,t-1)])}}R(c,0,y0,W,y1-y0,'#14081055')}
+function glowAt(c,cx,cy,rad,col,a){for(let r=rad;r>0;r-=3){c.globalAlpha=a*(1-r/rad);c.fillStyle=col;c.beginPath();c.arc(cx,cy,r,0,7);c.fill()}c.globalAlpha=1}
+function torch(c,x,y){R(c,x,y,3,10,RAMP.wood[2]);R(c,x-2,y-1,7,2,RAMP.brass[2]);glowAt(c,x+1,y-5,26,'#f89a30',.22);R(c,x,y-6,3,5,RAMP.flame[1]);R(c,x+1,y-8,1,4,RAMP.flame[3]);R(c,x+1,y-5,1,3,RAMP.flame[4])}
+function crystal(c,x,y,h,col=RAMP.crystal){const w=Math.max(4,h/3|0);for(let i=0;i<h;i++){const t=i/h;const ww=Math.round(w*(t<.25?t*4:1-(t-.25)*.4));R(c,x-ww/2,y-i,ww,1,col[2+(i%5<2?1:0)])}R(c,x-1,y-h+2,1,h*.6,col[5]);R(c,x+1,y-h*.6,1,h*.4,col[1]);glowAt(c,x,y-h/2,h*.9,'#5cc4dc',.18)}
+function floor(c,y){R(c,0,y,W,H-y,RAMP.stone[1]);for(let x=0;x<W;x+=24)R(c,x,y,1,H-y,RAMP.stone[0]);R(c,0,y,W,1,RAMP.stone[3]);R(c,0,y+1,W,1,RAMP.stone[2])}
+function vines(c,seed){const r=mk(seed);for(let k=0;k<5;k++){let x=r()*W;const L=10+r()*22;for(let i=0;i<L;i++){R(c,x+Math.sin(i/3)*1.5,i,1,1,RAMP.leaf[1]);if(i%4==1)R(c,x+Math.sin(i/3)*1.5+1,i,2,2,RAMP.leaf[3+(r()*2|0)])}}}
+function slime(c,x,y,s=1,mood='n'){const rows=['..xxxx..','.xhhxxxx.','xhhxxxxxx','xxxxxxxxx','xxkxxxkxx','xxxxxxxxx','.xxxxxxx.','..xxxxx..'];const col={x:'#70a46a',h:'#b2cf5c',k:'#14302c'};rows.forEach((row,j)=>[...row].forEach((ch,i)=>{if(ch!='.')R(c,x+i*s,y+j*s,s,s,col[ch])}));R(c,x+2*s,y+8*s,5*s,s,'#14302c88');if(mood=='w'){R(c,x+3*s,y+5*s,3*s,s,'#14302c')}}
+function table(c,y){R(c,0,y,W,H-y,RAMP.wood[1]);for(let x=0;x<W;x+=30)R(c,x,y+4,1,H-y,RAMP.wood[0]);R(c,0,y,W,3,RAMP.wood[4]);R(c,0,y+3,W,1,RAMP.wood[2]);R(c,0,y+1,W,1,RAMP.wood[5])}
+function scroll(c,x,y){R(c,x,y,26,5,RAMP.paper[3]);R(c,x-2,y-1,3,7,RAMP.paper[1]);R(c,x+25,y-1,3,7,RAMP.paper[1]);R(c,x+3,y+1,18,1,RAMP.paper[1])}
+function flask(c,x,y,col='#3098b8'){R(c,x+2,y,3,4,'#86aa98');R(c,x,y+4,7,8,'#40605a');R(c,x+1,y+7,5,5,col);R(c,x+1,y+5,1,5,'#e0fcff')}
+function book(c,x,y){R(c,x,y,34,12,RAMP.leaf[1]);R(c,x+1,y,15,11,RAMP.paper[3]);R(c,x+17,y,15,11,RAMP.paper[4]);R(c,x+16,y,2,12,RAMP.brass[1]);for(let i=0;i<4;i++){R(c,x+3,y+2+i*2,11,1,RAMP.paper[1]);R(c,x+19,y+2+i*2,11,1,RAMP.paper[1])}}
+function slab(c,x,y,w,h,col){R(c,x-2,y-2,w+4,h+4,RAMP.stone[0]);R(c,x,y,w,h,RAMP.stone[2]);R(c,x+2,y+2,w-4,h-4,RAMP.stone[1]);R(c,x+3,y+3,w-6,h-6,'#1c1519');R(c,x+1,y+1,w-2,1,RAMP.stone[4]);R(c,x+3,y+3,w-6,1,col);R(c,x+3,y+h-4,w-6,1,col);R(c,x+3,y+3,1,h-6,col);R(c,x+w-4,y+3,1,h-6,col);glowAt(c,x+w/2,y+h/2,w*.6,col,.1)}
+function bigCrystal(c,cx,by,h,w){const g=RAMP.crystal;for(let i=0;i<h;i++){const t=i/h;const ww=Math.round(w*(t<.12?t/.12*.8+.2:t>.85?(1-t)/.15:1));R(c,cx-ww/2,by-i,ww,1,g[1+((i+((cx|0)%3))%7<1?1:0)])}R(c,cx-w/2+1,by-h*.85,2,h*.7,g[4]);R(c,cx-w/2+1,by-h*.85,1,h*.6,g[6]);R(c,cx+w/2-3,by-h*.8,2,h*.65,g[0]);for(let i=0;i<6;i++)crystal(c,cx-w/2-6-i*5,by+2,10+(i*5)%13);for(let i=0;i<5;i++)crystal(c,cx+w/2+6+i*5,by+2,9+(i*7)%12);glowAt(c,cx,by-h/2,h,'#5cc4dc',.3)}
+
+function drawA(c,s){wall(c,3);vines(c,5);torch(c,10,28);torch(c,181,28);crystal(c,30,70,22);crystal(c,162,72,26);crystal(c,170,72,14);floor(c,70);table(c,76);
+  if(s==0){scroll(c,40,70);flask(c,150,66)}
+  if(s==1){book(c,80,66);glowAt(c,97,66,24,'#fff0a8',.2)}
+  if(s==2){flask(c,60,66,'#3098b8');flask(c,92,66,'#90b8e6');flask(c,124,66,'#9060dc')}
+  if(s==3){R(c,86,64,20,12,RAMP.stone[3]);R(c,88,60,16,4,RAMP.stone[4]);R(c,92,56,8,4,RAMP.brass[3]);glowAt(c,96,58,18,'#ffd860',.3)}
+  slime(c,12,82,3,s==2?'w':'n')}
+function drawB(c,s){wall(c,9);vines(c,2);torch(c,8,22);torch(c,183,22);crystal(c,20,100,16);crystal(c,174,100,20);slab(c,26,8,140,72,'#70a46a');floor(c,84);
+  [[40,2],[148,3]].forEach(([x,n])=>R(c,x,8,2,3,'#70a46a'));
+  slime(c,14,88,2,s==2?'w':'n');R(c,0,84,W,1,RAMP.stone[3])}
+function drawC(c,s){R(c,0,0,W,H,'#0c1e2c');wall(c,21);R(c,0,0,W,H,'#0a121866');vines(c,8);torch(c,6,30);torch(c,185,30);floor(c,88);bigCrystal(c,112,86,66,50);R(c,0,88,W,1,RAMP.stone[3]);slime(c,22,66,4,s==2?'w':'n');glowAt(c,112,54,50,'#5cc4dc',.12)}
+
+const STEPS=['1 · Adivina (mini problema PEP)','2 · Clase (animación + 2 frases + preguntas)','3 · Mini juego · Atrapa el H⁺','4 · Demuestra (sin ayuda)'];
+const pt=t=>{const r=NexoPixelText.render(t,{shadow:true});return typeof r==='string'?r:(r&&r.outerHTML)||''};
+function bodies(s){return[
+ `${pt('ADIVINA')}La <b>lidocaína</b> se vende como clorhidrato. Tiene dos N, pero solo uno atrapa el H⁺. ¿Cuál?<br><span class="btn">El de la amina terciaria</span><span class="btn">El de la amida</span><span class="btn">Los dos</span>`,
+ `${pt('CLASE')}<div class="mol"><span class="pulse">Et₃N</span> + <span class="hp">H⁺</span> → <span class="pulse">Et₃NH⁺</span></div>pKa alto del ion amonio = amina <b>más básica</b>.<br>El equilibrio va al ácido <b>más débil</b>: acético 4,76 vs ion amonio 10,76.<br><span class="btn ok">Más básica</span><span class="btn">Menos básica</span>`,
+ `${pt('ATRAPA EL H+')}Mueve el frasco y atrapa los H⁺ <b>solo con la amina más básica</b>.`,
+ `${pt('DEMUESTRA')}Un ácido HA (pKa 5) reacciona con una amina cuyo ion amonio tiene pKa 9. El equilibrio queda…<br><span class="btn">Hacia la sal</span><span class="btn">Hacia reactivos</span>`
+][s]}
+const SAY=['¡Apuesta sin mirar! Fallar aquí es gratis.','Si al ion le cuesta soltar el H⁺, es porque la amina lo quiere mucho.','¡Rápido, que caen! 3 de 5…','Esta va sin pistas. Si la aciertas, cuenta como demostrado.'];
+function game(extra){return `<div class="rain">${[10,24,38,52,66,80,92].map((x,i)=>`<i style="left:${x}%;animation-delay:${-i*.4}s">H⁺</i>`).join('')}</div>
+ <div class="fl" style="left:38%"><s></s>anilina<br>pKaH 4,6</div><div class="fl big" style="left:55%"><s></s>trietilamina<br>pKaH 10,76</div><div class="fl" style="left:72%"><s></s>piridina<br>pKaH 5,2</div>`}
+const LAY={
+ A:{ov:['left:22%;top:6%;width:56%;background:#ecd29ce6;color:#2b1d22;padding:1.6cqw 2cqw;border:2px solid #2b1d22','left:20%;top:5%;width:60%;background:#ecd29ce6;color:#2b1d22;padding:1.6cqw 2cqw;border:2px solid #2b1d22','left:20%;top:4%;width:60%','left:22%;top:6%;width:56%;background:#ecd29ce6;color:#2b1d22;padding:1.6cqw 2cqw;border:2px solid #2b1d22'],bub:'left:3%;top:46%'},
+ B:{ov:'left:19%;top:12%;width:62%',bub:'left:9%;top:60%'},
+ C:{ov:'left:46%;top:18%;width:40%;text-shadow:0 .4cqw 0 #0c1e2c',bub:'left:4%;top:34%'}
+};
+const info={A:['A · Mesa del alquimista','Todo ocurre sobre la mesa de madera de la alcoba: pergamino (Adivina), grimorio abierto (Clase), tres frascos (Mini juego), sello en pedestal (Demuestra). La mascota mira desde la esquina. Lo más "tangible" y fiel al refugio.'],
+ B:['B · Losa de piedra grabada','Una losa tallada con borde verde de Orgánica II ocupa el centro; todo se "graba" ahí. La mascota habla desde el piso. Más sobrio y legible, parecido a los letreros del pasillo.'],
+ C:['C · Cristal-pantalla','Un cristal gigante del ramo es la pantalla: el contenido aparece dentro de su luz. Mascota grande a la izquierda con globo. Lo más mágico y cinematográfico, menos "mesa".']};
+const grid=document.getElementById('grid');
+['A','B','C'].forEach(v=>{const col=document.createElement('div');col.className='col';col.innerHTML=`<h2>${info[v][0]}</h2><p>${info[v][1]}</p>`;
+ STEPS.forEach((st,s)=>{const d=document.createElement('div');d.innerHTML=`<div class="step">${st}</div>`;const f=document.createElement('div');f.className='frame';const cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');c.imageSmoothingEnabled=false;({A:drawA,B:drawB,C:drawC})[v](c,s);f.appendChild(cv);
+  const L=LAY[v];const ovs=Array.isArray(L.ov)?L.ov[s]:L.ov;
+  let inner=bodies(s);if(s==2)inner+=game();
+  const o=document.createElement('div');o.className='ov';o.style.cssText=ovs;o.innerHTML=s==2?bodies(s):inner;f.appendChild(o);
+  if(s==2){f.insertAdjacentHTML('beforeend',game())}
+  const b=document.createElement('div');b.className='bubble';b.style.cssText=L.bub;b.textContent=SAY[s];f.appendChild(b);
+  f.insertAdjacentHTML('beforeend','<div class="tag">'+(s==3?'cuenta como demostrado':s==0?'+ pista gratis':'')+'</div>');
+  d.appendChild(f);col.appendChild(d)});grid.appendChild(col)});
+</script></body></html>

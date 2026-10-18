@@ -2,7 +2,14 @@
 (() => {
   'use strict';
   const model=window.NexoAcademicModel;
-  const graph=window.NexoPrerequisites.create(model.concepts,model.prerequisites);
+  // El grafo se reconstruye cuando una clase amplía el catálogo (model.revision).
+  let built=null;
+  const current=()=>{
+    if(!built||built.revision!==model.revision)built={revision:model.revision,graph:window.NexoPrerequisites.create(model.concepts,model.prerequisites)};
+    return built.graph;
+  };
+  const graph={direct:id=>current().direct(id),unlocks:id=>current().unlocks(id),
+    ancestors:(id,strength)=>current().ancestors(id,strength),descendants:(id,strength)=>current().descendants(id,strength)};
   const listeners=new Set();
   const domainEvent=(name,payload)=>({type:name,referenceId:payload.attemptId||payload.id,
     payload:{...payload},requiresServerValidation:true,currencyGranted:0});
@@ -12,7 +19,7 @@
     return event;
   }
   function subscribe(listener) {listeners.add(listener);return ()=>listeners.delete(listener);}
-  model.validate();
+  model.validate();current();
   function knowledgeFor(state,conceptId) {
     return window.NexoKnowledge.derive((state.academicIntelligence?.evidence||[])
       .filter(item=>item.conceptId===conceptId));
@@ -35,7 +42,7 @@
     const exercise=model.byId(model.exercises,input.exerciseId);
     if(!exercise||!input.id)throw new Error('invalid_attempt');
     const structured=exercise.validator==='structured_validator';
-    const banked=exercise.validator==='study_bank'; // corrección determinista local (dist/study)
+    const banked=['study_bank','class_item'].includes(exercise.validator); // corrección determinista local (dist/study, clases)
     const checked=structured?window.NexoAcademicStructured?.evaluate(exercise.id.slice('org-01:'.length),input.structuredAnswers):null;
     const outcome=checked?.outcome||input.outcome;
     if(structured&&!checked||!['correct','incorrect'].includes(outcome))throw new Error('invalid_attempt');
@@ -76,7 +83,7 @@
       outcome:attempt.outcome,assistanceUsed:attempt.assistanceUsed,transfer:attempt.transfer,
       examStyle:Boolean(exercise.examStyle),reasoningSupported:Boolean(input.reasoningSupported),
       delayed:Boolean(input.review)&&delayHours>=24,delayHours,at:attempt.attemptedAt,
-      source:structured?'structured_validator':banked?'study_bank':'self_rubric',validationStatus:structured||banked?'verified':'self_reported',
+      source:structured?'structured_validator':banked?exercise.validator:'self_rubric',validationStatus:structured||banked?'verified':'self_reported',
       activityType:attempt.activityType,activityId:attempt.activityId
     });
     if(attempt.outcome==='incorrect') {

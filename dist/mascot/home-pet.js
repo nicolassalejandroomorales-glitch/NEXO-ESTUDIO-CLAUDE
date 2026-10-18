@@ -34,7 +34,8 @@
   }
   const pet = () => {
     const m = api.get() || {};
-    return { kind: KINDS.includes(m.kind) ? m.kind : 'matraz', name: m.name || '', outfit: m.outfit && typeof m.outfit === 'object' ? m.outfit : {} };
+    const kind = KINDS.includes(m.kind) ? m.kind : 'matraz';
+    return { kind, owned: [...new Set([kind, ...(Array.isArray(m.owned) ? m.owned : [])])], name: m.name || '', outfit: m.outfit && typeof m.outfit === 'object' ? m.outfit : {} };
   };
   const petName = () => { const p = pet(); return p.name && p.name !== 'Nexo' ? p.name : NAMES[p.kind]; };
   const reduced = () => api.motion() === 'reduced' || matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -118,11 +119,19 @@
     if (home) home.life.celebrate(Math.max(0, Math.round(atoms) || 0));
   }
 
-  // ——— Perfil › Mascota ———
+  // Retrato animado de tu mascota (Perfil › Vestuario y la carta del Perfil).
+  async function paintBig(canvas) {
+    await engine().catch(() => null);
+    if (!canvas?.isConnected) return;
+    addMini({ canvas, expr: t => EXPRS[Math.floor(t / 2.5) % EXPRS.length], arm: e => e === 'picara' ? 'sixseven' : e === 'feliz' ? 'wave' : 'rest',
+      get outfit() { return pet().outfit; } });
+  }
+
+  // ——— Perfil › Vestuario ———
   async function wireProfile(root) {
     const P = await engine().catch(() => null); if (!P || !root.isConnected) return;
     const pets = root.querySelector('#petPick'), wardrobe = root.querySelector('#petWardrobe'), name = root.querySelector('#petName');
-    pets.innerHTML = P.list.map(([k, l]) => `<button type="button" class="pet-pick" data-kind="${k}" aria-pressed="${k === pet().kind}" style="border:3px solid transparent;border-radius:10px;background:#e9d9b4;color:#3b2418;font-weight:bold;padding:4px;cursor:pointer"><canvas width="40" height="44" style="width:96px;height:106px;display:block;image-rendering:pixelated"></canvas>${l}</button>`).join('');
+    pets.innerHTML = P.list.map(([k, l]) => `<button type="button" class="pet-pick" data-kind="${k}" aria-pressed="${k === pet().kind}"${pet().owned.includes(k) ? '' : ' disabled'} style="border:3px solid transparent;border-radius:10px;background:#e9d9b4;color:#3b2418;font-weight:bold;padding:4px;cursor:pointer${pet().owned.includes(k) ? '' : ';opacity:.5;filter:grayscale(1)'}"><canvas width="40" height="44" style="width:96px;height:106px;display:block;image-rendering:pixelated"></canvas>${l}${pet().owned.includes(k) ? '' : '<small style="display:block">🔒 En la Tienda</small>'}</button>`).join('');
     pets.querySelectorAll('.pet-pick').forEach(b => addMini({ canvas: b.querySelector('canvas'), kind: b.dataset.kind, naked: true }));
     const paintPick = () => pets.querySelectorAll('.pet-pick').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.kind === pet().kind)); b.style.borderColor = b.dataset.kind === pet().kind ? '#e8b65a' : 'transparent'; });
     const big = root.querySelector('#petBig'); let tryOn = null;
@@ -133,7 +142,7 @@
       Object.entries(P.ACCESORIOS).filter(([id, a]) => a.slot === slot && (owned.includes(id) || o[slot] === id)).map(([id]) => `<option value="${id}"${o[slot] === id ? ' selected' : ''}>${esc(P.NOMBRES[id])}</option>`).join('') + '</select></label>').join(''); };
     paintPick(); paintWardrobe();
     name.value = pet().name === 'Nexo' ? '' : pet().name; name.placeholder = NAMES[pet().kind];
-    pets.onclick = e => { const b = e.target.closest('.pet-pick'); if (!b) return; api.set({ kind: b.dataset.kind }); name.placeholder = NAMES[b.dataset.kind]; paintPick(); home?.life.setKind(b.dataset.kind); };
+    pets.onclick = e => { const b = e.target.closest('.pet-pick'); if (!b || b.disabled) return; api.set({ kind: b.dataset.kind }); name.placeholder = NAMES[b.dataset.kind]; paintPick(); home?.life.setKind(b.dataset.kind); };
     name.oninput = () => api.set({ name: name.value.trim().slice(0, 20) });
     wardrobe.onchange = e => { const o = { ...pet().outfit, [e.target.dataset.slot]: e.target.value }; api.set({ outfit: o }); home?.life.setOutfit(o); };
   }
@@ -202,7 +211,7 @@
 
   window.NexoPet = Object.freeze({
     bind(a) { api = { ...api, ...a }; },
-    mountHome, cleanup, renderDock, celebrate, wireProfile, wireShop, checkWeather, kinds: KINDS, names: NAMES,
+    mountHome, cleanup, renderDock, celebrate, paintBig, wireProfile, wireShop, checkWeather, kinds: KINDS, names: NAMES,
     engine, current: pet, reduced   // los usa el mundo de la torre (world/torre-mundo.js)
     , homeSpot: () => home && { x: home.life.state.x, y: home.life.state.y, act: n => home.life.act(n) }   // globo de avisos del Inicio (planner/avisos.js)
   });

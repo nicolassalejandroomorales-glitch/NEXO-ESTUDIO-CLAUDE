@@ -10,6 +10,10 @@
 - Clases de Analítica, Fisiopatología, Orgánica II y FQ II; ejercicios infinitos con regla de calidad.
 - Guía para crear una clase: `docs/clases-estructura/COMO_CREAR_UNA_CLASE.md` y `node tools/new-class.cjs`.
 
+## Clases v2 (18 oct 2026)
+- Paso 1 hecho: 3 versiones visuales de la estación Basicidad (`docs/clases-v2/estacion-basicidad.html`, SPEC en `docs/clases-v2/SPEC.md`). Decidido: mini juego "Atrapa el H⁺", habla la mascota.
+- Elegida la versión C (cristal-pantalla). Falta el paso 2: prototipo jugable de la estación Basicidad (usar bloques de m4, 1440 y 390).
+
 ## Falta
 - Que la clase de Aminas → Basicidad se sienta increíble (corrección real, actividades variadas). Es lo más importante del producto.
 - Revisar las clases hechas en móvil (390 px).
@@ -32,4 +36,11 @@ Si aparece un problema de diseño del motor, no lo resuelvas aquí: anótalo en 
 ```
 Chat: Clases (contenido y aula). Lee CLAUDE.md, la skill nexo-clase y docs/chats/clases.md.
 Parte desde "Falta" del archivo de chat y pregúntame qué sigue.
+```
+
+## Prompt de continuación (Clases v2)
+```
+Chat: Clases v2 (piloto Basicidad). Lee CLAUDE.md, la skill nexo-clase, docs/clases-v2/SPEC.md y docs/aprender-pasillo/SPEC.md.
+Versión visual elegida: C (cristal-pantalla), mini juego "Atrapa el H⁺", habla la mascota. Boceto: docs/clases-v2/estacion-basicidad.html.
+Tarea (paso 2): prototipo jugable de la estación Basicidad (Adivina → Clase → Mini juego → Demuestra) con la química de org-01 m4. Probar en 1440 y 390. Opus para diseñar la estructura, Sonnet para implementar.
 ```
