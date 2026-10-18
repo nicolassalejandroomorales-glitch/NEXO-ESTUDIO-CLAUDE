@@ -1,9 +1,13 @@
-"""Grimorio del tutorial de Nexo (pixel art, v3): libro de cuero abombado con cara, barba de mechones, manitas y marcapáginas, sobre un atril mágico.
+"""Grimorio del tutorial de Nexo (pixel art, v4 por capas): libro de cuero abombado con cara, barba de mechones, manitas y marcapáginas, sobre un atril mágico.
 
-Usa el motor y las rampas del refugio (tools/home-pixel/pixel.py). Cada pose es un cuadro de 68x76 px de arte (se muestra x4).
-Salida:
-  dist/assets/tutorial/grimorio-v1.png        hoja con fondo transparente (5 poses en fila)
-  docs/tutorial/grimorio-v1-preview.png       vista previa x4 sobre fondo del refugio, con nombres
+Usa el motor y las rampas del refugio (tools/home-pixel/pixel.py). Cada pose es un cuadro de 68x76 px de arte (se muestra x4) y se dibuja en CAPAS
+que dist/tutorial/grimorio-vivo.js apila en un canvas, para que la barba ondee, los ojos parpadeen y la boca se mueva por separado:
+  dist/assets/tutorial/grimorio-cuerpo.png   libro, atril, velas, brazos y efectos de la pose (1 columna x 16 poses; incluye 'dormido')
+  dist/assets/tutorial/grimorio-cara.png     ojos, cejas, mejillas y nariz (2 columnas: normal, parpadeo)
+  dist/assets/tutorial/grimorio-barba.png    mechones y bigote (1 columna)
+  dist/assets/tutorial/grimorio-boca.png     boca (3 columnas: cerrada, media, abierta)
+  dist/assets/tutorial/grimorio-capas.json   filas y medidas
+  docs/tutorial/grimorio-expresiones-preview.png   vista previa x2 de las 16 poses apilando las capas
 Uso:  python tools/tutorial-pixel/build_grimorio.py
 """
 import sys
@@ -327,26 +331,12 @@ def boca_fase(c, my, style, phase):
             c.rect(CX - 1, my + 6, CX + 1, my + 7, 'red', 3)
 
 
-def barba(c, ey, p, phase=None):
+def barba(c, ey):
+    """Mechones y bigote (sin boca: la boca es otra capa)."""
     my = ey + 10
     mechon(c, CX - 6, my, 20, 6, -1.5)
     mechon(c, CX + 6, my, 20, 6, 1.5)
     mechon(c, CX, my, 27, 7, 1.2)
-    k = p['mouth']
-    if phase is not None:
-        boca_fase(c, my, k, phase)
-    elif k == 'talk':
-        c.mask(ell(c, CX, my + 4, 3, 2), 'red', 0)
-        c.rect(CX - 1, my + 5, CX + 2, my + 6, 'red', 4)
-    elif k == 'o':
-        c.mask(ell(c, CX, my + 5, 2, 3), 'red', 0)
-        c.rect(CX - 1, my + 6, CX + 1, my + 7, 'red', 3)
-    elif k == 'snore':
-        c.mask(ell(c, CX, my + 4, 2, 1.6), 'red', 0)
-    else:
-        c.rect(CX - 3, my + 4, CX + 4, my + 5, 'clay', 0)
-        c.px(CX - 4, my + 3, 'clay', 0)
-        c.px(CX + 4, my + 3, 'clay', 0)
     yy, xx = c.grid()
     mm = ell(c, CX - 5, my, 6, 2.5) | ell(c, CX + 5, my, 6, 2.5)
     ml = (3 + (yy < my - 1) - (yy > my + 1)).astype(np.float32)
@@ -354,6 +344,18 @@ def barba(c, ey, p, phase=None):
     for sx in (-11, 11):
         c.px(CX + sx, my - 1, 'petal', 4)
         c.px(CX + sx + (1 if sx < 0 else -1), my - 2, 'petal', 3)
+
+
+def boca(c, ey, p, phase):
+    """Boca de la pose; phase None = boca fija (solo 'dormido')."""
+    my = ey + 10
+    k = p['mouth']
+    if phase is not None:
+        boca_fase(c, my, k, phase)
+    elif k == 'snore':
+        c.mask(ell(c, CX, my + 4, 2, 1.6), 'red', 0)
+    else:
+        raise ValueError('boca fija solo para snore: ' + k)
 
 
 def marcapaginas(c, dy, sway):
@@ -521,37 +523,77 @@ def particulas(c):
         c.px(x, y, m, l)
 
 
-# ---------------------------------------------------------------- cuadro
-def cuadro(name, p, phase=None):
-    c = Canvas(W, H)
-    dy = p['dy']
-    atril(c)
-    velas(c)
-    manos(c, p, dy)
-    pagina_con_oreja(c, dy)
-    libro(c, dy)
-    detalles_libro(c, dy)
-    ey = cara(c, p, dy)
-    barba(c, ey, p, phase)
-    marcapaginas(c, dy, 2 if name != 'dormido' else 1 if phase is None else (0, 2, 3)[phase])
-    extras(c, p, dy)
-    efectos_pose(c, p, dy)
-    if p.get('panel'):
-        panel(c, dy, p['panel'] == 'lista')
-    if p.get('excl'):
-        exclamacion(c, dy)
-    if name != 'dormido':
-        particulas(c)
-    if p.get('zz'):
-        zeta(c, BX1 + 9, 12, 6)
-        zeta(c, BX1 + 16, 5, 4)
-    filled = c.mat != 0                                          # contorno exterior oscuro
+# ---------------------------------------------------------------- capas
+DORMIDO = dict(POSES['dormido'])
+POSAS = dict(HABLAR, dormido=DORMIDO)           # 16 poses; 'dormido' va al final
+SWAY = {'dormido': 1}
+
+
+def _contorno(mats):
+    """Contorno oscuro exterior del conjunto; cada capa recibe los píxeles de contorno que tocan lo suyo."""
+    filled = np.zeros_like(mats[0], bool)
+    for m in mats:
+        filled |= m
     pad = np.pad(filled, 1)
-    nb = pad[:-2, 1:-1] | pad[2:, 1:-1] | pad[1:-1, :-2] | pad[1:-1, 2:]
-    edge = nb & ~filled
+    edge = (pad[:-2, 1:-1] | pad[2:, 1:-1] | pad[1:-1, :-2] | pad[1:-1, 2:]) & ~filled
+    out = []
+    for m in mats:
+        q = np.pad(m, 1)
+        out.append(edge & (q[:-2, 1:-1] | q[2:, 1:-1] | q[1:-1, :-2] | q[1:-1, 2:]))
+    return out
+
+
+def _foto(c, edge, post=None):
     c.mat[edge] = c.mid('clay')
     c.lvl[edge] = 0
+    base = np.array(c.render(scale=1))
+    lit = np.array(c.render(scale=1, post=post)) if post else base
+    solid = c.mat != 0
+    if post:
+        diff = np.abs(lit.astype(int) - base.astype(int)).sum(axis=2)
+        alpha = np.where(solid, 255, np.clip(diff * 1.3, 0, 150)).astype(np.uint8)
+    else:
+        alpha = np.where(solid, 255, 0).astype(np.uint8)
+    return Image.fromarray(np.dstack([lit, alpha]), 'RGBA')
 
+
+def capas(name, p):
+    """Devuelve {'cuerpo', 'cara': [normal, parpadeo], 'barba', 'boca': [fase 0..2] o [fija]} de una pose."""
+    dy = p['dy']
+    cuerpo, barbac, ojos0, ojos1 = Canvas(W, H), Canvas(W, H), Canvas(W, H), Canvas(W, H)
+    atril(cuerpo)
+    velas(cuerpo)
+    manos(cuerpo, p, dy)
+    pagina_con_oreja(cuerpo, dy)
+    libro(cuerpo, dy)
+    detalles_libro(cuerpo, dy)
+    marcapaginas(cuerpo, dy, SWAY.get(name, 2))
+    extras(cuerpo, p, dy)
+    efectos_pose(cuerpo, p, dy)
+    if p.get('panel'):
+        panel(cuerpo, dy, p['panel'] == 'lista')
+    if p.get('excl'):
+        exclamacion(cuerpo, dy)
+    if name != 'dormido':
+        particulas(cuerpo)
+    if p.get('zz'):
+        zeta(cuerpo, BX1 + 9, 12, 6)
+        zeta(cuerpo, BX1 + 16, 5, 4)
+    ey = cara(ojos0, p, dy)
+    q = dict(p)
+    cierra = lambda e: 'closed' if e in ('open', 'wide', 'lid') else e
+    q['eye'] = tuple(cierra(e) for e in p['eye']) if isinstance(p['eye'], tuple) else cierra(p['eye'])
+    cara(ojos1, q, dy)
+    barba(barbac, ey)
+    fases = [None] if name == 'dormido' else [0, 1, 2]
+    bocas = []
+    for ph in fases:
+        b = Canvas(W, H)
+        boca(b, ey, p, ph)
+        bocas.append(b)
+
+    masks = [cuerpo.mat != 0, barbac.mat != 0] + [b.mat != 0 for b in bocas]
+    edges = _contorno(masks)
     if name == 'dormido':
         halos = [(CX, LEDGE + 2, 22, '#5072a0', 0.7, 2.6)]
     else:
@@ -571,59 +613,58 @@ def cuadro(name, p, phase=None):
         for (hx, hy, r, col, s, sq) in halos:
             glow(arr, hx, hy, r, col, s, 4, sq)
 
-    base = np.array(c.render(scale=1))
-    lit = np.array(c.render(scale=1, post=post))
-    solid = c.mat != 0
-    diff = np.abs(lit.astype(int) - base.astype(int)).sum(axis=2)
-    alpha = np.where(solid, 255, np.clip(diff * 1.3, 0, 150)).astype(np.uint8)
-    return Image.fromarray(np.dstack([lit, alpha]), 'RGBA')
+    nada = np.zeros((H, W), bool)
+    return {
+        'cuerpo': _foto(cuerpo, edges[0], post),
+        'barba': _foto(barbac, edges[1]),
+        'cara': [_foto(ojos0, nada), _foto(ojos1, nada)],
+        'boca': [_foto(b, e) for b, e in zip(bocas, edges[2:])],
+    }
 
 
 def main():
-    frames = [(n, cuadro(n, p)) for n, p in POSES.items()]
-    sheet = Image.new('RGBA', (W * len(frames), H), (0, 0, 0, 0))
-    for i, (_, im) in enumerate(frames):
-        sheet.paste(im, (i * W, 0))
+    import json
+    names = list(POSAS)
     out = ROOT / 'dist' / 'assets' / 'tutorial'
     out.mkdir(parents=True, exist_ok=True)
-    sheet.save(out / 'grimorio-v1.png')
-
-    S = 4
-    big = sheet.resize((sheet.width * S, sheet.height * S), Image.NEAREST)
-    bg = Image.new('RGBA', (big.width, big.height + 28), hexes('#45302c')[0] + (255,))
-    bg.alpha_composite(big, (0, 0))
-    d = ImageDraw.Draw(bg)
-    for i, (n, _) in enumerate(frames):
-        d.text((i * W * S + 8, big.height + 8), n, fill=(255, 240, 196, 255))
-    bg.convert('RGB').save(ROOT / 'docs' / 'tutorial' / 'grimorio-v1-preview.png')
-    print('ok', sheet.size)
-
-    # hoja de habla: una fila por pose, 3 columnas (cerrada, media, abierta)
-    names = list(HABLAR)
-    hs = Image.new('RGBA', (W * 3, H * len(names)), (0, 0, 0, 0))
-    grid = {}
+    cuerpo = Image.new('RGBA', (W, H * len(names)), (0, 0, 0, 0))
+    cara_ = Image.new('RGBA', (W * 2, H * len(names)), (0, 0, 0, 0))
+    barba_ = Image.new('RGBA', (W, H * len(names)), (0, 0, 0, 0))
+    boca_ = Image.new('RGBA', (W * 3, H * len(names)), (0, 0, 0, 0))
+    todo = {}
     for r, n in enumerate(names):
-        for ph in range(3):
-            im = cuadro(n, HABLAR[n], ph)
-            grid[(n, ph)] = im
-            hs.paste(im, (ph * W, r * H))
-    hs.save(out / 'grimorio-hablar.png')
-    import json
-    (out / 'grimorio-hablar.json').write_text(json.dumps(
-        {'frame': [W, H], 'columnas': ['cerrada', 'media', 'abierta'], 'filas': names,
-         'base': 'grimorio-v1.png (poses sueltas: reposo, senalar, abrir, importante, dormido)'},
+        L = capas(n, POSAS[n])
+        todo[n] = L
+        cuerpo.paste(L['cuerpo'], (0, r * H))
+        for i, im in enumerate(L['cara']):
+            cara_.paste(im, (i * W, r * H))
+        barba_.paste(L['barba'], (0, r * H))
+        for i in range(3):                           # 'dormido' tiene boca fija: se repite en las 3 columnas
+            boca_.paste(L['boca'][min(i, len(L['boca']) - 1)], (i * W, r * H))
+    cuerpo.save(out / 'grimorio-cuerpo.png')
+    cara_.save(out / 'grimorio-cara.png')
+    barba_.save(out / 'grimorio-barba.png')
+    boca_.save(out / 'grimorio-boca.png')
+    (out / 'grimorio-capas.json').write_text(json.dumps(
+        {'frame': [W, H], 'filas': names, 'cara': ['normal', 'parpadeo'], 'boca': ['cerrada', 'media', 'abierta'],
+         'nota': 'dormido es la ultima fila; su boca es fija'},
         ensure_ascii=False, indent=1), encoding='utf-8')
-    # vista previa: cuadricula con la boca abierta (x2) + tira de bocas
-    S2, cols = 2, 5
+
+    S2, cols = 2, 4
     cw, ch = W * S2, H * S2 + 14
     rows_n = (len(names) + cols - 1) // cols
     pv = Image.new('RGBA', (cw * cols, ch * rows_n), hexes('#45302c')[0] + (255,))
     d = ImageDraw.Draw(pv)
     for i, n in enumerate(names):
+        L = todo[n]
+        f = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+        for im in (L['cuerpo'], L['cara'][0], L['barba'], L['boca'][-1]):
+            f.alpha_composite(im)
         x, y = (i % cols) * cw, (i // cols) * ch
-        pv.alpha_composite(grid[(n, 2)].resize((cw, H * S2), Image.NEAREST), (x, y))
+        pv.alpha_composite(f.resize((cw, H * S2), Image.NEAREST), (x, y))
         d.text((x + 6, y + H * S2 + 1), n, fill=(255, 240, 196, 255))
     pv.convert('RGB').save(ROOT / 'docs' / 'tutorial' / 'grimorio-expresiones-preview.png')
+    print('ok', cuerpo.size, cara_.size, boca_.size)
 
 
 if __name__ == '__main__':

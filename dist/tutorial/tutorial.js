@@ -7,7 +7,6 @@
   const asset = p => new URL('../assets/tutorial/' + p, HERE).href;
   const STORE_TEST = 'nexo.tutorial.test.v1', STORE_REAL = 'nexo.tutorial.v1';
   let STORE = STORE_TEST;
-  const ROWS = ['reposo', 'senalar', 'abrir', 'importante', 'feliz', 'sorprendido', 'pensativo', 'triste', 'enojado', 'espiral', 'sudor', 'guino', 'nocreo', 'lista', 'dedo'];
   const KINDS = ['atomo', 'matraz', 'slime'];
   const INFO = {
     atomo:  { nombre: 'Átomo',  pose: 'dedo',        ficha: 'Inteligente. Te corrige con cariño. Probablemente tiene razón.', tono: 620,
@@ -87,7 +86,7 @@
 
   function ensureCss() {
     if (cssLoaded) return; cssLoaded = true;
-    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = new URL('./tutorial.css?v=10', HERE).href; document.head.append(l);
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = new URL('./tutorial.css?v=15', HERE).href; document.head.append(l);
   }
   function ensurePixel() {
     if (window.PixelMascotas) return Promise.resolve(window.PixelMascotas);
@@ -101,7 +100,7 @@
   function ensureMagia() {
     if (window.NexoMagia) return Promise.resolve(window.NexoMagia);
     magiaLoading = magiaLoading || new Promise((ok, fail) => {
-      const s = document.createElement('script'); s.src = new URL('./magia.js?v=4', HERE).href; s.onload = () => ok(window.NexoMagia); s.onerror = fail; document.head.append(s);
+      const s = document.createElement('script'); s.src = new URL('./magia.js?v=5', HERE).href; s.onload = () => ok(window.NexoMagia); s.onerror = fail; document.head.append(s);
     });
     return magiaLoading;
   }
@@ -115,11 +114,20 @@
     return huevosLoading;
   }
 
+  let vivoLoading = null;
+  function ensureVivo() {
+    if (window.NexoGrimorioVivo) return Promise.resolve(window.NexoGrimorioVivo);
+    vivoLoading = vivoLoading || new Promise((ok, fail) => {
+      const s = document.createElement('script'); s.src = new URL('./grimorio-vivo.js?v=1', HERE).href; s.onload = () => ok(window.NexoGrimorioVivo); s.onerror = fail; document.head.append(s);
+    });
+    return vivoLoading;
+  }
+
   let recLoading = null;
   function ensureRecorrido() {
     if (window.NexoRecorrido) return Promise.resolve(window.NexoRecorrido);
     recLoading = recLoading || new Promise((ok, fail) => {
-      const s = document.createElement('script'); s.src = new URL('./recorrido.js?v=13', HERE).href; s.onload = () => ok(window.NexoRecorrido); s.onerror = fail; document.head.append(s);
+      const s = document.createElement('script'); s.src = new URL('./recorrido.js?v=14', HERE).href; s.onload = () => ok(window.NexoRecorrido); s.onerror = fail; document.head.append(s);
     });
     return recLoading;
   }
@@ -148,7 +156,8 @@
       </div>
       <div class="tut-nav"><button class="secondary-btn tut-back" type="button">Atrás</button><button class="primary-btn tut-next" type="button">Siguiente</button></div>`;
     app.append(root);
-    let magia = null, aura = null;
+    let magia = null, aura = null, vivo = null;
+    ensureVivo().then(V => { if (!root.isConnected) return; vivo = V.mount(grim); vivo.set(pose); vivo.talk(typing); }).catch(() => {});
     ensureMagia().then(M => { if (!root.isConnected) return; magia = M.mount(root); if (!reduced()) aura = M.aura(grim); }).catch(() => {});
     const $ = q => root.querySelector(q);
     const sceneEl = $('.tut-scene'), grim = $('.tut-grim'), tagEl = $('.tut-tag'), textEl = $('.tut-text'), box = $('.tut-box'),
@@ -213,20 +222,30 @@
 
     // ——— Grimorio ———
     const px = () => parseFloat(root.style.getPropertyValue('--s')) || 4;
-    const hop = () => grim.animate([{ translate: '0 0' }, { translate: `0 ${-2 * px()}px` }, { translate: '0 0' }], { duration: 150, easing: 'ease-out' });
+    const hop = () => { if (vivo) vivo.kick((Math.random() < .5 ? -1 : 1) * 2.2); grim.animate([{ translate: '0 0' }, { translate: `0 ${-2 * px()}px` }, { translate: '0 0' }], { duration: 150, easing: 'ease-out' }); };
+    // Gesto por emoción: se anima solo translate/rotate/scale (la flotación usa transform, así que no chocan).
+    const GESTOS = {
+      sorprendido: [[{ translate: '0 0', scale: '1 1' }, { translate: '0 -4u', scale: '.92 1.14', offset: .3 }, { translate: '0 0', scale: '1.08 .92', offset: .62 }, { translate: '0 0', scale: '1 1' }], 520],
+      enojado: [[{ rotate: '0deg' }, { rotate: '-4deg' }, { rotate: '4deg' }, { rotate: '-3deg' }, { rotate: '3deg' }, { rotate: '0deg' }], 480],
+      triste: [[{ translate: '0 0', scale: '1 1' }, { translate: '0 2u', scale: '1.03 .94' }, { translate: '0 1u', scale: '1.01 .97' }], 900],
+      feliz: [[{ translate: '0 0' }, { translate: '0 -3u', offset: .22 }, { translate: '0 0', offset: .45 }, { translate: '0 -2u', offset: .7 }, { translate: '0 0' }], 560],
+      guino: [[{ rotate: '0deg' }, { rotate: '8deg', offset: .35 }, { rotate: '0deg' }], 450],
+      pensativo: [[{ rotate: '0deg' }, { rotate: '-5deg', offset: .4 }, { rotate: '3deg', offset: .75 }, { rotate: '0deg' }], 900],
+      espiral: [[{ rotate: '0deg' }, { rotate: '14deg' }, { rotate: '-14deg' }, { rotate: '8deg' }, { rotate: '0deg' }], 760],
+      sudor: [[{ translate: '0 0' }, { translate: '-1u 0' }, { translate: '1u 0' }, { translate: '-1u 0' }, { translate: '0 0' }], 420],
+      nocreo: [[{ rotate: '0deg' }, { rotate: '-8deg' }, { rotate: '8deg' }, { rotate: '-8deg' }, { rotate: '8deg' }, { rotate: '0deg' }], 620],
+      importante: [[{ scale: '1 1' }, { scale: '1.09 1.09', offset: .4 }, { scale: '1 1' }], 380],
+      dedo: [[{ scale: '1 1', rotate: '0deg' }, { scale: '1.06 1.06', rotate: '5deg', offset: .4 }, { scale: '1 1', rotate: '0deg' }], 400],
+      abrir: [[{ scale: '1 1' }, { scale: '1.07 1.07', offset: .4 }, { scale: '1 1' }], 380]
+    };
+    function gesto(name) {
+      const g = GESTOS[name]; if (!g || reduced()) return;
+      grim.animate(g[0].map(k => ({ ...k, translate: k.translate && k.translate.replace(/(-?\d+)u/g, (_, n) => n * px() + 'px') })), { duration: g[1], easing: 'ease-in-out' });
+    }
     function drawGrim(name, col = 0) {
-      if (name !== pose && !reduced()) { grim.classList.remove('pop'); void grim.offsetWidth; grim.classList.add('pop'); if (aura) aura.burst(); }
+      if (name !== pose && !reduced()) { grim.classList.remove('pop'); void grim.offsetWidth; grim.classList.add('pop'); if (aura) { aura.burst(); aura.mood(name); } gesto(name); }
       pose = name;
-      if (name === 'dormido') {
-        grim.style.backgroundImage = `url(${asset('grimorio-v1.png')})`;
-        grim.style.backgroundSize = 'calc(var(--s) * 340px) calc(var(--s) * 76px)';
-        grim.style.backgroundPosition = 'calc(var(--s) * -272px) 0';
-        return;
-      }
-      const row = Math.max(0, ROWS.indexOf(name));
-      grim.style.backgroundImage = `url(${asset('grimorio-hablar.png')})`;
-      grim.style.backgroundSize = `calc(var(--s) * 204px) calc(var(--s) * ${76 * ROWS.length}px)`;
-      grim.style.backgroundPosition = `calc(var(--s) * ${-68 * col}px) calc(var(--s) * ${-76 * row}px)`;
+      if (vivo) { vivo.set(name); vivo.mouth(col); }
     }
     const speakerIsPet = () => steps[s.i].who === 'M';
 
@@ -262,8 +281,8 @@
       box.classList.remove('done', 'susurro', 'tiembla'); if (fx) box.classList.add(fx);
       // Reserva el alto del texto completo (y nunca lo achica entre pasos): así la nube y el botón Siguiente no se mueven mientras se escribe ni al cambiar de paso.
       paint(cur, n, false); textEl.style.minHeight = ''; altoTexto = Math.max(altoTexto, textEl.offsetHeight); textEl.style.minHeight = altoTexto + 'px';
-      let k = 0; typing = true; textEl.textContent = ''; if (aura) aura.talk(who === 'G');
-      if (!reduced()) { box.classList.remove('entra'); void box.offsetWidth; box.classList.add('entra'); }
+      let k = 0; typing = true; textEl.textContent = ''; if (aura) aura.talk(who === 'G'); if (vivo) vivo.talk(who === 'G');
+      if (!reduced()) { box.style.setProperty('--bh', box.offsetHeight + 'px'); box.classList.remove('entra'); void box.offsetWidth; box.classList.add('entra'); }
       const hz = who === 'M' ? INFO[s.kind].tono / 2 : 210;
       const tick = () => {
         if (!alive()) return;
@@ -282,7 +301,7 @@
     }
     function skipType() { clearTimeout(typeTimer); paint(cur, cur.plain.length, false); finishType(); }
     function finishType() {
-      typing = false; box.classList.add('done'); if (aura) aura.talk(false);
+      typing = false; box.classList.add('done'); if (aura) aura.talk(false); if (vivo) vivo.talk(false);
       if (pose !== 'dormido' && !speakerIsPet()) drawGrim(pose, 0);
     }
 
@@ -432,7 +451,7 @@
       talk.classList.toggle('pet', step.who === 'M');
       scene(step.scene);
       if (step.id === 'premio' && api) api.reward();
-      if (step.who === 'M') { grim.style.backgroundImage = 'none'; tagEl.textContent = s.name; say(textOf(step), 'M'); }
+      if (step.who === 'M') { tagEl.textContent = s.name; say(textOf(step), 'M'); }
       else if (step.scene === 'nace') { nace(); }
       else { drawGrim(step.pose); say(textOf(step)); }
       refresh();

@@ -4,8 +4,6 @@
 (() => {
   'use strict';
   const HERE = document.currentScript?.src || new URL('tutorial/recorrido.js', document.baseURI).href;
-  const asset = p => new URL('../assets/tutorial/' + p, HERE).href;
-  const ROWS = ['reposo', 'senalar', 'abrir', 'importante', 'feliz', 'sorprendido', 'pensativo', 'triste', 'enojado', 'espiral', 'sudor', 'guino', 'nocreo', 'lista', 'dedo'];
 
   // Para sumar una pantalla: agrega una sección aquí y un paso { recorrido: '<id>' } en STEPS de tutorial.js.
   const SECCIONES = {
@@ -58,7 +56,7 @@
 
   function ensureCss() {
     if (cssLoaded) return; cssLoaded = true;
-    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = new URL('./recorrido.css?v=1', HERE).href; document.head.append(l);
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = new URL('./recorrido.css?v=2', HERE).href; document.head.append(l);
   }
   const visible = e => { const r = e && e.getBoundingClientRect(); return !!r && r.width > 4 && r.height > 4; };
   const esperar = (sel, ms) => new Promise(ok => {
@@ -80,14 +78,9 @@
     const g = box.querySelector('.rec-grim'), txt = box.querySelector('p'), sig = box.querySelector('.rec-sig'), atras = box.querySelector('.rec-atras');
     let i = 0, token = 0, dir = 1;
 
-    let actual = 'reposo', typeTimer = 0, altoTexto = 0;
-    const pose = (name, col = 0) => {
-      actual = name;
-      const row = Math.max(0, ROWS.indexOf(name));
-      g.style.backgroundImage = `url(${asset('grimorio-hablar.png')})`;
-      g.style.backgroundSize = `calc(var(--s) * 204px) calc(var(--s) * ${76 * ROWS.length}px)`;
-      g.style.backgroundPosition = `calc(var(--s) * ${-68 * col}px) calc(var(--s) * ${-76 * row}px)`;
-    };
+    let actual = 'reposo', typeTimer = 0, altoTexto = 0, vivo = null;
+    const pose = (name, col = 0) => { actual = name; if (vivo) { vivo.set(name); vivo.mouth(col); } };
+    Promise.resolve().then(() => window.NexoLoader.script(new URL('./grimorio-vivo.js?v=1', HERE).href)).then(() => { if (ui && ui.box === box) { vivo = window.NexoGrimorioVivo.mount(g); vivo.set(actual); } }).catch(() => {});
     // Texto letra por letra con el blip del Grimorio (opts.voz) y la boca que se mueve; tocar el globo lo completa.
     const PAUSA = { '…': 380, '.': 280, '?': 280, '!': 260, ':': 220, ',': 170, '—': 170 };
     const escribe = raw => {
@@ -103,7 +96,8 @@
       paint(n); txt.style.minHeight = ''; altoTexto = Math.max(altoTexto, txt.offsetHeight); txt.style.minHeight = altoTexto + 'px';   // reserva el alto: el globo no salta al escribir
       if (reduced()) return;
       let k = 0;
-      const termina = () => { clearTimeout(typeTimer); paint(n); pose(actual, 0); txt.onclick = null; };
+      if (vivo) vivo.talk(true);
+      const termina = () => { clearTimeout(typeTimer); paint(n); pose(actual, 0); if (vivo) vivo.talk(false); txt.onclick = null; };
       txt.onclick = termina;
       const tick = () => {
         k++; paint(k);

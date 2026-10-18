@@ -551,7 +551,7 @@
   // Avisos del Grimorio (dist/tutorial/avisos.js, carga perezosa): primera vez en cada sección si saltaste el tutorial, y novedades.
   const withAvisos = fn => {
     if (window.NexoAvisos) return fn(window.NexoAvisos);
-    const sc = document.createElement('script'); sc.src = 'tutorial/avisos.js?v=1'; sc.onload = () => fn(window.NexoAvisos); document.head.append(sc);
+    const sc = document.createElement('script'); sc.src = 'tutorial/avisos.js?v=2'; sc.onload = () => fn(window.NexoAvisos); document.head.append(sc);
   };
   const checkAvisos = route => {
     if (navigator.webdriver || !state.tutorial || state.tutorial.status === 'pending' || route[0] === 'lesson') return;
@@ -612,7 +612,7 @@
           google: () => cloud.signInWithGoogle({ volver: 'home' }),
           guest: () => { try { localStorage.setItem(ENTRADA_KEY, '1'); } catch (_) {} routeTo('home'); }
         }); };
-        if (window.NexoEntrada) go(); else { const sc = document.createElement('script'); sc.src = 'cuentas/entrada.js?v=2'; sc.onload = go; document.head.append(sc); }
+        if (window.NexoEntrada) go(); else { const sc = document.createElement('script'); sc.src = 'cuentas/entrada.js?v=3'; sc.onload = go; document.head.append(sc); }
       },
       learn: () => route[1] === 'course'
         ? (route[3] === 'lesson' ? (LESSONS[route[4]]?.subject===route[2] ? renderLesson(route[4]) : renderSubjects())
@@ -660,7 +660,7 @@
           finish: () => { state.tutorial.status = 'done'; saveState({ backup: false }); withAvisos(a => { state.tutorial.news = Math.max(state.tutorial.news || 0, a.VERSION); saveState({ backup: false }); }); }
         };
         const go = () => { if (parseRoute()[0] === 'tutorial') window.NexoTutorial.render(app, { mode, api: mode === 'test' ? null : api, sound: () => !!state.settings?.sound, exit: () => routeTo('home') }); };
-        if (window.NexoTutorial) go(); else { const sc = document.createElement('script'); sc.src = 'tutorial/tutorial.js?v=11'; sc.onload = go; document.head.append(sc); }
+        if (window.NexoTutorial) go(); else { const sc = document.createElement('script'); sc.src = 'tutorial/tutorial.js?v=13'; sc.onload = go; document.head.append(sc); }
       }
     };
     try { (renderers[route[0]] || renderHome)(); app.dataset.renderedRoute = route.join('/'); }
@@ -1045,7 +1045,7 @@
     const promise = Promise.resolve(window.NexoClassCatalog || window.NexoLoader.script('./classes/catalog.js?v=8dec702d')).then(() => {
       const file = window.NexoClassCatalog?.[id];
       if (!file) return false;
-      return Promise.all([window.NexoLoader.script('./classes/player.js?v=1b787554'),
+      return Promise.all([window.NexoLoader.script('./classes/player.js?v=d54f576f'),
         window.NexoLoader.script('./classes/willow-tower.js?v=09c21b87').catch(() => null), // Torre del Sauce (etapa 10); sin ella, quedan las hojas en lista
         window.NexoLoader.script(`./classes/${file}?v=19`),
         // Motor de evidencia y repaso espaciado (FSRS); si no cargan, la clase funciona igual sin agendar repasos.

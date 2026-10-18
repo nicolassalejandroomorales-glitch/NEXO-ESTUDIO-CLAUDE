@@ -5,7 +5,7 @@
 .rec-box { --s: 1.5; position: fixed; z-index: 72; left: 16px; width: min(520px, calc(100vw - 32px)); display: flex; align-items: flex-end; gap: 4px; color: #fff0c4; }
 .rec-box[data-pos="bottom"], .rec-box:not([data-pos]) { bottom: 16px; }
 .rec-box[data-pos="top"] { top: 16px; }
-.rec-grim { flex: none; width: calc(var(--s) * 68px); height: calc(var(--s) * 76px); background-repeat: no-repeat; image-rendering: pixelated; }
+.rec-grim { position: relative; flex: none; width: calc(var(--s) * 68px); height: calc(var(--s) * 76px); image-rendering: pixelated; }
 .rec-body { flex: 1; display: grid; gap: 8px; padding: 12px 14px; border: 2px solid #b0743d; border-radius: 10px; background: #1a1226f7; box-shadow: 0 6px 20px #0008; }
 .rec-body p { margin: 0; font-size: .95rem; line-height: 1.45; }
 .rec-body b { color: #ffd870; }

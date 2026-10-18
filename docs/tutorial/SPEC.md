@@ -249,6 +249,25 @@ Niquito: «el tutorial ya está súper bueno»: se da por **aprobado el tono, la
 - **«Hazlo tú» (18 oct):** un paso con `toca: true` deja pasar los toques solo al objetivo (el resto se bloquea) y avanza solo al tocarlo; «Saltar» lo omite. Hoy lo usa Aprender (tocar *Avanzar*). Para sumar otro, usar un `sel` cuyo toque no cambie de pantalla.
 - **Móvil (390, 18 oct):** los carteles del Inicio y «lo que viene» son más altos que la pantalla; el globo va abajo si el objetivo mide más del 60 % del alto y, si no, donde haya más espacio libre. Revisado Inicio, Aprender, Juegos, Organización y Perfil.
 
+## Animación fluida del Grimorio (18 oct 2026, aprobado por Niquito: «hazlo»)
+
+Pedido: movimiento de todo tipo, las 4 magias y pergamino vivo. Se hace en 3 pasos, de menos a más arte:
+
+1. **Magia + pergamino + gestos (solo código, sobre el dibujo actual). HECHO el 18 oct, esperando aprobación de Niquito.**
+   - **Aura según emoción** (`aura.mood(pose)` en `magia.js`): el resplandor y una runa de cada tres cambian de color suave según la pose (sorpresa violeta, enojo rojo, tristeza azul, alegría dorado cálido, duda verde agua).
+   - **Humo** que sube detrás del libro y **brasas** que salen de las dos velas (las llamas por cuadros y su luz ya existían).
+   - **Gestos por emoción** (`gesto(pose)` en `tutorial.js`, WAAPI sobre `translate`/`rotate`/`scale`): salto y estirón al sorprenderse, temblor al enojarse, hundirse al estar triste, dos saltitos al alegrarse, sacudida de «no lo creo», balanceo al pensar, pulso al enfatizar.
+   - **Pergamino vivo:** la nube se desenrolla desde el centro en cada frase (rodillos arriba y abajo que se separan) y queda con sus dos rodillos. La tinta nueva ya brillaba (`tutLetra`).
+   - Con «reducir movimiento»: sin gestos, humo ni desenrollado (quedan los rodillos quietos).
+   - Probado en escritorio y en 390: gestos corriendo, aura que cambia por pose, pergamino que se desenrolla y rodillos sin desbordar la caja. Pendiente visto bueno de Niquito sobre cómo se ve el humo y las brasas.
+   - Aviso aparte: en 390 el documento mide 389 px de ancho (el lienzo `.tut-egg-fx` de los huevos y/o la app se salen ~14 px); no lo causa esta animación. Revisarlo en el tema de los huevos.
+2. **Cuerpo por capas — tanda 1 HECHA (18 oct), esperando aprobación de Niquito.** Decidido con él: empezar por barba + ojos + boca; la boca solo abre y cierra (3 estados); las 15 poses (+ `dormido`) se arman con capas y se borran las hojas viejas.
+   - `build_grimorio.py` ahora saca 4 hojas: `grimorio-cuerpo.png` (libro, atril, velas, brazos y efectos, con el halo de luz), `grimorio-cara.png` (ojos, cejas, mejillas y nariz; columna 2 = parpadeo), `grimorio-barba.png` y `grimorio-boca.png` (3 columnas) + `grimorio-capas.json`. Cada capa lleva su propio contorno oscuro exterior.
+   - `dist/tutorial/grimorio-vivo.js` las apila en un canvas 68×76 (orden: cuerpo, cara, barba, boca): parpadeo automático cada 2–5 s, barba que ondea con inercia en cortes de píxel entero (más la punta; se sacude con cada salto al hablar con `kick`), y boca por letra. Lo usan `tutorial.js`, `recorrido.js`, `avisos.js` y `cuentas/entrada.js`.
+   - Borradas: `grimorio-hablar.png/json` y `grimorio-v1.png`. Con «reducir movimiento» no corre el bucle (solo se dibuja al cambiar de pose o boca).
+   - Falta (tandas 2 y 3): brazos y accesorios como capas, y tapa y páginas del libro (seguirán saliendo del cuerpo hasta entonces).
+3. **Cuadros extra** solo para 3 o 4 poses clave (hablar, sorpresa, enojo, aparecer). Sesión aparte.
+
 ## Pendiente (ideas a futuro, no bloquean)
 - Aparición y avisos ya hechos; las novedades nuevas se agregan en `NEWS` de `dist/tutorial/avisos.js`.
 - Si Niquito cambia los precios de la tienda (`PRICES` en `dist/mascot/home-pet.js`), revisar que 150 ⚛ siga sintiéndose bien.

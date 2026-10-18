@@ -2,14 +2,12 @@
    o seguir como invitado. Se carga solo cuando app.js la pide (ruta #/entrada). Reutiliza el arte y el estilo del tutorial. */
 (function () {
   const HERE = document.currentScript?.src || new URL('cuentas/entrada.js', document.baseURI).href;
-  const asset = p => new URL('../assets/tutorial/' + p, HERE).href;
-  const FEliz = 4, COLS = 3;               // fila "feliz" de grimorio-hablar.png; columnas: boca cerrada, media, abierta
   const TEXTO = 'Antes de abrir la torre: si entras con Google, tu mascota, tus notas y tus repasos te siguen a cualquier celular. Si prefieres no hacerlo, pasa igual; solo que todo queda guardado en este navegador.';
   let cssLoaded = false, magiaLoading = null;
 
   function ensureCss() {
     if (cssLoaded) return; cssLoaded = true;
-    for (const f of ['../tutorial/tutorial.css?v=10', './entrada.css?v=1']) {
+    for (const f of ['../tutorial/tutorial.css?v=15', './entrada.css?v=1']) {
       const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = new URL(f, HERE).href; document.head.append(l);
     }
   }
@@ -49,16 +47,16 @@
     const google = root.querySelector('.ent-google'), guest = root.querySelector('.ent-guest');
 
     grim.innerHTML = '<i class="tut-llama l"></i><i class="tut-llama r"></i>';
-    const draw = col => {
-      grim.style.backgroundImage = `url(${asset('grimorio-hablar.png')})`;
-      grim.style.backgroundSize = 'calc(var(--s) * 204px) calc(var(--s) * 1140px)';
-      grim.style.backgroundPosition = `calc(var(--s) * ${-68 * col}px) calc(var(--s) * ${-76 * FEliz}px)`;
-    };
-    draw(0);
+    let vivo = null, boca = 0;
+    const draw = col => { boca = col; if (vivo) vivo.mouth(col); };
+    Promise.resolve().then(() => window.NexoLoader.script(new URL('../tutorial/grimorio-vivo.js?v=1', HERE).href)).then(() => {
+      if (!root.isConnected) return;
+      vivo = window.NexoGrimorioVivo.mount(grim); vivo.set('feliz'); vivo.mouth(boca); vivo.talk(!!timer);
+    }).catch(() => {});
 
     // Máquina de escribir: la boca del Grimorio se abre y se cierra mientras habla. Un toque en el cuadro la termina.
     let timer = 0, i = 0;
-    const stop = () => { clearInterval(timer); text.textContent = TEXTO; draw(0); };
+    const stop = () => { clearInterval(timer); text.textContent = TEXTO; draw(0); if (vivo) vivo.talk(false); };
     if (reduced) text.textContent = TEXTO;
     else timer = setInterval(() => {
       i += 2; text.textContent = TEXTO.slice(0, i); draw(1 + (i / 2) % 2);

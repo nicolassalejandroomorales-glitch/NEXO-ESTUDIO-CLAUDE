@@ -3,11 +3,6 @@
   68,
   76
  ],
- "columnas": [
-  "cerrada",
-  "media",
-  "abierta"
- ],
  "filas": [
   "reposo",
   "senalar",
@@ -23,7 +18,17 @@
   "guino",
   "nocreo",
   "lista",
-  "dedo"
+  "dedo",
+  "dormido"
  ],
- "base": "grimorio-v1.png (poses sueltas: reposo, senalar, abrir, importante, dormido)"
+ "cara": [
+  "normal",
+  "parpadeo"
+ ],
+ "boca": [
+  "cerrada",
+  "media",
+  "abierta"
+ ],
+ "nota": "dormido es la ultima fila; su boca es fija"
 }
