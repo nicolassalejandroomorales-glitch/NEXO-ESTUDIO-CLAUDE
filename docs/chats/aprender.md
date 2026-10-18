@@ -1,6 +1,6 @@
 # Aprender (Sótano de los Cristales)
 - modelo: Opus 5.5 para dirección de arte y motor; Sonnet 5.5 · alto para portar a la app
-- estado: pasillo, Cámara de Orgánica II y Sala de entrenamiento aprobados en bocetos (17 oct); falta diseñar el laboratorio y llevar todo a la app
+- estado: pasillo, las 4 puertas con sus Cámaras y la Sala de entrenamiento hechos en bocetos (17 oct); falta diseñar el laboratorio y llevar todo a la app
 - fase: desarrollo
 - prioridad: 1
 - spec: docs/aprender-pasillo/SPEC.md
@@ -13,6 +13,7 @@
 - Diseño de la Cámara del ramo (17 oct): cripta circular, una alcoba por tema (mural + estante de frascos = misiones), sauce de cristal al centro = dominio, cristales que se apagan = repasos, todo abierto con cuenta regresiva de la PEP, alcobas veladas para la PEP 2, clase con zoom a la mesa.
 - Formato decidido: híbrido (pasillo pre-renderizado en WebP; Cámara en canvas en vivo).
 - Boceto animado de la Cámara de Orgánica II aprobado (17 oct, `tools/aprender-pasillo/build_camara.py`): llegada desde el remolino, sauce de cristal con una rama por alcoba, alcobas Aminas / Aromáticos / Heterociclos con murales (basicidad, Hückel→SEA, piridina vs pirrol), frascos por misión, cristales de repaso, alcobas veladas de la PEP 2 y "PEP 1 · 10 DÍAS" en el pedestal.
+- Las 4 puertas listas (17 oct): Química Analítica, Fisicoquímica II y Fisiopatología con su animación de entrada (`build_sotano.py puerta-<ramo>`) y su Cámara (`build_camara.py gif <ramo>`), cada una con su color y 3 alcobas de la PEP 1 con murales propios (equilibrio/electrolitos/pila; errores/ácido-base/polipróticos; nervioso/respiratorio/digestivo).
 - Dónde va el resto de Aprender (17 oct): formulario = grimorio en el pedestal del sauce; ejercicios, guías y pruebas antiguas = sala de entrenamiento al fondo del pasillo; errores = grietas brillantes en su alcoba; laboratorio = sala propia del pasillo.
 - Sala de entrenamiento diseñada y boceto aprobado (17 oct, `tools/aprender-pasillo/build_sala.py`): arena circular con yunque de ejercicios (tanda de hoy mezclada), atril de guías, archivo de pruebas antiguas con reloj de arena (simulacro o práctica) y un cristal en bruto al centro que crece con aciertos sin ayuda (hilos de luz).
 

@@ -1,9 +1,9 @@
-"""Cámara de Orgánica II (lo que hay al otro lado del portal): cripta circular de piedra con una alcoba por tema.
+"""Cámara de cada ramo (lo que hay al otro lado del portal): cripta circular de piedra con una alcoba por tema.
 Al centro, un sauce de cristal (cada rama = un concepto: brote, hojas o flor según el dominio). Cada alcoba tiene su mural
 animado, una mesa con un frasco por misión (lleno según la evidencia) y un cristal por concepto que se apaga si toca repasar.
 Usa el mismo estilo y las piezas de build_sotano.py (rampas, cristales, letreros, luz) con otra geometría.
-Salida: docs/aprender-pasillo/camara-organica.gif (y camara-cuadros.png con los cuadros clave).
-Correr: python tools/aprender-pasillo/build_camara.py [gif|cuadros]
+Salida: docs/aprender-pasillo/camara-<ramo>.gif (y camara-cuadros[-<ramo>].png con los cuadros clave).
+Correr: python tools/aprender-pasillo/build_camara.py [gif|cuadros] [organica|fisico|analitica|fisio]
 """
 import math
 import os
@@ -24,27 +24,57 @@ CTR = 0.38                               # profundidad de la mesa del fondo de c
 TOP = 0.12                               # altura de la cubierta de la mesa
 STAND = 0.45                             # distancia al centro desde donde se mira cada alcoba
 TREE_TOP = -1.72
-GREEN = '#b6f070'
 
-# una alcoba por tema de la PEP 1; las de la PEP 2, veladas; atrás, el portal por donde se llega
-ALCOVES = [
-    dict(key='aminas', ang=0, kind='tema', lines=['AMINAS'], hoy=True,
-         jars=[1.0, 1.0, 0.85, 0.6, 0.35, 0.15, 0.0, 0.0], crystals=[1, 1, 0, 1, 0, 1],
-         ramas=['flor', 'flor', 'verde', 'verde', 'brote', 'brote']),
-    dict(key='aromaticos', ang=60, kind='tema', lines=['AROMÁTICOS'], hoy=False,
-         jars=[0.55, 0.25, 0.0, 0.0, 0.0, 0.0], crystals=[1, 0, 1, 1, 1],
-         ramas=['verde', 'brote', 'brote', 'brote', 'brote']),
-    dict(key='heterociclos', ang=-60, kind='tema', lines=['HETEROCICLOS'], hoy=False,
-         jars=[], crystals=[None, None, None, None], ramas=['brote', 'brote', 'brote', 'brote']),
-    dict(key='pep2a', ang=120, kind='velada', lines=['PEP 2', 'EN CAMINO'], ramas=['seca'] * 3),
-    dict(key='pep2b', ang=-120, kind='velada', lines=['PEP 2', 'EN CAMINO'], ramas=['seca'] * 3),
-    dict(key='portal', ang=180, kind='portal', lines=None, ramas=[]),
-]
-for _a in ALCOVES:
-    _r = math.radians(_a['ang'])
-    _a['s'], _a['c'] = math.sin(_r), math.cos(_r)
+# una alcoba por tema de la PEP 1 (sus murales están en murales.CAMARA); las de la PEP 2, veladas; atrás, el portal.
+# jars = frascos por misión (lleno según la evidencia), crystals = 1 al día / 0 toca repasar / None sin empezar,
+# ramas = una por concepto en el sauce (brote, verde, flor). Los números son de ejemplo hasta conectar el motor.
+RAMOS = {
+    'organica': dict(acc='#b6f070', mat='sprout', countdown='PEP 1 · 10 DÍAS', temas=[
+        dict(key='aminas', lines=['AMINAS'], hoy=True, jars=[1.0, 1.0, 0.85, 0.6, 0.35, 0.15, 0.0, 0.0],
+             crystals=[1, 1, 0, 1, 0, 1], ramas=['flor', 'flor', 'verde', 'verde', 'brote', 'brote']),
+        dict(key='aromaticos', lines=['AROMÁTICOS'], hoy=False, jars=[0.55, 0.25, 0.0, 0.0, 0.0, 0.0],
+             crystals=[1, 0, 1, 1, 1], ramas=['verde', 'brote', 'brote', 'brote', 'brote']),
+        dict(key='heterociclos', lines=['HETEROCICLOS'], hoy=False, jars=[], crystals=[None] * 4, ramas=['brote'] * 4)]),
+    'fisico': dict(acc='#b88cf4', mat='arcane', countdown='PEP 1 · 4 DÍAS', temas=[
+        dict(key='fq_equilibrio', lines=['EQUILIBRIO'], hoy=True, jars=[1.0, 0.9, 0.7, 0.4, 0.1, 0.0],
+             crystals=[1, 1, 0, 1, 1], ramas=['flor', 'verde', 'verde', 'brote', 'brote']),
+        dict(key='fq_ionico', lines=['ELECTROLITOS'], hoy=False, jars=[0.6, 0.3, 0.0, 0.0, 0.0],
+             crystals=[1, 0, 1, 1], ramas=['verde', 'brote', 'brote', 'brote']),
+        dict(key='fq_pila', lines=['ELECTRO-', 'QUÍMICA'], hoy=False, jars=[0.2, 0.0, 0.0, 0.0, 0.0],
+             crystals=[0, None, None, None], ramas=['brote'] * 4)]),
+    'analitica': dict(acc='#7fe0f0', mat='crystal', countdown='PEP 1 · 27 DÍAS', temas=[
+        dict(key='ana_errores', lines=['ERRORES'], hoy=True, jars=[1.0, 0.8, 0.5, 0.2, 0.0],
+             crystals=[1, 0, 1, 1], ramas=['flor', 'verde', 'brote', 'brote']),
+        dict(key='ana_acidobase', lines=['ÁCIDO-BASE'], hoy=False, jars=[0.7, 0.4, 0.1, 0.0, 0.0, 0.0],
+             crystals=[1, 1, 0, 1, 1], ramas=['verde', 'verde', 'brote', 'brote', 'brote']),
+        dict(key='ana_polipro', lines=['POLIPRÓTICOS'], hoy=False, jars=[], crystals=[None] * 4, ramas=['brote'] * 4)]),
+    'fisio': dict(acc='#ff8a5a', mat='ember', countdown='PEP 1 · 26 DÍAS', temas=[
+        dict(key='fisio_potencial', lines=['NERVIOSO'], hoy=True, jars=[1.0, 0.85, 0.6, 0.3, 0.0, 0.0],
+             crystals=[1, 1, 0, 1, 0], ramas=['flor', 'verde', 'verde', 'brote', 'brote']),
+        dict(key='fisio_resp', lines=['RESPIRATORIO'], hoy=False, jars=[0.5, 0.2, 0.0, 0.0],
+             crystals=[1, 0, 1, 1], ramas=['verde', 'brote', 'brote', 'brote']),
+        dict(key='fisio_digest', lines=['DIGESTIVO'], hoy=False, jars=[], crystals=[None] * 4, ramas=['brote'] * 4)]),
+}
+RAMO, ACC, ACCMAT, ALCOVES, COUNTDOWN = None, None, None, [], []
 PILLARS = [math.radians(30 + 60 * k) for k in range(6)]
-COUNTDOWN = ['PEP 1 · 10 DÍAS']           # PEP 1 de Orgánica II: 27 oct; el boceto es del 17 oct
+
+
+def set_ramo(key):
+    """Deja la Cámara lista para el ramo `key`: sus alcobas, su color y su cuenta regresiva."""
+    global RAMO, ACC, ACCMAT, ALCOVES, COUNTDOWN
+    cfg = RAMOS[key]
+    RAMO, ACC, ACCMAT, COUNTDOWN = key, cfg['acc'], cfg['mat'], [cfg['countdown']]
+    t = cfg['temas']
+    ALCOVES = [dict(t[0], ang=0, kind='tema'), dict(t[1], ang=60, kind='tema'), dict(t[2], ang=-60, kind='tema'),
+               dict(key='pep2a', ang=120, kind='velada', lines=['PEP 2', 'EN CAMINO'], ramas=['seca'] * 3),
+               dict(key='pep2b', ang=-120, kind='velada', lines=['PEP 2', 'EN CAMINO'], ramas=['seca'] * 3),
+               dict(key='portal', ang=180, kind='portal', lines=None, ramas=[])]
+    for a in ALCOVES:
+        r = math.radians(a['ang'])
+        a['s'], a['c'] = math.sin(r), math.cos(r)
+
+
+set_ramo('organica')
 
 
 def yarch(u):
@@ -174,9 +204,9 @@ def draw_jar(comp, a, d, u, fill, glows, lights):
     ly.rect(nx - k, ny - 0.075 * F / P[2] - k, nx + k + 1, ny - 0.075 * F / P[2] + 1, 'wood', 3.4)
     if fill > 0:
         lit = 3.0 + 2.2 * fill
-        bs.sphere_px(ly, P, 0.068, 'sprout', lit, lights, spec=0.8, rim=0.7, only=lambda dx, dy: dy > 1 - 2 * fill)
+        bs.sphere_px(ly, P, 0.068, ACCMAT, lit, lights, spec=0.8, rim=0.7, only=lambda dx, dy: dy > 1 - 2 * fill)
         if fill >= 0.8:
-            glows.append((sx, sy, rp * 3.2, GREEN, 0.35))
+            glows.append((sx, sy, rp * 3.2, ACC, 0.35))
     yy, xx = np.mgrid[0:H, 0:W]
     ring_ = np.abs(np.hypot((xx + 0.5 - sx) / rp, (yy + 0.5 - sy) / rp) - 0.93) < 0.12
     ly.mask(ring_, 'glass', 4.6)
@@ -267,7 +297,7 @@ def zline(c, zb, A, B, mat, lv, wpx):
 def draw_ramas(c, zb, glows):
     """Sauce de cristal: una rama gruesa por alcoba y de ella cuelgan mimbres con hojas.
     Cada mimbre de un tema es un concepto: su punta y sus hojas muestran el dominio (brote, hojas verdes o flor)."""
-    leafc = {'brote': ('glass', 4.0, 2), 'verde': ('sprout', 5.4, 1), 'flor': ('sprout', 5.8, 1),
+    leafc = {'brote': ('glass', 4.0, 2), 'verde': (ACCMAT, 5.4, 1), 'flor': (ACCMAT, 5.8, 1),
              'relleno': ('glass', 3.2, 1), 'seca': ('crypt', 2.4, 99)}
     for a in ALCOVES:
         dv, L = limb(a)
@@ -309,11 +339,11 @@ def draw_ramas(c, zb, glows):
             s_ = max(1, int(0.06 * F / E[2]))
             if st == 'brote':
                 for j in range(s_ + 1):
-                    zpx(c, zb, ex, ey + j, E[2], 'sprout', 4.6 - j * 0.6)
+                    zpx(c, zb, ex, ey + j, E[2], ACCMAT, 4.6 - j * 0.6)
             elif st == 'verde':
                 for j in range(-s_, s_ + 1):
-                    zpx(c, zb, ex + j, ey + 1, E[2], 'sprout', 5.4 - abs(j) * 0.8)
-                    zpx(c, zb, ex, ey + 1 + abs(j), E[2], 'sprout', 4.4)
+                    zpx(c, zb, ex + j, ey + 1, E[2], ACCMAT, 5.4 - abs(j) * 0.8)
+                    zpx(c, zb, ex, ey + 1 + abs(j), E[2], ACCMAT, 4.4)
             else:
                 pulse = 0.4 * math.sin(bs.TIME * 2.0 + i)
                 for j in range(-s_ - 1, s_ + 2):
@@ -365,7 +395,7 @@ def draw_motes(c, zb):
         if P[2] < 0.6:
             continue
         sx, sy = bs.project(P)
-        zpx(c, zb, sx, sy, P[2], 'crystal' if k % 3 else 'sprout', 6.2)
+        zpx(c, zb, sx, sy, P[2], 'crystal' if k % 3 else ACCMAT, 6.2)
 
 
 def mural_tex(m, pm):
@@ -505,7 +535,7 @@ def build(swirl=0.0, flash=0.0, scale=3):
         c.lock |= frame
         if a['kind'] == 'tema':
             inl = frame & (np.abs(np.hypot(u_ / (AW + 0.04), np.clip(-(Y + 0.55), 0, None) / 0.89) - 1) < 0.035)
-            c.mask(inl, 'sprout', (5.0 if hoy else 3.8) + (1.4 if hoy else 0.6) * bs.PULSE)
+            c.mask(inl, ACCMAT, (5.0 if hoy else 3.8) + (1.4 if hoy else 0.6) * bs.PULSE)
         if a['lines']:
             plate = room_wall & front & (np.abs(u_) < 0.95) & (Y > -1.77) & (Y < -1.47)
             pu = np.clip(((u_ + 0.95) / 1.9 * bs.SIGN_W).astype(int), 0, bs.SIGN_W - 1)
@@ -516,7 +546,7 @@ def build(swirl=0.0, flash=0.0, scale=3):
             c.mask(plate & (code == 1), 'stone', slab + 1.3)
             c.mask(plate & (code == 8), 'stone', np.clip(slab - 2.2, 0.6, 4))
             c.mask(plate & (code == 7), 'stone', slab + 1.6)
-            lmat = 'sprout' if a['kind'] == 'tema' else 'glow'
+            lmat = ACCMAT if a['kind'] == 'tema' else 'glow'
             c.mask(plate & (code == 2), lmat, ((5.2 + 1.4 * bs.PULSE) if hoy else (4.2 + 0.8 * bs.PULSE)) * dimk)
             c.mask(plate & (code == 6), lmat, 2.6 * dimk)
             c.lock |= plate & ((code == 2) | (code == 6))
@@ -534,14 +564,14 @@ def build(swirl=0.0, flash=0.0, scale=3):
                 ty = np.clip(((Y - my0 - 0.04) / (my1 - my0 - 0.08) * AH_).astype(int), 0, AH_ - 1)
                 mc = mural_tex(CAMARA[a['key']](bs.TIME), pm)[ty, tx]
                 c.mask(inner, 'crypt', np.clip(lum * 1.2 + 1.0, 0.6, 2.4).astype(np.float32))
-                for cd, (mat_, lv_) in bs.mural_colors(bs.THEMES['organica']).items():
+                for cd, (mat_, lv_) in bs.mural_colors(bs.THEMES[RAMO]).items():
                     mk = inner & (mc == cd)
                     c.mask(mk, mat_, lv_)
                     c.lock |= mk
                 pc_ = bs.to_cam(wpt(a, R + DEP - 0.05, 0, -0.65))
                 if pc_[2] > 0.8:
                     gx_, gy_ = bs.project(pc_)
-                    glows.append((gx_, gy_, 0.75 * F / pc_[2], GREEN, 0.3 if hoy else 0.18))
+                    glows.append((gx_, gy_, 0.75 * F / pc_[2], ACC, 0.3 if hoy else 0.18))
             # cubierta de la mesa: canto con luz
             ctop = is_ctr & floor & (np.abs(u_) < AW + 0.15) & front
             c.mask(ctop, 'stone', np.clip(lum * 4 + 2.0, 1.6, 5.4).astype(np.float32))
@@ -554,17 +584,17 @@ def build(swirl=0.0, flash=0.0, scale=3):
             lr = np.log(rr + 0.07)
             val = 0.55 + 0.30 * np.sin(3 * theta + 5.0 * lr - bs.TIME * 2.6) + 0.15 * np.sin(14 * lr + bs.TIME * 3.4)
             g = np.clip(1.3 + 3.6 * val + 2.6 * np.exp(-rr ** 2 * 6) - 1.4 * np.clip(rr - 0.9, 0, 1), 0.4, 7).astype(np.float32)
-            c.mask(pm, 'sprout', g)
+            c.mask(pm, ACCMAT, g)
             c.lock |= pm
             pc_ = bs.to_cam(wpt(a, R + DEP - 0.1, 0, -0.35))
             if pc_[2] > 0.8:
                 gx_, gy_ = bs.project(pc_)
-                glows.append((gx_, gy_, 1.0 * F / pc_[2], GREEN, 0.45))
+                glows.append((gx_, gy_, 1.0 * F / pc_[2], ACC, 0.45))
         if a['kind'] == 'tema':
             mouth = bs.to_cam(wpt(a, R, 0, -0.4))
             if mouth[2] > 0.8:
                 gx_, gy_ = bs.project(mouth)
-                glows.append((gx_, gy_, 1.1 * F / mouth[2], GREEN, 0.32 if hoy else 0.14))
+                glows.append((gx_, gy_, 1.1 * F / mouth[2], ACC, 0.32 if hoy else 0.14))
 
     # ----- objetos de lejos a cerca -----
     zb = t.copy()
@@ -629,7 +659,7 @@ def build(swirl=0.0, flash=0.0, scale=3):
         val = 0.55 + 0.30 * np.sin(3 * theta + 5.0 * lr - bs.TIME * 2.6) + 0.15 * np.sin(14 * lr + bs.TIME * 3.4)
         gsw = np.clip(0.2 + 3.4 * val + 3.0 * np.exp(-rr ** 2 * 6) - 1.2 * np.clip(rr - 1.2, 0, 2), 0.2, 7).astype(np.float32)
         sw_m = np.hypot(sx_, sy_) * (0.75 + 0.5 * bay) > (1 - swirl) * 3.2
-        c.mask(sw_m, 'sprout', gsw)
+        c.mask(sw_m, ACCMAT, gsw)
         c.lock |= sw_m
 
     def post(arr):
@@ -644,7 +674,7 @@ def build(swirl=0.0, flash=0.0, scale=3):
             glow(arr, gx, gy, rad, col, s_ * bs.STYLE['glow'], 4)
         arr[...] = 255.0 * (np.clip(arr, 0, 255) / 255.0) ** bs.STYLE['tone']
         if flash > 0:
-            arr[...] = arr * (1 - flash) + np.array([236, 255, 210], np.float32) * flash
+            arr[...] = arr * (1 - flash) + (0.55 * 255 + 0.45 * np.array([int(ACC[i:i + 2], 16) for i in (1, 3, 5)], np.float32)) * flash
     return c.render(scale, post)
 
 
@@ -717,16 +747,17 @@ def cuadros(scale=2):
     sheet = Image.new('RGB', (w * 2, h * 3))
     for k, im in enumerate(imgs):
         sheet.paste(im, ((k % 2) * w, (k // 2) * h))
-    sheet.save(os.path.join(bs.OUT, 'camara-cuadros.png'))
+    sheet.save(os.path.join(bs.OUT, 'camara-cuadros.png' if RAMO == 'organica' else 'camara-cuadros-' + RAMO + '.png'))
 
 
 if __name__ == '__main__':
     os.makedirs(bs.OUT, exist_ok=True)
     which = sys.argv[1] if len(sys.argv) > 1 else 'gif'
+    set_ramo(sys.argv[2] if len(sys.argv) > 2 else 'organica')
     if which == 'cuadros':
         cuadros()
     else:
         fr = render_seq(recorrido())
         pal = [f.convert('P', palette=0, colors=140) for f in fr]
-        pal[0].save(os.path.join(bs.OUT, 'camara-organica.gif'), save_all=True, append_images=pal[1:], duration=[80] * len(pal), loop=0)
+        pal[0].save(os.path.join(bs.OUT, 'camara-' + RAMO + '.gif'), save_all=True, append_images=pal[1:], duration=[80] * len(pal), loop=0)
     print('listo')

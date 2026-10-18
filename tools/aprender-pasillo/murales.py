@@ -31,6 +31,8 @@ FONT = {
     '8': ['.XXX.', 'X...X', '.XXX.', 'X...X', '.XXX.'], '9': ['.XXX.', 'X...X', '.XXXX', '....X', '.XXX.'],
     '-': ['.....', '.....', 'XXXXX', '.....', '.....'], '+': ['.....', '..X..', '.XXX.', '..X..', '.....'],
     '>': ['X....', '.XX..', '...XX', '.XX..', 'X....'], '·': ['...', '...', '.X.', '...', '...'],
+    '=': ['.....', 'XXXXX', '.....', 'XXXXX', '.....'], '<': ['...X.', '..X..', '.X...', '..X..', '...X.'],
+    '.': ['.', '.', '.', '.', 'X'], 'Z': ['XXXXX', '...X.', '..X..', '.X...', 'XXXXX'],
     ' ': ['...', '...', '...', '...', '...'],
 }
 ACCENT = {'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U'}
@@ -576,7 +578,283 @@ def alc_heterociclos(T):
     return L.a
 
 
-CAMARA = {'aminas': alc_aminas, 'aromaticos': alc_aromaticos, 'heterociclos': alc_heterociclos}
+# ---------------------------------------------------------------- Cámara de Fisicoquímica II
+def alc_fq_equilibrio(T):
+    """[A] baja y [B] sube hasta que Q = K; al agregar A el sistema se corre (Le Chatelier) y vuelve al equilibrio."""
+    L = Lienzo(AW_, AH_)
+    L.title('EQUILIBRIO')
+    L.line(8, 56, 90, 56, 1)
+    L.line(8, 56, 8, 14, 1)
+    q = (T % 12) / 10
+    xp = 58
+
+    def conc(x):
+        if x < xp:
+            e = math.exp(-(x - 8) / 10)
+            return 0.35 + 0.6 * e, 0.65 * (1 - e)
+        e = math.exp(-(x - xp) / 7)
+        return 0.45 + 0.25 * e, 0.65 + 0.12 * (1 - e)
+    xe = 8 + min(q, 1.0) * 82
+    prev = None
+    for x in range(9, int(xe) + 1):
+        a, b = conc(x)
+        pa, pb = (x, 56 - a * 38), (x, 56 - b * 38)
+        if prev:
+            L.line(prev[0][0], prev[0][1], pa[0], pa[1], 2, 2)
+            L.line(prev[1][0], prev[1][1], pb[0], pb[1], 7, 2)
+        prev = (pa, pb)
+    if prev:
+        L.circle(prev[0][0], prev[0][1], 1.8, 3, fill=True)
+        L.circle(prev[1][0], prev[1][1], 1.8, 3, fill=True)
+    L.text(80, 12, 'A', 2)
+    L.text(87, 12, 'B', 7)
+    if xe > xp:
+        L.line(xp, 15, xp, 55, 1, dash=2)
+        L.text(xp - 6, 14, '+A', 4)
+    if xe < 34:
+        msg, col = 'Q < K', 1
+    elif xe < xp or xe > xp + 22:
+        msg, col = 'Q = K', 2
+    else:
+        msg, col = 'Q < K', 4
+    L.text(30, 62, msg, col)
+    return L.a
+
+
+def alc_fq_ionico(T):
+    """La sal se disuelve en iones y cada catión queda rodeado de su atmósfera iónica (por eso la actividad no es la concentración)."""
+    L = Lienzo(AW_, AH_)
+    L.title('ELECTROLITOS')
+    q = (T % 10) / 10
+    rg = np.random.RandomState(6)
+    for i in range(3):
+        for j in range(3):
+            k = i * 3 + j
+            x0, y0 = 14 + j * 9, 22 + i * 9
+            tx, ty = 6 + rg.rand() * 36, 14 + rg.rand() * 40
+            u = ease(q * 1.6 - k * 0.06)
+            x = x0 + (tx - x0) * u + 1.2 * math.sin(T * 2 + k) * u
+            y = y0 + (ty - y0) * u + 1.2 * math.cos(T * 1.7 + k) * u
+            L.circle(x, y, 2.0, 4 if (i + j) % 2 == 0 else 7, fill=True)
+    L.line(48, 13, 48, 56, 1, dash=2)
+    cx, cy = 71, 35
+    L.circle(cx, cy, 13, 1)
+    L.circle(cx, cy, 3.6, 4, fill=True)
+    for k in range(6):
+        a = T * 0.9 + k * math.pi / 3
+        L.circle(cx + 12 * math.cos(a), cy + 12 * math.sin(a), 1.7, 7, fill=True)
+    for k in range(3):
+        a = -T * 0.6 + k * 2 * math.pi / 3
+        L.circle(cx + 19 * math.cos(a), cy + 17 * math.sin(a), 1.4, 4, fill=True)
+    L.text(12, 62, 'SAL', 2)
+    L.text(42, 62, 'ATMÓSFERA', 1)
+    return L.a
+
+
+def alc_fq_pila(T):
+    """Pila de Daniell: el zinc se oxida, los electrones viajan por el cable al cobre y el voltímetro marca 1.1 V."""
+    L = Lienzo(AW_, AH_)
+    L.title('PILA')
+    for x0, sol in ((8, 1), (60, 7)):
+        L.poly([(x0, 30), (x0 + 28, 30), (x0 + 28, 58), (x0, 58)], 1)
+        for y in range(40, 58, 3):
+            L.line(x0 + 1, y, x0 + 27, y, sol)
+    for y in range(23, 55):
+        L.line(19, y, 23, y, 3 if y % 6 else 1)
+        L.line(73, y, 77, y, 4)
+    L.line(21, 22, 21, 16, 1)
+    L.line(21, 16, 75, 16, 1)
+    L.line(75, 16, 75, 22, 1)
+    L.circle(48, 16, 4.5, 2, fill=False)
+    ang = -math.pi / 2 + 0.6 + 0.08 * math.sin(T * 3)
+    L.line(48, 16, 48 + 3.5 * math.cos(ang), 16 + 3.5 * math.sin(ang), 4)
+    L.text(39, 22, '1.1V', 2)
+    path = [(21, 22), (21, 16), (75, 16), (75, 22)]
+    lens = [6, 54, 6]
+    for k in range(4):
+        dpos = (T * 22 + k * 16.5) % 66
+        for (a, b), ln in zip(zip(path[:-1], path[1:]), lens):
+            if dpos <= ln:
+                f = dpos / ln
+                L.circle(a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, 1.2, 3, fill=True)
+                break
+            dpos -= ln
+    L.line(30, 40, 30, 30, 1, 2)
+    L.line(30, 30, 66, 30, 1, 2)
+    L.line(66, 30, 66, 40, 1, 2)
+    for k in range(2):
+        f = (T * 0.6 + k * 0.5) % 1
+        L.text(int(24 + f * 8), int(44 + f * 8), '+', 4)
+    L.text(12, 62, 'ZN', 2)
+    L.text(26, 62, '-', 5)
+    L.text(68, 62, 'CU', 2)
+    L.text(82, 62, '+', 4)
+    return L.a
+
+
+# ---------------------------------------------------------------- Cámara de Química Analítica
+def alc_ana_errores(T):
+    """Dos dianas: a la izquierda tiros agrupados pero corridos (error sistemático); a la derecha, dispersos en torno al centro (aleatorio)."""
+    L = Lienzo(AW_, AH_)
+    L.title('ERRORES')
+    n = min(8, int((T % 10) * 1.1))
+    rg = np.random.RandomState(11)
+    for cx, sx, sy, spread in ((25, 6.5, -5.5, 1.6), (71, 0.0, 0.0, 7.0)):
+        for r in (13, 9, 5):
+            L.circle(cx, 35, r, 1)
+        L.circle(cx, 35, 1.6, 2, fill=True)
+        for k in range(8):
+            ox, oy = rg.randn() * spread, rg.randn() * spread
+            if k < n:
+                col = 4 if (k == n - 1 and int(T * 4) % 2) else 5
+                L.circle(cx + sx + ox, 35 + sy + oy, 1.1, col, fill=True)
+        if n >= 8 and sx:
+            L.line(cx, 35, cx + sx, 35 + sy, 4)
+    L.text(4, 62, 'SISTEM.', 2)
+    L.text(56, 62, 'ALEAT.', 7)
+    return L.a
+
+
+def alc_ana_acidobase(T):
+    """H+ y OH- se encuentran y forman agua; el pH-metro sube y el indicador vira al pasar 7."""
+    L = Lienzo(AW_, AH_)
+    L.title('NEUTRALIZACIÓN')
+    for k, y in enumerate((15, 27, 39)):
+        u = (T * 0.35 + k * 0.33) % 1
+        if u < 0.6:
+            f = ease(u / 0.6)
+            L.text(int(4 + 30 * f), y, 'H+', 4)
+            L.text(int(78 - 28 * f), y, 'OH', 7)
+            L.text(int(78 - 28 * f) + 12, y - 2, '-', 7)
+        else:
+            L.text(40, y, 'H2O', 3 if u < 0.8 else 1)
+    v = 2 + 10 / (1 + math.exp(-((T % 12) - 6) * 1.2))
+    L.poly([(26, 50), (70, 50), (70, 66), (26, 66)], 1)
+    L.text(30, 56, 'PH', 1)
+    L.text(44, 56, '%.1f' % v, 6 if v > 7 else 2)
+    return L.a
+
+
+def alc_ana_polipro(T):
+    """Curva de un ácido diprótico: dos saltos (dos puntos de equivalencia) y dos zonas tampón donde pH = pKa."""
+    L = Lienzo(AW_, AH_)
+    L.title('POLIPRÓTICOS')
+    L.line(8, 58, 90, 58, 1)
+    L.line(8, 58, 8, 13, 1)
+
+    def ph(v):
+        return 2 + 4.5 / (1 + math.exp(-(v - 0.4) * 30)) + 5 / (1 + math.exp(-(v - 0.8) * 30))
+    q = min((T % 12) / 10, 1.0)
+    prev = None
+    for i in range(int(q * 100) + 1):
+        v = i / 100
+        p = (9 + v * 80, 58 - ph(v) * 3.4)
+        if prev:
+            L.line(prev[0], prev[1], p[0], p[1], 7 if v < 0.8 else 6, 2)
+        prev = p
+    if prev:
+        L.circle(prev[0], prev[1], 1.8, 3, fill=True)
+    for v, lab in ((0.2, 'PK1'), (0.6, 'PK2')):
+        if q > v:
+            x, y = 9 + v * 80, 58 - ph(v) * 3.4
+            L.circle(x, y, 1.6, 4, fill=True)
+            L.text(int(x) - 7, int(y) - 9, lab, 4)
+    L.text(70, 62, 'H2A' if q < 0.4 else ('HA-' if q < 0.8 else 'A2-'), 2)
+    L.text(10, 62, 'V', 1)
+    return L.a
+
+
+# ---------------------------------------------------------------- Cámara de Fisiopatología
+def alc_fisio_potencial(T):
+    """Potencial de acción: reposo en -70, entra Na+ (sube a +30), sale K+ (baja), hiperpolariza y vuelve al reposo."""
+    L = Lienzo(AW_, AH_)
+    L.title('POTENCIAL')
+    L.line(22, 58, 22, 13, 1)
+    L.line(22, 46, 92, 46, 1, dash=2)
+    L.line(22, 40, 92, 40, 1, dash=1)
+
+    def mv(v):
+        if v < 0.25:
+            return 46
+        if v < 0.33:
+            return 46 - 30 * ease((v - 0.25) / 0.08)
+        if v < 0.5:
+            return 16 + 38 * ease((v - 0.33) / 0.17)
+        if v < 0.75:
+            return 54 - 8 * ease((v - 0.5) / 0.25)
+        return 46
+    q = min((T % 10) / 8, 1.0)
+    prev = None
+    for i in range(int(q * 160) + 1):
+        v = i / 160
+        p = (23 + v * 68, mv(v))
+        if prev:
+            L.line(prev[0], prev[1], p[0], p[1], 4 if 0.25 <= v < 0.33 else (7 if 0.33 <= v < 0.5 else 5), 2)
+        prev = p
+    if prev:
+        L.circle(prev[0], prev[1], 1.8, 3, fill=True)
+    if q > 0.3:
+        L.text(28, 20, 'NA+', 4)
+    if q > 0.45:
+        L.text(58, 26, 'K+', 7)
+    L.text(2, 44, '-70', 1)
+    L.text(2, 14, '+30', 1)
+    L.text(12, 62, 'UMBRAL', 1)
+    return L.a
+
+
+def alc_fisio_resp(T):
+    """Alvéolo que respira junto a un capilar: el O2 pasa a la sangre y el CO2 sale; los glóbulos se ponen rojos al pasar."""
+    L = Lienzo(AW_, AH_)
+    L.title('ALVÉOLO')
+    r = 15 + 1.6 * math.sin(T * 1.4)
+    L.circle(32, 38, r, 2)
+    L.circle(32, 38, r - 1, 2)
+    L.line(60, 12, 60, 64, 5)
+    L.line(76, 12, 76, 64, 5)
+    for k in range(5):
+        y = 12 + (T * 9 + k * 11) % 52
+        L.circle(68, y, 2.2, 5 if y > 36 else 1, fill=True)
+    for k in range(3):
+        f = (T * 0.5 + k / 3) % 1
+        L.circle(40 + 20 * f, 30 + 2 * math.sin(k + T), 1.2, 7, fill=True)
+        g = (T * 0.5 + k / 3 + 0.17) % 1
+        L.circle(60 - 20 * g, 46 + 2 * math.cos(k + T), 1.2, 4, fill=True)
+    L.text(44, 20, 'O2', 7)
+    L.text(40, 52, 'CO2', 4)
+    L.text(12, 62, 'AIRE', 1)
+    L.text(58, 66, 'SANGRE', 5)
+    return L.a
+
+
+def alc_fisio_digest(T):
+    """Peristalsis: una onda de contracción recorre el tubo y empuja el bolo hacia adelante."""
+    L = Lienzo(AW_, AH_)
+    L.title('PERISTALSIS')
+    wx = 2 + (T * 16) % 110
+    prev = None
+    for x in range(4, 92):
+        r = 10 - 6 * math.exp(-((x - wx) / 6) ** 2)
+        p = (x, 36 - r, 36 + r)
+        if prev:
+            L.line(prev[0], prev[1], p[0], p[1], 2)
+            L.line(prev[0], prev[2], p[0], p[2], 2)
+        prev = p
+    bx = min(max(wx + 12, 12), 80)
+    for dy in range(-5, 6):
+        half = math.sqrt(max(0, 1 - (dy / 6) ** 2)) * 8
+        L.line(bx - half, 36 + dy, bx + half, 36 + dy, 4)
+    for k in range(4):
+        L.px(10 + (T * 7 + k * 23) % 80, 36 + 6 * math.sin(T + k), 3)
+    L.text(int(bx) - 11, 50, 'BOLO', 4)
+    L.text(4, 62, 'ESÓFAGO', 1)
+    return L.a
+
+
+CAMARA = {'aminas': alc_aminas, 'aromaticos': alc_aromaticos, 'heterociclos': alc_heterociclos,
+          'fq_equilibrio': alc_fq_equilibrio, 'fq_ionico': alc_fq_ionico, 'fq_pila': alc_fq_pila,
+          'ana_errores': alc_ana_errores, 'ana_acidobase': alc_ana_acidobase, 'ana_polipro': alc_ana_polipro,
+          'fisio_potencial': alc_fisio_potencial, 'fisio_resp': alc_fisio_resp, 'fisio_digest': alc_fisio_digest}
 
 
 # ---------------------------------------------------------------- Sala de entrenamiento (murales de estación)
