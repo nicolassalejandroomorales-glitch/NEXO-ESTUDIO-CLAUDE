@@ -1,18 +1,18 @@
 ---
 name: nexo-juegos
-description: Juegos de Nexo (#/games, campaña "Camino a la PEP 1", jefes, desafíos, música de combate). Úsala antes de tocar dist/games/, dist/game/manager.js o renderGames en app.js.
+description: Juegos de Nexo (nuevo juego dentro de Aprender, cargador de juegos, #/games). Úsala antes de tocar dist/game/manager.js, renderGames en app.js o crear un juego.
 ---
 
 # Juegos de Nexo
 
-## Leer primero
-- `docs/juegos/SPEC.md` (área general) y `docs/juegos-batalla/SPEC.md` (campaña PEP 1, la que está en curso).
+## Estado (18 oct 2026)
+- El juego anterior (campaña "Camino a la PEP 1", Phaser aparte en `dist/games/`) **se borró** (Niquito: "no me gusta"). Su código sigue en el historial de Git (commit anterior al borrado).
+- El juego nuevo va **dentro de Aprender** (el rediseño de las puertas): bichos que aparecen de repente, como en Vampire Crawlers, y tarjetas. Diseño por conversar con Niquito antes de programar; cuando exista, su SPEC irá en `docs/juegos/SPEC.md`.
+- Material reutilizable: `docs/juegos-batalla/ENEMIGOS.md` (fichas de bichos) y los tipos de desafío descritos en `docs/juegos-batalla/SPEC.md`. Solo como inspiración; la campaña vieja ya no existe.
 
 ## Archivos
-- `dist/games/pep1/`: `juego.js` (combate), `desafios.js` (tipos de pregunta), `contenido.js` (preguntas, se editan aquí), `moleculas.js`, `arte.js`, `audio.js`, `index.html`.
-- Abrir: `http://127.0.0.1:8765/games/pep1/index.html` · `?todo=1` desbloquea todos los jefes.
 - `dist/game/manager.js` (`window.NexoGame`): `register`, `loadGame`, `pauseGame`, `destroyGame`. Phaser se carga solo al abrir un juego que lo use.
-- `dist/app.js` → `renderGames()`: solo conectar, cambio mínimo. Pendiente: conectar la campaña a `#/games`.
+- `dist/app.js` → `renderGames()`: sala "Arcade arcano" con tarjetas "Próximamente"; el portal de la torre ya no lleva a ningún juego.
 - Prueba: `node tools/game-test.cjs`.
 
 ## Reglas (aprendizaje primero)
@@ -21,7 +21,7 @@ description: Juegos de Nexo (#/games, campaña "Camino a la PEP 1", jefes, desaf
 - **Velocidad, racha, esquivar o XP nunca suben el estado de conocimiento.** Puntos y monedas son solo cosméticos.
 - Con pista o reintento = práctica con ayuda (daño ×0,5).
 - El juego elige el desafío; nunca el mismo tipo dos veces seguidas (práctica intercalada); si fallas un tema, vuelve en otro formato.
-- Preguntas desde la pauta real de la PEP 1 2025; si algo no está en la fuente, no inventarlo.
+- Preguntas desde las fuentes reales de cada clase (diapositiva o pauta); si algo no está en la fuente, no inventarlo.
 - Música y arte originales: no citar obras ni copiar personajes conocidos.
 - Progreso en `localStorage` solo como comodidad. Nada de Supabase.
 

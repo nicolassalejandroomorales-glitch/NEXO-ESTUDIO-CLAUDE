@@ -19,7 +19,6 @@ const EXCLUDE = [
   'assets/classes/org-01/slides', // diapositivas reales del PPT de Aminas
   'classes/slides',               // mapa de esas diapositivas (la clase ya lo ignora si falta)
   'dev',                          // demos y hojas de revisión internas
-  'games/prototipos',             // prototipos sueltos, no hacen falta en la beta
   'vendor/pdfjs', 'vendor/posthog', 'vendor/rive',
   ...(conNube ? [] : ['vendor/supabase'])
 ];

@@ -549,7 +549,7 @@ def build_world():
     cabinet(478, 'hunter', 'Error Hunter', scr_hunter, 'red', 'Error Hunter: próximamente')
     cabinet(526, 'blitz', 'Blitz', scr_blitz, 'rune', 'Blitz: próximamente')
 
-    # Portal de la campaña (Camino a la PEP 1 / Boss Arena)
+    # Portal del juego nuevo (aún sin juego)
     PCX, PTOP = 628, 34
     prx = 26
     outer = (np.hypot((xx - PCX) / (prx + 7), (yy - (PTOP + prx)) / (prx + 7)) <= 1) | (
@@ -573,8 +573,8 @@ def build_world():
     s.anim['portal'] = {'cx': PCX, 'cy': PTOP + prx + 14, 'r': prx}
     s.torch(PCX - prx - 18, 60)
     s.torch(PCX + prx + 14, 60)
-    s.obj('campaign', 'Portal: Camino a la PEP 1', 'games', (PCX - prx - 8, PTOP - 12, PCX + prx + 9, FLOOR_Y), (PCX, 124),
-          'game', game='campaign', say='¡Al Camino a la PEP 1!')
+    s.obj('campaign', 'Portal: juego nuevo', 'games', (PCX - prx - 8, PTOP - 12, PCX + prx + 9, FLOOR_Y), (PCX, 124),
+          'game', game='campaign', say='Aquí llegará un juego nuevo')
 
     # Rincón: mesa redonda con dados y cartas + tablero de puntajes
     TX = 726

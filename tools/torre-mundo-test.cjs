@@ -60,7 +60,6 @@ function png2(file) { const b = fs.readFileSync(path.join(dist, 'assets/torre', 
 const objs = Object.values(json).flatMap(m => m.objects).concat(lab.objects);
 for (const m of modes) assert.ok(objs.some(o => o.mode === m), `modo ${m} sin objeto en la sala`);
 for (const t of tabs) assert.ok(objs.some(o => o.tab === t), `pestaña ${t} sin objeto en la habitación`);
-assert.ok(fs.existsSync(path.join(dist, 'games/pep1/index.html')), 'el portal lleva a la campaña');
 assert.ok(read('startup-bundle.js').includes('/* world/torre-mundo.js */'), 'torre-mundo.js va en el arranque');
 assert.ok(read('mascot/pixel-vida.js').includes('walkTo('), 'PixelVida tiene modo manual');
 console.log(`Mundo de la torre: ${objs.length} objetos revisados.`);

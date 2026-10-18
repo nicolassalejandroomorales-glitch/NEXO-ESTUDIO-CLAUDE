@@ -314,7 +314,6 @@
     const card = document.querySelector(`[data-game-card="${o.game}"]`);
     if (o.game === 'campaign') {
       say(W, o.say); W.life.act('deslumbrada');
-      setTimeout(() => { location.href = 'games/pep1/index.html'; }, W.reduced ? 200 : 1300);
       return;
     }
     say(W, o.say); W.life.act('nerviosa');
