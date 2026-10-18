@@ -57,6 +57,16 @@ Hoy el "Centro de estudio" (`renderPractice` en `app.js`) tiene Ejercicios, Guí
 - Recorrido: sale del remolino mirando el sauce y, detrás, la alcoba de hoy → rodea el sauce → frente a Aminas → un toque = se acerca a la mesa → gira a Aromáticos → Heterociclos → alcoba velada.
 - Correr: `python tools/aprender-pasillo/build_camara.py` → `docs/aprender-pasillo/camara-organica.gif` (~6 min; no se sube a git). `... build_camara.py cuadros` → `camara-cuadros.png` con 6 cuadros clave en segundos (para revisar sin el GIF).
 
+## Sala de entrenamiento (diseño y boceto animado, 17 oct, aprobado: "me encanta")
+Al fondo del pasillo, para todos los ramos: Ejercicios, Guías y Pruebas antiguas. Decisiones de Niquito (selección múltiple):
+- **Forma: arena circular** abovedada (misma cripta que la Cámara), 4 nichos a 90°: **Yunque de ejercicios** al frente, **Atril de guías** a la derecha, **Archivo de pruebas antiguas** a la izquierda y el **arco de entrada** atrás. Letreros y bordes en **dorado** (forja), para distinguirla del verde de Orgánica.
+- **Al centro, un gran cristal en bruto** sobre un pedestal con **"TANDA DE HOY"** grabado. Crece solo con **aciertos sin ayuda**: cada acierto suelta un **hilo de luz** desde la estación hacia el cristal. Idea: se opaca si pasan días sin practicar (FSRS).
+- **Qué practicar: tanda de hoy** (~10 min, mezclada entre temas según errores y cercanía de la PEP; intercalar rinde más que bloques, Rohrer y Taylor 2007). Igual se puede ir a cualquier estación.
+- **Pruebas antiguas en 2 modos**: **Simulacro** (reloj de arena con el tiempo real de la PEP, nota al final) y **Práctica** (sin tiempo, corrige cada pregunta). Hacer pruebas de práctica es de lo que más rinde (Dunlosky y colegas, 2013).
+- Errores: cada fallo deja una **grieta** en la alcoba del tema (Cámara del ramo). Sin combate: los jefes siguen en Juegos.
+- Boceto: `tools/aprender-pasillo/build_sala.py` (geometría propia + piezas de `build_camara.py`/`build_sotano.py`; muebles de piedra como parte del trazado de rayos). Murales de estación en `murales.py` (`SALA`: tanda 4/10 con A-B-C, guía con P1–P6 y barra, PEP 1 · 2024 simulacro/práctica). Recorrido: entra por el pasillo → rodea el cristal → yunque (acierta: chispas, ✓ y hilo de luz) → atril (pasa la hoja) → archivo (cae la arena) → vuelve a mirar el cristal: llegan 3 hilos y crece.
+- Correr: `python tools/aprender-pasillo/build_sala.py` → `sala-entrenamiento.gif` (~5 min, no se sube) · `... cuadros` → `sala-cuadros.png`.
+
 ## Criterios de aceptación (de la prueba)
 - Avanzar, girar y abrir una puerta se ven fluidos y con profundidad real (no "PNG plano").
 - Cada puerta se distingue a primera vista por color, emblema, letrero y murales del ramo; el letrero se lee de frente.
@@ -68,7 +78,7 @@ Hoy el "Centro de estudio" (`renderPractice` en `app.js`) tiene Ejercicios, Guí
 - Cuando Niquito no sabe explicar qué falla: ofrecer **3 versiones lado a lado** y que elija.
 
 ## Pendiente
-- Diseñar (conversando) la **Sala de entrenamiento** del fondo y la **sala de Laboratorio**; luego bocetos. Sumar a la Cámara el grimorio-formulario del pedestal y las grietas de errores.
+- Diseñar (conversando) la **sala de Laboratorio** y bocetarla. Sala de entrenamiento: decidir si el cristal es uno general o uno por ramo, y qué premio da terminar la tanda (¿economía?). Sumar a la Cámara el grimorio-formulario del pedestal y las grietas de errores.
 - Cámara: el tronco del sauce aún se ve en bloques; la fecha de la PEP 2 de Orgánica no está en `semester-2026.js` (las veladas dicen "EN CAMINO").
 - Llevar el pasillo a la app con cuadros pre-renderizados (Sonnet · alto): peso, móvil (390) y escritorio (1440).
 - Pulir: cristales que aún parecen pegados, legibilidad de murales vistos de lado.
