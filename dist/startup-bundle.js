@@ -884,7 +884,9 @@
     let done = false;
     const once = () => { if (done) return; done = true; busy = false; update(); };
     try {
-      document.startViewTransition(once).finished.catch(() => {}).finally(() => { busy = false; });
+      const run = document.startViewTransition(once);
+      run.ready.catch(() => {}); run.updateCallbackDone.catch(() => {}); // si el navegador salta la animación, no es un error
+      run.finished.catch(() => {}).finally(() => { busy = false; });
       setTimeout(once, 800); // si el navegador no alcanza a pintar el cuadro (pestaña oculta), la pantalla igual cambia
     } catch (_) { once(); }
   }
