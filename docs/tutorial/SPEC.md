@@ -244,7 +244,10 @@ Niquito: «el tutorial ya está súper bueno»: se da por **aprobado el tono, la
 - **Cuarta sección: Organización** (`rec-organizacion`, reemplaza los paneles «calendario» y «notas y labs»): pestañas del estudio de planos, plan del día y «lo que viene».
 - **Quinta sección: Perfil** (`rec-perfil`, reemplaza «rangos» y «ajustes»): compañero, rango arcano y botones de Vestuario/Estadísticas/Ajustes. Con esto ya no queda ninguna de las 5 pantallas en panel falso (quedan los paneles de evidencia/espaciado/error con sus estudios, que son dato, no pantalla).
 - Probado en 390 (Inicio y Aprender: pasan los pasos, el halo queda sobre el objetivo y se vuelve al tutorial). Falta: revisar Juegos/Organización/Perfil en 390 con captura, voz por letra y «hazlo tú».
-- No tiene voz por letra ni «hazlo tú» todavía.
+- **Voz por letra (18 oct):** el globo escribe el texto letra por letra con el blip del Grimorio (`opts.voz` = `vozGrimorio` de `tutorial.js`), la boca se mueve y tocar el texto lo completa.
+- **Rehecho sobre el Artifact (18 oct):** Aprender es ahora el *Sótano de los Cristales* (`.sotano-stage`, `.sotano-pad`) y Juegos la sala con 3 máquinas y un portal, todo «Próximamente» (`.torre-scene`, `.games-grid`).
+- **«Hazlo tú» (18 oct):** un paso con `toca: true` deja pasar los toques solo al objetivo (el resto se bloquea) y avanza solo al tocarlo; «Saltar» lo omite. Hoy lo usa Aprender (tocar *Avanzar*). Para sumar otro, usar un `sel` cuyo toque no cambie de pantalla.
+- **Móvil (390, 18 oct):** los carteles del Inicio y «lo que viene» son más altos que la pantalla; el globo va abajo si el objetivo mide más del 60 % del alto y, si no, donde haya más espacio libre. Revisado Inicio, Aprender, Juegos, Organización y Perfil.
 
 ## Pendiente (ideas a futuro, no bloquean)
 - Aparición y avisos ya hechos; las novedades nuevas se agregan en `NEWS` de `dist/tutorial/avisos.js`.
