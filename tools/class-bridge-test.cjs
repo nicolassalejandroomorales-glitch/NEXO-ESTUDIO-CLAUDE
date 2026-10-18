@@ -1,0 +1,50 @@
+// Puente clase → motor académico: catálogo desde la clase, alias, evidencia honesta y grafo sin ciclos.
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const window = { NexoClasses: {}, NexoAcademicReviews: { schedule: async (prior, id, type, attempt, { now }) => ({ id: `${type}:${id}`, targetId: id, targetType: type, dueAt: now.toISOString(), lastAttemptId: attempt.id }) } };
+const context = { window, Date, console };
+for (const file of ['academic/model', 'academic/graph', 'academic/knowledge', 'academic/diagnosis', 'academic/engine', 'classes/org-01', 'academic/class-bridge'])
+  vm.runInNewContext(fs.readFileSync(`dist/${file}.js`, 'utf8'), context, { filename: file });
+const cls = window.NexoClasses['org-01'], engine = window.NexoAcademicEngine, model = engine.model, bridge = window.NexoAcademicBridge;
+const state = { academicIntelligence: { attempts: [], evidence: [], reviewSchedules: [], structuredErrors: [], userSources: [], activeTimeSegments: [] } };
+const api = { getState: () => state, saveState() {} };
+const item = (id, type) => ({ id, type, source: 'catedra-aminas', slide: 18, concept: 'am.pka' });
+const rec = (extra = {}) => ({ id: `x:${Math.random()}`, conceptId: 'am.pka', correct: true, hint: false, retry: false, transfer: false, confidence: 80, at: new Date().toISOString(), ...extra });
+
+(async () => {
+  // 1) Un acierto crea el catálogo de la clase y comparte concepto con el piloto (am.pka = org.pka).
+  await bridge.record(api, cls, item('m4-p1'), rec());
+  assert.equal(model.validate(), true);
+  assert.ok(model.byId(model.concepts, 'am.sales'), 'conceptos propios de la clase');
+  assert.equal(model.byId(model.concepts, 'am.pka'), null, 'am.pka se fusiona con org.pka');
+  assert.equal(state.academicIntelligence.evidence[0].conceptId, 'org.pka');
+  assert.equal(state.academicIntelligence.evidence[0].source, 'class_item');
+  assert.equal(state.academicIntelligence.evidence[0].validationStatus, 'verified');
+  // 2) Prerrequisitos de la clase llegan al grafo (am.equilibrio necesita lo previo) y no hay ciclos.
+  assert.ok(engine.graph.direct('am.equilibrio').length > 0);
+  // 3) Fuente exacta: la diapositiva del ejercicio.
+  const ex = model.byId(model.exercises, 'org-01:m4-p1');
+  assert.ok(ex.sourceIds.includes('org-01.catedra-aminas.s18'));
+  assert.equal(model.byId(model.sources, 'org-01.catedra-aminas.s18').location.page, 18);
+  // 4) Reintentar tras ver la corrección cuenta como ayuda; respuesta escrita queda autoevaluada.
+  await bridge.record(api, cls, item('m4-p2'), rec({ retry: true }));
+  assert.equal(state.academicIntelligence.attempts[0].assistanceUsed, true);
+  await bridge.record(api, cls, item('m4-w1', 'write'), rec());
+  assert.equal(state.academicIntelligence.attempts[0].validationStatus, 'self_reported');
+  // 5) Error con distractor etiquetado queda como equivocación confirmada; idempotente por id.
+  const key = Object.keys(cls.misconceptions)[0];
+  const wrong = rec({ id: 'dup', correct: false, misconception: key });
+  await bridge.record(api, cls, item('m4-p3'), wrong);
+  await bridge.record(api, cls, item('m4-p3'), wrong);
+  assert.equal(state.academicIntelligence.attempts.filter(a => a.id === 'dup').length, 1);
+  assert.equal(state.academicIntelligence.structuredErrors[0].misconceptionId, `org-01.${key}`);
+  // 6) Un generado comparte ejercicio por generador y nivel; transferir es otro ejercicio.
+  const gen = { id: 'gen:pka:2:abc', type: 'choice', source: 'catedra-aminas', concept: 'am.pka', gen: { id: 'pka', level: 2 } };
+  await bridge.record(api, cls, gen, rec());
+  await bridge.record(api, cls, { ...gen, id: 'gen:pka:2:zzz' }, rec());
+  assert.equal(model.exercises.filter(e => e.id === 'org-01:gen:pka:2').length, 1);
+  await bridge.record(api, cls, item('m4-p1'), rec({ transfer: true }));
+  assert.ok(model.byId(model.exercises, 'org-01:m4-p1#t').transfer);
+  console.log('OK: las clases escriben en el motor académico con su catálogo, fuentes y prerrequisitos.');
+})().catch(error => { console.error(error); process.exit(1); });

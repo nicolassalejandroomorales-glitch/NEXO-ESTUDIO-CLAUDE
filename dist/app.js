@@ -898,12 +898,13 @@
   let mascotAcademicSubscribed=false;
   function loadAcademicFoundation() {
     if(!academicFoundation)academicFoundation=['model','graph','diagnosis','knowledge','ranks','classifiers','sources','reviews','structured','engine','library','inspector','explorer','rescue']
-      .reduce((promise,name)=>promise.then(()=>window.NexoLoader.script(`./academic/${name}.js?v=a2a8bd73`)),Promise.resolve())
+      .reduce((promise,name)=>promise.then(()=>window.NexoLoader.script(`./academic/${name}.js?v=25760d4f`)),Promise.resolve())
       .then(()=>{if(!mascotAcademicSubscribed){window.NexoAcademicEngine.subscribe(event=>
         window.NexoMascotController.react(event,app));mascotAcademicSubscribed=true;}})
       .catch(error=>{academicFoundation=null;throw error;});
     return academicFoundation;
   }
+  window.NexoAcademicLoad=loadAcademicFoundation;
   function renderAcademicLibrary() {
     if(window.NexoAcademicLibrary)return window.NexoAcademicLibrary.render(app,{
       getState:()=>state,saveState,showToast,track:(...args)=>cloud.track(...args)});
@@ -965,11 +966,11 @@
     const promise = Promise.resolve(window.NexoClassCatalog || window.NexoLoader.script('./classes/catalog.js?v=8dec702d')).then(() => {
       const file = window.NexoClassCatalog?.[id];
       if (!file) return false;
-      return Promise.all([window.NexoLoader.style('./classes/classroom.css?v=7f1c7bf7'), window.NexoLoader.script('./classes/tower-art.js?v=9099c2df').then(() => window.NexoLoader.script('./classes/player.js?v=4242bf88')),
+      return Promise.all([window.NexoLoader.style('./classes/classroom.css?v=7f1c7bf7'), window.NexoLoader.script('./classes/tower-art.js?v=9099c2df').then(() => window.NexoLoader.script('./classes/player.js?v=5e381d35')),
         window.NexoLoader.script('./classes/willow-tower.js?v=09c21b87').catch(() => null), // Torre del Sauce (etapa 10); sin ella, quedan las hojas en lista
         window.NexoLoader.script(`./classes/${file}?v=18`),
         // Motor de evidencia y repaso espaciado (FSRS); si no cargan, la clase funciona igual sin agendar repasos.
-        window.NexoLoader.script('./classes/evidence.js?v=308f7a40'), window.NexoLoader.script('./classes/molecule.js?v=b3b2e5aa'), window.NexoLoader.script('./classes/editor.js?v=df0be94e'), window.NexoLoader.script('./academic/reviews.js?v=0273ea6c').catch(() => null)])
+        window.NexoLoader.script('./classes/evidence.js?v=308f7a40'), window.NexoLoader.script('./classes/molecule.js?v=b3b2e5aa'), window.NexoLoader.script('./classes/editor.js?v=df0be94e'), window.NexoLoader.script('./academic/class-bridge.js?v=60a96b4e').catch(() => null), window.NexoLoader.script('./academic/reviews.js?v=0273ea6c').catch(() => null)])
         .then(() => Promise.all([window.NexoLoader.script(`./classes/slides/${id}.js?v=268941af`).catch(() => null), // diapositivas reales, si ya se convirtieron
           window.NexoLoader.script(`./classes/${id}-gen.js?v=00c1b5a9`).catch(() => null)])) // generadores de ejercicios (etapa 8), si la clase los tiene
         .then(() => true);
