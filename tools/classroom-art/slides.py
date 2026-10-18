@@ -2,6 +2,7 @@
 
 Uso:  python tools/classroom-art/slides.py org-01 ARCHIVO.pdf [OTRO.pdf ...]
 Con varios PDF se pegan en orden y las diapositivas se numeran seguidas.
+Para usar solo parte de un PDF: ARCHIVO.pdf@10-47 (páginas 10 a 47, ambas incluidas).
 Escribe:
   - dist/assets/classes/<clase>/slides/NN.webp  (una por diapositiva, 1280 px de ancho)
   - dist/classes/slides/<clase>.js              (lista de imágenes; el aula la carga sola si existe)
@@ -28,9 +29,12 @@ def main(class_id, pdfs):
     images = {}
     n = 0
     with tempfile.TemporaryDirectory() as tmp:
-        for pdf in pdfs:
+        for spec in pdfs:
+            pdf, span = spec.rsplit('@', 1) if '@' in spec else (spec, '')
             doc = pymupdf.open(pdf)
-            for page in doc:
+            first, _, last = span.partition('-')
+            lo, hi = (int(first), int(last or first)) if span else (1, len(doc))
+            for page in list(doc)[lo - 1:hi]:
                 n += 1
                 png = Path(tmp) / f'p{n}.png'
                 page.get_pixmap(matrix=pymupdf.Matrix(1.6, 1.6)).save(png)
