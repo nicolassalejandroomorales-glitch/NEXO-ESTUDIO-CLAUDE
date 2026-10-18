@@ -20,6 +20,7 @@ from murales import ACCENT, FONT, MURALES, PH, PW  # noqa: E402
 
 px.RAMPS['crypt'] = px.hexes('#06080e', '#0c101a', '#141a28', '#1e2637', '#2b364f', '#3d4a68', '#566784', '#7587a6', '#9db0cc')
 px.DITHERED.add('crypt')
+px.RAMPS['ember'] = px.hexes('#3a1410', '#6a2014', '#a8341c', '#dc5a2c', '#f48448', '#ffae74', '#ffd6b0', '#fff0e0')   # brasa: el color de Fisiopatología
 
 OUT = os.path.join(ROOT, 'docs', 'aprender-pasillo')
 W, H, F, CX = 320, 200, 140.0, 160.0
@@ -40,7 +41,7 @@ THEMES = {
     'organica': dict(lines=['ORGÁNICA II'], gap='sprout', halo='#b6f070', dots='sprout', leaf='green', leaf_lv=3.6),
     'analitica': dict(lines=['QUÍMICA', 'ANALÍTICA'], gap='crystal', halo='#7fe0f0', dots='crystal', leaf='blue', leaf_lv=4.0),
     'fisico': dict(lines=['FISICOQUÍMICA', 'II'], gap='arcane', halo='#b88cf4', dots='arcane', leaf='lav', leaf_lv=3.6),
-    'fisio': dict(lines=['FISIO-', 'PATOLOGÍA'], gap='flame', halo='#ff8a5a', dots='flame', leaf='red', leaf_lv=3.8),
+    'fisio': dict(lines=['FISIO-', 'PATOLOGÍA'], gap='ember', halo='#ff8a5a', dots='ember', leaf='red', leaf_lv=3.8),
     'futuro': dict(lines=['PRÓXIMO', 'SEMESTRE'], gap='glow', halo='#ffcf70', dots='rune', leaf='blue', leaf_lv=2.0),
 }
 
@@ -1147,34 +1148,36 @@ def anim_giro():
     return seq
 
 
-def anim_puerta():
-    """Llegar a la puerta de Orgánica II, mirarla de frente (un paso atrás para ver letrero y murales), abrir el portal y entrar."""
-    zd = DOORS['M'][0][1]
+def anim_puerta(idx=0):
+    """Llegar a la puerta del ramo `idx`, mirarla de frente (un paso atrás para ver letrero y murales), abrir el portal y entrar."""
+    s, zd, st = DOORS['M'][idx]
     z0 = zd - 1.4
-    key = ('M', 0)
-    d0 = OPEN_DEFAULT['repasos']
+    key = ('M', idx)
+    d0 = OPEN_DEFAULT[st]
+    yaw = s * math.pi / 2
+    xb = -s * 0.65                                           # se para junto a la pared de enfrente
     seq = [(0, z0, 0, 0, None, 0)] * 2
     for i in range(1, 8):
         u = i / 7
         seq.append((0, z0 + 1.4 * ease(u), 0, 1.6 * math.sin(math.pi * u), None, 0))
     for i in range(1, 13):                                   # gira y retrocede hacia la pared de enfrente
         u = ease(i / 12)
-        seq.append((-0.65 * u, zd, math.pi / 2 * u, 0.8 * math.sin(math.pi * i / 12), {key: d0}, 0, 0.0))
-    seq += [(-0.65, zd, math.pi / 2, 0, {key: d0}, 0, 0.0)] * 4
+        seq.append((xb * u, zd, yaw * u, 0.8 * math.sin(math.pi * i / 12), {key: d0}, 0, 0.0))
+    seq += [(xb, zd, yaw, 0, {key: d0}, 0, 0.0)] * 4
     for i in range(1, 7):                                    # levanta la vista hacia el letrero
-        seq.append((-0.65, zd, math.pi / 2, 0, {key: d0}, 0, 0.22 * ease(i / 6)))
-    seq += [(-0.65, zd, math.pi / 2, 0, {key: d0}, 0, 0.22)] * 6
+        seq.append((xb, zd, yaw, 0, {key: d0}, 0, 0.22 * ease(i / 6)))
+    seq += [(xb, zd, yaw, 0, {key: d0}, 0, 0.22)] * 6
     for i in range(1, 7):
-        seq.append((-0.65, zd, math.pi / 2, 0, {key: d0}, 0, 0.22 * (1 - ease(i / 6))))
-    seq += [(-0.65, zd, math.pi / 2, 0, {key: d0}, 0, 0.0)] * 6
+        seq.append((xb, zd, yaw, 0, {key: d0}, 0, 0.22 * (1 - ease(i / 6))))
+    seq += [(xb, zd, yaw, 0, {key: d0}, 0, 0.0)] * 6
     for i in range(1, 13):                                   # se abre el portal
         u = ease(i / 12)
-        seq.append((-0.65, zd, math.pi / 2, 1.4 * math.sin(i * 2.7) * (1 - u), {key: d0 + (1 - d0) * u, 'burst': ('M', 0, u)}, 0, 0.0))
+        seq.append((xb, zd, yaw, 1.4 * math.sin(i * 2.7) * (1 - u), {key: d0 + (1 - d0) * u, 'burst': ('M', idx, u)}, 0, 0.0))
     for i in range(1, 15):                                   # entra
         u = ease(i / 14)
-        seq.append((-0.65 + 1.95 * u, zd, math.pi / 2, 1.2 * math.sin(math.pi * u),
-                    {key: 1.0, 'burst': ('M', 0, 1.0 + u), 'zoom': u}, max(0.0, (u - 0.65) / 0.35) * 0.85, 0.0))
-    seq += [(1.3, zd, math.pi / 2, 0, {key: 1.0, 'zoom': 1.0}, 0.85, 0.0)] * 2
+        seq.append((xb + s * 1.95 * u, zd, yaw, 1.2 * math.sin(math.pi * u),
+                    {key: 1.0, 'burst': ('M', idx, 1.0 + u), 'zoom': u}, max(0.0, (u - 0.65) / 0.35) * 0.85, 0.0))
+    seq += [(s * 1.3, zd, yaw, 0, {key: 1.0, 'zoom': 1.0}, 0.85, 0.0)] * 2
     return seq
 
 
@@ -1207,7 +1210,10 @@ if __name__ == '__main__':
     if which == 'estilos':
         estilos()
         sys.exit(0)
-    jobs = {'pasos': ('sotano-pasos.gif', anim_pasos), 'giro': ('sotano-giro.gif', anim_giro), 'puerta': ('sotano-puerta.gif', anim_puerta)}
+    jobs = {'pasos': ('sotano-pasos.gif', anim_pasos), 'giro': ('sotano-giro.gif', anim_giro), 'puerta': ('sotano-puerta.gif', anim_puerta),
+            'puerta-analitica': ('sotano-puerta-analitica.gif', lambda: anim_puerta(1)),
+            'puerta-fisico': ('sotano-puerta-fisico.gif', lambda: anim_puerta(2)),
+            'puerta-fisio': ('sotano-puerta-fisio.gif', lambda: anim_puerta(3))}
     for k, (fn, af) in jobs.items():
         if which in ('todo', k):
             print(k, save_gif(fn, af()))

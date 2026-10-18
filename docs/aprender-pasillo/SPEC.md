@@ -25,7 +25,7 @@ Se avanza paso a paso (toque o flechas, como en Vampire Crawlers), se gira en lo
 
 ## Cómo (técnico)
 - `tools/aprender-pasillo/build_sotano.py`: motor de trazado de rayos en numpy (pasillo principal + pasillo lateral en un cruce, nichos, costillas, cámara con avance, giro e inclinación), pintado con las rampas de `tools/home-pixel/pixel.py` (pixel art, no filtro). Estilos en `STYLES` (a/b/c; **B por defecto**).
-- `tools/aprender-pasillo/murales.py`: los 8 murales como texturas 64×124 que se dibujan por cuadro según el tiempo; también la fuente 5×5 compartida.
+- `tools/aprender-pasillo/murales.py`: los 8 murales de puerta (64×124), los 12 de alcoba (96×72) y los 3 de la Sala, dibujados por cuadro según el tiempo; también la fuente 5×5 compartida.
 - Correr: `python tools/aprender-pasillo/build_sotano.py pasos|giro|puerta` → `docs/aprender-pasillo/sotano-*.gif` (los GIF pesan ~15 MB y **no se suben a git**: se regeneran con el script; ~4–7 min cada uno).
 - **Para la app: híbrido** (Niquito, 17 oct). Pasillo, giros y puertas = cuadros pre-renderizados por el script (WebP chicos, 320×200), con un loop corto en cada parada para que murales y antorchas sigan vivos. La Cámara del ramo (abajo) = canvas en vivo, porque depende del estado real (como hoy `dist/classes/willow-tower.js`).
 
@@ -56,6 +56,18 @@ Hoy el "Centro de estudio" (`renderPractice` en `app.js`) tiene Ejercicios, Guí
 - Murales de alcoba en `murales.py` (`CAMARA`, 96×72 texeles); si en pantalla quedan más chicos, se engrosan los trazos.
 - Recorrido: sale del remolino mirando el sauce y, detrás, la alcoba de hoy → rodea el sauce → frente a Aminas → un toque = se acerca a la mesa → gira a Aromáticos → Heterociclos → alcoba velada.
 - Correr: `python tools/aprender-pasillo/build_camara.py` → `docs/aprender-pasillo/camara-organica.gif` (~6 min; no se sube a git). `... build_camara.py cuadros` → `camara-cuadros.png` con 6 cuadros clave en segundos (para revisar sin el GIF).
+
+## Las 4 puertas y sus Cámaras (17 oct: "tenerlas todas listas")
+- Cada ramo del semestre tiene **su puerta** (letrero grabado, 2 murales, portal de su color) y **su Cámara** con una alcoba por tema de la **PEP 1** (de `dist/semester-2026.js`), su mural animado, frascos, cristales de repaso, ramas en el sauce y la cuenta regresiva:
+  | Ramo | Color (material) | Alcobas (mural) | Grabado |
+  |---|---|---|---|
+  | Orgánica II | verde (`sprout`) | Aminas (basicidad) · Aromáticos (Hückel→SEA) · Heterociclos (piridina vs pirrol) | PEP 1 · 10 días |
+  | Fisicoquímica II | violeta (`arcane`) | Equilibrio (Q y K, Le Chatelier) · Electrolitos (disociación y atmósfera iónica) · Electroquímica (pila de Daniell, 1,1 V) | PEP 1 · 4 días |
+  | Química Analítica | celeste (`crystal`) | Errores (sistemático vs aleatorio) · Ácido-base (neutralización y pH-metro) · Polipróticos (dos saltos, pKa1 y pKa2) | PEP 1 · 27 días |
+  | Fisiopatología | brasa (`ember`, rampa nueva) | Nervioso (potencial de acción, Na⁺/K⁺) · Respiratorio (alvéolo, O₂/CO₂) · Digestivo (peristalsis) | PEP 1 · 26 días |
+- La alcoba "de hoy" (más brillante) es el primer tema de cada ramo. Frascos, cristales y ramas usan **números de ejemplo** hasta conectar el motor.
+- Código: `build_camara.py` tiene `RAMOS` y `set_ramo(key)`; `murales.py` suma 9 murales de alcoba (`CAMARA`); `build_sotano.py` tiene `anim_puerta(idx)` para cualquier puerta.
+- Correr: `python tools/aprender-pasillo/build_sotano.py puerta-analitica|puerta-fisico|puerta-fisio` → `sotano-puerta-<ramo>.gif`; `python tools/aprender-pasillo/build_camara.py gif|cuadros <ramo>` → `camara-<ramo>.gif` / `camara-cuadros-<ramo>.png`.
 
 ## Sala de entrenamiento (diseño y boceto animado, 17 oct, aprobado: "me encanta")
 Al fondo del pasillo, para todos los ramos: Ejercicios, Guías y Pruebas antiguas. Decisiones de Niquito (selección múltiple):
