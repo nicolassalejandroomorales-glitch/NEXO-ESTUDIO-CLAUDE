@@ -96,12 +96,12 @@
     return G.loading[ramo];
   }
 
-  // El cuadro mantiene 16:10; con espacio de sobra crece de a números enteros para que los píxeles queden parejos.
+  // El cuadro mantiene 16:10 y ocupa casi todo el alto libre (deja a la vista la fila de botones); desde 2x crece de a medio píxel-escala (160 px) para que los píxeles queden parejos.
   function fit(G) {
     const availW = Math.min(G.root.clientWidth || innerWidth, 1280), top = G.el.stage.getBoundingClientRect().top;
-    const availH = Math.max(200, innerHeight - Math.max(top, 70) - 150);
+    const availH = Math.max(200, innerHeight - Math.max(top, 70) - 80);
     let w = Math.min(availW, availH * 1.6);
-    if (w >= 640) w = Math.floor(w / 320) * 320;
+    if (w >= 640) w = Math.floor(w / 160) * 160;
     G.el.stage.style.width = `${Math.floor(w)}px`;
     G.el.stage.style.height = `${Math.floor(w / 1.6)}px`;
   }

@@ -20,7 +20,6 @@ from murales import ACCENT, FONT, MURALES, PH, PW  # noqa: E402
 
 px.RAMPS['crypt'] = px.hexes('#06080e', '#0c101a', '#141a28', '#1e2637', '#2b364f', '#3d4a68', '#566784', '#7587a6', '#9db0cc')
 px.DITHERED.add('crypt')
-px.RAMPS['ember'] = px.hexes('#3a1410', '#6a2014', '#a8341c', '#dc5a2c', '#f48448', '#ffae74', '#ffd6b0', '#fff0e0')   # brasa: el color de Fisiopatología
 
 OUT = os.path.join(ROOT, 'docs', 'aprender-pasillo')
 W, H, F, CX = 320, 200, 140.0, 160.0
@@ -41,7 +40,7 @@ THEMES = {
     'organica': dict(lines=['ORGÁNICA II'], gap='sprout', halo='#b6f070', dots='sprout', leaf='green', leaf_lv=3.6),
     'analitica': dict(lines=['QUÍMICA', 'ANALÍTICA'], gap='crystal', halo='#7fe0f0', dots='crystal', leaf='blue', leaf_lv=4.0),
     'fisico': dict(lines=['FISICOQUÍMICA', 'II'], gap='arcane', halo='#b88cf4', dots='arcane', leaf='lav', leaf_lv=3.6),
-    'fisio': dict(lines=['FISIO-', 'PATOLOGÍA'], gap='ember', halo='#ff8a5a', dots='ember', leaf='red', leaf_lv=3.8),
+    'fisio': dict(lines=['FISIO-', 'PATOLOGÍA'], gap='flame', halo='#ff8a5a', dots='flame', leaf='red', leaf_lv=3.8),
     'futuro': dict(lines=['PRÓXIMO', 'SEMESTRE'], gap='glow', halo='#ffcf70', dots='rune', leaf='blue', leaf_lv=2.0),
 }
 
@@ -51,18 +50,18 @@ SIGN_HALF = 1.03
 _sign_cache = {}
 
 
-def sign_texture(lines, sw=SIGN_W, sh=SIGN_H):
+def sign_texture(lines):
     """Letrero de piedra grabada: placa con bisel y letras talladas (fuente 5x5 al doble).
     Códigos: 0 placa, 1 bisel con luz, 8 bisel en sombra, 2 letra (brilla), 6 sombra dentro del surco, 7 canto con luz bajo la letra."""
-    key = (tuple(lines), sw, sh)
+    key = tuple(lines)
     if key in _sign_cache:
         return _sign_cache[key]
-    tex = np.zeros((sh, sw), np.uint8)
-    let = np.zeros((sh, sw), bool)
-    y = (sh - (len(lines) * 12 + (len(lines) - 1) * 2)) // 2
+    tex = np.zeros((SIGN_H, SIGN_W), np.uint8)
+    let = np.zeros((SIGN_H, SIGN_W), bool)
+    y = (SIGN_H - (len(lines) * 12 + (len(lines) - 1) * 2)) // 2
     for text in lines:
         glyphs = [(FONT[ACCENT.get(ch, ch)], ch in ACCENT) for ch in text]
-        x = (sw - (sum((len(g[0]) + 1) * 2 for g, _ in glyphs) - 2)) // 2
+        x = (SIGN_W - (sum((len(g[0]) + 1) * 2 for g, _ in glyphs) - 2)) // 2
         for g, acc in glyphs:
             for ry, row in enumerate(g):
                 for rx, chx in enumerate(row):
@@ -353,38 +352,32 @@ class Compositor:
 def draw_crystal_cluster(comp, site, glows, rng):
     base, nrm = site_cam(site)
     fr, kind, mat = site[0], site[1], site[5]
-    axes = {'w': ((0, 1, 0), (0, 0, 1)), 'c': ((1, 0, 0), (0, 0, 1)), 'f': ((1, 0, 0), (0, 0, 1))}[kind]
-    draw_crystal(comp, base, nrm, [camdir(fvec(fr, a)) for a in axes], kind, mat, glows, rng)
-
-
-def draw_crystal(comp, base, nrm, tang, kind, mat, glows, rng, lit=1.0, size=1.0, bed=True):
-    """Racimo de cristales sobre una roca (base y normal en espacio de cámara); lit < 1 = cristal apagado."""
     z = float(base[2])
     if z < 0.9:
         return
     ly = Canvas(W, H)
     bx, by_ = project(base)
-    rr = 0.2 * size * F / z
+    rr = 0.2 * F / z
     yy, xx = np.mgrid[0:H, 0:W]
     ex, ey = (0.9, 1.2) if kind == 'w' else (1.3, 0.55)
     ring = ((xx + 0.5 - bx) / (rr * ex * 1.25)) ** 2 + ((yy + 0.5 - by_) / (rr * ey * 1.25)) ** 2 <= 1
-    rock = ((xx + 0.5 - bx) / (rr * ex)) ** 2 + ((yy + 0.5 - by_) / (rr * ey)) ** 2 <= 1
-    if bed:
-        ly.mask(ring, 'crypt', 1.2)
-        ly.mask(rock, 'crypt', 4.2)
-        ly.mask(rock & (((xx + yy) % 4) < 2), 'crypt', 3.2)
-        ly.mask(rock & (yy + 0.5 < by_ - rr * ey * 0.45), 'crypt', 5.4)
-        ly.lock |= rock
+    bed = ((xx + 0.5 - bx) / (rr * ex)) ** 2 + ((yy + 0.5 - by_) / (rr * ey)) ** 2 <= 1
+    ly.mask(ring, 'crypt', 1.2)
+    ly.mask(bed, 'crypt', 4.2)
+    ly.mask(bed & (((xx + yy) % 4) < 2), 'crypt', 3.2)
+    ly.mask(bed & (yy + 0.5 < by_ - rr * ey * 0.45), 'crypt', 5.4)
+    ly.lock |= bed
+    axes = {'w': ((0, 1, 0), (0, 0, 1)), 'c': ((1, 0, 0), (0, 0, 1)), 'f': ((1, 0, 0), (0, 0, 1))}[kind]
+    tang = [camdir(fvec(fr, a)) for a in axes]
     spikes = []
     for k in range(rng.randint(5, 8)):
-        B = base + (tang[0] * rng.uniform(-0.13, 0.13) + tang[1] * rng.uniform(-0.11, 0.11)) * size
+        B = base + tang[0] * rng.uniform(-0.13, 0.13) + tang[1] * rng.uniform(-0.11, 0.11)
         D = nrm * rng.uniform(0.9, 1.1) + tang[0] * rng.uniform(-0.3, 0.3) + tang[1] * rng.uniform(-0.3, 0.3)
         D = D / np.linalg.norm(D)
-        L = (rng.uniform(0.26, 0.45) if k == 0 else rng.uniform(0.08, 0.26)) * size
-        spikes.append((B, B + D * L, rng.uniform(0.045, 0.075) * (1.5 if k == 0 else 1) * size))
+        L = rng.uniform(0.26, 0.45) if k == 0 else rng.uniform(0.08, 0.26)
+        spikes.append((B, B + D * L, rng.uniform(0.045, 0.075) * (1.5 if k == 0 else 1)))
     spikes.sort(key=lambda sp: -sp[0][2])
     hi_l, mid_l, lo_l = (5.6, 4.0, 2.6) if mat == 'crystal' else (5.2, 3.6, 2.4)
-    hi_l, mid_l, lo_l, tip_l = hi_l * lit, mid_l * lit, lo_l * lit, 6.4 * lit
     for (B, T, wd) in spikes:
         if B[2] < 0.5 or T[2] < 0.5:
             continue
@@ -398,11 +391,10 @@ def draw_crystal(comp, base, nrm, tang, kind, mat, glows, rng, lit=1.0, size=1.0
         tri(ly, b2 + perp, mid + perp * 0.55, b2, mat, hi_l)
         tri(ly, b2, mid + perp * 0.55, mid - perp * 0.55, mat, mid_l)
         tri(ly, b2, mid - perp * 0.55, b2 - perp, mat, lo_l)
-        tri(ly, mid + perp * 0.55, t2, mid - perp * 0.55, mat, tip_l)
-        ly.line(b2[0], b2[1], mid[0], mid[1], mat, 6.8 * lit)
+        tri(ly, mid + perp * 0.55, t2, mid - perp * 0.55, mat, 6.4)
+        ly.line(b2[0], b2[1], mid[0], mid[1], mat, 6.8)
     comp.paste(ly, z)
-    if lit > 0.5:
-        glows.append((bx, by_ - rr * 0.8, max(8, 0.9 * F / z), '#5cc4dc' if mat == 'crystal' else '#b88cf4', 0.45 * lit))
+    glows.append((bx, by_ - rr * 0.8, max(8, 0.9 * F / z), '#5cc4dc' if mat == 'crystal' else '#b88cf4', 0.45))
 
 
 def sphere_px(layer, P, rad, mat, base, lights, spec=2.4, only=None, lock=False, rim=0.9):
@@ -1120,74 +1112,76 @@ def build(opens=None, flash=0.0, scale=3):
 
 
 # ---------- animaciones ----------
+SUB = 2          # cuadros por cada cuadro de diseño: 2 -> 25 fps con 40 ms (antes 12,5 fps con 80 ms)
+FRAME_MS = 80 // SUB
+
+
 def ease(u):
     return u * u * (3 - 2 * u)
 
 
 def anim_pasos():
-    seq = [(0, 0.0, 0, 0, None, 0)] * 3
+    seq = [(0, 0.0, 0, 0, None, 0)] * (3*SUB)
     for st in range(2):
-        for i in range(1, 10):
-            u = i / 9
+        for i in range(1, 9*SUB + 1):
+            u = i / (9*SUB)
             seq.append((0, st + ease(u), 0, 1.6 * math.sin(math.pi * u), None, 0))
-        seq += [(0, st + 1.0, 0, 0, None, 0)] * 3
+        seq += [(0, st + 1.0, 0, 0, None, 0)] * (3*SUB)
     return seq
 
 
 def anim_giro():
     z0 = ZJ - 1.6
-    seq = [(0, z0, 0, 0, None, 0)] * 3
-    for i in range(1, 9):
-        u = i / 8
+    seq = [(0, z0, 0, 0, None, 0)] * (3*SUB)
+    for i in range(1, 8*SUB + 1):
+        u = i / (8*SUB)
         seq.append((0, z0 + 1.6 * ease(u), 0, 1.6 * math.sin(math.pi * u), None, 0))
-    seq += [(0, ZJ, 0, 0, None, 0)] * 3
-    for i in range(1, 13):
-        u = i / 12
+    seq += [(0, ZJ, 0, 0, None, 0)] * (3*SUB)
+    for i in range(1, 12*SUB + 1):
+        u = i / (12*SUB)
         seq.append((0, ZJ, math.pi / 2 * ease(u), 0.8 * math.sin(math.pi * u), None, 0))
-    seq += [(0, ZJ, math.pi / 2, 0, None, 0)] * 5
+    seq += [(0, ZJ, math.pi / 2, 0, None, 0)] * (5*SUB)
     return seq
 
 
-def anim_puerta(idx=0):
-    """Llegar a la puerta del ramo `idx`, mirarla de frente (un paso atrás para ver letrero y murales), abrir el portal y entrar."""
-    s, zd, st = DOORS['M'][idx]
+def anim_puerta():
+    """Llegar a la puerta de Orgánica II, mirarla de frente (un paso atrás para ver letrero y murales), abrir el portal y entrar."""
+    zd = DOORS['M'][0][1]
     z0 = zd - 1.4
-    key = ('M', idx)
-    d0 = OPEN_DEFAULT[st]
-    yaw = s * math.pi / 2
-    xb = -s * 0.65                                           # se para junto a la pared de enfrente
-    seq = [(0, z0, 0, 0, None, 0)] * 2
-    for i in range(1, 8):
-        u = i / 7
+    key = ('M', 0)
+    d0 = OPEN_DEFAULT['repasos']
+    seq = [(0, z0, 0, 0, None, 0)] * (2*SUB)
+    for i in range(1, 7*SUB + 1):
+        u = i / (7*SUB)
         seq.append((0, z0 + 1.4 * ease(u), 0, 1.6 * math.sin(math.pi * u), None, 0))
-    for i in range(1, 13):                                   # gira y retrocede hacia la pared de enfrente
-        u = ease(i / 12)
-        seq.append((xb * u, zd, yaw * u, 0.8 * math.sin(math.pi * i / 12), {key: d0}, 0, 0.0))
-    seq += [(xb, zd, yaw, 0, {key: d0}, 0, 0.0)] * 4
-    for i in range(1, 7):                                    # levanta la vista hacia el letrero
-        seq.append((xb, zd, yaw, 0, {key: d0}, 0, 0.22 * ease(i / 6)))
-    seq += [(xb, zd, yaw, 0, {key: d0}, 0, 0.22)] * 6
-    for i in range(1, 7):
-        seq.append((xb, zd, yaw, 0, {key: d0}, 0, 0.22 * (1 - ease(i / 6))))
-    seq += [(xb, zd, yaw, 0, {key: d0}, 0, 0.0)] * 6
-    for i in range(1, 13):                                   # se abre el portal
-        u = ease(i / 12)
-        seq.append((xb, zd, yaw, 1.4 * math.sin(i * 2.7) * (1 - u), {key: d0 + (1 - d0) * u, 'burst': ('M', idx, u)}, 0, 0.0))
-    for i in range(1, 15):                                   # entra
-        u = ease(i / 14)
-        seq.append((xb + s * 1.95 * u, zd, yaw, 1.2 * math.sin(math.pi * u),
-                    {key: 1.0, 'burst': ('M', idx, 1.0 + u), 'zoom': u}, max(0.0, (u - 0.65) / 0.35) * 0.85, 0.0))
-    seq += [(s * 1.3, zd, yaw, 0, {key: 1.0, 'zoom': 1.0}, 0.85, 0.0)] * 2
+    for i in range(1, 12*SUB + 1):                                   # gira y retrocede hacia la pared de enfrente
+        u = ease(i / (12*SUB))
+        seq.append((-0.65 * u, zd, math.pi / 2 * u, 0.8 * math.sin(math.pi * i / (12*SUB)), {key: d0}, 0, 0.0))
+    seq += [(-0.65, zd, math.pi / 2, 0, {key: d0}, 0, 0.0)] * (4*SUB)
+    for i in range(1, 6*SUB + 1):                                    # levanta la vista hacia el letrero
+        seq.append((-0.65, zd, math.pi / 2, 0, {key: d0}, 0, 0.22 * ease(i / (6*SUB))))
+    seq += [(-0.65, zd, math.pi / 2, 0, {key: d0}, 0, 0.22)] * (6*SUB)
+    for i in range(1, 6*SUB + 1):
+        seq.append((-0.65, zd, math.pi / 2, 0, {key: d0}, 0, 0.22 * (1 - ease(i / (6*SUB)))))
+    seq += [(-0.65, zd, math.pi / 2, 0, {key: d0}, 0, 0.0)] * (6*SUB)
+    for i in range(1, 12*SUB + 1):                                   # se abre el portal
+        u = ease(i / (12*SUB))
+        seq.append((-0.65, zd, math.pi / 2, 1.4 * math.sin(i * 2.7 / SUB) * (1 - u), {key: d0 + (1 - d0) * u, 'burst': ('M', 0, u)}, 0, 0.0))
+    for i in range(1, 14*SUB + 1):                                   # entra
+        u = ease(i / (14*SUB))
+        seq.append((-0.65 + 1.95 * u, zd, math.pi / 2, 1.2 * math.sin(math.pi * u),
+                    {key: 1.0, 'burst': ('M', 0, 1.0 + u), 'zoom': u}, max(0.0, (u - 0.65) / 0.35) * 0.85, 0.0))
+    seq += [(1.3, zd, math.pi / 2, 0, {key: 1.0, 'zoom': 1.0}, 0.85, 0.0)] * (2*SUB)
     return seq
 
 
 def save_gif(name, seq, scale=3):
     frames = []
     for i, (cx_, cz_, yaw, bob, opens, flash, *pr) in enumerate(seq):
-        set_cam(cx_, cz_, yaw, bob + 0.5 * math.sin(i * 0.4), pr[0] if pr else 0.0, i * 0.45)
+        set_cam(cx_, cz_, yaw, bob + 0.5 * math.sin(i * 0.4 / SUB), pr[0] if pr else 0.0, i * 0.45 / SUB)
         frames.append(build(opens, flash, scale))
     pal = [f.convert('P', palette=0, colors=140) for f in frames]
-    dur = [80] * len(frames)
+    dur = [FRAME_MS] * len(frames)
     pal[0].save(os.path.join(OUT, name), save_all=True, append_images=pal[1:], duration=dur, loop=0, optimize=False)
     set_cam(0, 0, 0, 0)
     return len(frames)
@@ -1210,10 +1204,7 @@ if __name__ == '__main__':
     if which == 'estilos':
         estilos()
         sys.exit(0)
-    jobs = {'pasos': ('sotano-pasos.gif', anim_pasos), 'giro': ('sotano-giro.gif', anim_giro), 'puerta': ('sotano-puerta.gif', anim_puerta),
-            'puerta-analitica': ('sotano-puerta-analitica.gif', lambda: anim_puerta(1)),
-            'puerta-fisico': ('sotano-puerta-fisico.gif', lambda: anim_puerta(2)),
-            'puerta-fisio': ('sotano-puerta-fisio.gif', lambda: anim_puerta(3))}
+    jobs = {'pasos': ('sotano-pasos.gif', anim_pasos), 'giro': ('sotano-giro.gif', anim_giro), 'puerta': ('sotano-puerta.gif', anim_puerta)}
     for k, (fn, af) in jobs.items():
         if which in ('todo', k):
             print(k, save_gif(fn, af()))
