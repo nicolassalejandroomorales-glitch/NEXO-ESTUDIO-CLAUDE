@@ -51,6 +51,7 @@
       if (state.next >= state.answer.length) state.status = 'won';
     } else {
       state.life -= 1; state.mistakes += 1; state.combo = 0;
+      if (card.misconception) state.lastMisconception = card.misconception;
       if (state.life <= 0) state.status = 'lost';
     }
     const note = right ? null : card.note || (state.type === 'order' || state.type === 'recipe' ? (state.direction ? `Todavía no: ${state.direction}` : 'Todavía no es el turno de esa carta.') : 'Esa no es.');
@@ -72,7 +73,7 @@
     const won = state.status === 'won';
     return {
       won, lost: state.status === 'lost', mistakes: state.mistakes, hintUsed: state.hintUsed, maxCombo: state.maxCombo,
-      attempt: { correct: won && state.mistakes === 0, hint: state.hintUsed, misconception: won && state.mistakes === 0 ? null : state.misconception }
+      attempt: { correct: won && state.mistakes === 0, hint: state.hintUsed, misconception: won && state.mistakes === 0 ? null : state.lastMisconception || state.misconception }
     };
   }
 
