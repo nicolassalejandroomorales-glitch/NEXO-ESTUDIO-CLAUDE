@@ -35,6 +35,7 @@
     const exercise=model.byId(model.exercises,input.exerciseId);
     if(!exercise||!input.id)throw new Error('invalid_attempt');
     const structured=exercise.validator==='structured_validator';
+    const banked=exercise.validator==='study_bank'; // corrección determinista local (dist/study)
     const checked=structured?window.NexoAcademicStructured?.evaluate(exercise.id.slice('org-01:'.length),input.structuredAnswers):null;
     const outcome=checked?.outcome||input.outcome;
     if(structured&&!checked||!['correct','incorrect'].includes(outcome))throw new Error('invalid_attempt');
@@ -58,7 +59,7 @@
       skillIds:[...exercise.skillIds],contentVersion:exercise.version,
       outcome,assistanceUsed:Boolean(input.assistanceUsed),confidence:input.confidence??null,
       transfer:Boolean(exercise.transfer),diagnostic:Boolean(input.diagnostic),
-      validator:exercise.validator,validationStatus:structured?'verified':'self_reported',
+      validator:exercise.validator,validationStatus:structured||banked?'verified':'self_reported',
       reasoningText:String(input.reasoningText||'').slice(0,2000),
       structuredAnswers:structured?Object.fromEntries(exercise.id.startsWith('org-01:')?
         (window.NexoAcademicStructured.byId(exercise.id.slice('org-01:'.length))?.fields||[])
@@ -75,7 +76,7 @@
       outcome:attempt.outcome,assistanceUsed:attempt.assistanceUsed,transfer:attempt.transfer,
       examStyle:Boolean(exercise.examStyle),reasoningSupported:Boolean(input.reasoningSupported),
       delayed:Boolean(input.review)&&delayHours>=24,delayHours,at:attempt.attemptedAt,
-      source:structured?'structured_validator':'self_rubric',validationStatus:structured?'verified':'self_reported',
+      source:structured?'structured_validator':banked?'study_bank':'self_rubric',validationStatus:structured||banked?'verified':'self_reported',
       activityType:attempt.activityType,activityId:attempt.activityId
     });
     if(attempt.outcome==='incorrect') {

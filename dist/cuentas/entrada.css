@@ -1,0 +1,12 @@
+/* Pantalla de entrada (dist/cuentas/entrada.js). Hereda el fondo estrellado y el cuadro de diálogo del tutorial (.tut). */
+.ent { grid-template-rows: 1fr auto auto auto; align-content: center; }
+.ent-title { display: grid; place-content: center; text-align: center; gap: 6px; padding: 24px 0 8px; }
+.ent-title h1 { margin: 0; font-size: clamp(3rem, 9vw, 5.5rem); letter-spacing: .28em; text-indent: .28em; color: #ffe39a; text-shadow: 0 4px 0 #5a3616, 0 0 28px #ffd86055; }
+.ent-title p { margin: 0; font-size: 1.05rem; color: #d9c79a; }
+.ent-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+.ent-actions button { min-width: 220px; padding: 12px 18px; font-size: 1.05rem; }
+.ent-actions button:disabled { opacity: .55; cursor: progress; }
+@media (max-width: 699px) {
+  .ent-actions { flex-direction: column; }
+  .ent-actions button { width: 100%; }
+}

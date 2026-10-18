@@ -4,7 +4,6 @@
   const scenes=Object.freeze({
     home:[['leaves','watch'],['book','read'],['lamp','rest']],
     learn:[['book','read'],['ink','think']],
-    train:[['shield','ready'],['rune','ready']],
     games:[['spark','play']],
     profile:[['lamp','rest'],['book','read'],['sleep','sleep']],
     shop:[['spark','preview']],

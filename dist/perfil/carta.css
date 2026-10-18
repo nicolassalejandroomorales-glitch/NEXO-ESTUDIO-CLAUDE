@@ -1,0 +1,63 @@
+/* Perfil: carta de jugador (dist/perfil/carta.js). Arte pixel de tools/perfil-carta/build_carta.py; todo en % del arte para que escale. */
+.perfil-carta-page { display: grid; justify-items: center; gap: 22px; padding: 20px 16px 40px; }
+.carta {
+  position: relative; container-type: inline-size; width: min(460px, 100%); aspect-ratio: 120 / 170;
+  background: url('../assets/perfil/carta.png') 0 0 / 100% 100% no-repeat; image-rendering: pixelated; filter: drop-shadow(0 10px 0 rgb(20 12 16 / .45));
+  animation: carta-entra .5s steps(6) both;
+}
+.carta > * { position: absolute; margin: 0; box-sizing: border-box; }
+.carta-nombre {
+  display: grid; place-items: center; color: #3e1d12; font: 700 6.4cqw/1 var(--font-title, Georgia, serif); letter-spacing: .02em; white-space: nowrap; overflow: hidden;
+}
+.carta-ventana { overflow: visible; }
+.carta-mascota {
+  position: absolute; left: 50%; bottom: 4%; height: 76%; aspect-ratio: 40 / 44; transform: translateX(-50%);
+  image-rendering: pixelated; filter: drop-shadow(0 3px 0 rgb(20 12 16 / .35));
+}
+.carta-say {
+  position: absolute; left: 50%; top: 4%; transform: translateX(-50%); width: 78%; padding: 1.8cqw 2.6cqw; z-index: 2; text-align: center;
+  font: 700 3.6cqw/1.25 system-ui, sans-serif; color: #3b2418; background: #f6ecd4; border: .8cqw solid #3b2418; box-shadow: 0 .8cqw 0 rgb(20 12 16 / .45);
+}
+.carta-say[hidden] { display: none; }
+.carta-rango { display: grid; align-items: center; padding-left: 2.4cqw; color: #fff0c4; font: 700 4.6cqw/1 var(--font-title, Georgia, serif); text-shadow: 0 .6cqw 0 #3e141e; }
+.carta-llama { display: grid; place-items: center; color: #ffc850; pointer-events: none; }
+.carta-llama svg { width: 62%; height: auto; filter: drop-shadow(0 .5cqw 0 rgb(20 12 16 / .5)); }
+.carta-dato { display: grid; align-content: center; row-gap: .6cqw; padding-left: 9cqw; color: #2b1a12; }
+.carta-dato b { font: 700 5.2cqw/1 var(--font-title, Georgia, serif); }
+.carta-dato small { font-size: 3cqw; line-height: 1.05; color: #6a4a38; }
+.carta-insignia { background: url('../assets/perfil/insignias.png') calc(var(--i) * 20%) 0 / 600% 100% no-repeat; image-rendering: pixelated; }
+.carta-insignia.apagada { filter: grayscale(1) brightness(.55); opacity: .55; }
+
+.carta-botones { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; width: min(460px, 100%); }
+.carta-botones button {
+  display: grid; gap: 3px; padding: 11px 12px 13px; text-align: left; color: #f6ecd4; background: #47281b; border: 2px solid #1a0f13; border-radius: 0;
+  box-shadow: inset 0 2px 0 #8a552e, inset 0 -3px 0 #2c1916, 0 3px 0 #1a0f13; cursor: pointer;
+}
+.carta-botones button:hover, .carta-botones button:focus-visible { background: #673c23; }
+.carta-botones strong { font-size: 1rem; }
+.carta-botones small { color: #e2c98f; font-size: .76rem; line-height: 1.2; }
+@media (max-width: 700px) { .perfil-carta-page, .perfil-seccion { padding-bottom: 100px; } }   /* la barra de abajo del celular */
+@media (max-width: 520px) { .carta-botones { grid-template-columns: 1fr; } .carta-botones button { grid-template-columns: 1fr; } }
+@keyframes carta-entra { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .carta { animation: none; } }
+
+/* Secciones (Vestuario, Estadísticas, Ajustes): madera + pergamino, con la tinta de Organización. */
+.perfil-seccion { padding: 16px 16px 40px; }
+.perfil-madera { max-width: 960px; margin: 0 auto; }
+.perfil-madera { --tinta: #2b1a12; --papel: #e6d6b2; --rojo: #8c3234; --oro: #e2b850; }   /* las variables del kit de Organización (.estudio-page) */
+.perfil-madera .pergamino { margin: 14px 4px; }
+.carta-volver {
+  margin: 0 0 12px; padding: 6px 12px 7px; color: #f6ecd4; font-weight: 700; background: #47281b; border: 2px solid #1a0f13; border-radius: 0;
+  box-shadow: inset 0 2px 0 #8a552e, inset 0 -3px 0 #2c1916, 0 3px 0 #1a0f13; cursor: pointer;
+}
+.perfil-madera .pergamino :is(h1, h2, h3) { color: #3e1d12; text-shadow: none; }
+.perfil-madera .pergamino :is(p, label, small, li, span) { color: var(--tinta); }
+.perfil-madera .pergamino .eyebrow { color: #8c3234; }
+.perfil-madera .pergamino :is(.panel, .stat-kpis > *, .settings-grid > *, .challenge-card) { color: var(--tinta); background: rgb(255 250 236 / .55); border: 2px solid #7a6650; border-radius: 0; box-shadow: none; }
+.perfil-madera .pergamino :is(input, select) { color: var(--tinta); background: #fffaf0; border: 2px solid #7a6650; border-radius: 0; }
+.perfil-madera .pergamino :is(.primary-btn, .secondary-btn, .segmented button) { color: #fff0c4; background: #47281b; border: 2px solid #1a0f13; border-radius: 0; box-shadow: inset 0 2px 0 #8a552e, 0 3px 0 #1a0f13; }
+.perfil-madera .pergamino .segmented button.active { color: #2b1a12; background: #e2b850; }
+.perfil-madera .pergamino .progress-track { background: #c9b48a; border: 2px solid #7a6650; border-radius: 0; }
+.perfil-madera .pergamino .filter-bar { background: none; border: 0; box-shadow: none; padding: 0; }
+.perfil-madera .pergamino .learning-grid > * { color: var(--tinta); background: rgb(255 250 236 / .55); border: 2px solid #7a6650; border-radius: 0; }
+.perfil-madera .pergamino .learning-grid span { color: #6a4a38; }

@@ -10,6 +10,7 @@
 - Diseño de la torre completa (pisos por ramo, escalera y ascensor).
 
 ## Falta
+- Entrenar se borró (17 oct): el laboratorio de la Torre (`dist/world/torre-mundo.js`, `assets/torre/lab`) quedó sin página y su prueba está saltada. Decidir a qué ruta y con qué objetos se reengancha.
 - Aprobar el laboratorio caminable y el estilo de la muestra.
 - Paso 3: vestíbulo (escalera, ascensor y viaje del menú) y ruta de la torre.
 - Paso 4 (Opus): progreso real por objeto, que reemplace el provisorio.

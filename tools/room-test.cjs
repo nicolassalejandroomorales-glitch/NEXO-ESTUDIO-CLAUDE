@@ -9,10 +9,10 @@ assert.equal(rooms.resolve(['home']).id,'home');
 assert.equal(rooms.resolve(['lesson','org-01']).id,'learn');
 assert.equal(rooms.resolve(['subject','analitica']).courseId,'analitica');
 assert.equal(rooms.resolve(['learn','course','fisico']).courseId,'fisico');
-assert.equal(rooms.resolve(['practice','errors']).id,'train');
+assert.equal(rooms.resolve(['practice','errors']).id,'learn');
 assert.equal(rooms.resolve(['hub','calendar']).id,'planner');
 assert.equal(Object.keys(rooms.courses).length,4);
-for(const id of ['home','learn','train','games','profile']) {
+for(const id of ['home','learn','games','profile']) {
   const asset=rooms.rooms[id].art;
   assert.match(asset,/\.(webp|png)$/);
   assert.ok(fs.existsSync(`dist/${asset}`),`Falta el escenario de ${id}`);

@@ -4,7 +4,7 @@
   const sprite={click:[0,80],confirm:[100,150],purchase:[280,200],equip:[510,120],error:[650,180]};
   const tones={click:[540,690],confirm:[570,810],purchase:[390,570,790],equip:[640,880],error:[260,180]};
   const rooms={home:'home',learn:'learn',lesson:'learn',subject:'learn',subjects:'learn',library:'learn',
-    knowledge:'learn',reviews:'learn',rescue:'learn',train:'train',practice:'train',
+    knowledge:'learn',reviews:'learn',rescue:'learn',practice:'learn',
     games:'games',profile:'profile',mascot:'profile',stats:'profile',settings:'profile',
     hub:'planner',planner:'planner',timer:'planner',shop:'profile'};
   let settings={sound:false,sfxVolume:.4,music:false,musicVolume:.15,ambient:false,ambientVolume:.12};
@@ -43,7 +43,7 @@
   /* Periodic waves end at zero crossings, avoiding a click at loop boundaries. */
   function wavLoop(kind,scene) {
     const rate=8000,seconds=4,samples=rate*seconds,pcm=new Int16Array(samples);
-    const base={home:110,train:130,profile:98,planner:123,games:146}[scene]||110;
+    const base={home:110,profile:98,planner:123,games:146}[scene]||110;
     for(let i=0;i<samples;i++) {
       const t=i/rate,edge=Math.sin(Math.PI*i/samples)**2;
       let sample;

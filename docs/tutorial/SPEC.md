@@ -206,6 +206,21 @@ Niquito: «el tutorial ya está súper bueno»: se da por **aprobado el tono, la
 
 **Criterios de aceptación:** cuenta nueva ve el tutorial sola; elegir mascota y nombre se guarda; el premio se da una sola vez (o la decisión de nube queda escrita); saltarlo no da monedas; Ajustes → Tutoriales lo repite sin premio; `npm test` sin fallas nuevas.
 
+## Inicio mágico (18 oct 2026, crítica del 15 oct; aprobado por Niquito: "hazlo", capas y partículas)
+
+**Qué:** el tutorial "se ve como PNG que se mueve" y el fondo azul liso no gusta. Se rehace en este orden (una etapa por vez, cada una se prueba y se aprueba):
+1. **Fondo mágico (hecho, esperando aprobación):** `dist/tutorial/magia.js` (carga perezosa; lo monta `tutorial.js`). Un canvas de baja resolución (1 px = 3 de pantalla, escalado pixelado) detrás de todo el tutorial:
+   círculo de transmutación con runas inventadas (dos anillos que giran en sentidos contrarios), luz cálida que respira, estrellas, luciérnagas, polvo, runas que suben, hojas y enredaderas en las esquinas.
+   Fondo base ciruela/verde oscuro (sin azul). `NexoMagia.mount(el).pulse()` hace un destello: se usa en el estallido del nacimiento.
+   Respeta "reducir movimiento" (un solo cuadro quieto), se pausa con la pestaña oculta y se apaga solo al salir.
+2. **Altar con velas:** llamas animadas por cuadros + luz que parpadea sobre el libro y el altar.
+3. **Grimorio por capas:** separar el libro en piezas (tapa, páginas que aletean, barba, marcapáginas, manitas) y animarlas con movimiento propio; runas y luz saliendo del libro. Arte en `tools/tutorial-pixel/` (nexo-pixel-art).
+4. **Nube de diálogo con vida:** borde brillante, chispas en las esquinas, entrada con "pop" y letras que aparecen con un destello.
+
+**Fuera de esta tanda (después, uno por uno):** voz/sonido del mago, texto con personalidad y el salto de pantalla hacia arriba, huevos con textura, la mascota hablando con su personalidad y el dab, y el recorrido por la app real (modular por secciones).
+
+**Criterios (etapa 1):** en 1440 y 390 el fondo se mueve sin tapar ni ensuciar el texto; no hay azul liso; no baja de ~50 fps; con reducir movimiento queda quieto; `npm test` sin fallas nuevas.
+
 ## Pendiente (ideas a futuro, no bloquean)
 - Aparición y avisos ya hechos; las novedades nuevas se agregan en `NEWS` de `dist/tutorial/avisos.js`.
 - Si Niquito cambia los precios de la tienda (`PRICES` en `dist/mascot/home-pet.js`), revisar que 150 ⚛ siga sintiéndose bien.

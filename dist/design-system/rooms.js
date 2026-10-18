@@ -10,7 +10,6 @@
   const rooms = Object.freeze({
     home: { name: 'Refugio', material: 'wood', accent: '#83a987', art:window.NexoHomeScene.getProfile().backgroundAsset },
     learn: { name: 'Grimorio', material: 'paper', accent: '#d6a85d', art:'assets/rooms/learn.webp' },
-    train: { name: 'Taller', material: 'ink', accent: '#d29369', art:'assets/rooms/train.webp' },
     games: { name: 'Arcade', material: 'pixel', accent: '#aa79c7', art:'assets/rooms/games.webp' },
     profile: { name: 'Habitación', material: 'wood', accent: '#b9a587', art:'assets/rooms/profile.webp' },
     shop: { name: 'Mercado', material: 'ink', accent: '#d9ac68' },
@@ -19,7 +18,7 @@
   const roomRoutes = Object.freeze({
     home:'home', subjects:'learn', subject:'learn', lesson:'learn', learn:'learn',
     library:'learn', knowledge:'learn', inspector:'learn',
-    train:'train', practice:'train', reviews:'train', rescue:'train',
+    practice:'learn', reviews:'learn', rescue:'learn',
     games:'games', profile:'profile', mascot:'profile', stats:'profile',
     settings:'profile', history:'profile', shop:'shop',
     planner:'planner', hub:'planner', timer:'planner'

@@ -1,4 +1,4 @@
-/* Mundo de la torre (docs/mundo-torre/SPEC.md): escena pixel recorrible arriba de Entrenar, Juegos y Perfil. */
+/* Mundo de la torre (docs/mundo-torre/SPEC.md): escena pixel recorrible arriba de Entrenar y Juegos. */
 /* Igual que el refugio del Inicio: el arte es parte de la página (de borde a borde, sin marco). Ancho, alto y márgenes los pone el JS. */
 .torre-scene {
   position: relative; display: flex; justify-content: center; height: 420px; margin-bottom: 8px;
@@ -41,7 +41,6 @@
 
 /* La escena reemplaza las cabeceras con imagen de antes. */
 .arcane-training.torre-on .torre-title h1 { min-height: 0; padding: 0; border: 0; background: none; box-shadow: none; display: block; }
-.profile-page.torre-on .profile-room-header { display: none; }
 
 /* Cuando un objeto elige algo, el formulario o la tarjeta brillan un momento. */
 .torre-flash { animation: torre-flash 1.3s ease-out; }

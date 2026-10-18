@@ -128,6 +128,7 @@
       errors: [],
       practice: {},
       academicIntelligence: {attempts:[],evidence:[],reviewSchedules:[],structuredErrors:[],userSources:[],activeTimeSegments:[]},
+      studyEngine: null,
       guides: {},
       exams: {},
       labs: {},
@@ -330,12 +331,18 @@
     {
       const m = next.mascot || {}, outfit = {};
       ['cabeza', 'cara', 'cuello', 'mano'].forEach(slot => { if (typeof m.outfit?.[slot] === 'string' && /^\w{1,20}$/.test(m.outfit[slot])) outfit[slot] = m.outfit[slot]; });
-      next.mascot = { name: String(m.name || '').trim().slice(0, 24) || 'Nexo', kind: ['matraz', 'atomo', 'slime'].includes(m.kind) ? m.kind : 'matraz', outfit };
+      const kind = ['matraz', 'atomo', 'slime'].includes(m.kind) ? m.kind : 'matraz';
+      // owned = mascotas que tienes: la inicial es gratis y para siempre; las otras se consiguen en la Tienda.
+      const owned = [...new Set([kind, ...(Array.isArray(m.owned) ? m.owned : []).filter(k => ['matraz', 'atomo', 'slime'].includes(k))])];
+      next.mascot = { name: String(m.name || '').trim().slice(0, 24) || 'Nexo', kind, owned, outfit };
     }
+    // Tienda y cofres (docs/economia/SPEC.md): accesorios que tienes, polvo y cofres sin abrir.
+    { next.shop = raw.shop; const s = window.NexoTienda.shopOf(next); s.owned = s.owned.filter(id => id in window.NexoTienda.RARITY_OF); }
     // Tutorial (docs/tutorial/SPEC.md): pending = lo verá solo; skipped/done = solo desde Ajustes. Datos viejos con progreso cuentan como ya vistos.
     {
       const tu = raw.tutorial && typeof raw.tutorial === 'object' ? raw.tutorial : null;
-      const hasProgress = (next.sessions?.length || 0) + (next.completedLessons?.length || 0) + Object.keys(next.practice || {}).length > 0;
+      // Una cuenta que ya eligió mascota (viaja en la nube) no repite el tutorial en otro dispositivo.
+      const hasProgress = (next.sessions?.length || 0) + (next.completedLessons?.length || 0) + Object.keys(next.practice || {}).length > 0 || !!raw.mascot?.kind;
       const sections = {}; ['clases', 'juegos', 'organizacion', 'perfil'].forEach(k => { if (tu?.sections?.[k]) sections[k] = true; });
       next.tutorial = tu && ['pending', 'skipped', 'done'].includes(tu.status) ? { status: tu.status, rewarded: !!tu.rewarded, sections, news: Math.max(0, Math.floor(Number(tu.news)) || 0) }
         : hasProgress ? { status: 'done', rewarded: true, sections: {}, news: 0 } : { status: 'pending', rewarded: false, sections: {}, news: 0 };
@@ -444,6 +451,15 @@
     return count;
   }
 
+  // Lo que la mascota sabe de tu semestre para reaccionar en la habitación del Perfil (mascot/reacciones.js).
+  window.NexoReacciones?.bind(() => {
+    const today = todayKey(), DAY = 864e5, daysTo = d => Math.round((parseDay(d) - parseDay(today)) / DAY);
+    const exam = window.NexoTodayPlan?.hourglasses(state.events, today, 14)[0];
+    const last = state.sessions.filter(s => sessionSeconds(s) >= 300).map(s => s.date).sort().at(-1);
+    const fresh = Object.values(state.grades).flatMap(plan => plan.components || [])
+      .filter(c => c.date && Number(c.grade) >= 1 && daysTo(c.date) <= 0 && daysTo(c.date) >= -10).sort((a, b) => b.date.localeCompare(a.date))[0];
+    return { days: exam ? exam.days : null, away: last ? -daysTo(last) : null, streak: streak(), grade: fresh ? Number(fresh.grade) : null };
+  });
   function applyStreakProtection() {
     const yesterday = todayKey(addDays(new Date(), -1));
     const before = todayKey(addDays(new Date(), -2));
@@ -483,7 +499,8 @@
       get: () => state.mascot,
       set: patch => { Object.assign(state.mascot, patch); saveState({ backup: false }); window.NexoPet.renderDock(document.getElementById('companionPresence')); },
       motion: () => state.settings.mascotMotion,
-      studying: () => state.timer.status === 'running'
+      studying: () => state.timer.status === 'running',
+      shop: { state: () => state, save: () => { saveState({ backup: false }); updateChrome(); }, locked: () => cloud.authenticated, today: todayKey }
     });
   }
   function renderCompanionPresence() {
@@ -521,6 +538,15 @@
   }
   // La primera vez (cuenta nueva) el Inicio lleva al tutorial. Navegadores automatizados (pruebas) no lo ven.
   const tutorialDue = () => state.tutorial?.status === 'pending' && !navigator.webdriver;
+  // Pantalla de entrada (docs/cuentas/SPEC.md): con la nube activa y sin sesión, la primera vez ofrece Google o invitado antes del tutorial.
+  // Se espera a saber si hay sesión (cloudListo) para no mostrarla a quien ya entró.
+  const ENTRADA_KEY = 'nexo-entrada-vista';
+  let cloudListo = !cloud.enabled;
+  const marcarCloudListo = () => { if (cloudListo) return; cloudListo = true; if (['home', 'entrada'].includes(parseRoute()[0])) renderRoute(false); };
+  const entradaDue = () => {
+    if (!cloud.enabled || cloud.authenticated || navigator.webdriver) return false;
+    try { return !localStorage.getItem(ENTRADA_KEY); } catch (_) { return false; }
+  };
   // Avisos del Grimorio (dist/tutorial/avisos.js, carga perezosa): primera vez en cada sección si saltaste el tutorial, y novedades.
   const withAvisos = fn => {
     if (window.NexoAvisos) return fn(window.NexoAvisos);
@@ -536,7 +562,8 @@
   }
   function setActiveNav(route) {
     const primary = ['subject', 'lesson', 'subjects','library','knowledge','inspector'].includes(route[0]) ? 'learn'
-      : ['practice','reviews'].includes(route[0]) ? 'train'
+      : ['practice','reviews','rescue','study'].includes(route[0]) ? 'learn'
+      : ['planner','hub','timer'].includes(route[0]) ? 'planner'
       : ['profile', 'mascot', 'stats', 'settings','history'].includes(route[0]) ? 'profile' : route[0];
     document.querySelectorAll('.nav-btn, .profile-orb').forEach(button => {
       const active = button.dataset.route === primary;
@@ -547,19 +574,16 @@
   function renderRoute(moveFocus = true) {
     const previousRoute=app.dataset.renderedRoute;
     window.NexoAnimation?.prepare(app);
-    window.NexoHomeScene?.cleanup();
     if (document.body.classList.contains('in-classroom')) window.NexoAmbientTime?.stopPreview?.(); // la ventana de la torre puede haber cambiado la hora
     document.body.classList.remove('in-classroom');
     clearInterval(timerTicker);
     window.NexoWorkbench?.cleanup();
     window.NexoWillowView?.cleanup();
-    window.NexoAcademicTraining?.cleanup();
     window.NexoMascotController?.cleanup();
     window.NexoPet?.cleanup();
     const route = parseRoute();
     const routeChanged=previousRoute!==route.join('/');
-    const roomFamily=parts=>['subject','lesson','subjects','library','knowledge','inspector'].includes(parts[0])?'learn':
-      ['practice','reviews','rescue'].includes(parts[0])?'train':
+    const roomFamily=parts=>['subject','lesson','subjects','library','knowledge','inspector','practice','reviews','rescue','study'].includes(parts[0])?'learn':
         ['mascot','stats','settings','history'].includes(parts[0])?'profile':parts[0];
     app.dataset.chapterTransition=previousRoute&&roomFamily(previousRoute.split('/'))!==roomFamily(route)?'1':'0';
     if(routeChanged)window.NexoActiveStudy?.stop();
@@ -575,7 +599,16 @@
     setActiveNav(route);
     closeMore();
     const renderers = {
-      home: () => (tutorialDue() ? routeTo('tutorial') : renderHome()),
+      home: () => (!cloudListo ? (app.innerHTML = '<section class="page"><p class="eyebrow">Abriendo la torre…</p></section>')
+        : entradaDue() ? routeTo('entrada') : tutorialDue() ? routeTo('tutorial') : renderHome()),
+      entrada: () => { // docs/cuentas/SPEC.md · se carga solo al abrirla
+        if (!cloudListo || !entradaDue()) return routeTo('home');
+        const go = () => { if (parseRoute()[0] === 'entrada') window.NexoEntrada.render(app, {
+          google: () => cloud.signInWithGoogle({ volver: 'home' }),
+          guest: () => { try { localStorage.setItem(ENTRADA_KEY, '1'); } catch (_) {} routeTo('home'); }
+        }); };
+        if (window.NexoEntrada) go(); else { const sc = document.createElement('script'); sc.src = 'cuentas/entrada.js?v=1'; sc.onload = go; document.head.append(sc); }
+      },
       learn: () => route[1] === 'course'
         ? (route[3] === 'lesson' ? (LESSONS[route[4]]?.subject===route[2] ? renderLesson(route[4]) : renderSubjects())
           : route[3] === 'concept' ? renderAcademicExplorer('knowledge',route[4])
@@ -583,15 +616,11 @@
               : renderEvaluations(route[2]))
         : route[1] === 'map' ? renderAcademicExplorer('knowledge')
           : route[1] === 'library' ? renderAcademicLibrary() : renderSubjects(),
-      train: () => route[1] === 'reviews' ? renderAcademicExplorer('reviews')
-        : route[1] === 'practice' ? renderAcademicTraining()
-          : route[1] === 'errors' ? renderAcademicTraining('errors')
-            : route[1] === 'pep' ? renderAcademicTraining('pep')
-              : route[1] ? renderPractice(route[1],route[2]) : renderAcademicTraining(),
+      train: () => routeTo(route[1] === 'reviews' ? 'reviews' : 'learn'),
       games: renderGames,
       subjects: renderSubjects,
       hub: () => window.NexoEstudio && ['calendar','grades'].includes(route[1]) ? routeTo('planner', window.NexoEstudio.legacy[route[1]]) : renderHub(route[1] || 'timer'),
-      profile: () => window.NexoEstudio && ['grades','absences'].includes(route[1]) ? routeTo('planner','notas') : renderProfile(({avatar:'mascot',collection:'mascot',progress:'stats'})[route[1]]||route[1]||'mascot'),
+      profile: () => window.NexoEstudio && ['grades','absences'].includes(route[1]) ? routeTo('planner','notas') : renderProfile(({avatar:'mascot',collection:'mascot',progress:'stats'})[route[1]]||route[1]),
       subject: () => renderSubject(route[1]),
       lesson: () => renderLesson(route[1]),
       practice: () => renderPractice(route[1] || 'exercises', route[2]),
@@ -603,6 +632,7 @@
       knowledge: () => renderAcademicExplorer('knowledge'),
       reviews: () => renderAcademicExplorer('reviews'),
       rescue: () => renderAcademicRescue(route[1]||'org.lone-pair'),
+      study: renderStudy,
       inspector: () => renderAcademicExplorer('inspector'),
       'ui-lab': () => renderWorkbench('ui-lab'),
       review: () => renderWorkbench('review'),
@@ -615,7 +645,7 @@
         const mode = route[1] === 'test' ? 'test' : state.tutorial.status === 'pending' ? 'first' : 'replay';
         const REWARD = 150, api = {
           pet: () => ({ kind: state.mascot.kind, name: state.mascot.name }),
-          setPet: (kind, name) => { Object.assign(state.mascot, { kind, name }); saveState({ backup: false }); window.NexoPet?.renderDock?.(document.getElementById('companionPresence')); },
+          setPet: (kind, name) => { Object.assign(state.mascot, { kind, name, owned: [...new Set([kind, ...(state.mascot.owned || [])])] }); saveState({ backup: false }); window.NexoPet?.renderDock?.(document.getElementById('companionPresence')); },
           canReward: () => !cloud.authenticated && !state.tutorial.rewarded,
           reward: () => { if (cloud.authenticated || state.tutorial.rewarded) return 0; state.coins += REWARD; state.tutorial.rewarded = true; saveState(); updateChrome(); return REWARD; },
           reward_amount: REWARD,
@@ -623,7 +653,7 @@
           finish: () => { state.tutorial.status = 'done'; saveState({ backup: false }); withAvisos(a => { state.tutorial.news = Math.max(state.tutorial.news || 0, a.VERSION); saveState({ backup: false }); }); }
         };
         const go = () => { if (parseRoute()[0] === 'tutorial') window.NexoTutorial.render(app, { mode, api: mode === 'test' ? null : api, sound: () => !!state.settings?.sound, exit: () => routeTo('home') }); };
-        if (window.NexoTutorial) go(); else { const sc = document.createElement('script'); sc.src = 'tutorial/tutorial.js?v=5'; sc.onload = go; document.head.append(sc); }
+        if (window.NexoTutorial) go(); else { const sc = document.createElement('script'); sc.src = 'tutorial/tutorial.js?v=7'; sc.onload = go; document.head.append(sc); }
       }
     };
     try { (renderers[route[0]] || renderHome)(); app.dataset.renderedRoute = route.join('/'); }
@@ -700,19 +730,37 @@
           </div>
           </div>
           <span class="home-pan-hint" aria-hidden="true">Desliza para explorar ⟷</span>
-          <header class="refuge-welcome"><p class="eyebrow">NEXO · TU REFUGIO</p><h1>Un lugar para aprender.</h1><p>Abre la ventana. Prepara tu siguiente paso.</p></header>
+          ${homeClockMarkup(evaluations[0], studied)}
           <div class="home-room-hud"><span class="streak-hud">✦ ${streak()} días de racha</span></div>
         </div>
-        <div class="refuge-objects">
-          <section class="evaluation-board" aria-labelledby="priorityTitle"><div class="board-pin" aria-hidden="true">✦</div><p class="eyebrow">EN EL HORIZONTE</p><h2 id="priorityTitle">Próximas pruebas<br> y controles</h2>
-            ${evaluations.length ? `<ol class="evaluation-notes">${evaluations.map((item,index) => {const course=subjectFor(item.event.subject);return `<li class="evaluation-note ${index===0?'next-evaluation':''}"><div><span>${esc(course.name)}</span><time datetime="${esc(item.event.date)}">${formatDate(item.event.date)}</time></div><h3>${esc(item.event.title)}</h3><p>${item.reasons.map(esc).join(' · ')}</p>${item.event.dateNote||item.event.weekdayUncertain?`<small>${esc(item.event.dateNote||'Fecha por confirmar con cátedra.')}</small>`:''}<button class="paper-link" data-route="planner" data-route-sub="calendar">Ver evaluación en Bitácora →</button></li>`;}).join('')}</ol>` : '<p class="paper-empty">Sin pruebas pendientes en tu calendario.</p>'}
-            <button class="wood-link" data-route="planner" data-route-sub="calendar">Abrir mi calendario →</button>
+        <div class="refuge-signs">
+          <div class="signs-beam" aria-hidden="true"></div>
+          <section class="sign sign-pruebas evaluation-board" aria-labelledby="priorityTitle">
+            <i class="sign-chain sign-chain-l" aria-hidden="true"></i><i class="sign-chain sign-chain-r" aria-hidden="true"></i>
+            <h2 class="sign-title" id="priorityTitle">${pixelText('Próximas pruebas')}</h2>
+            <div class="sign-paper">
+              ${evaluations.length ? `<ol class="evaluation-notes">${evaluations.map((item,index) => {const course=subjectFor(item.event.subject);return `<li class="evaluation-note ${index===0?'next-evaluation':''}"><div><span>${esc(course.name)}</span><time datetime="${esc(item.event.date)}">${formatDate(item.event.date)}</time></div><h3>${esc(item.event.title)}</h3><p>${item.reasons.map(esc).join(' · ')}</p>${item.event.dateNote||item.event.weekdayUncertain?`<small>${esc(item.event.dateNote||'Fecha por confirmar con cátedra.')}</small>`:''}<button class="paper-link" data-route="planner" data-route-sub="calendar">Ver evaluación en Bitácora →</button></li>`;}).join('')}</ol>` : '<p class="paper-empty">Sin pruebas pendientes en tu calendario.</p>'}
+            </div>
+            <button class="wood-link sign-link" data-route="planner" data-route-sub="calendar">Abrir mi calendario →</button>
           </section>
-          <section class="day-paper" aria-labelledby="dayTitle"><p class="eyebrow">HOJA DEL DÍA</p><h2 id="dayTitle">Tu día</h2><div class="day-goal"><span>Meta diaria</span><strong>${studied} / ${goal} min</strong><progress value="${Math.min(studied,goal)}" max="${goal}" aria-label="${studied} de ${goal} minutos estudiados hoy"></progress></div>
-            <ul class="day-agenda">${todayEvents.length ? todayEvents.slice(0,3).map(event=>`<li><span aria-hidden="true">◇</span><div><b>${esc(event.title)}</b><small>${esc(subjectFor(event.subject).name)}${event.time?` · ${esc(event.time)}`:''}</small></div></li>`).join('') : '<li><span aria-hidden="true">☼</span><div><b>Sin compromisos hoy</b><small>Tu calendario está libre para estudiar a tu ritmo.</small></div></li>'}</ul>
-            <div class="day-actions"><button class="paper-link" data-route="train" data-route-sub="reviews">${dueReviews().length} repasos pendientes →</button><button class="paper-link" data-home-start="${continuingSubject.id}">Iniciar sesión de estudio →</button></div>
+          <section class="sign sign-dia day-paper" aria-labelledby="dayTitle">
+            <i class="sign-chain sign-chain-l" aria-hidden="true"></i><i class="sign-chain sign-chain-r" aria-hidden="true"></i>
+            <h2 class="sign-title" id="dayTitle">${pixelText('Tu día')}</h2>
+            <div class="sign-paper">
+              <div class="day-goal"><span>Meta diaria</span><strong>${studied} / ${goal} min</strong><div class="goal-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${goal}" aria-valuenow="${Math.min(studied,goal)}" aria-label="${studied} de ${goal} minutos estudiados hoy"><i style="width:${Math.min(100,Math.round(100*studied/Math.max(1,goal)))}%"></i></div></div>
+              <ul class="day-agenda">${todayEvents.length ? todayEvents.slice(0,3).map(event=>`<li><span aria-hidden="true">◇</span><div><b>${esc(event.title)}</b><small>${esc(subjectFor(event.subject).name)}${event.time?` · ${esc(event.time)}`:''}</small></div></li>`).join('') : '<li><span aria-hidden="true">☼</span><div><b>Sin compromisos hoy</b><small>Tu calendario está libre para estudiar a tu ritmo.</small></div></li>'}</ul>
+            </div>
+            <button class="wood-link sign-link" data-route="reviews">${dueReviews().length} repasos pendientes →</button>
           </section>
-          <section class="continue-volume" aria-labelledby="continueTitle"><div class="volume-seal" aria-hidden="true">✧</div><div><p class="eyebrow">EL GRIMORIO TE ESPERA</p><h2 id="continueTitle">Continuar estudiando</h2><p>${esc(continuingSubject.name)} · ${esc(pep?.name||'Selecciona una evaluación')}</p>${saved?`<button class="paper-link saved-lesson" data-open-lesson="${state.lessonSession.id}">Retomar clase guardada: ${esc(saved.title)} →</button>`:''}</div><div class="volume-actions"><button class="primary-btn" data-grimoire-route="learn/course/${continuingSubject.id}/evaluation/pep-${pepIndex+1}">Abrir mapa de preparación →</button><button class="wood-link" data-route="learn">Elegir otro ramo</button></div></section>
+          <section class="sign sign-continuar continue-volume" aria-labelledby="continueTitle">
+            <i class="sign-chain sign-chain-l" aria-hidden="true"></i><i class="sign-chain sign-chain-r" aria-hidden="true"></i>
+            <h2 class="sign-title" id="continueTitle">${pixelText('Continuar')}</h2>
+            <div class="sign-paper">
+              <p class="continue-where"><b>${esc(continuingSubject.name)}</b><span>${esc(pep?.name||'Selecciona una evaluación')}</span></p>
+              ${saved?`<button class="paper-link saved-lesson" data-open-lesson="${state.lessonSession.id}">Retomar clase guardada: ${esc(saved.title)} →</button>`:''}
+            </div>
+            <div class="volume-actions"><button class="primary-btn" data-grimoire-route="learn/course/${continuingSubject.id}/evaluation/pep-${pepIndex+1}">Abrir mapa de preparación →</button><button class="wood-link sign-link" data-route="learn">Elegir otro ramo</button></div>
+          </section>
         </div>
         <footer class="refuge-caption">Un lugar donde el conocimiento florece.</footer>
       </div>
@@ -720,6 +768,52 @@
     window.NexoHomeScene.enhancePan?.(app);
     petBind(); window.NexoPet?.mountHome(app.querySelector('.home-art-plane')); window.NexoPet?.checkWeather();
     window.NexoOrgAvisos?.home(app, orgBridge());
+    startHomeClock();
+  }
+
+  // Reloj de la torre en el Inicio: hora y momento del día, cronómetro de estudio, minutos de hoy y próxima evaluación.
+  const dayMoment = hour => hour < 6 ? 'madrugada' : hour < 12 ? 'mañana' : hour < 19 ? 'tarde' : 'noche';
+  const GREETINGS = { madrugada: 'Noche larga', mañana: 'Buen día', tarde: 'Buena tarde', noche: 'Buena noche' };
+  const pixelText = (text, options) => window.NexoPixelText.render(text, options);
+  function homeClockMarkup(nextEvaluation, studiedMinutes) {
+    const timer = state.timer, running = timer.status === 'running', paused = timer.status === 'paused';
+    const days = nextEvaluation ? daysBetween(todayKey(), nextEvaluation.event.date) : null;
+    const countdown = days === null ? 'Sin pruebas a la vista' : `${nextEvaluation.event.title} · ${days <= 0 ? 'hoy' : days === 1 ? 'mañana' : `${days} días`}`;
+    const pt = (text, shadow = false) => pixelText(text, { shadow });
+    return `<aside class="home-clock ${running ? 'is-running' : ''}" aria-label="Reloj de estudio">
+      <i class="hc-gear" aria-hidden="true"></i><i class="hc-orb" aria-hidden="true"></i><i class="hc-leaf hc-leaf-l" aria-hidden="true"></i><i class="hc-leaf hc-leaf-r" aria-hidden="true"></i><i class="hc-pendulum" aria-hidden="true"></i><i class="hc-flask" aria-hidden="true"></i>
+      <div class="hc-now"><div class="hc-hour" data-hc-time role="text"></div><div class="hc-greet" data-hc-moment></div></div>
+      <div class="hc-timer"><div class="hc-label">${pt(`${running ? 'Estudiando' : paused ? 'En pausa' : 'Cronómetro'} · ${subjectFor(timer.subject).short}`)}</div><div class="hc-digits" id="homeTimer" role="timer">${pixelDigits(formatClock(timerElapsedMs()))}</div></div>
+      <div class="hc-controls">${running ? `<button class="hc-btn" data-action="timer-pause" aria-label="Pausar">${pt('Pausar')}</button>` : `<button class="hc-btn hc-primary" data-action="timer-start" aria-label="${paused ? 'Seguir' : 'Estudiar'}">${pt(paused ? 'Seguir' : 'Estudiar')}</button>`}${timerElapsedMs() >= 1000 ? `<button class="hc-btn" data-action="timer-finish" aria-label="Terminar">${pt('Terminar')}</button>` : ''}</div>
+      <div class="hc-meta"><span class="hc-plate">${pt(`Hoy · ${studiedMinutes} min`)}</span><span class="hc-plate hc-plate-exam">${pt(countdown)}</span></div>
+    </aside>`;
+  }
+  // Chispas de latón, cristal y hoja al terminar una sesión: viven en el body porque el Inicio se vuelve a pintar al guardar.
+  function sparkBurst(origin) {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches || document.body.classList.contains('reduce-motion')) return;
+    const box = origin.getBoundingClientRect(), layer = document.createDocumentFragment(), made = [];
+    for (let i = 0; i < 22; i += 1) {
+      const spark = document.createElement('b'), angle = Math.PI * 2 * i / 22 + Math.random() * 0.5, dist = 50 + Math.random() * 70;
+      spark.className = 'hc-spark';
+      spark.style.cssText = `left:${box.left + box.width / 2}px;top:${box.top + box.height / 2}px;--dx:${Math.cos(angle) * dist}px;--dy:${Math.sin(angle) * dist - 30}px;animation-delay:${Math.random() * 90}ms`;
+      layer.appendChild(spark); made.push(spark);
+    }
+    document.body.appendChild(layer);
+    setTimeout(() => made.forEach(spark => spark.remove()), 1100);
+  }
+  function startHomeClock() {
+    const tick = () => {
+      const now = new Date(), time = document.querySelector('[data-hc-time]');
+      if (!time) return;
+      const clock = now.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false }), moment = dayMoment(now.getHours());
+      if (time.dataset.t !== clock) { time.dataset.t = clock; time.innerHTML = pixelDigits(clock); time.setAttribute('aria-label', clock); }
+      const greet = document.querySelector('[data-hc-moment]');
+      if (greet.dataset.m !== moment) { greet.dataset.m = moment; greet.innerHTML = pixelText(GREETINGS[moment], { shadow: false }); }
+      const digits = document.querySelector('#homeTimer');
+      if (digits && state.timer.status === 'running') digits.innerHTML = pixelDigits(formatClock(timerElapsedMs()));
+    };
+    tick();
+    timerTicker = setInterval(tick, 1000);
   }
 
   function renderTimer() {
@@ -829,7 +923,7 @@
       <div class="subject-hero"><div><p class="eyebrow">${subject.short} · PRIORIDAD ${subject.priority}</p><h1>${subject.name}</h1><p>${subject.description}</p><div class="hero-stats"><b>${progress.understood}/${progress.total} comprendidas</b><b>${progress.mastered}/${progress.total} ${subject.id === 'organica' ? 'autoverificadas' : 'dominadas'}</b></div></div><span class="hero-icon" aria-hidden="true">${subject.icon}</span></div>
       <section class="route-switch panel" aria-labelledby="routeModeTitle"><div><p class="eyebrow">MODO DE ACCESO</p><h2 id="routeModeTitle">¿Construir base o ir directo a una prueba?</h2></div><div class="segmented" role="tablist" aria-label="Modo de acceso a las clases"><button role="tab" aria-selected="${mode === 'progression'}" class="${mode === 'progression' ? 'active' : ''}" data-route-mode="progression" data-subject="${subject.id}">Ruta progresiva</button><button role="tab" aria-selected="${mode === 'urgent'}" class="${mode === 'urgent' ? 'active' : ''}" data-route-mode="urgent" data-subject="${subject.id}">Prueba encima</button></div><p>${subject.id === 'organica' ? (mode === 'progression' ? 'El orden sugiere las bases necesarias, pero todas las clases se pueden abrir. En cada una eliges lectura completa, ejercicio directo o repaso.' : 'Entra a cualquier problema. Si aparece un bloqueo, vuelve al concepto preciso y reintenta sin pista.') : mode === 'progression' ? 'Las clases se abren en orden para que cada idea tenga base. La siguiente se libera con comprensión demostrada.' : 'Todas las clases quedan accesibles. Cada una ofrece una entrada compacta que conserva la teoría mínima y obliga a explicar el ejercicio.'}</p></section>
       <div class="pep-board">${subject.peps.map((pep, pepIndex) => `<section class="pep-column"><header><span>0${pepIndex + 1}</span><div><p>${pep.name.includes('PEP') ? 'EVALUACIÓN' : 'BLOQUE'}</p><h2>${pep.name}</h2></div></header><div class="lesson-list">${pep.lessons.map((id, index) => lessonNode(id, index, mode)).join('')}</div></section>`).join('')}</div>
-      ${subject.id==='organica'?'<section class="panel"><h2>Mapa de conocimiento · Aminas</h2><p>Explora conceptos, prerequisitos, evidencia y revisiones del piloto org-01.</p><div class="button-row"><button data-route="knowledge" class="secondary-btn">Abrir mapa</button><button data-route="reviews" class="secondary-btn">Revisiones</button></div></section>':''}
+      ${subject.id==='organica'?'<section class="panel"><h2>Estudiar hoy · Aminas</h2><p>Sesión corta que elige qué practicar según tus repasos y errores. Las pistas cuentan como ayuda.</p><div class="button-row"><button data-route="study" class="primary-btn">Estudiar ahora</button></div></section><section class="panel"><h2>Mapa de conocimiento · Aminas</h2><p>Explora conceptos, prerequisitos, evidencia y revisiones del piloto org-01.</p><div class="button-row"><button data-route="knowledge" class="secondary-btn">Abrir mapa</button><button data-route="reviews" class="secondary-btn">Revisiones</button></div></section>':''}
       <section class="panel lab-preview"><div><p class="eyebrow">LABORATORIO</p><h2>Preparación práctica del ramo</h2><p>Checklist prelab, cálculos, seguridad, datos crudos y cierre de informe. Lo que dependa del manual actual aparece explícitamente como pendiente.</p></div><button class="secondary-btn" data-route="practice" data-route-sub="labs" data-filter-subject="${subject.id}">Abrir laboratorio</button></section>
     </section>`;
   }
@@ -849,8 +943,8 @@
   let academicFoundation=null;
   let mascotAcademicSubscribed=false;
   function loadAcademicFoundation() {
-    if(!academicFoundation)academicFoundation=['model','graph','diagnosis','knowledge','ranks','classifiers','sources','reviews','structured','engine','library','inspector','explorer','training','rescue']
-      .reduce((promise,name)=>promise.then(()=>window.NexoLoader.script(`./academic/${name}.js?v=c503132d`)),Promise.resolve())
+    if(!academicFoundation)academicFoundation=['model','graph','diagnosis','knowledge','ranks','classifiers','sources','reviews','structured','engine','library','inspector','explorer','rescue']
+      .reduce((promise,name)=>promise.then(()=>window.NexoLoader.script(`./academic/${name}.js?v=a2a8bd73`)),Promise.resolve())
       .then(()=>{if(!mascotAcademicSubscribed){window.NexoAcademicEngine.subscribe(event=>
         window.NexoMascotController.react(event,app));mascotAcademicSubscribed=true;}})
       .catch(error=>{academicFoundation=null;throw error;});
@@ -863,19 +957,22 @@
     loadAcademicFoundation().then(()=>{const route=parseRoute();if(route[0]==='library'||route.join('/')==='learn/library')renderRoute(false);})
       .catch(()=>{app.innerHTML='<section class="page"><h1>Biblioteca no disponible</h1><button data-route="library">Reintentar</button></section>';});
   }
-  function renderAcademicTraining(mode) {
-    if(window.NexoAcademicTraining)return window.NexoAcademicTraining.render(app,
-      {getState:()=>state,saveState,showToast,track:(...args)=>cloud.track(...args)},mode);
-    app.innerHTML='<section class="page"><p role="status">Abriendo entrenamiento…</p></section>';
-    loadAcademicFoundation().then(()=>{if(parseRoute()[0]==='train')renderRoute(false);})
-      .catch(()=>{app.innerHTML='<section class="page"><h1>Entrenamiento no disponible</h1><button data-route="train">Reintentar</button></section>';});
-  }
   function renderAcademicRescue(conceptId) {
     if(window.NexoAcademicRescue)return window.NexoAcademicRescue.render(app,
       {getState:()=>state,saveState,showToast,track:(...args)=>cloud.track(...args)},conceptId);
     app.innerHTML='<section class="page"><p role="status">Abriendo Rescate…</p></section>';
     loadAcademicFoundation().then(()=>{if(parseRoute().join('/')===`rescue/${conceptId}`)renderRoute(false);})
       .catch(()=>{app.innerHTML='<section class="page"><h1>Rescate no disponible</h1><button data-route="knowledge">Volver al mapa</button></section>';});
+  }
+  function renderStudy() {
+    const context={getState:()=>state,saveState,showToast};
+    if(window.NexoStudyUI)return window.NexoStudyUI.render(app,context);
+    app.innerHTML='<section class="page"><p role="status">Abriendo el motor de estudio…</p></section>';
+    loadAcademicFoundation()
+      .then(()=>['./vendor/fsrs/index.umd.js','./study/content.js','./study/engine.js','./study/ui.js']
+        .reduce((promise,src)=>promise.then(()=>window.NexoLoader.script(src)),Promise.resolve()))
+      .then(()=>{if(parseRoute()[0]==='study')renderRoute(false);})
+      .catch(()=>{app.innerHTML='<section class="page"><h1>Motor de estudio no disponible</h1><button data-route="study">Reintentar</button></section>';});
   }
   function renderAcademicExplorer(view,conceptId) {
     if(window.NexoAcademicExplorer) {
@@ -885,14 +982,14 @@
         track:(...args)=>cloud.track(...args)},conceptId);
     }
     app.innerHTML='<section class="page"><p role="status">Abriendo contenido académico…</p></section>';
-    loadAcademicFoundation().then(()=>{const route=parseRoute();if(route[0]===view||route[0]==='learn'||route[0]==='train')renderRoute(false);})
+    loadAcademicFoundation().then(()=>{const route=parseRoute();if(route[0]===view||route[0]==='learn')renderRoute(false);})
       .catch(()=>{app.innerHTML='<section class="page"><h1>Contenido no disponible</h1><button data-route="subjects">Volver a Ramos</button></section>';});
   }
   function renderWorkbench(view) {
     if (new URLSearchParams(location.search).get('nexoDev') !== '1') return renderHome();
     if(view==='ui-lab'&&!window.NexoArcaneRanks){
       app.innerHTML='<section class="page"><p role="status">Abriendo componentes…</p></section>';
-      Promise.all([loadAcademicFoundation(),window.NexoLoader.script('./dev/workbench.js?v=32c5574c')])
+      Promise.all([loadAcademicFoundation(),window.NexoLoader.script('./dev/workbench.js?v=6bcdb09f')])
         .then(()=>{if(parseRoute()[0]===view)renderRoute(false);})
         .catch(()=>{app.innerHTML='<section class="page"><h1>UI Lab no disponible</h1></section>';});
       return;
@@ -903,7 +1000,7 @@
       return window.NexoWorkbench.renderReview(app);
     }
     app.innerHTML='<section class="page"><p role="status">Abriendo herramientas de revisión…</p></section>';
-    window.NexoLoader.script('./dev/workbench.js?v=32c5574c')
+    window.NexoLoader.script('./dev/workbench.js?v=6bcdb09f')
       .then(() => { if (parseRoute()[0] === view) renderRoute(false); })
       .catch(() => { if (parseRoute()[0] === view) app.innerHTML='<section class="page"><h1>Revisión no disponible</h1><button data-route="home">Volver al inicio</button></section>'; });
   }
@@ -914,7 +1011,7 @@
     const promise = Promise.resolve(window.NexoClassCatalog || window.NexoLoader.script('./classes/catalog.js?v=8dec702d')).then(() => {
       const file = window.NexoClassCatalog?.[id];
       if (!file) return false;
-      return Promise.all([window.NexoLoader.style('./classes/classroom.css?v=a1358874'), window.NexoLoader.script('./classes/tower-art.js?v=9099c2df').then(() => window.NexoLoader.script('./classes/player.js?v=4242bf88')),
+      return Promise.all([window.NexoLoader.style('./classes/classroom.css?v=7f1c7bf7'), window.NexoLoader.script('./classes/tower-art.js?v=9099c2df').then(() => window.NexoLoader.script('./classes/player.js?v=4242bf88')),
         window.NexoLoader.script('./classes/willow-tower.js?v=09c21b87').catch(() => null), // Torre del Sauce (etapa 10); sin ella, quedan las hojas en lista
         window.NexoLoader.script(`./classes/${file}?v=18`),
         // Motor de evidencia y repaso espaciado (FSRS); si no cargan, la clase funciona igual sin agendar repasos.
@@ -1138,8 +1235,22 @@
     </nav>`);
   }
 
-  function renderProfile(tab = 'mascot') {
-    const active = ['mascot', 'grades', 'absences', 'stats', 'settings'].includes(tab) ? tab : 'mascot';
+  // Perfil = carta de jugador (perfil/carta.js). Sin sección = la carta y 3 botones; con sección, madera + pergamino con "← Mi carta".
+  function profileCardData() {
+    const pet = state.mascot, totalSec = state.sessions.reduce((sum, item) => sum + sessionSeconds(item), 0), run = streak();
+    const engine = window.NexoAcademicEngine, ranks = window.NexoArcaneRanks;
+    let level = 0;
+    try { if (engine && ranks) level = Math.max(0, ...engine.model.concepts.map(c => ranks.forState(state, c.id, engine.model).level)); } catch (_) { level = 0; }
+    return {
+      name: pet.name && pet.name !== 'Nexo' ? pet.name : (window.NexoPet?.names?.[pet.kind] || 'Nexo'),
+      rank: { level, name: ranks?.ranks[level]?.name || 'Sin rango' }, streak: run, minutes: Math.round(totalSec / 60),
+      badges: [run >= 3, run >= 7, totalSec >= 36000, Object.values(state.mastery).some(m => m?.status === 'dominado'),
+        state.claimedChallenges.length > 0, Object.values(pet.outfit || {}).some(Boolean)]
+    };
+  }
+  function renderProfile(tab = '') {
+    const active = ['mascot', 'grades', 'absences', 'stats', 'settings'].includes(tab) ? tab : '';
+    if (!active) { petBind(); return window.NexoCarta.render(app, profileCardData()); }
     if (active === 'stats') renderStats();
     else if (active === 'grades') renderProfileGrades();
     else if (active === 'absences') renderProfileAbsences();
@@ -1147,13 +1258,7 @@
     else renderMascot();
     const page = app.querySelector('.page');
     page.classList.add('rpg-inner', 'profile-page');
-    page.insertAdjacentHTML('afterbegin', `<div class="profile-room-header" role="img" aria-label="Habitación de Nexo"></div><nav class="rpg-tabs" role="tablist" aria-label="Perfil">
-      ${[['mascot','Mascota'],['stats','Estadísticas'],['settings','Ajustes']].map(([id,label]) => `<button role="tab" aria-selected="${active === id}" class="${active === id ? 'active' : ''}" data-profile-tab="${id}">${label}</button>`).join('')}
-    </nav>`);
-  }
-
-  function profileSubjectTabs(selected, attribute, countFor = null) {
-    return `<nav class="profile-subject-tabs" role="tablist" aria-label="Ramo">${SUBJECTS.map(subject => `<button role="tab" aria-selected="${subject.id === selected}" class="${subject.id === selected ? 'active' : ''}" data-${attribute}="${subject.id}"><span>${esc(subject.name)}</span>${countFor ? `<b>${countFor(subject.id)}</b>` : ''}</button>`).join('')}</nav>`;
+    window.NexoCarta.wrapSection(page, active);
   }
 
   function renderProfileGrades() {
@@ -1350,8 +1455,8 @@
   }
   function renderShop() {
     petBind();
-    app.innerHTML=`<section class="page forge-page"><p class="eyebrow">MERCADO ARCANO</p><h2>Tienda de accesorios</h2>
-      <p>Pruébale los accesorios a tu compañero. Comprar se activa pronto; tus átomos se siguen ganando al estudiar (${state.coins} ⚛).</p>
+    app.innerHTML=`<section class="page forge-page"><p class="eyebrow">MERCADO ARCANO</p><h2>Tienda de cofres</h2>
+      <div id="shopTop"></div>
       <div style="display:flex;justify-content:center;background:radial-gradient(circle at 50% 40%,#f3e6c8,#d8c39a);border-radius:12px;margin:10px 0"><canvas id="petShopPreview" width="40" height="44" style="width:160px;height:176px;image-rendering:pixelated" aria-label="Vista previa de tu compañero"></canvas></div>
       <div id="petShop" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px"></div></section>`+
       `<details class="forge-challenges"><summary>Desafíos de estudio</summary>${renderChallenges()}</details>`;
@@ -1359,7 +1464,7 @@
   }
   function renderMascot() {
     petBind();
-    app.innerHTML=`<section class="page"><p class="eyebrow">TU COMPAÑERO</p><h2>Mascota</h2>
+    app.innerHTML=`<section class="page"><p class="eyebrow">TU COMPAÑERO</p><h2>Vestuario</h2>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px">
         <div class="panel"><h3>Elige tu compañero</h3><div id="petPick" style="display:flex;gap:10px;flex-wrap:wrap"></div>
           <p><label>Nombre <input id="petName" maxlength="20" autocomplete="off"></label></p>
@@ -1457,6 +1562,7 @@
         .catch(() => showToast('El cronómetro sigue local; esta sesión no dará átomos si no se conecta.'));
     }
     state.timer.status = 'running'; state.timer.startedAt = Date.now(); saveState({ backup: false }); renderRoute(false);
+    if (parseRoute()[0] === 'home') window.NexoPet?.celebrate(0);
     cloud.track('study_session_started',{subject_id:state.timer.subject});
   }
   function timerPause() {
@@ -1622,15 +1728,8 @@
     if (button.dataset.grimoireEvaluation) return routeTo('learn','course',button.dataset.grimoireCourse,'evaluation',button.dataset.grimoireEvaluation,...(button.dataset.grimoireNode?[button.dataset.grimoireNode]:[]));
     if (button.dataset.grimoireRoute) return routeTo(...button.dataset.grimoireRoute.split('/'));
     if (button.dataset.route) return routeTo(button.dataset.route, ...(button.dataset.routeSub ? [button.dataset.routeSub] : []));
-    if(button.dataset.trainingHint!==undefined) {
-      window.NexoAcademicTraining?.hint();return;
-    }
-    if(button.dataset.trainingNext!==undefined)return window.NexoAcademicTraining?.next();
-    if(button.dataset.trainingStop!==undefined){window.NexoAcademicTraining?.stop();return renderRoute(false);}
-    if(button.dataset.trainingReset!==undefined)return window.NexoAcademicTraining?.reset();
     if(button.dataset.rescueNext!==undefined)return window.NexoAcademicRescue?.next();
     if(button.dataset.rescueRetry!==undefined)return window.NexoAcademicRescue?.retry();
-    if (button.dataset.homeStart) { state.timer.subject=button.dataset.homeStart; saveState({backup:false}); return routeTo('hub','timer'); }
     if (button.dataset.action === 'toggle-more') return toggleMore(button);
     if (button.dataset.openSubject) return routeTo('subject', button.dataset.openSubject);
     if (button.dataset.openLesson) return openLesson(button.dataset.openLesson, button.dataset.mode || null);
@@ -1650,6 +1749,7 @@
     }
     if (button.dataset.hubTab) return routeTo('hub', button.dataset.hubTab);
     if (button.dataset.profileTab) return routeTo('profile', button.dataset.profileTab);
+    if (button.dataset.profileClose !== undefined) return routeTo('profile');
     if (button.dataset.profileGradeSubject) { ui.profileSubject = button.dataset.profileGradeSubject; return renderRoute(false); }
     if (button.dataset.profileGradeGroup) { ui.profileGroup = button.dataset.profileGradeGroup; return renderRoute(false); }
     if (button.dataset.absenceSubject) { ui.absenceSubject = button.dataset.absenceSubject; return renderRoute(false); }
@@ -1661,7 +1761,7 @@
     if (button.dataset.deleteAbsence) return removeWithUndo(state.absences, button.dataset.deleteAbsence, 'Inasistencia');
     if (button.dataset.action === 'timer-start') return timerStart();
     if (button.dataset.action === 'timer-pause') return timerPause();
-    if (button.dataset.action === 'timer-finish') return timerFinish();
+    if (button.dataset.action === 'timer-finish') { if (button.closest('.home-clock')) sparkBurst(button); return timerFinish(); }
     if (button.dataset.action === 'timer-reset') return timerReset();
     if (button.dataset.action === 'exercise-hint') { const p = state.practice[button.dataset.exerciseId] || { attempts: 0 }; p.hintOpen = !p.hintOpen; if (p.hintOpen) p.hintUsed = true; state.practice[button.dataset.exerciseId] = p; saveState({ backup: false }); return renderRoute(false); }
     if (button.dataset.action === 'exercise-retry') { const p = state.practice[button.dataset.exerciseId] || {}; p.checked = false; delete p.selected; state.practice[button.dataset.exerciseId] = p; saveState({ backup: false }); return renderRoute(false); }
@@ -1811,9 +1911,6 @@
 
   document.addEventListener('submit', event => {
     event.preventDefault(); const form = event.target;
-    if(form.dataset.trainingSetup!==undefined)return window.NexoAcademicTraining?.start(form);
-    if(form.dataset.trainingCase)return window.NexoAcademicTraining?.answer(form)
-      .catch(()=>showToast('No se pudo guardar el intento. Inténtalo de nuevo.'));
     if(form.dataset.rescueCase)return window.NexoAcademicRescue?.answer(form)
       .catch(()=>showToast('No se pudo guardar el intento de Rescate.'));
     if (form.dataset.structuredCase) {
@@ -1855,6 +1952,7 @@
 
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && modalRoot.innerHTML) return closeModal();
+    if (event.key === 'Escape' && app.querySelector('.perfil-seccion')) return routeTo('profile');
     const tabs = event.target.closest('[role="tablist"]');
     if (tabs && ['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {
       const list = [...tabs.querySelectorAll('[role="tab"]:not([disabled])')], index = list.indexOf(event.target); if (index < 0) return;
@@ -1962,10 +2060,12 @@
     getCurrent: () => state,
     onState(next,{cached}={}) {
       state=normalizeState(next); updateChrome(); renderRoute(false);
-      if (!cached && cloud.authenticated && sessionStorage.getItem('nexo-google-return')) {
+      const volver = sessionStorage.getItem('nexo-google-return');
+      if (!cached && cloud.authenticated && volver) {
         sessionStorage.removeItem('nexo-google-return');
-        routeTo('profile','settings');
+        routeTo(...volver.split('/'));
       }
+      marcarCloudListo();
       let claim=null;
       try { claim=JSON.parse(localStorage.getItem('nexo-claim-after-auth-v13')||'null'); } catch (_) {}
       if (!cached && cloud.claimMatches(claim)
@@ -1978,7 +2078,7 @@
       }
       cloud.analyticsConsent(Boolean(state.settings.analytics));
     },
-    onGuest() { state=loadState(); cloud.analyticsConsent(Boolean(state.settings.analytics)); updateChrome(); renderRoute(false); },
+    onGuest() { state=loadState(); cloud.analyticsConsent(Boolean(state.settings.analytics)); updateChrome(); renderRoute(false); marcarCloudListo(); },
     onStatus(info) {
       const node=document.querySelector('#syncStatus');
       if (node) node.textContent=info.status==='synced'?'✓ Sincronizado':
@@ -1987,6 +2087,7 @@
         info.status==='failed'?'⚠ Pendiente de conexión':
         info.status==='pending'?'☁ Guardado localmente · pendiente':'En este dispositivo';
     }
-  }).catch(()=>{});
+  }).catch(()=>{}).finally(marcarCloudListo);
+  setTimeout(marcarCloudListo, 4000); // sin red o con la nube lenta, no dejar la puerta cerrada
   cloud.track('app_opened');
 })();

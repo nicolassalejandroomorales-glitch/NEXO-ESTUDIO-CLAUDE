@@ -6,12 +6,12 @@ const root = path.join(__dirname, '..');
 // ya son IIFE/registro global y deben ejecutarse en el mismo orden que index.html.
 const startupModules = [
   'cloud/foundation.js', 'core/storage.js', 'core/migrations.js',
-  'design-system/home-scene.js', 'design-system/rooms.js', 'design-system/preparation.js', 'ambient/time.js', 'ambient/weather.js', 'ambient/refugio-vida.js', 'ambient/events.js',
+  'design-system/pixel-text.js', 'design-system/home-scene.js', 'design-system/rooms.js', 'design-system/preparation.js', 'ambient/time.js', 'ambient/weather.js', 'ambient/refugio-vida.js', 'ambient/events.js',
   'planner/priority.js', 'planner/labs.js', 'planner/grades.js', 'planner/grade-rules.js', 'planner/calendar-model.js', 'planner/today-plan.js', 'planner/avisos.js', 'planner/notas.js', 'planner/calendario.js', 'planner/estudio-audio.js', 'planner/estudio.js',
   'study/economy.js', 'academic/amine-mastery.js', 'academic/active-time.js',
   'academic/history.js', 'platform/loader.js', 'platform/performance.js',
   'platform/animation.js', 'platform/audio.js', 'game/manager.js',
-  'mascot/controller.js', 'mascot/home-pet.js', 'world/torre-mundo.js',
+  'mascot/controller.js', 'economy/tienda.js', 'mascot/home-pet.js', 'mascot/reacciones.js', 'perfil/carta.js', 'world/torre-mundo.js',
   'organic-manifest.js', 'classes/catalog.js'
 ];
 const startupBundle = startupModules.map(name => {

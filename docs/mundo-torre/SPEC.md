@@ -40,7 +40,7 @@ que se pueda recorrer con la mascota. Que no quede todo tan "anti ambiental".
 
 - En `#/train` y `#/games` se ve la sala con la mascota; tocar el piso la hace caminar; cruzar el arco cambia de pantalla.
 - Cada objeto hace su acción (elige modo / abre juego / cambia pestaña).
-- Perfil con su habitación; cambiar de pestaña lleva a la mascota al objeto.
+- Perfil: ya NO es una habitación (17 oct 2026, ahora carta de jugador; ver docs/perfil-alcoba/SPEC.md).
 - 1440 y 390 sin errores; pruebas en verde; ANTES/AHORA.
 
 ## Hecho (11 oct)

@@ -6,6 +6,7 @@
 - spec: docs/ux-app/FEEDBACK-15OCT.md
 
 ## Hecho
+- Barra nueva (17 oct): Inicio · Aprender · Organización · Perfil. Entrenar se borró (pantalla, entrenamiento, sala Taller y pruebas); Repasos y Rescate siguen en Aprender. Juegos salió de la barra (sigue en #/games).
 - Refugio y mascotas ya en pixel art con las rampas de `tools/home-pixel/pixel.py`.
 - Grimorio del tutorial, marcos de diálogo y huevos en pixel art.
 

@@ -480,9 +480,9 @@
         .select('concept_id,rank,reward_tier,achieved_at,status'));
       return result;
     }
-    async signInWithGoogle() {
+    async signInWithGoogle({ volver = 'profile/settings' } = {}) {
       if (!this.client || !this.googleOAuthEnabled) throw new Error('cloud_unconfigured');
-      sessionStorage.setItem('nexo-google-return','profile/settings');
+      sessionStorage.setItem('nexo-google-return',volver);
       try {
         await this.call(this.client.auth.signInWithOAuth({provider:'google',
           options:{redirectTo:location.origin+location.pathname}}));

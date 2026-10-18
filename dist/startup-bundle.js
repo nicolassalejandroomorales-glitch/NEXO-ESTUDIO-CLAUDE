@@ -483,9 +483,9 @@
         .select('concept_id,rank,reward_tier,achieved_at,status'));
       return result;
     }
-    async signInWithGoogle() {
+    async signInWithGoogle({ volver = 'profile/settings' } = {}) {
       if (!this.client || !this.googleOAuthEnabled) throw new Error('cloud_unconfigured');
-      sessionStorage.setItem('nexo-google-return','profile/settings');
+      sessionStorage.setItem('nexo-google-return',volver);
       try {
         await this.call(this.client.auth.signInWithOAuth({provider:'google',
           options:{redirectTo:location.origin+location.pathname}}));
@@ -787,6 +787,61 @@
 
 ;
 
+/* design-system/pixel-text.js */
+/* Letras pixel art de Nexo: una fuente propia de 5×7 (mayúsculas, números y signos) dibujada como SVG de cuadritos.
+   Sirve para carteles, títulos y etiquetas cortas. El texto largo sigue en la fuente normal para que se lea bien.
+   NexoPixelText.render('Próximas pruebas', { shadow: true }) -> <svg class="pixel-text"> con fill: currentColor. */
+(() => {
+  'use strict';
+  const G = {
+    A: ['01110', '10001', '10001', '11111', '10001', '10001', '10001'], B: ['11110', '10001', '10001', '11110', '10001', '10001', '11110'],
+    C: ['01110', '10001', '10000', '10000', '10000', '10001', '01110'], D: ['11110', '10001', '10001', '10001', '10001', '10001', '11110'],
+    E: ['11111', '10000', '10000', '11110', '10000', '10000', '11111'], F: ['11111', '10000', '10000', '11110', '10000', '10000', '10000'],
+    G: ['01110', '10001', '10000', '10111', '10001', '10001', '01111'], H: ['10001', '10001', '10001', '11111', '10001', '10001', '10001'],
+    I: ['01110', '00100', '00100', '00100', '00100', '00100', '01110'], J: ['00111', '00010', '00010', '00010', '00010', '10010', '01100'],
+    K: ['10001', '10010', '10100', '11000', '10100', '10010', '10001'], L: ['10000', '10000', '10000', '10000', '10000', '10000', '11111'],
+    M: ['10001', '11011', '10101', '10101', '10001', '10001', '10001'], N: ['10001', '11001', '10101', '10011', '10001', '10001', '10001'],
+    O: ['01110', '10001', '10001', '10001', '10001', '10001', '01110'], P: ['11110', '10001', '10001', '11110', '10000', '10000', '10000'],
+    Q: ['01110', '10001', '10001', '10001', '10101', '10010', '01101'], R: ['11110', '10001', '10001', '11110', '10100', '10010', '10001'],
+    S: ['01111', '10000', '10000', '01110', '00001', '00001', '11110'], T: ['11111', '00100', '00100', '00100', '00100', '00100', '00100'],
+    U: ['10001', '10001', '10001', '10001', '10001', '10001', '01110'], V: ['10001', '10001', '10001', '10001', '10001', '01010', '00100'],
+    W: ['10001', '10001', '10001', '10101', '10101', '11011', '10001'], X: ['10001', '10001', '01010', '00100', '01010', '10001', '10001'],
+    Y: ['10001', '10001', '01010', '00100', '00100', '00100', '00100'], Z: ['11111', '00001', '00010', '00100', '01000', '10000', '11111'],
+    0: ['01110', '11011', '10001', '10001', '10001', '11011', '01110'], 1: ['00100', '01100', '00100', '00100', '00100', '00100', '01110'],
+    2: ['01110', '10001', '00001', '00010', '00100', '01000', '11111'], 3: ['11110', '00001', '00001', '01110', '00001', '00001', '11110'],
+    4: ['10010', '10010', '10010', '11111', '00010', '00010', '00010'], 5: ['11111', '10000', '10000', '11110', '00001', '00001', '11110'],
+    6: ['01111', '10000', '10000', '11110', '10001', '10001', '01110'], 7: ['11111', '00001', '00010', '00100', '01000', '01000', '01000'],
+    8: ['01110', '10001', '10001', '01110', '10001', '10001', '01110'], 9: ['01110', '10001', '10001', '01111', '00001', '00001', '11110'],
+    '.': ['0', '0', '0', '0', '0', '0', '1'], ',': ['0', '0', '0', '0', '0', '1', '1'], ':': ['0', '1', '0', '0', '1', '0', '0'],
+    '!': ['1', '1', '1', '1', '1', '0', '1'], '?': ['01110', '10001', '00001', '00110', '00100', '00000', '00100'],
+    '-': ['00000', '00000', '00000', '11111', '00000', '00000', '00000'], '·': ['0', '0', '0', '1', '0', '0', '0'],
+    '/': ['00001', '00010', '00010', '00100', '01000', '01000', '10000'], '%': ['11001', '11010', '00010', '00100', '01000', '01011', '10011'],
+    '→': ['00000', '00100', '00010', '11111', '00010', '00100', '00000'], "'": ['1', '1', '0', '0', '0', '0', '0'],
+    ' ': ['000', '000', '000', '000', '000', '000', '000'],
+  };
+  // Letras con marca arriba (2 filas extra sobre la letra).
+  const MARKS = { 'Á': ['A', ['00010', '00100']], 'É': ['E', ['00010', '00100']], 'Í': ['I', ['00010', '00100']], 'Ó': ['O', ['00010', '00100']],
+    'Ú': ['U', ['00010', '00100']], 'Ñ': ['N', ['01010', '10100']], 'Ü': ['U', ['01010', '00000']] };
+
+  function render(text, { shadow = true } = {}) {
+    const chars = [...String(text).toUpperCase()];
+    const accented = chars.some(ch => MARKS[ch]), top = accented ? 0 : 2;
+    let x = 0, cells = '';
+    for (const ch of chars) {
+      const mark = MARKS[ch], rows = mark ? G[mark[0]] : G[ch] || G['?'];
+      rows.forEach((row, y) => [...row].forEach((cell, dx) => { if (cell === '1') cells += `<rect x="${x + dx}" y="${y + 2}" width="1" height="1"/>`; }));
+      if (mark) mark[1].forEach((row, y) => [...row].forEach((cell, dx) => { if (cell === '1') cells += `<rect x="${x + dx}" y="${y}" width="1" height="1"/>`; }));
+      x += rows[0].length + 1;
+    }
+    const w = Math.max(1, x - 1), h = 9 - top, pad = shadow ? 1 : 0;
+    const body = shadow ? `<g class="pt-shadow" transform="translate(1 1)">${cells}</g><g class="pt-ink">${cells}</g>` : `<g class="pt-ink">${cells}</g>`;
+    return `<svg class="pixel-text" style="--u:${h + pad}" viewBox="0 ${top} ${w + pad} ${h + pad}" role="img" aria-label="${String(text).replace(/"/g, '&quot;')}" shape-rendering="crispEdges" focusable="false">${body}</svg>`;
+  }
+  window.NexoPixelText = Object.freeze({ render });
+})();
+
+;
+
 /* design-system/home-scene.js */
 /* UPDATE 01.3 checkpoint 1 — one profile; only the window is a slot/hotspot. */
 (() => {
@@ -799,7 +854,6 @@
       layers:{background:0,ambientBack:1,modularObjects:2,mascotBack:3,mascot:4,mascotFront:5,ambientFront:6,integratedUI:7,hotspots:8},
       slots:[{id:'window',type:'window',zone:'window-area',bounds:[.045,.08,.235,.40],layer:'modularObjects',renderMode:'baked',asset:null,foregroundAsset:null,replacementReady:false}],
       hotspots:[
-        {id:'window-focus',slot:'window',inset:[.04,.04,.76,.60],action:'focus-light',accessibleLabel:'Ventana: resaltar suavemente la luz de entrada'},
         // Navegación diegética: cada objeto usa el MISMO router que los botones normales (data-route).
         {id:'staff-shop',bounds:[1078/1672,292/941,62/1672,318/941],action:'route',route:'shop',accessibleLabel:'Báculo estelar: abrir la Tienda'},
         {id:'armchair-profile',bounds:[1255/1672,395/941,240/1672,280/941],action:'route',route:'profile',accessibleLabel:'Sillón: abrir tu Perfil'},
@@ -842,7 +896,7 @@
         {id:'window-tone',className:'home-window-tone',slot:'window',inset:[.025531914893617,.0375,.817021276595745,.8875],depth:2},
         {id:'light-rays',className:'refuge-light',bounds:[0,0,1,1],depth:3}
       ],
-      lightingProfile:{sourceSlot:'window',driver:'NexoAmbientTime',states:['dawn','day','dusk','night'],continuous:true,feedback:{duration:600,peakBrightness:1.12}}
+      lightingProfile:{sourceSlot:'window',driver:'NexoAmbientTime',states:['dawn','day','dusk','night'],continuous:true}
     },
     // 5 oct 2026 — refugio en pixel art (tools/home-pixel/build_refugio.py). 418×235 px de arte ×4.
     // Coordenadas en el mismo sistema 1672×941; por ahora solo tintes de hora (las capas animadas vienen después).
@@ -852,7 +906,6 @@
       layers:{background:0,ambientBack:1,modularObjects:2,mascotBack:3,mascot:4,mascotFront:5,ambientFront:6,integratedUI:7,hotspots:8},
       slots:[{id:'window',type:'window',zone:'window-area',bounds:[72/1672,64/941,280/1672,344/941],layer:'modularObjects',renderMode:'baked',asset:null,foregroundAsset:null,replacementReady:false}],
       hotspots:[
-        {id:'window-focus',slot:'window',inset:[.08,.06,.84,.86],action:'focus-light',accessibleLabel:'Ventana: resaltar suavemente la luz de entrada'},
         {id:'staff-shop',bounds:[1196/1672,192/941,104/1672,448/941],action:'route',route:'shop',accessibleLabel:'Báculo estelar: abrir la Tienda'},
         {id:'armchair-profile',bounds:[1264/1672,368/941,264/1672,296/941],action:'route',route:'profile',accessibleLabel:'Sillón: abrir tu Perfil'},
         {id:'map-logbook',bounds:[616/1672,620/941,176/1672,60/941],action:'route',route:'planner',routeSub:'grades',accessibleLabel:'Mapa enrollado: abrir la Bitácora'},
@@ -874,7 +927,7 @@
         {id:'px-tarde',className:'home-light-layer home-px-light home-px-tarde',bounds:[0,0,1,1],depth:1},
         {id:'px-noche',className:'home-light-layer home-px-light home-px-noche',bounds:[0,0,1,1],depth:1}
       ],
-      lightingProfile:{sourceSlot:'window',driver:'NexoAmbientTime',states:['dawn','day','dusk','night'],continuous:true,feedback:{duration:600,peakBrightness:1.12}}
+      lightingProfile:{sourceSlot:'window',driver:'NexoAmbientTime',states:['dawn','day','dusk','night'],continuous:true}
     }
   });
   // ?scene=refugio-012 abre el arte anterior (respaldo).
@@ -918,8 +971,6 @@
     const anchors=Object.fromEntries(Object.entries(profile.mascotAnchors).map(([id,a])=>[id==='rest'?'rest-area':id,{...a,selector:`[data-scene-zone="${a.zone}"]`}]));
     return freeze({artSize:[profile.referenceWidth,profile.referenceHeight],layers:{...profile.layers,scene:profile.layers.modularObjects,interactive:profile.layers.hotspots},currentSeat:{zone:desk.zone,x:desk.point[0],y:desk.point[1],...desk.seat},anchors});
   }
-  let pulse=null;
-  function cleanup() {pulse?.cancel();pulse=null;}
   function activate(id,root,profile=getProfile()) {
     const hotspot=profile.hotspots.find(item=>item.id===id);
     if(hotspot?.action==='continue') {
@@ -927,16 +978,7 @@
       root.querySelector('.continue-volume .primary-btn')?.click();
       return true;
     }
-    if(!hotspot||hotspot.action!=='focus-light')return false;
-    cleanup();
-    if(matchMedia('(prefers-reduced-motion: reduce)').matches||document.body.classList.contains('reduce-motion')||document.body.dataset.nexoAmbientMotion==='reduced')return true;
-    const tone=root.querySelector('[data-ambient-layer="window-tone"]');
-    if(!tone?.animate)return true;
-    const feedback=profile.lightingProfile.feedback;
-    pulse=tone.animate([{filter:'brightness(1)'},{filter:`brightness(${feedback.peakBrightness})`,offset:.5},{filter:'brightness(1)'}],{duration:feedback.duration,easing:'ease-in-out'});
-    const active=pulse;
-    active.finished.then(()=>{if(pulse===active)pulse=null;}).catch(()=>{});
-    return true;
+    return false;
   }
   // Móvil: la sala es más ancha que la pantalla y se desliza de lado (CSS en update01.css).
   // Parte mostrando el escritorio y la mascota; el aviso "Desliza" se oculta al primer deslizamiento.
@@ -953,9 +995,7 @@
     pan.addEventListener('scroll',()=>{if(pan.scrollLeft>4)pan.dataset.touched='1';update();},{passive:true});
     update();
   }
-  if(typeof matchMedia==='function')matchMedia('(prefers-reduced-motion: reduce)').addEventListener?.('change',cleanup);
-  if(typeof document!=='undefined')document.addEventListener('visibilitychange',()=>{if(document.hidden)cleanup();});
-  window.NexoHomeScene=Object.freeze({profiles,getProfile,ambientBounds,replacementReady,render,legacyContract,activate,cleanup,enhancePan});
+  window.NexoHomeScene=Object.freeze({profiles,getProfile,ambientBounds,replacementReady,render,legacyContract,activate,enhancePan});
 })();
 
 ;
@@ -973,7 +1013,6 @@
   const rooms = Object.freeze({
     home: { name: 'Refugio', material: 'wood', accent: '#83a987', art:window.NexoHomeScene.getProfile().backgroundAsset },
     learn: { name: 'Grimorio', material: 'paper', accent: '#d6a85d', art:'assets/rooms/learn.webp' },
-    train: { name: 'Taller', material: 'ink', accent: '#d29369', art:'assets/rooms/train.webp' },
     games: { name: 'Arcade', material: 'pixel', accent: '#aa79c7', art:'assets/rooms/games.webp' },
     profile: { name: 'Habitación', material: 'wood', accent: '#b9a587', art:'assets/rooms/profile.webp' },
     shop: { name: 'Mercado', material: 'ink', accent: '#d9ac68' },
@@ -982,7 +1021,7 @@
   const roomRoutes = Object.freeze({
     home:'home', subjects:'learn', subject:'learn', lesson:'learn', learn:'learn',
     library:'learn', knowledge:'learn', inspector:'learn',
-    train:'train', practice:'train', reviews:'train', rescue:'train',
+    practice:'learn', reviews:'learn', rescue:'learn',
     games:'games', profile:'profile', mascot:'profile', stats:'profile',
     settings:'profile', history:'profile', shop:'shop',
     planner:'planner', hub:'planner', timer:'planner'
@@ -1230,8 +1269,8 @@
     if (loading) return loading;
     loading = (async () => {
       const map = await (await fetch(BASE + 'refugio-pixel-mapa.json')).json();
-      const [glass, haz, ...lands] = await Promise.all([
-        loadImage(BASE + 'refugio-pixel-vidrio.png'), loadImage(BASE + 'refugio-pixel-haz.png'),
+      const [bg, glass, haz, ...lands] = await Promise.all([
+        loadImage(BASE + 'refugio-pixel.png'), loadImage(BASE + 'refugio-pixel-vidrio.png'), loadImage(BASE + 'refugio-pixel-haz.png'),
         ...['sol', 'nublado', 'tarde', 'noche'].map(m => loadImage(BASE + `refugio-pixel-paisaje-${m}.png`))]);
       const [x0, y0, x1, y1] = map.window, ww = x1 - x0, wh = y1 - y0;
       const hz = alphaMask(haz), rays = [];
@@ -1242,28 +1281,29 @@
       const r = rng(7);
       const stars = Array.from({ length: 34 }, () => [Math.floor(r() * ww), Math.floor(r() * wh * 0.6), r()]);
       const clouds = Array.from({ length: 9 }, (_, i) => ({
-        shape: Array.from({ length: 4 + Math.floor(r() * 4) }, (_, k) => [(k - 2.5) * (3 + r() * 3), (r() - 0.5) * 3, 2.5 + r() * 3.5]),
-        y: 6 + r() * (wh * 0.45), x: r() * (ww + 40), speed: 1.4 + r() * 2.6, order: i,
+        shape: Array.from({ length: 5 + Math.floor(r() * 4) }, (_, k) => [(k - 3) * (3.5 + r() * 3), (r() - 0.5) * 3.5, 3 + r() * 4.2]),
+        y: 6 + r() * (wh * 0.45), x: r() * (ww + 40), speed: 4 + r() * 6, order: i,
       }));
       const drops = Array.from({ length: 70 }, () => [r(), r(), 0.8 + r() * 0.4, 3 + Math.floor(r() * 2)]);
       const glassDrops = Array.from({ length: 9 }, () => [r() * ww, r() * wh, 2 + r() * 5, r()]);
       const motes = Array.from({ length: 40 }, () => Math.floor(r() * (rays.length / 3)) * 3);
       assets = { map, ww, wh, glass: alphaMask(glass).canvas, rays, raysW: haz.width, raysH: haz.height,
         lands: { sol: lands[0], nublado: lands[1], tarde: lands[2], noche: lands[3] }, stars, clouds, drops, glassDrops, motes,
-        cloudCache: new Map(), halos: { small: halo(10), big: halo(17) } };
+        cloudCache: new Map(), halos: { small: halo(10), big: halo(17), fly: halo(5, [190, 255, 110]), potion: halo(9, [90, 210, 230]) },
+        ...leafLayers(bg), shadow: cloudShadow(), flies: Array.from({ length: 12 }, () => [24 + r() * 370, 50 + r() * 150, r() * 6.28, r() * 6.28]) };
       return assets;
     })();
     return loading;
   }
 
   // Halo de pixel art: anillos de borde duro con un poco de tramado entre anillos.
-  function halo(radius) {
+  function halo(radius, rgb = [255, 180, 70]) {
     const size = radius * 2 + 1, c = canvas(size, size), x = c.getContext('2d'), d = x.createImageData(size, size);
     const bayer = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
     for (let j = 0; j < size; j += 1) for (let i = 0; i < size; i += 1) {
       const t = Math.max(0, 1 - Math.hypot(i - radius, j - radius) / radius);
       const step = Math.floor(t * 3 + (bayer[(j % 4) * 4 + (i % 4)] / 16) * 0.7) / 3, k = (j * size + i) * 4;
-      d.data[k] = 255; d.data[k + 1] = 180; d.data[k + 2] = 70; d.data[k + 3] = Math.round(step * step * 255);
+      d.data[k] = rgb[0]; d.data[k + 1] = rgb[1]; d.data[k + 2] = rgb[2]; d.data[k + 3] = Math.round(step * step * 255);
     }
     x.putImageData(d, 0, 0);
     return c;
@@ -1273,7 +1313,7 @@
   function cloudSprite(A, cloud, palette, shift) {
     const key = cloud.order + palette + shift;
     if (A.cloudCache.has(key)) return A.cloudCache.get(key);
-    const cols = A.map.clouds[palette].map(hex), W = 40, H = 18, c = canvas(W, H), x = c.getContext('2d'), d = x.createImageData(W, H);
+    const cols = A.map.clouds[palette].map(hex), W = 52, H = 22, c = canvas(W, H), x = c.getContext('2d'), d = x.createImageData(W, H);
     for (let j = 0; j < H; j += 1) for (let i = 0; i < W; i += 1) {
       let lv = -1;
       for (const [ox, oy, r] of cloud.shape) {
@@ -1286,6 +1326,40 @@
     }
     x.putImageData(d, 0, 0);
     A.cloudCache.set(key, c);
+    return c;
+  }
+
+  // Hojas del fondo repartidas en 6 franjas diagonales: cada franja se ilumina un rato, así una ola de luz recorre la hiedra.
+  const LEAF_BANDS = 6;
+  function leafLayers(bg) {
+    const W = 418, H = 235, tmp = canvas(W, H), tx = tmp.getContext('2d');
+    tx.imageSmoothingEnabled = false; tx.drawImage(bg, 0, 0, W, H);
+    const px = tx.getImageData(0, 0, W, H).data, bands = Array.from({ length: LEAF_BANDS }, () => { const c = canvas(W, H); return { c, x: c.getContext('2d'), d: null }; });
+    bands.forEach(b => { b.d = b.x.createImageData(W, H); });
+    const spawn = [];
+    for (let y = 0; y < H; y += 1) for (let x = 0; x < W; x += 1) {
+      const k = (y * W + x) * 4, r = px[k], g = px[k + 1], b = px[k + 2];
+      if (g > r + 8 && g > b + 8 && g > 70) {
+        const band = Math.floor((x * 0.65 + y * 0.35) / 9) % LEAF_BANDS, d = bands[band].d.data;
+        d[k] = 205; d[k + 1] = 235; d[k + 2] = 120; d[k + 3] = 255;
+        if (y < 150 && (x + y * 3) % 17 === 0) spawn.push([x, y]);
+      }
+    }
+    bands.forEach(b => b.x.putImageData(b.d, 0, 0));
+    return { leafBands: bands.map(b => b.c), leafSpawn: spawn };
+  }
+
+  // Sombra de nube sobre el piso: óvalo tramado (dos niveles) que cruza la sala despacio.
+  function cloudShadow() {
+    const W = 110, H = 26, c = canvas(W, H), x = c.getContext('2d'), d = x.createImageData(W, H), bayer = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+    for (let j = 0; j < H; j += 1) for (let i = 0; i < W; i += 1) {
+      const e = Math.hypot((i - W / 2) / (W / 2), (j - H / 2) / (H / 2));
+      if (e >= 1) continue;
+      const v = (1 - e) * 2 + bayer[(j % 4) * 4 + (i % 4)] / 16 - 0.45, k = (j * W + i) * 4;
+      if (v < 0.7) continue;
+      d.data[k] = 20; d.data[k + 1] = 24; d.data[k + 2] = 44; d.data[k + 3] = v > 1.5 ? 70 : 38;
+    }
+    x.putImageData(d, 0, 0);
     return c;
   }
 
@@ -1356,14 +1430,14 @@
       x.globalAlpha = 1;
     }
     // 4) nubes que avanzan (más y más grises si está nublado o llueve)
-    const nClouds = wx.kind === 'clear' ? 2 + Math.round((wx.cover / 100) * 4) : 9;
+    const nClouds = wx.kind === 'clear' ? 4 + Math.round((wx.cover / 100) * 4) : 9;
     const palette = w.night > 0.5 ? 'night' : grey > 0.5 || wx.rain > 0 ? 'cloudy' : w.dusk > 0.4 ? 'dusk' : w.dawn > 0.4 ? 'dawn' : 'day';
     const shift = wx.storm ? -1 : wx.rain > 0.6 ? -1 : 0;
     const wind = 1 + wx.rain * 0.8 + wx.storm;
     for (const cl of A.clouds.slice(0, nClouds)) {
-      const span = ww + 44, cx = ((cl.x + t * cl.speed * wind) % span + span) % span - 22;
+      const span = ww + 56, cx = ((cl.x + t * cl.speed * wind) % span + span) % span - 28;
       const cy = wx.kind === 'clear' ? cl.y : cl.y * 0.7;
-      x.drawImage(cloudSprite(A, cl, palette, shift), Math.round(cx - 20), Math.round(cy - 9));
+      x.drawImage(cloudSprite(A, cl, palette, shift), Math.round(cx - 26), Math.round(cy - 11));
     }
     if (wx.rain > 0 || wx.kind === 'cloudy') { x.globalAlpha = 0.25 * Math.max(wx.rain, grey * 0.6); x.fillStyle = '#2a3244'; x.fillRect(0, 0, ww, wh); x.globalAlpha = 1; }
     // 5) paisaje con la luz de la hora (pintado en Python con las rampas)
@@ -1461,8 +1535,84 @@
       ctx.drawImage(h, cx - (h.width >> 1), cy - (h.height >> 1));
       ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
     });
+    const dt = Math.min(0.25, Math.max(0, t - (L.lastT ?? t))); L.lastT = t;
+    if (!L.still) drawExtras(L, t, dt);
     // el relámpago también se nota un poquito en la sala
     if (wx.storm && t < L.flashUntil) { ctx.globalAlpha = 0.08; ctx.fillStyle = '#d8e0ff'; ctx.fillRect(0, 0, L.canvas.width, L.canvas.height); ctx.globalAlpha = 1; }
+  }
+
+  // Lo que se mueve en toda la sala (no solo en la ventana): sombra de nubes, brillo de la hiedra, hojas y páginas que caen,
+  // burbujas y vapor de la poción, polvo de luz y luciérnagas de noche.
+  function drawExtras(L, t, dt) {
+    const A = L.A, ctx = L.ctx, { w, wx } = L.env, low = document.body.dataset.nexoQuality === 'low';
+    const fair = (w.day + w.dawn * 0.6 + w.dusk * 0.4) * (1 - wx.cloud) * (1 - wx.rain);
+    if (fair > 0.05) {                                                         // sombra de nube sobre el piso
+      ctx.globalAlpha = Math.min(1, fair * 1.2);
+      for (let k = 0; k < 2; k += 1) {
+        const span = 418 + 160, sx = ((k * 230 + t * (5 + k * 2)) % span + span) % span - 120;
+        ctx.drawImage(A.shadow, Math.round(sx), 150 + k * 38);
+      }
+      ctx.globalAlpha = 1;
+    }
+    ctx.globalCompositeOperation = 'lighter';                                   // ola de luz que recorre la hiedra
+    const lit = 0.25 + 0.75 * Math.min(1, w.day + w.dawn * 0.7 + w.dusk * 0.4 + 0.3);
+    A.leafBands.forEach((band, i) => {
+      const a = Math.max(0, Math.sin(t * 1.4 - i * 1.05)) ** 2 * 0.2 * lit;
+      if (a > 0.01) { ctx.globalAlpha = a; ctx.drawImage(band, 0, 0); }
+    });
+    ctx.globalAlpha = 0.14 + 0.07 * Math.sin(t * 2.2); ctx.drawImage(A.halos.potion, 126, 57);   // la poción de la estantería brilla
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+    for (let i = 0; i < 5; i += 1) {                                            // burbujas que suben por el frasco
+      const p = (t * 0.55 + i * 0.37) % 1, by = Math.round(70 - p * 12), bx = Math.round(135 + Math.sin(t * 2 + i * 2) * 1.6);
+      ctx.globalAlpha = 1 - p * 0.7; ctx.fillStyle = i % 2 ? '#e0fcff' : '#9ce8f0'; ctx.fillRect(bx, by, 1, 1);
+    }
+    for (let i = 0; i < 3; i += 1) {                                            // vapor verde que sale del cuello
+      const p = (t * 0.3 + i / 3) % 1, vy = Math.round(56 - p * 14), vx = Math.round(135 + Math.sin(t * 1.3 + i * 2.4) * 3 * p);
+      ctx.globalAlpha = (1 - p) * 0.55; ctx.fillStyle = '#cfeedd'; ctx.fillRect(vx - 1, vy, 2, 1); ctx.fillRect(vx, vy - 1, 1, 1);
+    }
+    ctx.globalAlpha = 1;
+    if (!low) {                                                                  // polvo de luz por toda la sala
+      ctx.fillStyle = '#fff3c8';
+      for (let i = 0; i < 26; i += 1) {
+        const x = (i * 97 % 400) + 9 + Math.sin(t * 0.25 + i) * 6, y = 20 + (((i * 53) % 170 - t * (0.8 + (i % 5) * 0.25)) % 170 + 170) % 170;
+        ctx.globalAlpha = (0.15 + 0.3 * (0.5 + 0.5 * Math.sin(t * 0.9 + i * 1.7))) * Math.max(fair, 0.25); ctx.fillRect(Math.round(x), Math.round(y), 1, 1);
+      }
+      ctx.globalAlpha = 1;
+    }
+    const night = (w.night + w.dusk * 0.5) * (1 - wx.rain);
+    if (night > 0.1) {                                                           // luciérnagas
+      ctx.globalCompositeOperation = 'lighter';
+      A.flies.forEach(([bx, by, p, q]) => {
+        const x = Math.round(bx + Math.sin(t * 0.32 + p) * 16 + Math.sin(t * 0.9 + q) * 4), y = Math.round(by + Math.sin(t * 0.47 + q) * 9),
+          on = Math.max(0, Math.sin(t * 1.5 + p * 5)) ** 2 * night;
+        if (on < 0.05) return;
+        ctx.globalAlpha = on * 0.5; ctx.drawImage(A.halos.fly, x - 5, y - 5);
+        ctx.globalAlpha = on; ctx.fillStyle = '#eaff9a'; ctx.fillRect(x, y, 1, 1);
+      });
+      ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+    }
+    // hojas que se sueltan de la hiedra y páginas que se escapan de la estantería
+    L.fall = L.fall || []; L.nextFall = L.nextFall ?? t + 2;
+    if (t > L.nextFall && L.fall.length < (low ? 3 : 7)) {
+      const page = Math.random() < 0.18, s = A.leafSpawn[Math.floor(Math.random() * A.leafSpawn.length)] || [200, 40];
+      L.fall.push(page ? { page: true, x: 104 + Math.random() * 50, y: 33, vx: 3, vy: 5.5, ph: Math.random() * 6, born: t }
+        : { page: false, x: s[0], y: s[1], vx: 0, vy: 6 + Math.random() * 4, ph: Math.random() * 6, born: t, dark: Math.random() < 0.4 });
+      L.nextFall = t + 2.5 + Math.random() * 3.5;
+    }
+    L.fall = L.fall.filter(f => f.y < 205);
+    for (const f of L.fall) {
+      f.y += f.vy * dt; f.x += (f.vx + Math.sin(t * 2.2 + f.ph) * 9) * dt;
+      const a = Math.min(1, (t - f.born) * 2, (205 - f.y) / 20), flap = Math.floor(t * 5 + f.ph) % 2, x = Math.round(f.x), y = Math.round(f.y);
+      ctx.globalAlpha = Math.max(0, a);
+      if (f.page) {
+        ctx.fillStyle = '#e6d6b2'; ctx.fillRect(x, y, flap ? 4 : 3, flap ? 3 : 4);
+        ctx.fillStyle = '#a69070'; ctx.fillRect(x, y + (flap ? 2 : 3), flap ? 4 : 3, 1);
+      } else {
+        ctx.fillStyle = f.dark ? '#3f6e2d' : '#83ad42'; ctx.fillRect(x, y, flap ? 3 : 2, flap ? 1 : 2);
+        ctx.fillStyle = f.dark ? '#2a5228' : '#5d8c36'; ctx.fillRect(x + 1, y + 1, 2, 1);
+      }
+      ctx.globalAlpha = 1;
+    }
   }
 
   function stillMode() {
@@ -1524,7 +1674,6 @@
   const scenes=Object.freeze({
     home:[['leaves','watch'],['book','read'],['lamp','rest']],
     learn:[['book','read'],['ink','think']],
-    train:[['shield','ready'],['rune','ready']],
     games:[['spark','play']],
     profile:[['lamp','rest'],['book','read'],['sleep','sleep']],
     shop:[['spark','preview']],
@@ -4035,7 +4184,7 @@
   const motionValues=['reduced','normal','rich'];
   const mascotValues=['reduced','full'];
   const points=[[13,18],[78,24],[42,12],[88,71],[9,67],[55,78],[28,44],[68,54],[33,88],[93,38]];
-  const roomCaps={home:10,learn:2,train:5,games:7,profile:8,shop:5,planner:2};
+  const roomCaps={home:10,learn:2,games:7,profile:8,shop:5,planner:2};
   let currentSettings={};
   let active=null;
   let started=false;
@@ -4436,7 +4585,7 @@
   const sprite={click:[0,80],confirm:[100,150],purchase:[280,200],equip:[510,120],error:[650,180]};
   const tones={click:[540,690],confirm:[570,810],purchase:[390,570,790],equip:[640,880],error:[260,180]};
   const rooms={home:'home',learn:'learn',lesson:'learn',subject:'learn',subjects:'learn',library:'learn',
-    knowledge:'learn',reviews:'learn',rescue:'learn',train:'train',practice:'train',
+    knowledge:'learn',reviews:'learn',rescue:'learn',practice:'learn',
     games:'games',profile:'profile',mascot:'profile',stats:'profile',settings:'profile',
     hub:'planner',planner:'planner',timer:'planner',shop:'profile'};
   let settings={sound:false,sfxVolume:.4,music:false,musicVolume:.15,ambient:false,ambientVolume:.12};
@@ -4475,7 +4624,7 @@
   /* Periodic waves end at zero crossings, avoiding a click at loop boundaries. */
   function wavLoop(kind,scene) {
     const rate=8000,seconds=4,samples=rate*seconds,pcm=new Int16Array(samples);
-    const base={home:110,train:130,profile:98,planner:123,games:146}[scene]||110;
+    const base={home:110,profile:98,planner:123,games:146}[scene]||110;
     for(let i=0;i<samples;i++) {
       const t=i/rate,edge=Math.sin(Math.PI*i/samples)**2;
       let sample;
@@ -4603,8 +4752,8 @@
 /* Context decisions only. Actual artboard animation remains Idle until the rig supports named states. */
 (() => {
   'use strict';
-  const intents={home:'idle',learn:'read',train:'ready',games:'play',profile:'rest',shop:'preview',planner:'watch'};
-  const props={home:'window',learn:'book',train:'spellbook',games:null,profile:'cushion',shop:null,planner:'calendar'};
+  const intents={home:'idle',learn:'read',games:'play',profile:'rest',shop:'preview',planner:'watch'};
+  const props={home:'window',learn:'book',games:null,profile:'cushion',shop:null,planner:'calendar'};
   let effectTimer=null;
   const roomOf=input=>typeof input==='string'?input:input?.id||'home';
   function plan({currentMascot={},currentEquipment={},currentRoom='home',currentActivity='',academicEvent=null,ambientEvent=null,
@@ -4646,6 +4795,83 @@
 
 ;
 
+/* economy/tienda.js */
+/* Tienda y cofres (docs/economia/SPEC.md). Lógica pura: recibe el estado y lo modifica; no toca el DOM.
+   state.shop = { owned: [ids], dust: polvo, chests: cofres sin abrir, sinceRare: cofres desde el último raro+, dailyAt: 'AAAA-MM-DD' } */
+(() => {
+  'use strict';
+  const RARITIES = ['comun', 'poco', 'raro', 'legendario'];
+  const LABELS = { comun: 'Común', poco: 'Poco común', raro: 'Raro', legendario: 'Legendario' };
+  const ODDS = { comun: 60, poco: 28, raro: 10, legendario: 2 };            // % por cofre
+  const DUST = { comun: 10, poco: 20, raro: 40, legendario: 80 };            // polvo que da un repetido
+  const DUST_PRICE = { comun: 30, poco: 60, raro: 120, legendario: 240 };    // polvo para comprar directo
+  const CHEST_PRICE = 70;                                                    // ⚛ por cofre
+  const PITY = 10;                                                           // cada 10 cofres sin raro+, el siguiente lo es
+  const RARITY_OF = {
+    flor: 'comun', corbatin: 'comun', lentes: 'comun', gorro: 'comun', taza: 'comun',
+    bufanda: 'poco', lupa: 'poco', monoculo: 'poco', collar: 'poco',
+    birrete: 'raro', lentesSol: 'raro', varita: 'raro',
+    sombrero: 'legendario', corona: 'legendario'
+  };
+
+  const idsOf = r => Object.keys(RARITY_OF).filter(id => RARITY_OF[id] === r);
+  function shopOf(state) {
+    const s = state.shop && typeof state.shop === 'object' ? state.shop : (state.shop = {});
+    if (!Array.isArray(s.owned)) s.owned = [];
+    ['dust', 'chests', 'sinceRare'].forEach(k => { s[k] = Math.max(0, Math.floor(Number(s[k]) || 0)); });
+    if (typeof s.dailyAt !== 'string') s.dailyAt = '';
+    return s;
+  }
+  const fail = reason => ({ ok: false, reason });
+
+  function buyChest(state) {
+    const s = shopOf(state);
+    if ((Number(state.coins) || 0) < CHEST_PRICE) return fail('Te faltan átomos para un cofre.');
+    state.coins -= CHEST_PRICE; s.chests += 1;
+    return { ok: true };
+  }
+  function claimDaily(state, today) {
+    const s = shopOf(state);
+    if (s.dailyAt === today) return fail('El cofre de hoy ya lo abriste. Vuelve mañana.');
+    s.dailyAt = today; s.chests += 1;
+    return { ok: true };
+  }
+  function grantChest(state, n = 1) { shopOf(state).chests += Math.max(0, Math.floor(n)); }   // premios por hitos
+
+  function rollRarity(rng, forceRare) {
+    if (forceRare) return rng() < ODDS.legendario / (ODDS.raro + ODDS.legendario) ? 'legendario' : 'raro';
+    let x = rng() * 100;
+    for (const r of RARITIES) { if (x < ODDS[r]) return r; x -= ODDS[r]; }
+    return 'comun';
+  }
+  // Abre un cofre: da un accesorio nuevo; si ya lo tenías, lo convierte en polvo.
+  function openChest(state, rng = Math.random) {
+    const s = shopOf(state);
+    if (s.chests < 1) return fail('No tienes cofres para abrir.');
+    s.chests -= 1;
+    const guaranteed = s.sinceRare >= PITY - 1;
+    const rarity = rollRarity(rng, guaranteed);
+    s.sinceRare = rarity === 'raro' || rarity === 'legendario' ? 0 : s.sinceRare + 1;
+    const pool = idsOf(rarity), id = pool[Math.min(pool.length - 1, Math.floor(rng() * pool.length))];
+    const dupe = s.owned.includes(id);
+    if (dupe) s.dust += DUST[rarity]; else s.owned.push(id);
+    return { ok: true, id, rarity, dupe, dust: dupe ? DUST[rarity] : 0 };
+  }
+  function buyWithDust(state, id) {
+    const s = shopOf(state), r = RARITY_OF[id];
+    if (!r) return fail('Ese accesorio no existe.');
+    if (s.owned.includes(id)) return fail('Ya lo tienes.');
+    if (s.dust < DUST_PRICE[r]) return fail('Te falta polvo.');
+    s.dust -= DUST_PRICE[r]; s.owned.push(id);
+    return { ok: true };
+  }
+
+  window.NexoTienda = Object.freeze({ RARITIES, LABELS, ODDS, DUST, DUST_PRICE, CHEST_PRICE, PITY, RARITY_OF,
+    shopOf, buyChest, claimDaily, grantChest, openChest, buyWithDust });
+})();
+
+;
+
 /* mascot/home-pet.js */
 /* Mascota pixel en la app (docs/mascota/SPEC.md · Fase 6).
    Carga perezosa de pixelmascotas.js + pixel-vida.js, y la conecta con: Inicio (vive en el refugio), barra lateral,
@@ -4654,7 +4880,6 @@
   'use strict';
   const KINDS = ['matraz', 'atomo', 'slime'];
   const NAMES = { matraz: 'Matraz', atomo: 'Átomo', slime: 'Slime' };
-  const PRICES = { flor: 60, corbatin: 60, lentes: 80, gorro: 90, taza: 90, bufanda: 110, lupa: 110, monoculo: 120, collar: 140, birrete: 160, lentesSol: 160, varita: 180, sombrero: 200, corona: 260 };
   const SLOTS = ['cabeza', 'cara', 'cuello', 'mano'];
   const STATIONS = {
     deskFloor: { x: 84, y: 166 },
@@ -4684,7 +4909,8 @@
   }
   const pet = () => {
     const m = api.get() || {};
-    return { kind: KINDS.includes(m.kind) ? m.kind : 'matraz', name: m.name || '', outfit: m.outfit && typeof m.outfit === 'object' ? m.outfit : {} };
+    const kind = KINDS.includes(m.kind) ? m.kind : 'matraz';
+    return { kind, owned: [...new Set([kind, ...(Array.isArray(m.owned) ? m.owned : [])])], name: m.name || '', outfit: m.outfit && typeof m.outfit === 'object' ? m.outfit : {} };
   };
   const petName = () => { const p = pet(); return p.name && p.name !== 'Nexo' ? p.name : NAMES[p.kind]; };
   const reduced = () => api.motion() === 'reduced' || matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -4768,41 +4994,77 @@
     if (home) home.life.celebrate(Math.max(0, Math.round(atoms) || 0));
   }
 
-  // ——— Perfil › Mascota ———
+  // Retrato animado de tu mascota (Perfil › Vestuario y la carta del Perfil).
+  async function paintBig(canvas) {
+    await engine().catch(() => null);
+    if (!canvas?.isConnected) return;
+    addMini({ canvas, expr: t => EXPRS[Math.floor(t / 2.5) % EXPRS.length], arm: e => e === 'picara' ? 'sixseven' : e === 'feliz' ? 'wave' : 'rest',
+      get outfit() { return pet().outfit; } });
+  }
+
+  // ——— Perfil › Vestuario ———
   async function wireProfile(root) {
     const P = await engine().catch(() => null); if (!P || !root.isConnected) return;
     const pets = root.querySelector('#petPick'), wardrobe = root.querySelector('#petWardrobe'), name = root.querySelector('#petName');
-    pets.innerHTML = P.list.map(([k, l]) => `<button type="button" class="pet-pick" data-kind="${k}" aria-pressed="${k === pet().kind}" style="border:3px solid transparent;border-radius:10px;background:#e9d9b4;color:#3b2418;font-weight:bold;padding:4px;cursor:pointer"><canvas width="40" height="44" style="width:96px;height:106px;display:block;image-rendering:pixelated"></canvas>${l}</button>`).join('');
+    pets.innerHTML = P.list.map(([k, l]) => `<button type="button" class="pet-pick" data-kind="${k}" aria-pressed="${k === pet().kind}"${pet().owned.includes(k) ? '' : ' disabled'} style="border:3px solid transparent;border-radius:10px;background:#e9d9b4;color:#3b2418;font-weight:bold;padding:4px;cursor:pointer${pet().owned.includes(k) ? '' : ';opacity:.5;filter:grayscale(1)'}"><canvas width="40" height="44" style="width:96px;height:106px;display:block;image-rendering:pixelated"></canvas>${l}${pet().owned.includes(k) ? '' : '<small style="display:block">🔒 En la Tienda</small>'}</button>`).join('');
     pets.querySelectorAll('.pet-pick').forEach(b => addMini({ canvas: b.querySelector('canvas'), kind: b.dataset.kind, naked: true }));
     const paintPick = () => pets.querySelectorAll('.pet-pick').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.kind === pet().kind)); b.style.borderColor = b.dataset.kind === pet().kind ? '#e8b65a' : 'transparent'; });
-    const big = root.querySelector('#petBig'); let tryOn = null;
-    addMini({ canvas: big, expr: t => EXPRS[Math.floor(t / 2.5) % EXPRS.length], arm: e => e === 'picara' ? 'sixseven' : e === 'feliz' ? 'wave' : 'rest',
-      get outfit() { return pet().outfit; } });
-    const paintWardrobe = () => { const o = pet().outfit; wardrobe.innerHTML = SLOTS.map(slot => `<label>${slot[0].toUpperCase() + slot.slice(1)} <select data-slot="${slot}"><option value="">—</option>` +
-      Object.entries(P.ACCESORIOS).filter(([, a]) => a.slot === slot).map(([id]) => `<option value="${id}"${o[slot] === id ? ' selected' : ''}>${esc(P.NOMBRES[id])}</option>`).join('') + '</select></label>').join(''); };
+    paintBig(root.querySelector('#petBig'));
+    const paintWardrobe = () => { const o = pet().outfit, owned = window.NexoTienda.shopOf(api.shop.state()).owned;
+      wardrobe.innerHTML = SLOTS.map(slot => `<label>${slot[0].toUpperCase() + slot.slice(1)} <select data-slot="${slot}"><option value="">—</option>` +
+      Object.entries(P.ACCESORIOS).filter(([id, a]) => a.slot === slot && (owned.includes(id) || o[slot] === id)).map(([id]) => `<option value="${id}"${o[slot] === id ? ' selected' : ''}>${esc(P.NOMBRES[id])}</option>`).join('') + '</select></label>').join(''); };
     paintPick(); paintWardrobe();
     name.value = pet().name === 'Nexo' ? '' : pet().name; name.placeholder = NAMES[pet().kind];
-    pets.onclick = e => { const b = e.target.closest('.pet-pick'); if (!b) return; api.set({ kind: b.dataset.kind }); name.placeholder = NAMES[b.dataset.kind]; paintPick(); home?.life.setKind(b.dataset.kind); };
+    pets.onclick = e => { const b = e.target.closest('.pet-pick'); if (!b || b.disabled) return; api.set({ kind: b.dataset.kind }); name.placeholder = NAMES[b.dataset.kind]; paintPick(); home?.life.setKind(b.dataset.kind); };
     name.oninput = () => api.set({ name: name.value.trim().slice(0, 20) });
     wardrobe.onchange = e => { const o = { ...pet().outfit, [e.target.dataset.slot]: e.target.value }; api.set({ outfit: o }); home?.life.setOutfit(o); };
   }
 
-  // ——— Tienda: probar accesorios (comprar se activa cuando se defina la economía) ———
+  // ——— Tienda: cofres, polvo y accesorios (lógica en economy/tienda.js, docs/economia/SPEC.md) ———
+  const RARITY_COLOR = { comun: '#b9a98a', poco: '#6cc08b', raro: '#6aa7ff', legendario: '#f2b84b' };
   async function wireShop(root) {
     const P = await engine().catch(() => null); if (!P || !root.isConnected) return;
-    const shop = root.querySelector('#petShop'), prev = root.querySelector('#petShopPreview');
-    let tryOut = { ...pet().outfit };
+    const T = window.NexoTienda, S = api.shop, shop = root.querySelector('#petShop'), prev = root.querySelector('#petShopPreview'), top = root.querySelector('#shopTop');
+    let tryOut = { ...pet().outfit }, reveal = null, note = '';
     addMini({ canvas: prev, get outfit() { return tryOut; } });
-    shop.innerHTML = Object.entries(P.ACCESORIOS).sort((a, b) => PRICES[a[0]] - PRICES[b[0]]).map(([id, a]) =>
-      `<div class="pet-item" style="background:#1f1a14;border:1px solid #4a3d2e;border-radius:10px;padding:8px;text-align:center"><div class="pet-icon" data-id="${id}" style="background:#e9d9b4;border-radius:8px;display:flex;justify-content:center;align-items:center;height:64px;margin-bottom:6px"></div><b>${esc(P.NOMBRES[id])}</b><small style="display:block;opacity:.7">${a.slot}</small><span style="color:#e8b65a;font-weight:bold">${PRICES[id]} ⚛</span><button type="button" data-try="${id}" style="margin-top:6px;width:100%">Probar</button></div>`).join('');
-    shop.querySelectorAll('.pet-icon').forEach(box => { const c = P.sprite(P.ACCESORIOS[box.dataset.id].rows); c.style.cssText = `width:${c.width * 4}px;height:${c.height * 4}px;image-rendering:pixelated`; box.append(c); });
-    shop.onclick = e => { const id = e.target.dataset.try; if (!id) return; const slot = P.ACCESORIOS[id].slot; tryOut = { ...tryOut, [slot]: tryOut[slot] === id ? '' : id };
-      shop.querySelectorAll('button[data-try]').forEach(b => { b.textContent = tryOut[P.ACCESORIOS[b.dataset.try].slot] === b.dataset.try ? 'Quitar' : 'Probar'; }); };
+    const tag = id => `<b style="color:${RARITY_COLOR[T.RARITY_OF[id]]}">${T.LABELS[T.RARITY_OF[id]]}</b>`;
+    const render = () => {
+      const st = S.state(), s = T.shopOf(st), locked = S.locked(), daily = s.dailyAt === S.today();
+      const btn = (act, label, off) => `<button type="button" data-act="${act}"${off ? ' disabled' : ''}>${label}</button>`;
+      top.innerHTML = `<p style="margin:6px 0"><b>${Math.floor(st.coins)} ⚛</b> · ${s.dust} polvo · ${s.chests} cofre${s.chests === 1 ? '' : 's'} sin abrir</p>` +
+        (locked ? '<p><small>Con cuenta en la nube la Tienda se activa más adelante; como invitado ya puedes usarla.</small></p>' :
+        `<div style="display:flex;gap:8px;flex-wrap:wrap">${btn('daily', daily ? 'Cofre diario (ya abierto hoy)' : 'Cofre diario gratis', daily)}${btn('buy', `Comprar cofre · ${T.CHEST_PRICE} ⚛`, st.coins < T.CHEST_PRICE)}${btn('open', `Abrir cofre (${s.chests})`, s.chests < 1)}</div>`) +
+        `<p><small>Cada ${T.PITY} cofres sin nada raro, el siguiente lo es seguro. Los repetidos se vuelven polvo.</small></p>` +
+        (note ? `<p role="status">${esc(note)}</p>` : '') +
+        (reveal ? `<div class="chest-reveal" style="text-align:center;margin:8px 0"><div class="pet-icon chest-pop" style="display:inline-flex;background:#e9d9b4;border-radius:10px;padding:12px;box-shadow:0 0 18px ${RARITY_COLOR[reveal.rarity]}"></div><p><b>${esc(P.NOMBRES[reveal.id])}</b> · ${tag(reveal.id)}${reveal.dupe ? ` · repetido: +${reveal.dust} polvo` : ' · ¡nuevo!'}</p></div>` : '');
+      const box = top.querySelector('.chest-pop');
+      if (box) { const c = P.sprite(P.ACCESORIOS[reveal.id].rows); c.style.cssText = `width:${c.width * 6}px;height:${c.height * 6}px;image-rendering:pixelated`; box.append(c); }
+      shop.innerHTML = Object.entries(P.ACCESORIOS).sort((a, b) => T.RARITIES.indexOf(T.RARITY_OF[a[0]]) - T.RARITIES.indexOf(T.RARITY_OF[b[0]])).map(([id, a]) => {
+        const own = s.owned.includes(id), price = T.DUST_PRICE[T.RARITY_OF[id]];
+        return `<div class="pet-item" style="background:#1f1a14;border:1px solid #4a3d2e;border-radius:10px;padding:8px;text-align:center"><div class="pet-icon" data-id="${id}" style="background:#e9d9b4;border-radius:8px;display:flex;justify-content:center;align-items:center;height:64px;margin-bottom:6px"></div><b>${esc(P.NOMBRES[id])}</b><small style="display:block;opacity:.7">${a.slot} · ${tag(id)}</small>` +
+          `<button type="button" data-try="${id}" style="margin-top:6px;width:100%">${tryOut[a.slot] === id ? 'Quitar' : 'Probar'}</button>` +
+          (own ? '<small style="display:block;margin-top:4px;color:#6cc08b">Tuyo ✓</small>' : `<button type="button" data-dust="${id}" style="margin-top:4px;width:100%"${s.dust < price ? ' disabled' : ''}>${price} polvo</button>`) + '</div>';
+      }).join('');
+      shop.querySelectorAll('.pet-icon').forEach(b => { const c = P.sprite(P.ACCESORIOS[b.dataset.id].rows); c.style.cssText = `width:${c.width * 4}px;height:${c.height * 4}px;image-rendering:pixelated`; b.append(c); });
+    };
+    const act = name => {
+      const st = S.state(); note = ''; reveal = null;
+      const r = name === 'buy' ? T.buyChest(st) : name === 'daily' ? T.claimDaily(st, S.today()) : T.openChest(st);
+      if (!r.ok) note = r.reason; else if (name === 'open') { reveal = r; cheerUntil = performance.now() + 2500; }
+      S.save(); render();
+    };
+    top.onclick = e => { const a = e.target.dataset.act; if (a) act(a); };
+    shop.onclick = e => {
+      const d = e.target.dataset.dust, id = e.target.dataset.try;
+      if (d) { const r = T.buyWithDust(S.state(), d); note = r.ok ? `¡Conseguiste ${P.NOMBRES[d]}!` : r.reason; reveal = null; S.save(); render(); }
+      else if (id) { const slot = P.ACCESORIOS[id].slot; tryOut = { ...tryOut, [slot]: tryOut[slot] === id ? '' : id }; render(); }
+    };
+    render();
   }
 
   window.NexoPet = Object.freeze({
     bind(a) { api = { ...api, ...a }; },
-    mountHome, cleanup, renderDock, celebrate, wireProfile, wireShop, checkWeather, kinds: KINDS, names: NAMES,
+    mountHome, cleanup, renderDock, celebrate, paintBig, wireProfile, wireShop, checkWeather, kinds: KINDS, names: NAMES,
     engine, current: pet, reduced   // los usa el mundo de la torre (world/torre-mundo.js)
     , homeSpot: () => home && { x: home.life.state.x, y: home.life.state.y, act: n => home.life.act(n) }   // globo de avisos del Inicio (planner/avisos.js)
   });
@@ -4810,23 +5072,125 @@
 
 ;
 
+/* mascot/reacciones.js */
+/* Reacciones de la mascota en la habitación del Perfil (docs/perfil-alcoba/SPEC.md).
+   Módulo puro: pick(ctx) elige UNA frase y un gesto que ya existe en pixel-vida.js, según lo que pasa en tu semestre.
+   ctx = { days: días a la próxima prueba | null, away: días sin estudiar | null, streak: racha, grade: nota reciente (1-7) | null }.
+   Prioridad: prueba muy cerca > nota > vuelves tras días > racha > prueba lejana. app.js entrega el ctx con bind(). */
+(() => {
+  'use strict';
+  const MILESTONES = [3, 7, 14, 30, 60, 100];
+  let provider = null;
+
+  function pick(ctx = {}) {
+    const { days = null, away = null, streak = 0, grade = null } = ctx;
+    if (days === 0) return { say: '¡Hoy es la prueba! Respira, ya hiciste lo que podías.', act: 'nerviosa' };
+    if (days !== null && days <= 3) return { say: `La prueba es en ${days === 1 ? '1 día' : days + ' días'}… ¿repasamos un poquito?`, act: 'nerviosa' };
+    if (grade !== null && grade >= 5.5) return { say: `¡Un ${grade.toFixed(1)}! Eso se celebra.`, act: 'baile' };
+    if (grade !== null && grade < 4) return { say: `Un ${grade.toFixed(1)} duele, pero ya sabemos qué repasar. Vamos de a poco.`, act: 'confundida' };
+    if (away !== null && away >= 3) return { say: `¡Volviste! Te extrañé estos ${away} días.`, act: 'saludo' };
+    if (MILESTONES.includes(streak)) return { say: `¡${streak} días seguidos estudiando! Estoy orgullosa.`, act: 'deslumbrada' };
+    if (days !== null && days <= 7) return { say: 'Esta semana hay prueba: un bloque corto hoy ayuda harto.', act: 'idea' };
+    return null;
+  }
+
+  window.NexoReacciones = Object.freeze({
+    pick, bind(fn) { provider = fn; },
+    now() { try { return provider ? pick(provider()) : null; } catch (_) { return null; } }
+  });
+})();
+
+;
+
+/* perfil/carta.js */
+/* Perfil = carta de jugador (docs/perfil-alcoba/SPEC.md). Arte: tools/perfil-carta/build_carta.py → assets/perfil/carta.png.
+   render(app, data): pinta la carta y los 3 botones (Vestuario, Estadísticas, Ajustes).
+   wrapSection(page, tab): envuelve una sección (mascota, estadísticas, ajustes) en madera + pergamino, con "← Mi carta".
+   data = { name, kind, rank: { level, name }, streak, minutes, badges: [6 booleanos] }. app.js arma el data (profileCardData). */
+(() => {
+  'use strict';
+  const V = '1';
+  const ART = { w: 120, h: 170 };
+  const ZONES = {
+    nombre: [14, 9, 106, 22], ventana: [12, 26, 108, 100], rango: [28, 105, 107, 121],
+    racha: [12, 125, 58, 141], minutos: [62, 125, 108, 141],
+    insignias: [0, 1, 2, 3, 4, 5].map(i => [13 + i * 16, 146, 26 + i * 16, 159])
+  };
+  const BADGES = ['Racha de 3 días', 'Racha de 7 días', '10 horas de estudio', 'Una clase dominada', 'Un desafío cobrado', 'Vestuario puesto'];
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const place = ([x0, y0, x1, y1]) => `left:${x0 / ART.w * 100}%;top:${y0 / ART.h * 100}%;width:${(x1 - x0) / ART.w * 100}%;height:${(y1 - y0) / ART.h * 100}%`;
+  let said = false;                       // la mascota comenta tu semestre 1 vez por sesión
+
+  function css() {
+    for (const href of ['perfil/carta.css?v=' + V, 'planner/estudio.css?v=1']) {
+      if (document.querySelector(`link[href^="${href.split('?')[0]}"]`)) continue;
+      const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href; document.head.append(l);
+    }
+  }
+  const minutesLabel = m => m >= 60 ? `${Math.floor(m / 60)} h ${m % 60 ? String(m % 60).padStart(2, '0') + ' min' : ''}`.trim() : `${m} min`;
+
+  function render(app, d) {
+    css();
+    const flame = window.NexoArcaneRanks?.flame?.(d.rank.level) || '';
+    app.innerHTML = `<section class="page profile-page perfil-carta-page">
+      <div class="carta" role="img" aria-label="Carta de ${esc(d.name)}: ${esc(d.rank.name)}, racha de ${d.streak} días">
+        <p class="carta-nombre" style="${place(ZONES.nombre)}">${esc(d.name)}</p>
+        <div class="carta-ventana" style="${place(ZONES.ventana)}"><canvas class="carta-mascota" width="40" height="44" aria-hidden="true"></canvas><p class="carta-say" hidden></p></div>
+        <p class="carta-rango" style="${place(ZONES.rango)}"><span>${esc(d.rank.name)}</span></p>
+        <span class="carta-llama level-${d.rank.level}" style="${place([9, 109, 27, 127])}">${flame}</span>
+        <p class="carta-dato" style="${place(ZONES.racha)}"><b>${d.streak}</b><small>${d.streak === 1 ? 'día' : 'días'} de racha</small></p>
+        <p class="carta-dato" style="${place(ZONES.minutos)}"><b>${minutesLabel(d.minutes)}</b><small>de estudio</small></p>
+        ${ZONES.insignias.map((z, i) => `<i class="carta-insignia${d.badges[i] ? '' : ' apagada'}" style="${place(z)};--i:${i}" title="${BADGES[i]}${d.badges[i] ? '' : ' (aún no)'}"></i>`).join('')}
+      </div>
+      <nav class="carta-botones" aria-label="Perfil">
+        <button data-profile-tab="mascot"><strong>Vestuario</strong><small>Tu compañero y accesorios</small></button>
+        <button data-profile-tab="stats"><strong>Estadísticas</strong><small>Tu esfuerzo y tu avance</small></button>
+        <button data-profile-tab="settings"><strong>Ajustes</strong><small>Cuenta, sonido y más</small></button>
+      </nav></section>`;
+    const canvas = app.querySelector('.carta-mascota');
+    window.NexoPet?.paintBig(canvas);
+    if (!said) {
+      const r = window.NexoReacciones?.now();
+      if (r) { said = true; const b = app.querySelector('.carta-say'); b.textContent = r.say; b.hidden = false; setTimeout(() => { b.hidden = true; }, 6500); }
+    }
+  }
+
+  function wrapSection(page, tab) {
+    css();
+    const nodes = [...page.childNodes];
+    const pergamino = document.createElement('div');
+    pergamino.className = 'pergamino';
+    pergamino.append(...nodes);
+    const madera = document.createElement('div');
+    madera.className = 'madera perfil-madera';
+    madera.append(pergamino);
+    page.replaceChildren(madera);
+    pergamino.insertAdjacentHTML('afterbegin', '<button class="carta-volver" data-profile-close>← Mi carta</button>');
+    page.classList.add('perfil-seccion', 'perfil-' + tab);
+  }
+
+  window.NexoCarta = Object.freeze({ render, wrapSection });
+})();
+
+;
+
 /* world/torre-mundo.js */
 /* Mundo de la torre (docs/mundo-torre/SPEC.md).
    Entrenar (#/train) = Laboratorio de Orgánica II, por capas con parallax (fase 2, tools/torre-pixel/build_lab_muestra.py).
-   Juegos (#/games) = Arcade arcano (v1, tools/torre-pixel/build_torre.py). El Perfil tiene su propia habitación. Tocas el piso o un objeto y la mascota camina hasta ahí; el objeto hace su acción.
+   Juegos (#/games) = Arcade arcano (v1, tools/torre-pixel/build_torre.py). Tocas el piso o un objeto y la mascota camina hasta ahí; el objeto hace su acción.
    Se inserta solo cuando aparece la página (observa #app): no hay que tocar las pantallas. Arte: tools/torre-pixel/build_torre.py. */
 (() => {
   'use strict';
   const V = '1';
   const BASE = 'assets/torre/';
-  const ROOM_NAMES = { train: 'Laboratorio de Orgánica II', games: 'Arcade arcano', profile: 'Habitación de tu mascota' };
+  const ROOM_NAMES = { train: 'Laboratorio de Orgánica II', games: 'Arcade arcano' };
   const HINT = 'Toca el piso para caminar o un objeto para usarlo';
   const pick = list => list[Math.floor(Math.random() * list.length)];
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
   let data = null, loading = null, cssDone = false;
-  const worlds = {};          // 'mundo' | 'lab' | 'habitacion' → estado persistente (la mascota no "salta" al cambiar de pantalla)
+  const worlds = {};          // 'mundo' | 'lab' → estado persistente (la mascota no "salta" al cambiar de pantalla)
   const layerCache = {};
   const query = new URLSearchParams(location.search);       // para probar: ?hora=dia|tarde|noche  ?estado=0|1|2
 
@@ -4839,13 +5203,13 @@
       const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'world/torre-mundo.css?v=' + V; document.head.append(l);
     }
     loading = loading || Promise.all([
-      fetch(BASE + 'torre.json?v=' + V).then(r => r.json()), img('mundo.png'), img('habitacion.png'),
+      fetch(BASE + 'torre.json?v=' + V).then(r => r.json()), img('mundo.png'),
       fetch(BASE + 'lab/lab.json?v=' + V).then(r => r.json()),
       window.NexoPet?.engine ? window.NexoPet.engine() : Promise.reject(new Error('sin mascota'))
-    ]).then(([json, mundo, habitacion, lab]) => {
+    ]).then(([json, mundo, lab]) => {
       lab.objects.forEach(o => { o.room = 'lab'; });
       json.lab = lab;
-      data = { json, imgs: { mundo, habitacion } }; return data;
+      data = { json, imgs: { mundo } }; return data;
     });
     return loading;
   }
@@ -4870,7 +5234,7 @@
     const view = wrap.querySelector('.torre-view'), vctx = view.getContext('2d');
     const W = {
       key, meta, base, bg, bctx, stage, life, wrap, view, vctx, reduced, layered,
-      room: key === 'mundo' ? 'games' : key === 'lab' ? 'lab' : 'profile', camX: 0, vw: meta.w, scale: 1, raf: 0, last: performance.now(),
+      room: key === 'mundo' ? 'games' : 'lab', camX: 0, vw: meta.w, scale: 1, raf: 0, last: performance.now(),
       lastInput: performance.now(), nextIdle: 9000, sayTimer: 0, tab: null, crossing: false, hover: null, t: 0
     };
     wireInput(W);
@@ -5075,7 +5439,7 @@
   }
   function keys(W) {
     const box = W.wrap.querySelector('.torre-keys');
-    const list = W.meta.objects.filter(o => o.room === W.room && o.action !== 'nap');
+    const list = W.meta.objects.filter(o => o.room === W.room);
     const sig = list.map(o => o.id).join();
     if (box.dataset.sig === sig) return;
     box.dataset.sig = sig;
@@ -5112,8 +5476,6 @@
     if (!arrived) return;
     if (o.action === 'mode') return chooseMode(W, o);
     if (o.action === 'game') return openGame(W, o);
-    if (o.action === 'tab') { say(W, o.say); W.tab = o.tab; location.hash = '#/profile/' + o.tab; return; }
-    if (o.action === 'nap') { say(W, o.say); W.life.sleep(true); }
   }
   function chooseMode(W, o) {
     const form = document.querySelector('form[data-training-setup]');
@@ -5143,7 +5505,6 @@
     if (W.night !== night) { W.night = night; if (!W.layered) W.life.night(night); }   // el laboratorio ya trae su noche
     if (W.reduced || A.moving || W.life.busy || A.mode === 'sleep' || now - W.lastInput < W.nextIdle) return;
     W.lastInput = now; W.nextIdle = 9000 + Math.random() * 8000;
-    if (W.key === 'habitacion' && night) { const bed = W.meta.objects.find(o => o.id === 'bed'); use(W, bed); return; }
     if (Math.random() < .5) { W.life.act(pick(['saludo', 'idea', 'baile', 'seisSiete', 'dab', 'deslumbrada'])); return; }
     const room = W.key === 'mundo' ? W.meta.rooms[W.room] : { x0: 0, x1: W.meta.w };
     const [y0, y1] = W.meta.walk;
@@ -5152,14 +5513,13 @@
 
   // ——— Montaje en cada pantalla ———
   function anchorFor(kind, page) {
-    if (kind === 'profile') return page.querySelector('.profile-room-header');
     if (kind === 'games') return page.querySelector('.page-header');
     return page.firstElementChild;
   }
   async function mount(kind, page) {
     try { await load(); } catch (_) { return; }
     if (!page.isConnected) return;
-    const key = kind === 'profile' ? 'habitacion' : kind === 'train' ? 'lab' : 'mundo';
+    const key = kind === 'train' ? 'lab' : 'mundo';
     const W = worlds[key] = worlds[key] || createWorld(key);
     const pet = window.NexoPet.current();
     W.life.setKind(pet.kind); W.life.setOutfit(pet.outfit);
@@ -5169,7 +5529,7 @@
     // El título de la pantalla va encima del arte (como "Un lugar para aprender" en el Inicio).
     const title = W.wrap.querySelector('.torre-title');
     title.replaceChildren();
-    if (kind !== 'profile' && anchor && (anchor.matches('h1') || anchor.matches('.page-header'))) title.append(anchor);
+    if (anchor && (anchor.matches('h1') || anchor.matches('.page-header'))) title.append(anchor);
     const bg = getComputedStyle(document.querySelector('main') || document.body).backgroundColor;
     W.wrap.style.setProperty('--torre-fade', bg && bg !== 'rgba(0, 0, 0, 0)' ? bg : getComputedStyle(document.body).backgroundColor);
     W.wrap.setAttribute('aria-label', ROOM_NAMES[kind]);
@@ -5180,13 +5540,6 @@
     } else if (key === 'lab') {
       W.progress = labProgress();
       layersFor(W);
-    } else {
-      const tab = page.querySelector('[data-profile-tab][aria-selected="true"]')?.dataset.profileTab || 'mascot';
-      const o = W.meta.objects.find(k => k.tab === tab);
-      if (o && W.tab !== tab) {
-        if (W.tab === null) W.life.place(o.stand[0], o.stand[1], false); else go(W, o.stand[0], o.stand[1]);
-      }
-      W.tab = tab;
     }
     keys(W);
     resize(W);
@@ -5199,8 +5552,7 @@
     const app = document.getElementById('app'); if (!app) return;
     const page = app.querySelector(':scope > .page');
     if (!page) return;
-    const kind = page.classList.contains('arcane-training') ? 'train' : page.classList.contains('games-room') ? 'games'
-      : page.classList.contains('profile-page') ? 'profile' : null;
+    const kind = page.classList.contains('arcane-training') ? 'train' : page.classList.contains('games-room') ? 'games' : null;
     if (!kind || page.querySelector('.torre-scene')) return;
     mount(kind, page);
   }

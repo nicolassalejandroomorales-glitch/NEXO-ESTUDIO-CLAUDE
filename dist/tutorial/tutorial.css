@@ -1,9 +1,6 @@
 /* Tutorial de Nexo (dist/tutorial/tutorial.js). Pixel art a x4 (x2 en móvil) con las piezas de dist/assets/tutorial/. */
 .tut { --s: 4; --e: 3; --m: 6; position: relative; display: grid; grid-template-rows: auto 1fr auto auto; gap: 12px; min-height: calc(100vh - 96px); padding: 14px 16px 18px; color: #fff0c4;
-  background: radial-gradient(120% 90% at 50% 20%, #2a2140 0%, #181426 60%, #100d1a 100%); border-radius: 14px; overflow: hidden; isolation: isolate; }
-.tut::before { content: ""; position: absolute; inset: 0; z-index: -1; background:
-  radial-gradient(2px 2px at 12% 20%, #fff6 50%, transparent 52%), radial-gradient(2px 2px at 80% 12%, #fff5 50%, transparent 52%),
-  radial-gradient(2px 2px at 64% 70%, #ffd86088 50%, transparent 52%), radial-gradient(2px 2px at 25% 78%, #9ce8f066 50%, transparent 52%); }
+  background: radial-gradient(110% 85% at 50% 38%, #3a2433 0%, #1f1722 48%, #0d1411 100%); border-radius: 14px; overflow: hidden; isolation: isolate; }
 .tut-top { display: flex; align-items: center; gap: 14px; }
 .tut-bar { flex: 1; height: 10px; border-radius: 6px; background: #0007; border: 2px solid #5a3616; overflow: hidden; }
 .tut-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #e2b850, #fff0a8); transition: width .35s steps(8); }
