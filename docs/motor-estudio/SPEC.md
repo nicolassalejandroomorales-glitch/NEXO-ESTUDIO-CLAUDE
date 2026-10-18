@@ -26,6 +26,7 @@ Portado del prototipo `NEXO_CONTROL1_ORGANICA_V03` (hecho con ChatGPT/Codex, 17 
 - Honestidad: reintentar tras ver la corrección cuenta como ayuda; respuestas escritas quedan `self_reported`; generados comparten ejercicio por generador y nivel; transferencia es otro ejercicio. Valida como `class_item` (no cuenta para rangos, que exigen `structured_validator`).
 - `model.extend()` amplía el catálogo y deshace todo si no valida o crea ciclos; el grafo del motor se reconstruye solo (`model.revision`).
 - Prueba: `tools/class-bridge-test.cjs`. Verificado en el navegador con un ejercicio de Entrenar.
+- **Todas las clases (18 oct)**: ana-01/02/03, fis-01/02/06/09, fq-01, org-01/04/05 ya cumplen el formato (concepto, fuente y diapositiva por ejercicio, `needs`, `misconceptions`). Cada clase tiene sus conceptos con id `<clase>:<concepto>` (así `base.gases` de Fisiología y el de Fisicoquímica no se mezclan); solo los alias comparten evidencia con el piloto (org-01 y org-04: par libre, pKa, resonancia, heterociclos, Hofmann). `courseId` = ramo de la clase.
 - Para sumar otra clase: declarar `needs`, `source`, `slide` y `misconceptions` (ya lo piden las guías); añadir alias en `ALIAS` solo si el concepto ya existe en el piloto.
 
 ## Dónde vive (Niquito, 17 oct 2026)

@@ -4,7 +4,8 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const window = { NexoClasses: {}, NexoAcademicReviews: { schedule: async (prior, id, type, attempt, { now }) => ({ id: `${type}:${id}`, targetId: id, targetType: type, dueAt: now.toISOString(), lastAttemptId: attempt.id }) } };
 const context = { window, Date, console };
-for (const file of ['academic/model', 'academic/graph', 'academic/knowledge', 'academic/diagnosis', 'academic/engine', 'classes/org-01', 'academic/class-bridge'])
+const classFiles = fs.readdirSync('dist/classes').filter(f => /^(ana|fis|fq|org)-\d+\.js$/.test(f)).map(f => `classes/${f.slice(0, -3)}`);
+for (const file of ['academic/model', 'academic/graph', 'academic/knowledge', 'academic/diagnosis', 'academic/engine', ...classFiles, 'academic/class-bridge'])
   vm.runInNewContext(fs.readFileSync(`dist/${file}.js`, 'utf8'), context, { filename: file });
 const cls = window.NexoClasses['org-01'], engine = window.NexoAcademicEngine, model = engine.model, bridge = window.NexoAcademicBridge;
 const state = { academicIntelligence: { attempts: [], evidence: [], reviewSchedules: [], structuredErrors: [], userSources: [], activeTimeSegments: [] } };
@@ -16,13 +17,13 @@ const rec = (extra = {}) => ({ id: `x:${Math.random()}`, conceptId: 'am.pka', co
   // 1) Un acierto crea el catálogo de la clase y comparte concepto con el piloto (am.pka = org.pka).
   await bridge.record(api, cls, item('m4-p1'), rec());
   assert.equal(model.validate(), true);
-  assert.ok(model.byId(model.concepts, 'am.sales'), 'conceptos propios de la clase');
-  assert.equal(model.byId(model.concepts, 'am.pka'), null, 'am.pka se fusiona con org.pka');
+  assert.ok(model.byId(model.concepts, 'org-01:am.sales'), 'conceptos propios de la clase');
+  assert.equal(model.byId(model.concepts, 'org-01:am.pka'), null, 'am.pka se fusiona con org.pka');
   assert.equal(state.academicIntelligence.evidence[0].conceptId, 'org.pka');
   assert.equal(state.academicIntelligence.evidence[0].source, 'class_item');
   assert.equal(state.academicIntelligence.evidence[0].validationStatus, 'verified');
   // 2) Prerrequisitos de la clase llegan al grafo (am.equilibrio necesita lo previo) y no hay ciclos.
-  assert.ok(engine.graph.direct('am.equilibrio').length > 0);
+  assert.ok(engine.graph.direct('org-01:am.equilibrio').length > 0);
   // 3) Fuente exacta: la diapositiva del ejercicio.
   const ex = model.byId(model.exercises, 'org-01:m4-p1');
   assert.ok(ex.sourceIds.includes('org-01.catedra-aminas.s18'));
@@ -46,5 +47,22 @@ const rec = (extra = {}) => ({ id: `x:${Math.random()}`, conceptId: 'am.pka', co
   assert.equal(model.exercises.filter(e => e.id === 'org-01:gen:pka:2').length, 1);
   await bridge.record(api, cls, item('m4-p1'), rec({ transfer: true }));
   assert.ok(model.byId(model.exercises, 'org-01:m4-p1#t').transfer);
+  // 7) Todas las clases: catálogo válido, sin ciclos, sin choques entre ramos y cada ejercicio con su diapositiva.
+  const all = Object.values(window.NexoClasses).filter(c => c.concepts);
+  assert.ok(all.length >= 10, 'se cargaron las clases');
+  for (const c of all) {
+    bridge.ensureClass(model, c);
+    const first = c.missions[0], concept = c.concepts.find(k => k.mission === first.id).id;
+    await bridge.record(api, c, { id: 'x1', type: 'choice', source: Object.keys(c.sources)[0], slide: 3, concept }, rec({ conceptId: concept }));
+    assert.ok(model.byId(model.exercises, `${c.id}:x1`), c.id);
+    for (const k of c.concepts) {
+      const id = bridge.conceptOf(c, k.id);
+      assert.ok(model.byId(model.concepts, id), `${c.id} ${k.id}`);
+    }
+  }
+  assert.equal(model.validate(), true);
+  assert.notEqual(bridge.conceptOf(window.NexoClasses['fis-06'], 'base.gases'), bridge.conceptOf(window.NexoClasses['fq-01'], 'base.gases'));
+  assert.equal(bridge.conceptOf(window.NexoClasses['org-04'], 'ar.heterociclos'), 'org.aromatic-pair');
+  engine.graph.ancestors('fq-01:eq.actividad');
   console.log('OK: las clases escriben en el motor académico con su catálogo, fuentes y prerrequisitos.');
 })().catch(error => { console.error(error); process.exit(1); });
