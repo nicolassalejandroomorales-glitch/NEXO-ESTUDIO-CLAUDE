@@ -29,6 +29,9 @@ Portado del prototipo `NEXO_CONTROL1_ORGANICA_V03` (hecho con ChatGPT/Codex, 17 
 - **Todas las clases (18 oct)**: ana-01/02/03, fis-01/02/06/09, fq-01, org-01/04/05 ya cumplen el formato (concepto, fuente y diapositiva por ejercicio, `needs`, `misconceptions`). Cada clase tiene sus conceptos con id `<clase>:<concepto>` (así `base.gases` de Fisiología y el de Fisicoquímica no se mezclan); solo los alias comparten evidencia con el piloto (org-01 y org-04: par libre, pKa, resonancia, heterociclos, Hofmann). `courseId` = ramo de la clase.
 - Para sumar otra clase: declarar `needs`, `source`, `slide` y `misconceptions` (ya lo piden las guías); añadir alias en `ALIAS` solo si el concepto ya existe en el piloto.
 
+## Cola de pendientes (hecho, 18 oct 2026)
+- `dist/academic/pending.js` → `NexoAcademicPending.list(state, { now, limit })`: conceptos con repaso vencido o error abierto, con `reasons`, `openErrors`, `misconceptionIds`, `state` y un `weight` de 1 a 3 (más peso = más te cuesta: errores abiertos, repaso atrasado, poca evidencia). Solo lee. Es la fuente común de **cristales** (repasos), **grietas** (errores) y **bichos** del juego (`docs/juegos/SPEC.md`). Prueba: `tools/pending-test.cjs`.
+
 ## Dónde vive (Niquito, 17 oct 2026)
 Lo que sale en **Aprender** es el rediseño de las puertas (`docs/chats/aprender.md`, `docs/aprender-pasillo/`). `#/study` es una pantalla de prueba, no la entrada final: el motor (`dist/study/`, `recordAttempt`) debe quedar detrás de los objetos del aula (frasco de misión, mesa, cristales de repaso, grietas). No agregar entradas nuevas a Aprender desde aquí; coordinar con ese chat antes de conectar.
 
