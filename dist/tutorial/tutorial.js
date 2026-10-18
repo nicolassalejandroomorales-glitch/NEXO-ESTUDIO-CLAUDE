@@ -44,48 +44,48 @@
 
   // Pasos del tramo 1 (guion 1–10). text puede ser función del estado s.
   const STEPS = [
-    { id: 'g1', pose: 'dormido', text: 'Zzz… ¿eh? ¿Alguien abrió el libro?' },
-    { id: 'g1b', pose: 'sorprendido', text: '¡Un estudiante! Hace siglos que nadie me abría.' },
-    { id: 'g2', pose: 'feliz', text: 'Soy el Grimorio. Estudio contigo, tú haces el trabajo y yo me llevo el crédito. Es un buen trato.' },
-    { id: 'g3', pose: 'pensativo', text: 'Antes de empezar necesitas un compañero. Mira lo que encontré en la repisa…' },
-    { id: 'huevos', pose: 'guino', text: 'Elige uno. Es para siempre, así que nada de arrepentirse.', scene: 'huevos', needs: 'kind', next: 'Elegir este huevo' },
-    { id: 'seguro', pose: 'nocreo', text: 'Última pregunta antes de confirmar: ¿seguro? No hay devolución.', scene: 'uno', next: 'Sí, es este', back: 'Mejor otro' },
+    { id: 'g1', pose: 'dormido', text: '~Zzz… ¿quién roza mis páginas?' },
+    { id: 'g1b', pose: 'sorprendido', text: 'Una mano viva. Hacía siglos que ningún estudiante me abría.' },
+    { id: 'g2', pose: 'feliz', text: 'Soy el *Grimorio*. Guardo lo que se aprende. Tú haces el trabajo… yo me llevo el crédito. Es un buen trato.' },
+    { id: 'g3', pose: 'pensativo', text: 'Nadie cruza esta torre solo. Mira lo que dormía en la repisa…' },
+    { id: 'huevos', pose: 'guino', text: 'Elige uno. Es para *siempre*, así que nada de arrepentirse.', scene: 'huevos', needs: 'kind', next: 'Elegir este huevo' },
+    { id: 'seguro', pose: 'nocreo', text: 'Una pregunta antes de sellar el pacto: ¿*seguro*? Los huevos no aceptan devoluciones.', scene: 'uno', next: 'Sí, es este', back: 'Mejor otro' },
     { id: 'nace', scene: 'nace', noBack: true, auto: true },
-    { id: 'nombre', pose: 'feliz', text: 'Ahora el nombre. Será el que escuches cuando te alienten y cuando saques un 7. Elige bien.', scene: 'nombre', needs: 'draft', next: 'Ponerle ese nombre', noBack: true },
-    { id: 'graba', pose: 'importante', text: s => `${s.draft.trim()}. Queda grabado en tinta que no sale. Última confirmación.`, scene: 'mascota', next: 'Confirmar' },
+    { id: 'nombre', pose: 'feliz', text: 'Ahora el *nombre*. Será la voz que te aliente… y la que celebre tu 7. Elígelo con cuidado.', scene: 'nombre', needs: 'draft', next: 'Ponerle ese nombre', noBack: true },
+    { id: 'graba', pose: 'importante', text: s => `${s.draft.trim()}… Queda grabado en tinta que no se borra. Última confirmación.`, scene: 'mascota', next: 'Confirmar' },
     { id: 'hola', who: 'M', text: s => INFO[s.kind].hola(s.name), scene: 'mascota', noBack: true },
     { id: 'ref1', who: 'M', text: 'Este es el refugio: tu base. Cambia con la hora del día y el clima, y siempre vuelves aquí.', scene: 'refugio', noBack: true },
     { id: 'ref2', who: 'M', text: 'Toca los objetos. Cada uno hace algo distinto.', scene: 'refugio', objetos: true, needs: 'seen', next: 'Ya los toqué todos' },
     { id: 'vest', who: 'M', text: 'Aquí me vistes y compras cosas con monedas. Sí, tengo opiniones sobre mi sombrero.', scene: 'refugio' },
-    { id: 'dato1', pose: 'pensativo', text: 'Dato: volver todos los días, aunque sea poco, ayuda más que estudiar mucho una sola noche. El espaciado funciona.', scene: 'mascota' },
-    { id: 'ruta', pose: 'senalar', text: 'Esta es tu ruta al 7. Sigue el material de tu semestre y se adapta a tu tiempo, a lo que ya sabes y a tus errores.', scene: 'panel',
+    { id: 'dato1', pose: 'pensativo', text: 'Dato: volver cada día, aunque sea poco, pesa más que una sola noche heroica. El *espaciado* funciona.', scene: 'mascota' },
+    { id: 'ruta', pose: 'senalar', text: 'Mira: tu *ruta al 7*. Sigue el material de tu semestre y se curva según tu tiempo, lo que ya sabes… y tus errores.', scene: 'panel',
       panel: '<div class="tut-path"><b>Hoy</b><i></i><b>PEP 1</b><i></i><b>Un 7</b></div><div class="tut-chips"><span>tu tiempo</span><span>lo que ya sabes</span><span>tus errores</span></div>' },
-    { id: 'evid', pose: 'dedo', text: 'Releer da sensación de dominio. Acertar sin ayuda da dominio de verdad. Por eso te pido que respondas antes de mostrarte nada.', scene: 'panel',
+    { id: 'evid', pose: 'dedo', text: 'Releer da *sensación* de dominio. Acertar sin ayuda da dominio *de verdad*. Por eso te pido responder antes de mostrarte nada.', scene: 'panel',
       panel: '<div class="tut-vs"><div><h4>Releer</h4><p>Se siente fácil.<br>Se olvida rápido.</p></div><div class="win"><h4>Responder sin mirar</h4><p>Cuesta un poco.<br>Se queda.</p></div></div><small class="tut-cite">Roediger y Karpicke, 2006: practicar recordando supera a releer cuando se evalúa días después.</small>' },
-    { id: 'espac', pose: 'importante', text: 'Te hago volver a temas viejos justo antes de que se te olviden. Molesta un poco. Funciona.', scene: 'panel',
+    { id: 'espac', pose: 'importante', text: 'Te haré volver a temas viejos justo antes de que se disuelvan en la niebla. Molesta un poco. Funciona.', scene: 'panel',
       panel: '<div class="tut-time"><span>Día 1</span><i></i><span>Día 3</span><i class="l"></i><span>Día 8</span><i class="xl"></i><span>Día 21</span></div><small class="tut-cite">Cepeda et al., 2006: repartir el repaso en el tiempo mejora el recuerdo a largo plazo frente a hacerlo todo junto.</small>' },
-    { id: 'error', pose: 'pensativo', text: 'Equivocarte no es el fin. Es información: la ruta se ajusta a lo que fallaste.', scene: 'panel',
+    { id: 'error', pose: 'pensativo', text: 'Equivocarte no es el fin. Es *información*: la ruta se ajusta a lo que fallaste.', scene: 'panel',
       panel: '<div class="tut-path"><b>Fallo</b><i></i><b>Pista</b><i></i><b>Ruta ajustada</b></div>' },
-    { id: 'camp', pose: 'abrir', text: 'Esta es la campaña Camino a la PEP 1: un mapa, jefes y combates que avanzan con tu estudio.', scene: 'panel',
+    { id: 'camp', pose: 'abrir', text: 'La campaña *Camino a la PEP 1*: un mapa, jefes y combates que avanzan cuando tú estudias.', scene: 'panel',
       panel: '<div class="tut-path"><b>Inicio</b><i></i><b>Combate</b><i></i><b>Jefe</b></div><div class="tut-chips"><span>mapa</span><span>jefes</span><span>combates</span></div>' },
-    { id: 'desaf', pose: 'senalar', text: 'Los desafíos son retos cortos con premio. Perfectos para un rato libre entre clases.', scene: 'panel',
+    { id: 'desaf', pose: 'senalar', text: 'Los *desafíos* son retos breves con premio. Ideales para un rato libre entre clases.', scene: 'panel',
       panel: '<div class="tut-vs"><div><h4>Reto corto</h4><p>Unos minutos.<br>Una pregunta a la vez.</p></div><div class="win"><h4>Premio</h4><p>Monedas para<br>tu refugio.</p></div></div>' },
-    { id: 'monedas', pose: 'feliz', text: 'Aquí ganas monedas, y las gastas en la tienda del refugio.', scene: 'panel',
+    { id: 'monedas', pose: 'feliz', text: 'Aquí ganas *monedas*… y las gastas en la tienda del refugio.', scene: 'panel',
       panel: '<div class="tut-path"><b>Juegas</b><i></i><b>Ganas monedas</b><i></i><b>Tienda</b></div>' },
-    { id: 'dato2', pose: 'guino', text: 'Dato: jugar no es perder el tiempo. Te obliga a recordar sin mirar, que es justo lo que funciona.', scene: 'panel',
+    { id: 'dato2', pose: 'guino', text: 'Dato: jugar no es perder el tiempo. Te obliga a recordar sin mirar, que es justo lo que *funciona*.', scene: 'panel',
       panel: '<div class="tut-vs"><div><h4>Mirar la respuesta</h4><p>Se siente bien.<br>Enseña poco.</p></div><div class="win"><h4>Recordarla jugando</h4><p>Cuesta un poco.<br>Se queda.</p></div></div>' },
-    { id: 'cal', pose: 'senalar', text: 'Calendario y prioridades: tus fechas de pruebas. Con eso te digo qué estudiar primero.', scene: 'panel',
+    { id: 'cal', pose: 'senalar', text: 'El *calendario* y las prioridades: tus fechas de prueba. Con ellas sé qué estudiar primero.', scene: 'panel',
       panel: '<div class="tut-path"><b>Tus fechas</b><i></i><b>Prioridades</b><i></i><b>Qué estudiar hoy</b></div>' },
-    { id: 'notas', pose: 'abrir', text: 'Notas y labs: tus apuntes y trabajos de laboratorio, en un solo lugar.', scene: 'panel',
+    { id: 'notas', pose: 'abrir', text: 'Notas y labs: tus apuntes y trabajos de laboratorio, bajo un mismo techo.', scene: 'panel',
       panel: '<div class="tut-vs"><div><h4>Notas</h4><p>Tus apuntes<br>y calificaciones.</p></div><div><h4>Labs</h4><p>Trabajos de<br>laboratorio.</p></div></div>' },
-    { id: 'rangos', pose: 'importante', text: 'Estadísticas y rangos: tu avance real y tus rangos arcanos. Subes por evidencia, no por tiempo sentado.', scene: 'panel',
+    { id: 'rangos', pose: 'importante', text: 'Estadísticas y *rangos arcanos*: tu avance real. Subes por evidencia, no por tiempo sentado.', scene: 'panel',
       panel: '<div class="tut-path"><b>Evidencia</b><i></i><b>Avance real</b><i></i><b>Rango arcano</b></div>' },
-    { id: 'ajustes', pose: 'guino', text: 'Ajustes e inasistencias: sonido, tutoriales (aquí vuelves a verme) y control de faltas.', scene: 'panel',
+    { id: 'ajustes', pose: 'guino', text: 'Ajustes e inasistencias: sonido, tutoriales (aquí me vuelves a invocar) y control de faltas.', scene: 'panel',
       panel: '<div class="tut-chips"><span>sonido</span><span>tutoriales</span><span>inasistencias</span></div>' },
-    { id: 'config', pose: 'importante', text: 'Último paso serio: dime tus ramos, las fechas de tus pruebas y cuánto tiempo tienes. Con eso la ruta parte hecha a tu medida.', scene: 'panel',
+    { id: 'config', pose: 'importante', text: 'Último paso serio: dime tus *ramos*, las fechas de tus pruebas y cuánto tiempo tienes. Con eso la ruta nace a tu medida.', scene: 'panel',
       panel: '<div class="tut-chips"><span>ramos</span><span>fechas de pruebas</span><span>tiempo disponible</span></div><div class="tut-links"><a class="secondary-btn" href="#/planner/calendar">Ir al calendario</a><a class="secondary-btn" href="#/profile">Ir al perfil</a></div><small class="tut-cite">Cuando termines, vuelve a #/tutorial y seguimos donde quedaste.</small>' },
     { id: 'premio', who: 'M', text: '¡Terminamos! Esto es para ti. Gasta con cabeza.', scene: 'premio', noBack: true },
-    { id: 'fin', pose: 'feliz', text: 'Fue un honor. Si me necesitas, estoy en Ajustes. Y no, no me pagan.', scene: 'mascota', noBack: true }
+    { id: 'fin', pose: 'feliz', text: 'Fue un honor. Si me necesitas, estoy en Ajustes… y no, no me pagan.', scene: 'mascota', noBack: true }
   ];
 
   const load = () => { try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch (_) { return {}; } };
@@ -176,11 +176,28 @@
       matraz: { osc: [['sawtooth', 1, .28], ['sine', 1.5, .6]], glide: 1.35, dur: 1.15 },       // burbujeante: el tono sube
       slime:  { osc: [['sine', 1, .95], ['triangle', .5, .7]], glide: .78, dur: 1.9 }           // blando: el tono cae
     };
+    const audio = () => { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume(); return ac; };
+    // Voz del Grimorio: un golpecito grave y hueco por letra (onda de pulso angosta, tono casi fijo), aprobado por Niquito el 18 oct.
+    let pulso = null;
+    function vozGrimorio(fx, brillo) {
+      if (muted()) return;
+      try {
+        audio(); const t = ac.currentTime, f = 140 * (brillo ? 1.2 : 1) * (1 + (Math.random() - .5) * .05) * (fx === 'tiembla' ? 1.05 : 1), v = fx === 'susurro' ? 0.04 : 0.1;
+        if (!pulso) {   // pulso de ancho 25 %: coeficientes de Fourier
+          const re = new Float32Array(33), im = new Float32Array(33);
+          for (let n = 1; n < 33; n++) { re[n] = Math.sin(2 * Math.PI * n * .25) / (n * Math.PI); im[n] = (1 - Math.cos(2 * Math.PI * n * .25)) / (n * Math.PI); }
+          pulso = ac.createPeriodicWave(re, im);
+        }
+        const o = ac.createOscillator(), lp = ac.createBiquadFilter(), g = ac.createGain();
+        o.setPeriodicWave(pulso); o.frequency.value = f; lp.type = 'lowpass'; lp.frequency.value = 3500;
+        g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(v, t + 0.002); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.065);
+        o.connect(lp); lp.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + 0.07);
+      } catch (_) { /* sin audio */ }
+    }
     const beep = (hz, big = false, kind) => {
       if (muted()) return;
       try {
-        ac = ac || new (window.AudioContext || window.webkitAudioContext)();
-        if (ac.state === 'suspended') ac.resume();
+        audio();
         const t = ac.currentTime, f = hz * 2 ** (STEPS_UP[Math.floor(Math.random() * STEPS_UP.length)] / 12) * (big ? 1.5 : 1);
         const out = ac.createGain(); out.connect(ac.destination);
         out.gain.setValueAtTime(0.0001, t); out.gain.linearRampToValueAtTime(big ? 0.16 : 0.1, t + 0.006); out.gain.exponentialRampToValueAtTime(0.0001, t + (big ? 0.16 : 0.075));
@@ -221,33 +238,50 @@
     }
 
     // ——— Texto letra por letra ———
+    // Marcas del texto: *palabra* brilla en dorado; "~" al inicio = susurro (chico y tenue); "^" al inicio = temblor.
+    const PAUSA = { '…': 380, '.': 280, '?': 280, '!': 260, ':': 220, ',': 170, '—': 170 };
+    function parse(raw) {
+      const fx = raw[0] === '~' ? 'susurro' : raw[0] === '^' ? 'tiembla' : '';
+      const plain = [], glow = []; let on = false;
+      for (const ch of fx ? raw.slice(1) : raw) { if (ch === '*') { on = !on; continue; } plain.push(ch); glow.push(on); }
+      return { fx, plain, glow };
+    }
+    function paint(p, k, nl) {
+      let out = '', open = false;
+      for (let j = 0; j < k; j++) {
+        if (p.glow[j] !== open) { out += open ? '</b>' : '<b class="gl">'; open = p.glow[j]; }
+        out += nl && j === k - 1 ? `<span class="nl">${esc(p.plain[j])}</span>` : esc(p.plain[j]);
+      }
+      textEl.innerHTML = out + (open ? '</b>' : '');
+    }
+    let cur = parse('');
     function say(text, who = 'G', then) {
-      clearTimeout(typeTimer); curText = text;
+      clearTimeout(typeTimer); curText = text; cur = parse(text);
+      const { plain, glow, fx } = cur, n = plain.length;
       tagEl.textContent = who === 'M' ? (s.name || INFO[s.kind]?.nombre || '') : 'Grimorio';
-      box.classList.remove('done');
+      box.classList.remove('done', 'susurro', 'tiembla'); if (fx) box.classList.add(fx);
       let k = 0; typing = true; textEl.textContent = ''; if (aura) aura.talk(who === 'G');
       if (!reduced()) { box.classList.remove('entra'); void box.offsetWidth; box.classList.add('entra'); }
       const hz = who === 'M' ? INFO[s.kind].tono / 2 : 210;
       const tick = () => {
         if (!alive()) return;
         k++;
-        if (reduced() || k >= text.length) textEl.textContent = text.slice(0, k);
-        else textEl.innerHTML = esc(text.slice(0, k - 1)) + `<span class="nl">${esc(text[k - 1])}</span>`;
+        paint(cur, k, !reduced() && k < n);
+        const ch = plain[k - 1], inicio = k === 1 || plain[k - 2] === ' ';
         if (who === 'G' && pose !== 'dormido') drawGrim(pose, [1, 2, 1, 0][k % 4]);
-        if (/[\p{L}\p{N}]/u.test(text[k - 1])) beep(hz, false, who === 'M' ? s.kind : undefined);
-        if (who === 'G' && !reduced() && (k === 1 || text[k - 2] === ' ') && /\S/.test(text[k - 1])) hop();
-        if (!reduced() && (k === 1 || text[k - 2] === ' ') && /\S/.test(text[k - 1])) chispita();
-        if (k >= text.length) { finishType(); if (then) then(); return; }
-        typeTimer = setTimeout(tick, /[.,…?!]/.test(text[k - 1]) ? 150 : 28);
+        if (who === 'M') { if (/[\p{L}\p{N}]/u.test(ch)) beep(hz, false, s.kind); }
+        else if (/\p{L}/u.test(ch)) vozGrimorio(fx, glow[k - 1]);
+        if (who === 'G' && !reduced() && inicio && /\S/.test(ch)) hop();
+        if (!reduced() && inicio && /\S/.test(ch)) chispita();
+        if (k >= n) { finishType(); if (then) then(); return; }
+        typeTimer = setTimeout(tick, (PAUSA[ch] || (glow[k - 1] ? 48 : 28)) * (fx === 'susurro' ? 1.5 : 1));
       };
       tick();
     }
+    function skipType() { clearTimeout(typeTimer); paint(cur, cur.plain.length, false); finishType(); }
     function finishType() {
       typing = false; box.classList.add('done'); if (aura) aura.talk(false);
       if (pose !== 'dormido' && !speakerIsPet()) drawGrim(pose, 0);
-    }
-    function skipType(full) {
-      clearTimeout(typeTimer); textEl.textContent = full; finishType();
     }
 
     // ——— Mascota real (dibujo de la app) ———
@@ -357,12 +391,12 @@
       const mascot = petCanvas(s.kind, 'feliz'); const m = el('div', 'tut-mascot hatch'); m.append(mascot.c); m.hidden = true; sceneEl.append(m);
       let shake = 0;
       const frame = f => setEgg(egg, f);
-      drawGrim('sudor'); say('Está temblando… ¿es normal? Creo que es normal.');
+      drawGrim('sudor'); say('^Está temblando… ¿es normal? Creo que es normal.');
       later(1500, () => { shake = 1; if (!reduced()) egg.classList.add('shake'); frame(1); if (egg.fx) egg.fx.level(1); });
       scene.iv = setInterval(() => { if (shake && alive()) frame(Date.now() % 240 < 120 ? 1 : 2); }, 120);
       later(3600, () => { frame(3); flash.className = 'tut-flash on'; later(450, () => { flash.className = 'tut-flash'; frame(1); }); });
       later(5200, () => { shake = 0; frame(4); egg.classList.add('hard'); if (egg.fx) { egg.fx.level(2); egg.fx.excite(true); } });
-      later(6700, () => { frame(5); if (egg.fx) egg.fx.level(3); drawGrim('importante'); say('¡NO SÉ SI ES NORMAL!'); });
+      later(6700, () => { frame(5); if (egg.fx) egg.fx.level(3); drawGrim('importante'); say('^¡NO SÉ SI ES NORMAL!'); });
       later(8300, () => { frame(6); drawGrim('espiral'); });
       later(9800, () => { shake = 0; egg.classList.remove('shake', 'hard'); frame(7); flash.className = 'tut-flash on big'; drawGrim('sorprendido'); beep(500, true); if (magia) magia.pulse(); if (egg.fx) { egg.fx.level(0); egg.fx.burst(); } });
       later(10500, () => {
@@ -403,7 +437,7 @@
     }
     nextBtn.addEventListener('click', () => {
       const step = steps[s.i];
-      if (typing && !busy) { skipType(curText); return; }
+      if (typing && !busy) { skipType(); return; }
       if (step.id === 'nombre') s.draft = s.draft.trim();
       if (step.id === 'graba') { s.name = s.draft.trim(); if (mode === 'first') api.setPet(s.kind, s.name); }
       if (s.i >= steps.length - 1) {
@@ -414,7 +448,7 @@
       show(s.i + 1);
     });
     backBtn.addEventListener('click', () => { if (s.i > 0) show(s.i - 1); });
-    box.addEventListener('click', () => { if (typing && !busy) skipType(curText); });
+    box.addEventListener('click', () => { if (typing && !busy) skipType(); });
     const muteBtn = $('.tut-mute'), paintMute = () => { muteBtn.classList.toggle('off', muted()); muteBtn.setAttribute('aria-pressed', muted() ? 'true' : 'false'); };
     muteBtn.addEventListener('click', () => { try { localStorage.setItem(MUTE, muted() ? '0' : '1'); } catch (_) {} paintMute(); if (!muted()) beep(300, true); });
     paintMute();
