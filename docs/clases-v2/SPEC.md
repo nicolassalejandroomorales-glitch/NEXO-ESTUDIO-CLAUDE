@@ -8,6 +8,18 @@ La torre del alquimista (pantalla pintada) ya no existe: se borraron `classroom.
 `player.js` queda como **solo lógica** (`window.NexoClassroom`: pasos, puntos al 7, corrección, evidencia, hojas) porque la usan el Sótano, la Torre del Sauce y las pruebas.
 `#/lesson/<clase>` muestra "Disponible próximamente" con el botón a la estación (org-01). Falta la **Cámara** del ramo, donde cada misión es un objeto de la sala (decisión 18 oct).
 
+## La clase dentro de la Cámara (diseño conversado, 18 oct, Niquito)
+La Cámara de cada ramo (`tools/aprender-pasillo/build_camara.py`: cripta circular, sauce de cristal al centro, una alcoba por tema, mesa con un frasco por misión, un cristal por concepto) es donde se juega la clase.
+- **Recorrido**: portal → plano al centro frente al sauce (avance y días a la PEP) → girar a una alcoba → mesa → tocar un **frasco = una misión** → la cámara entra al frasco y se abre la estación.
+- **Pantalla**: el **cristal-pantalla flota sobre la alcoba** (alcoba desenfocada detrás, mascota al lado). No pantalla completa ni mural-pantalla.
+- **Recompensa**: al terminar la misión, **mini escena de 3-4 s**: vuelve la mesa, el frasco se llena, el cristal se enciende y una luz viaja a la rama del sauce que brota/florece (según evidencia real, no por terminar).
+- **Resto de la sala**: errores = grietas en la pared; repasos vencidos = cristales apagados (tocar = ronda de repaso); Entrenar y Laboratorio = otras puertas/salas.
+- **Celular (390)**: flechas ◀ ▶ y toque en la alcoba, como el pasillo del Sótano.
+- **Misiones (Aminas = 8, m1-m8, un frasco cada una)**: mismo ritmo de 4 pasos en todas; **Práctica y Demuestra cambian de pieza según la misión** (ordenar por pKa, armar receta, nombrar, leer espectro…), reutilizando los tipos de actividad que ya existen.
+- **Frascos**: todos abiertos desde el inicio; la mascota marca el **sugerido de hoy** según diagnóstico y días a la PEP. Nada se traba antes de una prueba.
+- **El cristal-pantalla cambia de "modo" en cada paso** (aprobado 18 oct): **Adivina** = tranquilo, la mascota apuesta contigo y fallar sale gratis; **Clase** = el apunte se dibuja solo (mecanismos, flechas, estructuras) con la mascota explicando corto; **Práctica** = banco de trabajo (arrastrar tarjetas, armar receta, pistas y reintento); **Demuestra** = sobrio como hoja de prueba (un intento, reloj opcional, mascota en silencio, y al final cuánto aseguraste de tu PEP).
+- Pendiente de diseño: ~~cómo se ve~~ (ya)  el cristal-pantalla en cada paso (Adivina/Clase/Práctica/Demuestra), sonido y música de la sala.
+
 ## Qué
 Una **estación** = 4 pasos jugados en la mesa de la alcoba del Sótano: Adivina → Clase → Práctica → Demuestra.
 

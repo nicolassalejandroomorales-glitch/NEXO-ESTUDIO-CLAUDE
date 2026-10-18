@@ -5,7 +5,7 @@
 - spec: docs/clases-estructura/SPEC.md
 
 ## Hecho
-- Aula inmersiva "torre del alquimista" (`dist/classes/`).
+- ~~Aula inmersiva "torre del alquimista"~~ **borrada el 18 oct 2026** (estética vieja): `player.js` quedó como solo lógica (`NexoClassroom`, 38 KB); `#/lesson/<clase>` muestra "Disponible próximamente" + botón a la estación. La pantalla nueva vive en la Cámara del ramo.
 - Aminas completo para la PEP 1 (misiones 2 a 8, 63 actividades verificadas), diapositivas y glosario.
 - Clases de Analítica, Fisiopatología, Orgánica II y FQ II; ejercicios infinitos con regla de calidad.
 - Guía para crear una clase: `docs/clases-estructura/COMO_CREAR_UNA_CLASE.md` y `node tools/new-class.cjs`.
@@ -17,7 +17,7 @@
 ## Falta
 - Que la clase de Aminas → Basicidad se sienta increíble (corrección real, actividades variadas). Es lo más importante del producto.
 - Revisar las clases hechas en móvil (390 px).
-- Decidir si el aula pasa a pixel art (ver chat pixel-ui).
+- Construir la clase dentro de la Cámara (diseño cerrado en `docs/clases-v2/SPEC.md`, sección "La clase dentro de la Cámara"). Sin esto, las clases solo se entran por la estación de Basicidad.
 
 ## Ideas
 - Modo "simulacro" de PEP 1 con tiempo y pauta.
@@ -38,9 +38,12 @@ Chat: Clases (contenido y aula). Lee CLAUDE.md, la skill nexo-clase y docs/chats
 Parte desde "Falta" del archivo de chat y pregúntame qué sigue.
 ```
 
-## Prompt de continuación (Clases v2)
+## Prompt de continuación (Clases v2 · la clase en la Cámara)
 ```
-Chat: Clases v2 (piloto Basicidad). Lee CLAUDE.md, la skill nexo-clase, docs/clases-v2/SPEC.md y docs/aprender-pasillo/SPEC.md.
-Versión visual elegida: C (cristal-pantalla), habla la mascota real. Paso 3 = ordenar por basicidad estilo PEP (no hay mini juego). Boceto: docs/clases-v2/estacion-basicidad.html.
-Tarea (paso 4): generalizar la estación a otras misiones de Aminas (m5…) y probar en celular real. Probar en 1440 y 390. Opus para diseñar la estructura, Sonnet para implementar.
+Chat: Clases v2 (la clase dentro de la Cámara de Orgánica II). Lee CLAUDE.md, la skill nexo-clase, docs/clases-v2/SPEC.md (sobre todo "La clase dentro de la Cámara"), docs/aprender-pasillo/SPEC.md y docs/chats/clases.md.
+Dónde quedamos (18 oct 2026): la torre vieja ya está borrada (player.js = solo lógica). Diseño cerrado: la Cámara (cripta circular, sauce de cristal, una alcoba por tema, mesa con un frasco por misión, un cristal por concepto) es donde se juega.
+Tocas un frasco = una misión → la cámara entra al frasco → el cristal-pantalla flota sobre la alcoba (mascota al lado). Siempre 4 pasos (Adivina, Clase, Práctica, Demuestra), con modos distintos del cristal y la pieza de Práctica/Demuestra según la misión (ordenar, receta, nombrar, espectro). 8 frascos abiertos con "sugerido de hoy". Al terminar: mini escena de 3-4 s (frasco se llena, cristal se enciende, luz a la rama del sauce, según evidencia real). Celular: flechas ◀ ▶ y toque en la alcoba.
+Falta por conversar (sin código): sonido de la sala (propuesta: Web Audio sintetizado, acorde que se afina con tu avance, Demuestra casi en silencio, botón de silencio; Niquito aún no respondió si quiere zumbido de fondo o silencio) y cómo se ven las grietas de errores.
+Primero dime en una línea qué entendiste y hazme máximo 3 preguntas de selección múltiple. Luego: plan de construcción en pasos chicos en el SPEC (Opus), y recién ahí implementar con Sonnet 5.5. Primer corte sugerido: Cámara de Aminas navegable en la app + abrir el frasco de Basicidad (m4) con la estación existente. Probar en 1440 y 390.
+Al terminar, usa nexo-cierre y actualiza docs/chats/clases.md.
 ```
