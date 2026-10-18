@@ -1,9 +1,9 @@
-"""Exporta el Sótano a la app: cuadros del pasillo y de la Cámara de Orgánica II como hojas WebP, sprites del estado y manifiesto.
+"""Exporta el Sótano a la app: cuadros del pasillo y de las 4 Cámaras (una por ramo) como hojas WebP, sprites del estado y manifiesto.
 Cada tira (tramo entre dos paradas) es una hoja de cuadros de 320x200; la app la reproduce hacia adelante o al revés.
 La Cámara se renderiza NEUTRA (sin frascos, cristales apagados, sin cuenta regresiva): el estado real se dibuja encima con
 sprites que salen de este mismo motor (cada frasco y cada cristal se renderiza solo y se resta del cuadro neutro).
 Salida: dist/aprender/img/*.webp y dist/aprender/manifest.json.
-Correr: python tools/aprender-pasillo/export_app.py [todo|pasillo|camara]   (usa todos los núcleos; ~5 min la primera vez)
+Correr: python tools/aprender-pasillo/export_app.py [todo|pasillo|camara] [ramo ...]  (ramo: organica analitica fisico fisio)   (usa todos los núcleos; ~5 min por ramo la primera vez)
 """
 import hashlib
 import json
@@ -37,16 +37,16 @@ SOURCE_HASH = hashlib.sha1(b''.join(open(os.path.join(HERE, f), 'rb').read() for
 
 
 # ---------------------------------------------------------------- trabajos de render (corren en procesos aparte)
-def neutral():
-    """Cámara de Orgánica II sin estado: frascos fuera, cristales apagados, ramas verdes y sin cuenta regresiva."""
+def neutral(ramo='organica'):
+    """Cámara de un ramo sin estado: frascos fuera, cristales apagados, ramas verdes y sin cuenta regresiva."""
     bc.CRYSTAL_LIGHT = False
-    cfg = bc.RAMOS['organica']
+    cfg = bc.RAMOS[ramo]
     cfg['countdown'] = ''
     for t in cfg['temas']:
         t['crystals'] = [None] * len(t['crystals'])
         t['jars'] = []
         t['ramas'] = ['verde'] * len(t['ramas'])
-    bc.set_ramo('organica')
+    bc.set_ramo(ramo)
 
 
 def alcove(key):
@@ -54,12 +54,12 @@ def alcove(key):
 
 
 def render(spec):
-    """spec: {'k': 'h'|'c', 'cam': (x, z, yaw, bob, pitch, tiempo), ...} -> arreglo RGB 200x320."""
+    """spec: {'k': 'h'|'c', 'cam': (x, z, yaw, bob, pitch, tiempo), 'ramo': ...} -> arreglo RGB 200x320."""
     bs.set_cam(*spec['cam'])
     if spec['k'] == 'h':
         img = bs.build(spec.get('opens'), spec.get('flash', 0.0), 1)
     else:
-        neutral()
+        neutral(spec.get('ramo', 'organica'))
         var = spec.get('var')
         if var:
             a = alcove(var['alcove'])
@@ -95,10 +95,12 @@ class Clips:
 
     def __init__(self):
         self.clips = {}        # nombre -> lista de specs
-        self.t = 0.0
+        self.camera = set()    # nombres de las tiras que se ven dentro de una Cámara
 
-    def add(self, name, specs):
+    def add(self, name, specs, camera=False):
         self.clips[name] = specs
+        if camera:
+            self.camera.add(name)
 
     def cam(self, x, z, yaw=0.0, bob=0.0, pitch=0.0, i=0):
         return (x, z, yaw, bob + 0.5 * math.sin(i * 0.4), pitch, 3.0 + i * 0.45)
@@ -185,6 +187,20 @@ def orbit(deg):
     return bc.STAND * math.sin(p), bc.STAND * math.cos(p), p
 
 
+# Una Cámara por ramo. p = prefijo de sus paradas y tiras (Orgánica II no lleva: así conserva sus nombres y su caché).
+# alc = (clave de la alcoba en build_camara.py, grados de su parada, frascos = misiones, cristales). Los frascos salen de las
+# clases de la alcoba (estado.js); si una clase cambia de misiones hay que volver a exportar (lo vigila tools/aprender-test.cjs).
+CAMARAS = {
+    'organica': dict(p='', door='d-org', alc=[('aminas', 0, 8, 6), ('aromaticos', 60, 6, 5), ('heterociclos', 300, 0, 4)],
+                     names={'c0': 'Aminas', 'c60': 'Aromáticos', 'c-60': 'Heterociclos'}),
+    'analitica': dict(p='ana.', door='d-ana', alc=[('ana_errores', 0, 2, 4), ('ana_acidobase', 60, 4, 5), ('ana_polipro', 300, 0, 4)],
+                      names={'c0': 'Errores', 'c60': 'Ácido-base', 'c-60': 'Polipróticos'}),
+    'fisico': dict(p='fq.', door='d-fis', alc=[('fq_equilibrio', 0, 4, 5), ('fq_ionico', 60, 0, 4), ('fq_pila', 300, 0, 4)],
+                   names={'c0': 'Equilibrio', 'c60': 'Electrolitos', 'c-60': 'Electroquímica'}),
+    'fisio': dict(p='fis.', door='d-fisio', alc=[('fisio_potencial', 0, 4, 5), ('fisio_resp', 60, 2, 4), ('fisio_digest', 300, 2, 4)],
+                  names={'c0': 'Nervioso', 'c60': 'Respiratorio', 'c-60': 'Digestivo'}),
+}
+CAM_LOCAL = ['c-in', 'c0', 'c60', 'c120', 'c180', 'c-120', 'c-60', 'cz0', 'cz60', 'cz-60']
 RING = [('c0', 0), ('c60', 60), ('c120', 120), ('c180', 180), ('c-120', 240), ('c-60', 300)]
 ZT = bc.R - 0.5
 
@@ -195,33 +211,51 @@ def table_cam(deg, u, i=0):
     return CL.cam(r * math.sin(p), r * math.cos(p), p, 1.2 * math.sin(math.pi * u), LOOK - 0.06 * u, i)
 
 
-def build_camara():
+def build_camara(ramo):
+    cfg = CAMARAS[ramo]
+    p = cfg['p']
+    tag = {} if ramo == 'organica' else {'ramo': ramo}      # Orgánica II no lleva etiqueta: sus cuadros ya estaban en la caché
     z0 = -(bc.R + 0.35)
-    CL.add('c-emerge', [{'k': 'c', 'cam': CL.cam(0.0, z0 + 0.35 * ease(i / 8), 0.0, 0.0, 0.16, i), 'swirl': 1 - ease(i / 8), 'flash': 0.45 * (1 - ease(i / 8))}
-                        for i in range(0, 9)])
+    CL.add(p + 'c-emerge', [{'k': 'c', **tag, 'cam': CL.cam(0.0, z0 + 0.35 * ease(i / 8), 0.0, 0.0, 0.16, i), 'swirl': 1 - ease(i / 8), 'flash': 0.45 * (1 - ease(i / 8))}
+                            for i in range(0, 9)], True)
     zs = z0 + 0.35
     n = 32
     seq = []
-    for i in range(1, n + 1):                                         # rodea el sauce por la derecha hasta quedar frente a Aminas
+    for i in range(1, n + 1):                                         # rodea el sauce por la derecha hasta quedar frente a la primera alcoba
         u = ease(i / n)
         x = 1.25 * math.sin(math.pi * u) ** 0.8
         z = zs + (bc.STAND - zs) * u
         yaw = math.atan2(0 - x, bc.R + bc.DEP - z) * (1 - u)
-        seq.append({'k': 'c', 'cam': CL.cam(x, z, yaw, 1.6 * abs(math.sin(math.pi * 3 * i / n)), 0.16 + (LOOK - 0.16) * u, i)})
-    CL.add('o-c-in-c0', seq)
+        seq.append({'k': 'c', **tag, 'cam': CL.cam(x, z, yaw, 1.6 * abs(math.sin(math.pi * 3 * i / n)), 0.16 + (LOOK - 0.16) * u, i)})
+    CL.add(p + 'o-c-in-c0', seq, True)
     for k, (name, deg) in enumerate(RING):                           # anillo: +60° = girar a la derecha
         nxt = RING[(k + 1) % 6][0]
         seq = []
         for i in range(1, TURN_N + 1):
-            x, z, p = orbit(deg + 60 * ease(i / TURN_N))
-            seq.append({'k': 'c', 'cam': CL.cam(x, z, p, 0.8 * math.sin(math.pi * i / TURN_N), LOOK, i)})
-        CL.add(f'o-{name}-{nxt}', seq)
-    for name, deg in (('c0', 0), ('c60', 60)):                       # acercarse a la mesa de las alcobas con clase
-        CL.add(f'z-{name}', [{'k': 'c', 'cam': table_cam(deg, ease(i / 8), i)} for i in range(1, 9)])
+            x, z, yaw = orbit(deg + 60 * ease(i / TURN_N))
+            seq.append({'k': 'c', **tag, 'cam': CL.cam(x, z, yaw, 0.8 * math.sin(math.pi * i / TURN_N), LOOK, i)})
+        CL.add(f'{p}o-{name}-{nxt}', seq, True)
+    for _, deg, jars, _c in cfg['alc']:                              # acercarse a la mesa de las alcobas con clase
+        if jars:
+            CL.add(f'{p}z-c{view_deg(deg)}', [{'k': 'c', **tag, 'cam': table_cam(deg, ease(i / 8), i)} for i in range(1, 9)], True)
+
+
+def view_deg(deg):
+    """Grados del anillo escritos como en los nombres de parada (300° = -60)."""
+    return deg - 360 if deg > 180 else deg
 
 
 # ---------------------------------------------------------------- paradas y reposo
+def split_node(node):
+    """('ana.c0') -> ('analitica', 'c0'); las paradas sin prefijo son del pasillo o de Orgánica II."""
+    for ramo, cfg in CAMARAS.items():
+        if cfg['p'] and node.startswith(cfg['p']):
+            return ramo, node[len(cfg['p']):]
+    return 'organica', node
+
+
 def stop_cam(node, i=0):
+    ramo, node = split_node(node)
     if node in HALL_Z:
         return hall_cam(HALL_Z[node], i)
     if node in DOOR:
@@ -237,42 +271,59 @@ def stop_cam(node, i=0):
         return CL.cam(0.0, -(bc.R + 0.35) + 0.35, 0.0, 0.0, 0.16, i)
     if node.startswith('cz'):
         return table_cam(int(node[2:]), 1.0, i)
-    x, z, p = orbit(dict(RING)[node])
-    return CL.cam(x, z, p, 0.0, LOOK, i)
+    x, z, yaw = orbit(dict(RING)[node])
+    return CL.cam(x, z, yaw, 0.0, LOOK, i)
 
 
 def stop_spec(node, i):
-    spec = {'k': 'c' if node.startswith('c') else 'h', 'cam': stop_cam(node, i)}
-    if node in DOOR:
-        spec['opens'] = {door_geometry(DOOR[node][1])[3]: door_geometry(DOOR[node][1])[4]}
+    ramo, local = split_node(node)
+    spec = {'k': 'c' if local.startswith('c') else 'h', 'cam': stop_cam(node, i)}
+    if spec['k'] == 'c' and ramo != 'organica':
+        spec['ramo'] = ramo
+    if local in DOOR:
+        spec['opens'] = {door_geometry(DOOR[local][1])[3]: door_geometry(DOOR[local][1])[4]}
     return spec
 
 
-NODES = ['h0', 'h1', 'h2', 'h3', 'h4', 'r0', 'r1', 'r2', 'r3', 'r4', 'd-org', 'd-ana', 'd-fis', 'd-fisio', 'b0', 'b1', 'b2', 'b3', 'q0', 'q1', 'q2', 'q3',
-         'c-in', 'c0', 'c60', 'c120', 'c180', 'c-120', 'c-60', 'cz0', 'cz60']
+HALL_NODES = ['h0', 'h1', 'h2', 'h3', 'h4', 'r0', 'r1', 'r2', 'r3', 'r4', 'd-org', 'd-ana', 'd-fis', 'd-fisio', 'b0', 'b1', 'b2', 'b3', 'q0', 'q1', 'q2', 'q3']
+
+
+def camera_nodes(ramo):
+    p = CAMARAS[ramo]['p']
+    table = [f'cz{view_deg(deg)}' for _, deg, jars, _c in CAMARAS[ramo]['alc'] if jars]
+    return [p + n for n in CAM_LOCAL if not n.startswith('cz') or n in table]
+
+
+NODES = HALL_NODES + [n for ramo in CAMARAS for n in camera_nodes(ramo)]
 
 
 def build_idle():
     for node in NODES:
-        CL.add(f'i-{node}', [stop_spec(node, 60 + i * 2) for i in range(IDLE_N)])
+        CL.add(f'i-{node}', [stop_spec(node, 60 + i * 2) for i in range(IDLE_N)], split_node(node)[1].startswith('c'))
 
 
 # ---------------------------------------------------------------- sprites del estado de la Cámara
-ALC = {  # clave de la alcoba, grados de su parada, frascos (misiones) y cristales
-    'aminas': dict(deg=0, jars=8, crys=6), 'aromaticos': dict(deg=60, jars=6, crys=5)}
+def alcoves_with_class():
+    """(ramo, clave, grados, frascos, cristales) de cada alcoba que tiene clase detrás."""
+    return [(ramo, key, deg, jars, crys) for ramo, cfg in CAMARAS.items() for key, deg, jars, crys in cfg['alc'] if jars]
 
 
-def sprite_specs():
+def sprite_specs(only=None):
     out = {}
-    for key, c in ALC.items():
-        for view, cam in ((f'c{c["deg"]}', stop_cam(f'c{c["deg"]}', 60)), (f'cz{c["deg"]}', stop_cam(f'cz{c["deg"]}', 60))):
-            out[(key, view, 'base')] = {'k': 'c', 'cam': cam}
-            for j in range(c['jars']):
+    for ramo, key, deg, jars, crys in alcoves_with_class():
+        if only and ramo not in only:
+            continue
+        p = CAMARAS[ramo]['p']
+        tag = {} if ramo == 'organica' else {'ramo': ramo}
+        for view in (f'{p}c{view_deg(deg)}', f'{p}cz{view_deg(deg)}'):
+            cam = stop_cam(view, 60)
+            out[(ramo, key, view, 'base')] = {'k': 'c', **tag, 'cam': cam}
+            for j in range(jars):
                 for li, lv in enumerate(JAR_LEVELS):
-                    out[(key, view, 'jar', j, li)] = {'k': 'c', 'cam': cam, 'var': dict(alcove=key, what='jar', i=j, v=lv, n=c['jars'])}
-            for i in range(c['crys']):
+                    out[(ramo, key, view, 'jar', j, li)] = {'k': 'c', **tag, 'cam': cam, 'var': dict(alcove=key, what='jar', i=j, v=lv, n=jars)}
+            for i in range(crys):
                 for st in (1, 0):
-                    out[(key, view, 'cr', i, st)] = {'k': 'c', 'cam': cam, 'var': dict(alcove=key, what='crystal', i=i, v=st, n=c['crys'])}
+                    out[(ramo, key, view, 'cr', i, st)] = {'k': 'c', **tag, 'cam': cam, 'var': dict(alcove=key, what='crystal', i=i, v=st, n=crys)}
     return out
 
 
@@ -345,6 +396,7 @@ def make_overlay(view_key, base, variants, c):
 def moves():
     """Paradas, tramos y botones: lo único que la app necesita saber del recorrido."""
     names = {'d-org': 'Orgánica II', 'd-ana': 'Química Analítica', 'd-fis': 'Fisicoquímica II', 'd-fisio': 'Fisiopatología'}
+    ramo_of_door = {cfg['door']: ramo for ramo, cfg in CAMARAS.items()}
     nodes = {n: {'idle': f'i-{n}', 'moves': []} for n in NODES}
     edges = []
 
@@ -365,11 +417,14 @@ def moves():
             edge(a, hall[i + 1], f'w-{a}-{hall[i + 1]}')
             mv(a, 'fwd', hall[i + 1], 'Avanzar')
     for d, (stop, idx) in DOOR.items():
+        ramo = ramo_of_door[d]
         edge(stop, d, f't-{stop}-{d}')
         mv(stop, 'right' if bs.DOORS['M'][idx][0] > 0 else 'left', d, names[d])
         mv(d, 'back', stop, 'Volver al pasillo')
-        nodes[d]['moves'].append({'dir': 'enter', 'clip': f'e-{d}', 'door': d[2:], 'label': 'Entrar'})
+        p = CAMARAS[ramo]['p']
+        nodes[d]['moves'].append({'dir': 'enter', 'clip': f'e-{d}', 'cam': {'clip': p + 'c-emerge', 'node': p + 'c-in'}, 'label': 'Entrar'})
         nodes[d]['name'] = names[d]
+        nodes[d]['ramo'] = ramo
     edge('h3', 'b0', 't-h3-b0')
     mv('h3', 'right', 'b0', 'Pasillo lateral')
     mv('b0', 'back', 'h3', 'Volver al pasillo')
@@ -386,40 +441,58 @@ def moves():
             mv(f'q{k}', 'fwd', f'q{k - 1}', 'Avanzar')
     edge('q0', 'h3', 't-q0-h3')
     mv('q0', 'right', 'h3', 'Seguir al pasillo')
-    names_c = {'c0': 'Aminas', 'c60': 'Aromáticos', 'c120': 'PEP 2', 'c180': 'Portal', 'c-120': 'PEP 2', 'c-60': 'Heterociclos'}
-    edge('c-in', 'c0', 'o-c-in-c0')
-    mv('c-in', 'fwd', 'c0', 'Rodear el sauce')
-    nodes['c-in']['moves'].append({'dir': 'back', 'exit': 'd-org', 'label': 'Salir'})
-    for k, (name, deg) in enumerate(RING):
-        nxt = RING[(k + 1) % 6][0]
-        edge(name, nxt, f'o-{name}-{nxt}')
-        mv(name, 'right', nxt, names_c[nxt])
-        mv(nxt, 'left', name, names_c[name])
-        nodes[name]['name'] = names_c[name]
-    nodes['c180']['moves'].append({'dir': 'back', 'exit': 'd-org', 'label': 'Salir'})
-    for name in ('c0', 'c60'):
-        edge(name, 'cz' + name[1:], f'z-{name}')
-        mv(name, 'fwd', 'cz' + name[1:], 'Acercarse a la mesa')
-        mv('cz' + name[1:], 'back', name, 'Alejarse')
+    for ramo, cfg in CAMARAS.items():
+        p = cfg['p']
+        names_c = {'c120': 'PEP 2', 'c180': 'Portal', 'c-120': 'PEP 2', **cfg['names']}
+        edge(p + 'c-in', p + 'c0', p + 'o-c-in-c0')
+        mv(p + 'c-in', 'fwd', p + 'c0', 'Rodear el sauce')
+        nodes[p + 'c-in']['moves'].append({'dir': 'back', 'exit': cfg['door'], 'label': 'Salir'})
+        for k, (name, deg) in enumerate(RING):
+            nxt = RING[(k + 1) % 6][0]
+            edge(p + name, p + nxt, f'{p}o-{name}-{nxt}')
+            mv(p + name, 'right', p + nxt, names_c[nxt])
+            mv(p + nxt, 'left', p + name, names_c[name])
+            nodes[p + name]['name'] = names_c[name]
+        nodes[p + 'c180']['moves'].append({'dir': 'back', 'exit': cfg['door'], 'label': 'Salir'})
+        for _, deg, jars, _c in cfg['alc']:
+            if jars:
+                loc = f'c{view_deg(deg)}'
+                edge(p + loc, p + 'cz' + loc[1:], f'{p}z-{loc}')
+                mv(p + loc, 'fwd', p + 'cz' + loc[1:], 'Acercarse a la mesa')
+                mv(p + 'cz' + loc[1:], 'back', p + loc, 'Alejarse')
+        for n in camera_nodes(ramo):
+            nodes[n]['ramo'] = ramo
     return nodes, edges
 
 
-def main(which):
+def clip_kind(name):
+    if name.startswith('i-'):
+        return 'i'
+    base = name.split('.')[-1]
+    return 'c' if base.startswith('c-') else base.split('-')[0]
+
+
+def main(which, ramos):
     os.makedirs(IMG, exist_ok=True)
     os.makedirs(CACHE, exist_ok=True)
     build_hall()
-    build_camara()
+    for ramo in CAMARAS:
+        build_camara(ramo)
     build_idle()
     pool_jobs = {}
     for name, specs in CL.clips.items():
-        if which == 'pasillo' and name.startswith(('c-', 'o-', 'z-')):
+        in_cam = name in CL.camera
+        ramo = split_node(name[2:] if name.startswith('i-') else name)[0] if in_cam else None
+        if which == 'pasillo' and in_cam:
             continue
-        if which == 'camara' and not name.startswith(('c-', 'o-', 'z-', 'i-c')):
+        if which == 'camara' and not in_cam:
+            continue
+        if in_cam and ramos and ramo not in ramos:
             continue
         for i, sp in enumerate(specs):
             pool_jobs[('clip', name, i)] = sp
     if which in ('todo', 'camara'):
-        for k, sp in sprite_specs().items():
+        for k, sp in sprite_specs(ramos).items():
             pool_jobs[('spr',) + k] = sp
     print(len(pool_jobs), 'cuadros por renderizar', flush=True)
     results = {}
@@ -437,17 +510,17 @@ def main(which):
             continue
         frames = [results[('clip', name, i)] for i in range(len(specs))]
         total += save_sheet(name, frames)
-        clips[name] = {'n': len(frames), 'ms': round(len(frames) * MS_PER_FRAME[name.split('-')[0] if not name.startswith('c-') else 'c']),
-                       'ease': name.startswith(('w-', 'u-'))}
+        clips[name] = {'n': len(frames), 'ms': round(len(frames) * MS_PER_FRAME[clip_kind(name)]), 'ease': clip_kind(name) in ('w', 'u')}
     overlay = old.get('overlay', {})
-    for key, c in ALC.items():
-        if ('spr', key, f'c{c["deg"]}', 'base') not in results:
+    for ramo, key, deg, jars, crys in alcoves_with_class():
+        p = CAMARAS[ramo]['p']
+        if ('spr', ramo, key, f'{p}c{view_deg(deg)}', 'base') not in results:
             continue
-        for view in (f'c{c["deg"]}', f'cz{c["deg"]}'):
-            base = results[('spr', key, view, 'base')]
-            variants = {('jar', j, li): results[('spr', key, view, 'jar', j, li)] for j in range(c['jars']) for li in range(len(JAR_LEVELS))}
-            variants.update({('cr', i, st): results[('spr', key, view, 'cr', i, st)] for i in range(c['crys']) for st in (1, 0)})
-            overlay[view] = make_overlay(view, base, variants, c)
+        for view in (f'{p}c{view_deg(deg)}', f'{p}cz{view_deg(deg)}'):
+            base = results[('spr', ramo, key, view, 'base')]
+            variants = {('jar', j, li): results[('spr', ramo, key, view, 'jar', j, li)] for j in range(jars) for li in range(len(JAR_LEVELS))}
+            variants.update({('cr', i, st): results[('spr', ramo, key, view, 'cr', i, st)] for i in range(crys) for st in (1, 0)})
+            overlay[view] = make_overlay(view, base, variants, dict(jars=jars, crys=crys))
     nodes, edges = moves()
     digest = hashlib.sha1()                                          # versión de los cuadros: cambia el ?v= de cada hoja
     for f in sorted(os.listdir(IMG)):
@@ -459,4 +532,4 @@ def main(which):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1] if len(sys.argv) > 1 else 'todo')
+    main(sys.argv[1] if len(sys.argv) > 1 else 'todo', set(sys.argv[2:]))

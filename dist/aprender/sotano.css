@@ -36,8 +36,6 @@
 .sotano-concepts li small { color: #9fb2ad; }
 .sotano-concepts li[data-state="review"] small { color: #ffb36b; }
 .sotano-concepts li[data-state="ok"] small { color: #b6f070; }
-.sotano-classes { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; justify-items: start; }
-.sotano-soon { color: #9fb2ad; font-size: .92rem; }
 
 @media (max-width: 640px) {
   .sotano { padding: 6px 8px 24px; }

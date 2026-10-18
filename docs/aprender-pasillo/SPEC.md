@@ -112,7 +112,7 @@ Decisiones: **tiras de cuadros por paso** (fluido como el boceto), **reemplazar 
 ### Qué entra
 - `#/learn` pasa a ser el Sótano (código en `dist/aprender/`, carga bajo demanda desde `renderSubjects` de `app.js`). Se borró el índice-grimorio (su contenido y su CSS en `update01.css`); `renderSubjects` quedó como el cargador del Sótano y `grimoireShell` sigue sirviendo a las evaluaciones.
   Las rutas `learn/course/<ramo>/evaluation/...` y `learn/course/<ramo>/lesson/...` **siguen vivas** (las usan Inicio, el tutorial y el aula); su rediseño dentro de la Cámara queda pendiente.
-- Pasillo con las 4 puertas + pasillo lateral con candado; **solo la Cámara de Orgánica II** funciona de punta a punta. Las otras 3 puertas hacen la animación del portal y muestran una tarjeta con las clases reales del ramo (de `catalog.js`) hasta que tengan su Cámara.
+- Pasillo con las 4 puertas + pasillo lateral con candado; **cada puerta entra a la Cámara de su ramo** (Orgánica II en v1; Analítica, Fisicoquímica II y Fisiopatología se agregaron el 18 oct, ver "Cámaras de los otros 3 ramos").
 - Cámara de Orgánica II: Aminas → `org-01` (8 misiones = 8 frascos), Aromáticos → `org-04` + `org-05` (3+3 misiones = 6 frascos), Heterociclos → sin clase (cristales apagados, "próximamente").
 
 ### Cómo se mueve (grafo de paradas)
@@ -139,10 +139,19 @@ Decisiones: **tiras de cuadros por paso** (fluido como el boceto), **reemplazar 
 - Avanzar, girar, mirar una puerta y entrar se ven fluidos en 1440 y 390; el cuadro no se deforma ni se suaviza.
 - Con datos reales: los frascos de Aminas/Aromáticos reflejan las misiones respondidas, los cristales apagan o encienden según repaso, la cuenta regresiva sale del calendario.
 - Cada puerta abre su portal; Orgánica II entra a la Cámara y las clases abren con el player existente; Analítica, Fisicoquímica y Fisiopatología muestran sus clases reales.
-- Peso: ≤ ~11 MB de cuadros (9,3 MB hoy) en total, cada tira carga sola. Pruebas `tools/aprender-test.cjs` en `npm test`.
+- Peso: ≤ 20 MB de cuadros en total (15,6 MB hoy) (cada Cámara y el pasillo cargan por separado) en total, cada tira carga sola. Pruebas `tools/aprender-test.cjs` en `npm test`.
+
+### Cámaras de los otros 3 ramos (18 oct 2026)
+Mismas reglas que Orgánica II: cuadros neutros por Cámara y estado real encima. Paradas con prefijo (`ana.c0`, `fq.c60`, `fis.cz-60`…); una Cámara por ramo, su color y su sauce de cristal (tal como se aprobaron en los bocetos).
+- **Analítica**: Errores → `ana-01` (2 frascos) · Ácido-base → `ana-02` + `ana-03` (4) · Polipróticos sin clase.
+- **Fisicoquímica II**: Equilibrio → `fq-01` (4) · Electrolitos y Electroquímica sin clase todavía.
+- **Fisiopatología**: Nervioso → `fis-01` + `fis-02` (4) · Respiratorio → `fis-06` (2) · Digestivo → `fis-09` (2).
+- Se borró la tarjeta provisional de clases de las puertas: ya no hay puerta sin Cámara. Las alcobas sin clase se muestran con sus cristales apagados y "todavía no tiene clase propia".
+- Las clases de cada Cámara se cargan al llegar a su puerta. `export_app.py` acepta el ramo: `python tools/aprender-pasillo/export_app.py camara fisio`.
+- Peso: cada Cámara carga sola (~3 MB); el total del sótano es de ~16 MB, pero una visita baja el pasillo (~5 MB) y la Cámara que abre (~2,5 MB).
 
 ### Pendiente de v2
-Sauce y torre dentro de la Cámara (reemplaza la pantalla vieja `#/torre`), cámaras de los otros 3 ramos (cambiar `RAMOS` en `build_camara.py` ya los renderiza), sauce con estado real, grietas de error, grimorio-formulario del pedestal, Sala de entrenamiento y Sala de Laboratorio dentro del flujo, mapas de evaluación dentro de la Cámara, sonido por portal.
+Sauce y torre dentro de la Cámara (reemplaza la pantalla vieja `#/torre`), sauce con estado real, grietas de error, grimorio-formulario del pedestal, Sala de entrenamiento y Sala de Laboratorio dentro del flujo, mapas de evaluación dentro de la Cámara, sonido por portal.
 
 ## Pendiente
 - **Sala de Laboratorio** (aprobada): el mural del informe queda chico (el arco del nicho lo limita); la campana se ve poco desde el banco.

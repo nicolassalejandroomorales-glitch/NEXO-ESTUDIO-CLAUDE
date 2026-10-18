@@ -25,8 +25,9 @@
 
 - **Ajustes tras verlo (18 oct)**: animación más lenta (~1,2 s por unidad) con mezcla de cuadros y arranque/frenada suaves; "Volver" ahora es **Dar la vuelta** y se camina mirando atrás (paradas `r*`/`q*`); se quitó el botón "Ver el sauce" (llevaba a la Torre vieja). Clases nuevas: sesión de diseño propuesta (Opus, solo conversar).
 
+- **Cámaras de los otros 3 ramos (18 oct)**: Analítica, Fisicoquímica II y Fisiopatología funcionan como la de Orgánica II (alcobas → clases en `estado.js`, `CAMARAS` en `export_app.py`). Ya no hay tarjeta provisional en las puertas.
+
 ## Falta
-- Cámaras de Analítica, Fisicoquímica II y Fisiopatología en la app (`RAMOS` de `build_camara.py` ya las renderiza; falta `ALC` en `export_app.py`, alcobas en `estado.js` y sus clases).
 - Sauce y torre dentro de la Cámara con el estado real (hoy el sauce sale neutro y no se toca): render por capas; reemplaza la pantalla vieja `#/torre`.
 - Grietas de error en la Cámara y grimorio-formulario del pedestal (por aprobar).
 - Sala de entrenamiento y Sala de Laboratorio dentro del flujo (hoy solo hay bocetos).
@@ -48,7 +49,7 @@ Al terminar, usa nexo-cierre y actualiza docs/chats/aprender.md.
 ## Prompt de continuación
 ```
 Chat: Aprender — Sótano v2. Lee CLAUDE.md, docs/aprender-pasillo/SPEC.md (sección "Implementación v1") y docs/chats/aprender.md.
-Dónde quedamos: el Sótano v1 funciona en la app con la Cámara de Orgánica II y el estado real encima (dist/aprender/, tools/aprender-pasillo/export_app.py, tools/aprender-test.cjs). Las otras 3 puertas muestran sus clases en una tarjeta.
-Siguiente paso (dime en una línea qué entendiste y haz máximo 3 preguntas de selección múltiple): llevar a la app la Cámara de otro ramo (Fisicoquímica II o Química Analítica) o la Sala de entrenamiento.
+Dónde quedamos: el Sótano funciona en la app con las 4 Cámaras (una por ramo) y el estado real encima (dist/aprender/, tools/aprender-pasillo/export_app.py, tools/aprender-test.cjs).
+Siguiente paso (dime en una línea qué entendiste y haz máximo 3 preguntas de selección múltiple): sauce y torre dentro de la Cámara con el estado real, o la Sala de entrenamiento.
 Trabaja en un worktree limpio desde origin/master. Sonnet 5.5 · medio. No toques Supabase. Al terminar, usa nexo-cierre.
 ```

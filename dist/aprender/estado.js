@@ -3,15 +3,25 @@
    Funciones puras: reciben las clases, el aula (NexoClassroom), la evidencia (NexoClassEvidence) y el estado guardado. */
 (() => {
   'use strict';
-  // Alcobas de la Cámara de Orgánica II, por parada del anillo. jars/crystals = cuántos sprites trae el arte
-  // (tools/aprender-pasillo/export_app.py); si una clase gana misiones, hay que volver a exportar (lo vigila tools/aprender-test.cjs).
+  // Alcobas de las Cámaras, por parada del anillo (las de Orgánica II sin prefijo, las demás 'ana.', 'fq.', 'fis.').
+  // jars/crystals = cuántos sprites trae el arte (tools/aprender-pasillo/export_app.py, CAMARAS); si una clase gana misiones,
+  // hay que volver a exportar (lo vigila tools/aprender-test.cjs). Una alcoba sin clases queda con sus cristales apagados.
   const ALCOVES = {
-    c0: { id: 'aminas', name: 'Aminas', classes: ['org-01'], jars: 8, crystals: 6 },
-    c60: { id: 'aromaticos', name: 'Aromáticos', classes: ['org-04', 'org-05'], jars: 6, crystals: 5 },
-    'c-60': { id: 'heterociclos', name: 'Heterociclos', classes: [], jars: 0, crystals: 4 }
+    c0: { ramo: 'organica', id: 'aminas', name: 'Aminas', classes: ['org-01'], jars: 8, crystals: 6 },
+    c60: { ramo: 'organica', id: 'aromaticos', name: 'Aromáticos', classes: ['org-04', 'org-05'], jars: 6, crystals: 5 },
+    'c-60': { ramo: 'organica', id: 'heterociclos', name: 'Heterociclos', classes: [], jars: 0, crystals: 4 },
+    'ana.c0': { ramo: 'analitica', id: 'ana_errores', name: 'Errores', classes: ['ana-01'], jars: 2, crystals: 4 },
+    'ana.c60': { ramo: 'analitica', id: 'ana_acidobase', name: 'Ácido-base', classes: ['ana-02', 'ana-03'], jars: 4, crystals: 5 },
+    'ana.c-60': { ramo: 'analitica', id: 'ana_polipro', name: 'Polipróticos', classes: [], jars: 0, crystals: 4 },
+    'fq.c0': { ramo: 'fisico', id: 'fq_equilibrio', name: 'Equilibrio', classes: ['fq-01'], jars: 4, crystals: 5 },
+    'fq.c60': { ramo: 'fisico', id: 'fq_ionico', name: 'Electrolitos', classes: [], jars: 0, crystals: 4 },
+    'fq.c-60': { ramo: 'fisico', id: 'fq_pila', name: 'Electroquímica', classes: [], jars: 0, crystals: 4 },
+    'fis.c0': { ramo: 'fisio', id: 'fisio_potencial', name: 'Nervioso', classes: ['fis-01', 'fis-02'], jars: 4, crystals: 5 },
+    'fis.c60': { ramo: 'fisio', id: 'fisio_resp', name: 'Respiratorio', classes: ['fis-06'], jars: 2, crystals: 4 },
+    'fis.c-60': { ramo: 'fisio', id: 'fisio_digest', name: 'Digestivo', classes: ['fis-09'], jars: 2, crystals: 4 }
   };
-  // Las vistas de mesa (cz0, cz60) muestran la misma alcoba que su parada del anillo.
-  const alcoveOf = node => ALCOVES[node] || ALCOVES['c' + String(node).replace(/^cz/, '')] || null;
+  // Las vistas de mesa (cz0, ana.cz60…) muestran la misma alcoba que su parada del anillo.
+  const alcoveOf = node => ALCOVES[node] || ALCOVES[String(node).replace('cz', 'c')] || null;
 
   // 0 = vacío … 4 = lleno. Cualquier avance se nota (mínimo 1) y solo está lleno cuando se respondió todo.
   const level = (done, total) => !done ? 0 : done >= total ? 4 : Math.min(3, Math.max(1, Math.round(done / total * 4)));

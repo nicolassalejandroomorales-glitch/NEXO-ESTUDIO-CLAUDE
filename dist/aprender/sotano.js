@@ -2,7 +2,8 @@
    Pasillo y Cámara de piedra en primera persona hechos con cuadros pre-renderizados (tools/aprender-pasillo/export_app.py):
    cada parada es un cuadro, cada tramo una tira de cuadros que se reproduce hacia adelante o al revés. Encima del cuadro
    se dibuja el estado real (frascos, cristales) con sprites. Datos: aprender/manifest.json + aprender/img/*.webp.
-   Uso: NexoAprender.render(app, ctx). ctx: { getState, subjects, hasClass, lessonTitle, loadClass, openLesson }. */
+   Cada ramo tiene su Cámara (paradas con prefijo, p. ej. 'ana.c0'). Uso: NexoAprender.render(app, ctx).
+   ctx: { getState, subjects, lessonTitle, loadClass, openLesson }. */
 (() => {
   'use strict';
   const BASE = './aprender/';
@@ -12,7 +13,6 @@
   const reduced = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const sleep = ms => new Promise(done => setTimeout(done, ms));
   const MEMORY = 'nexo-sotano-parada';
-  const DOOR_SUBJECT = { org: 'organica', ana: 'analitica', fis: 'fisico', fisio: 'fisio' };
   const ICON = { fwd: '▲', back: '▼', turn: '↻', left: '◀', right: '▶', enter: '✦' };
   const KEYS = { ArrowUp: 'fwd', w: 'fwd', ArrowDown: 'turn', s: 'turn', ArrowLeft: 'left', a: 'left', ArrowRight: 'right', d: 'right', Enter: 'enter', ' ': 'enter' };
   let manifestPromise = null;
@@ -54,8 +54,8 @@
     </section>`;
     const root = app.querySelector('.sotano');
     const el = Object.fromEntries([...root.querySelectorAll('[data-s]')].map(n => [n.dataset.s, n]));
-    const G = { app, ctx, root, el, M: null, node: null, mode: 'node', busy: false, alive: true, sheets: new Map(), idleToken: 0, raf: 0,
-      vctx: el.view.getContext('2d'), octx: el.over.getContext('2d'), alcove: null, pick: null, loaded: false, doorCard: null };
+    const G = { app, ctx, root, el, M: null, node: null, busy: false, alive: true, sheets: new Map(), idleToken: 0, raf: 0,
+      vctx: el.view.getContext('2d'), octx: el.over.getContext('2d'), alcove: null, pick: null, ready: {}, loading: {} };
     G.vctx.imageSmoothingEnabled = false;
     G.octx.imageSmoothingEnabled = false;
     G.onKey = ev => {
@@ -82,12 +82,18 @@
       return arrive(G, M.nodes[saved] ? saved : 'h0', true);
     }).then(() => { if (G.alive) el.load.hidden = true; })
       .catch(() => { if (G.alive) el.load.innerHTML = '<p>No se pudo bajar al sótano. Revisa tu conexión.</p><button class="pu-btn" data-retry>Reintentar</button>'; el.load.querySelector('[data-retry]')?.addEventListener('click', () => render(app, ctx)); });
-    // El estado real necesita las clases de Orgánica II (frascos y cristales) y el calendario.
-    Promise.all(['org-01', 'org-04', 'org-05'].map(id => Promise.resolve(ctx.loadClass(id)).catch(() => false))).then(() => {
+    loadRamo(G, 'organica'); // trae el aula (calendario y cuenta regresiva de todas las puertas) y las clases de la primera Cámara
+  }
+
+  // El estado real necesita las clases de cada Cámara: se piden al llegar a su puerta o a ella.
+  function loadRamo(G, ramo) {
+    const ids = [...new Set(Object.values(S.ALCOVES).filter(a => a.ramo === ramo).flatMap(a => a.classes))];
+    G.loading[ramo] ||= Promise.all(ids.map(id => Promise.resolve(G.ctx.loadClass(id)).catch(() => false))).then(() => {
       if (!G.alive) return;
-      G.loaded = true;
-      if (G.M && G.mode === 'node') refresh(G);
+      G.ready[ramo] = true;
+      if (G.M && G.node) refresh(G);
     });
+    return G.loading[ramo];
   }
 
   // El cuadro mantiene 16:10; con espacio de sobra crece de a números enteros para que los píxeles queden parejos.
@@ -172,8 +178,6 @@
   // ---------- paradas ----------
   async function arrive(G, node, first) {
     G.idleToken++;
-    G.mode = 'node';
-    G.doorCard = null;
     G.pick = null;
     G.node = node;
     const img = await sheet(G, G.M.nodes[node].idle);
@@ -182,6 +186,7 @@
     remember(node);
     refresh(G);
     idle(G);
+    if (G.M.nodes[node].ramo) loadRamo(G, G.M.nodes[node].ramo);
     for (const m of G.M.nodes[node].moves) { // precarga: el siguiente tramo ya está listo cuando lo pidas
       const edge = m.to && G.M.edges.find(e => (e.a === node && e.b === m.to) || (e.b === node && e.a === m.to));
       const name = edge?.clip || m.clip;
@@ -193,7 +198,7 @@
   function find(G, dir) { return G.M.nodes[G.node].moves.find(m => m.dir === dir); }
 
   async function act(G, dir) {
-    if (!G.alive || !G.M || G.busy || G.mode === 'door') return;
+    if (!G.alive || !G.M || G.busy) return;
     const move = find(G, dir) || (dir === 'back' ? find(G, 'turn') : dir === 'turn' ? find(G, 'back') : null);
     if (!move) return;
     G.busy = true;
@@ -204,8 +209,9 @@
       if (move.exit) {
         await flash(G, () => arrive(G, move.exit));
       } else if (move.clip) {
-        await playClip(G, move.clip, false);
-        if (move.door === 'org') { await playClip(G, 'c-emerge', false); await arrive(G, 'c-in'); } else showDoor(G, move.door);
+        await playClip(G, move.clip, false);              // se abre el portal y se entra
+        await playClip(G, move.cam.clip, false);          // sale del remolino dentro de la Cámara
+        await arrive(G, move.cam.node);
       } else {
         const edge = G.M.edges.find(e => (e.a === G.node && e.b === move.to) || (e.b === G.node && e.a === move.to));
         await playClip(G, edge.clip, edge.b === G.node);
@@ -217,43 +223,18 @@
     } finally { G.busy = false; }
   }
 
-  // Puertas de ramos que aún no tienen Cámara: el portal se abre y muestra sus clases reales.
-  function showDoor(G, door) {
-    G.mode = 'door';
-    G.doorCard = door;
-    G.el.pad.innerHTML = `<button class="pu-btn" data-back-door>${pt('Volver al pasillo')}</button>`;
-    G.el.pad.querySelector('[data-back-door]').addEventListener('click', async () => {
-      if (G.busy) return;
-      G.busy = true;
-      await flash(G, () => arrive(G, 'd-' + door));
-      G.busy = false;
-    });
-    const subject = G.ctx.subjects.find(s => s.id === DOOR_SUBJECT[door]);
-    const ids = subject?.peps?.[0]?.lessons || [];
-    G.el.title.textContent = subject?.name || '';
-    G.el.chip.hidden = true;
-    G.el.card.hidden = false;
-    G.el.card.innerHTML = `<h2>${esc(subject?.name || '')}</h2><p>Su Cámara todavía está en camino. Mientras tanto, estas son las clases de ${esc(subject?.peps?.[0]?.name || 'la PEP 1')}:</p>
-      <ul class="sotano-classes">${ids.map(id => G.ctx.hasClass(id)
-        ? `<li><button class="pu-btn" data-open="${esc(id)}">${pt(G.ctx.lessonTitle(id).slice(0, 34))}</button></li>`
-        : `<li><span class="sotano-soon">${esc(G.ctx.lessonTitle(id))} · próximamente</span></li>`).join('')}</ul>`;
-    G.el.live.textContent = `Cruzaste el portal de ${subject?.name}. Elige una clase o vuelve al pasillo.`;
-    remember('d-' + door);
-  }
-
   // ---------- texto y botones de cada parada ----------
   function envOf(G) { return { classes: window.NexoClasses, NX: window.NexoClassroom, E: window.NexoClassEvidence, state: G.ctx.getState() }; }
 
   function refresh(G) {
     const node = G.M.nodes[G.node];
     const alcoveDef = S.alcoveOf(G.node);
-    G.alcove = alcoveDef && G.loaded ? S.alcove(alcoveDef, envOf(G)) : null;
-    const inCamera = G.node.startsWith('c');
-    const door = G.node.startsWith('d-') ? G.node.slice(2) : null;
-    const title = inCamera ? `Orgánica II${node.name ? ' · ' + node.name : ''}` : node.name || (G.node.startsWith('b') ? 'Pasillo lateral · Próximo semestre' : 'Sótano de los Cristales');
+    G.alcove = alcoveDef && G.ready[alcoveDef.ramo] ? S.alcove(alcoveDef, envOf(G)) : null;
+    const inCamera = G.node.split('.').pop().startsWith('c');
+    const subjectName = G.ctx.subjects.find(x => x.id === node.ramo)?.name;
+    const title = inCamera ? `${subjectName}${node.name ? ' · ' + node.name : ''}` : node.name || (G.node.startsWith('b') || G.node.startsWith('q') ? 'Pasillo lateral · Próximo semestre' : 'Sótano de los Cristales');
     G.el.title.textContent = title;
-    const subjectId = inCamera ? 'organica' : door ? DOOR_SUBJECT[door] : null;
-    const exam = subjectId && G.loaded ? window.NexoClassroom?.nextExam({ subject: subjectId }, { getState: G.ctx.getState }) : null;
+    const exam = node.ramo ? window.NexoClassroom?.nextExam({ subject: node.ramo }, { getState: G.ctx.getState }) : null;
     G.el.chip.hidden = !exam;
     if (exam) G.el.chip.textContent = `${exam.title || 'Prueba'} ${exam.label}`;
     const order = ['fwd', 'left', 'right', 'enter', 'turn', 'back'];
@@ -287,7 +268,7 @@
   }
 
   function onStage(G, ev) {
-    if (!G.alive || !G.M || G.busy || G.mode === 'door') return;
+    if (!G.alive || !G.M || G.busy) return;
     const r = G.el.stage.getBoundingClientRect(), x = (ev.clientX - r.left) / r.width * 320, y = (ev.clientY - r.top) / r.height * 200;
     const ov = G.M.overlay[G.node];
     if (ov && G.alcove?.jars.length) {
@@ -303,7 +284,6 @@
   // ---------- ficha de la alcoba (también sirve en celular y con lector de pantalla) ----------
   function renderCard(G) {
     const a = G.alcove, card = G.el.card;
-    if (G.mode === 'door') return;
     if (!a) { card.hidden = true; return; }
     card.hidden = false;
     if (!a.classes.length) { card.innerHTML = `<h2>${esc(a.name)}</h2><p>${esc(S.summary(a))} Sus cristales se encienden cuando exista su clase.</p>`; return; }

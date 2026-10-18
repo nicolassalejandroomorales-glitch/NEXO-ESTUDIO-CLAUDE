@@ -10,7 +10,7 @@ const sandbox = { NexoClasses: {} };
 global.window = sandbox;
 global.document = {};
 require('../dist/aprender/estado.js');
-for (const id of ['org-01', 'org-04', 'org-05']) require(`../dist/classes/${id}.js`);
+for (const id of ['org-01', 'org-04', 'org-05', 'ana-01', 'ana-02', 'ana-03', 'fq-01', 'fis-01', 'fis-02', 'fis-06', 'fis-09']) require(`../dist/classes/${id}.js`);
 const S = sandbox.NexoAprenderEstado;
 const classes = sandbox.NexoClasses;
 
@@ -45,6 +45,7 @@ test('hoja del concepto: semilla = sin empezar, seca = repaso, el resto al día'
 test('cada alcoba tiene tantas misiones como frascos y la Cámara no se desfasa de las clases', () => {
   const missions = ids => ids.reduce((n, id) => n + classes[id].missions.length, 0);
   for (const def of Object.values(S.ALCOVES)) assert.equal(missions(def.classes), def.jars, `${def.name}: si cambia el número de misiones hay que volver a exportar los cuadros (export_app.py)`);
+  assert.equal(Object.keys(S.ALCOVES).length, 12, 'cuatro Cámaras de tres alcobas');
 });
 
 test('el estado de Aminas sale de las respuestas y de la evidencia guardadas', () => {
@@ -78,9 +79,12 @@ test('sin clases cargadas la alcoba no inventa estado, y Heterociclos no tiene c
   assert.match(S.summary(het), /sin clase propia|no tiene clase/);
 });
 
-test('las paradas cercanas a una alcoba comparten su estado', () => {
+test('las paradas cercanas a una alcoba comparten su estado, en cada Cámara', () => {
   assert.equal(S.alcoveOf('cz0'), S.ALCOVES.c0);
   assert.equal(S.alcoveOf('cz60'), S.ALCOVES.c60);
+  assert.equal(S.alcoveOf('ana.cz60'), S.ALCOVES['ana.c60']);
+  assert.equal(S.alcoveOf('fis.cz-60'), S.ALCOVES['fis.c-60']);
+  assert.equal(S.alcoveOf('fq.c180'), null);
   assert.equal(S.alcoveOf('c180'), null);
 });
 
@@ -106,6 +110,10 @@ test('el manifiesto es coherente: cada parada, tramo y sprite existe', { skip: !
         assert.ok(M.edges.some(e => (e.a === id && e.b === m.to) || (e.b === id && e.a === m.to)), `${id} → ${m.to}: falta el tramo`);
       }
       if (m.clip) assert.ok(M.clips[m.clip], `${id}: falta ${m.clip}`);
+      if (m.cam) {                                            // cada puerta entra a la Cámara de su ramo
+        assert.ok(M.clips[m.cam.clip] && M.nodes[m.cam.node], `${id}: su Cámara no existe`);
+        assert.equal(M.nodes[m.cam.node].ramo, node.ramo);
+      }
       if (m.exit) assert.ok(M.nodes[m.exit]);
     }
   }
@@ -120,10 +128,10 @@ test('el manifiesto es coherente: cada parada, tramo y sprite existe', { skip: !
   }
 });
 
-test('el peso de los cuadros cabe en el presupuesto (≤ 11 MB)', { skip: !fs.existsSync(manifestPath) && 'sin cuadros exportados' }, () => {
+test('el peso de los cuadros cabe en el presupuesto (≤ 20 MB)', { skip: !fs.existsSync(manifestPath) && 'sin cuadros exportados' }, () => {
   const dir = path.join(dist, 'aprender', 'img');
   const total = fs.readdirSync(dir).reduce((sum, f) => sum + fs.statSync(path.join(dir, f)).size, 0);
-  assert.ok(total <= 11 * 1024 * 1024, `pesan ${(total / 1048576).toFixed(1)} MB`);
+  assert.ok(total <= 20 * 1024 * 1024, `pesan ${(total / 1048576).toFixed(1)} MB`);
 });
 
 test('los módulos de Aprender compilan', () => {
