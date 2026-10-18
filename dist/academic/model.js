@@ -126,7 +126,25 @@
   }
   for(const family of families)family.misconceptionIds=[...new Set(exercises.filter(x=>x.familyId===family.id)
     .flatMap(x=>x.misconceptionIds))];
+  /* Las clases amplían el catálogo al reproducirse (academic/class-bridge.js). Lo repetido se ignora; si el
+     resultado no valida, se deshace todo. "revision" avisa al motor para reconstruir el grafo de prerrequisitos. */
+  function extend(patch) {
+    const lists={concepts,prerequisites,families,misconceptions,exercises,sources,conceptSources};
+    const key=(name,x)=>name==='prerequisites'?`${x.from}>${x.to}`:name==='conceptSources'?`${x.conceptId}>${x.sourceId}`:x.id;
+    const added=[];
+    for(const [name,items] of Object.entries(patch))if(lists[name])for(const item of items){
+      const list=lists[name];
+      if(list.some(x=>key(name,x)===key(name,item)))continue;
+      list.push(item);added.push([list,item]);
+    }
+    if(!added.length)return false;
+    try {validate();window.NexoPrerequisites?.create(concepts,prerequisites);} catch (error) {
+      for(const [list,item] of added.reverse())list.splice(list.lastIndexOf(item),1);
+      throw error;
+    }
+    model.revision+=1;return true;
+  }
   const model={course,lesson,concepts,skills,prerequisites,families,misconceptions,exercises,
-    responseTypes,sources,conceptSources,byId,validate};
+    responseTypes,sources,conceptSources,byId,validate,extend,revision:0};
   window.NexoAcademicModel=model;
 })();
