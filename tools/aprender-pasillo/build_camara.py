@@ -368,9 +368,8 @@ def draw_motes(c, zb):
         zpx(c, zb, sx, sy, P[2], 'crystal' if k % 3 else 'sprout', 6.2)
 
 
-def mural_tex(key, pm, tx):
-    """Mural del tema en este instante; si en pantalla queda más chico que la textura, engrosa los trazos."""
-    m = CAMARA[key](bs.TIME)
+def mural_tex(m, pm):
+    """Mural `m` (textura de códigos); si en pantalla queda más chico que la textura, engrosa los trazos."""
     cols = np.where(pm.any(0))[0]
     if len(cols) and (cols[-1] - cols[0] + 1) < AW_ * 0.95:
         g = m.copy()
@@ -533,7 +532,7 @@ def build(swirl=0.0, flash=0.0, scale=3):
                 inner = pm & (edge >= 0.04)
                 tx = np.clip(((u_ - mu0 - 0.04) / (mu1 - mu0 - 0.08) * AW_).astype(int), 0, AW_ - 1)
                 ty = np.clip(((Y - my0 - 0.04) / (my1 - my0 - 0.08) * AH_).astype(int), 0, AH_ - 1)
-                mc = mural_tex(a['key'], pm, tx)[ty, tx]
+                mc = mural_tex(CAMARA[a['key']](bs.TIME), pm)[ty, tx]
                 c.mask(inner, 'crypt', np.clip(lum * 1.2 + 1.0, 0.6, 2.4).astype(np.float32))
                 for cd, (mat_, lv_) in bs.mural_colors(bs.THEMES['organica']).items():
                     mk = inner & (mc == cd)

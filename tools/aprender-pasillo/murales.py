@@ -16,7 +16,8 @@ FONT = {
     'C': ['.XXXX', 'X....', 'X....', 'X....', '.XXXX'], 'D': ['XXXX.', 'X...X', 'X...X', 'X...X', 'XXXX.'],
     'E': ['XXXXX', 'X....', 'XXX..', 'X....', 'XXXXX'], 'F': ['XXXXX', 'X....', 'XXX..', 'X....', 'X....'],
     'G': ['.XXXX', 'X....', 'X..XX', 'X...X', '.XXXX'], 'H': ['X...X', 'X...X', 'XXXXX', 'X...X', 'X...X'],
-    'I': ['XXXXX', '..X..', '..X..', '..X..', 'XXXXX'], 'K': ['X..X.', 'X.X..', 'XX...', 'X.X..', 'X..X.'],
+    'I': ['XXXXX', '..X..', '..X..', '..X..', 'XXXXX'], 'J': ['..XXX', '...X.', '...X.', 'X..X.', '.XX..'],
+    'Y': ['X...X', '.X.X.', '..X..', '..X..', '..X..'], '/': ['....X', '...X.', '..X..', '.X...', 'X....'], 'K': ['X..X.', 'X.X..', 'XX...', 'X.X..', 'X..X.'],
     'L': ['X....', 'X....', 'X....', 'X....', 'XXXXX'], 'M': ['X...X', 'XX.XX', 'X.X.X', 'X...X', 'X...X'],
     'N': ['X...X', 'XX..X', 'X.X.X', 'X..XX', 'X...X'], 'O': ['.XXX.', 'X...X', 'X...X', 'X...X', '.XXX.'],
     'P': ['XXXX.', 'X...X', 'XXXX.', 'X....', 'X....'], 'Q': ['.XXX.', 'X...X', 'X...X', 'X..XX', '.XXXX'],
@@ -576,6 +577,90 @@ def alc_heterociclos(T):
 
 
 CAMARA = {'aminas': alc_aminas, 'aromaticos': alc_aromaticos, 'heterociclos': alc_heterociclos}
+
+
+# ---------------------------------------------------------------- Sala de entrenamiento (murales de estación)
+def sala_ejercicios(T, ok=0.0):
+    """Tanda de hoy: diez fichas mezcladas de varios temas; `ok` (0 a 1) es el acierto sin ayuda de la ficha actual."""
+    L = Lienzo(AW_, AH_)
+    L.title('TANDA DE HOY')
+    hechas = [2, 5, 2] + ([2] if ok >= 0.5 else [])            # 2 acierto, 5 error
+    for k in range(10):
+        cx = 7 + k * 9
+        if k < len(hechas):
+            if hechas[k] == 2:
+                check(L, cx - 4, 16)
+            else:
+                cross(L, cx - 2, 13)
+        elif k == len(hechas):
+            L.circle(cx, 16, 2.6, 4 if int(T * 3) % 2 else 1)
+        else:
+            L.circle(cx, 16, 2.6, 1)
+    temas = ['AMINAS', 'SN2', 'AROMÁTICOS']
+    tema = temas[len(hechas) % 3]
+    w = len(tema) * 6 - 1
+    L.text((AW_ - w) // 2, 27, tema, 2)
+    sel = int(T * 1.6) % 3 if ok < 0.25 else 1
+    for j, ch in enumerate('ABC'):
+        x0 = 13 + j * 26
+        col = 2 if (ok >= 0.25 and j == 1) else 1
+        L.poly([(x0, 38), (x0 + 18, 38), (x0 + 18, 52), (x0, 52)], col)
+        L.text(x0 + 7, 43, ch, 3 if col == 2 else 1)
+        if j == sel and ok < 0.5:
+            L.text(x0 - 7, 43, '>', 4)
+    L.text(3, 62, 'SIN PISTAS', 1)
+    L.text(68, 62, f'{len(hechas)}/10', 4)
+    return L.a
+
+
+def sala_guias(T):
+    """Guía del profe pregunta por pregunta, con corrección real; la P4 se resuelve y la barra avanza."""
+    L = Lienzo(AW_, AH_)
+    L.title('GUÍA 3 · AMINAS')
+    t = T % 10
+    res = [2, 2, 5, 2 if t >= 5 else 0, 0, 0]
+    for k, r in enumerate(res):
+        x, y = (8 if k < 3 else 54), 16 + (k % 3) * 13
+        L.text(x, y, f'P{k + 1}', 2 if r else 1)
+        if r == 2:
+            check(L, x + 16, y + 2)
+        elif r == 5:
+            cross(L, x + 17, y)
+        elif k == 3:
+            L.text(x + 16, y, '-', 4 if int(T * 3) % 2 else 1)
+    n = sum(1 for r in res if r == 2)
+    L.poly([(8, 57), (88, 57), (88, 62), (8, 62)], 1)
+    L.line(10, 59, 10 + int(76 * n / 6), 59, 2, w=2)
+    return L.a
+
+
+def sala_pruebas(T):
+    """Prueba antigua en dos modos: simulacro (reloj real, nota al final) o práctica (sin tiempo, corrige cada pregunta)."""
+    L = Lienzo(AW_, AH_)
+    L.title('PEP 1 · 2024')
+    t = T % 12
+    sim = t < 6
+    L.text(14, 14, 'SIMULACRO', 4 if sim else 1)
+    L.text(14, 23, 'PRÁCTICA', 4 if not sim else 1)
+    L.text(6, 14 if sim else 23, '>', 4)
+    if sim:
+        L.text(20, 40, f'{90 - int(t * 4)} MIN', 3)
+        L.poly([(70, 34), (80, 34), (75, 41)], 4)
+        L.poly([(75, 41), (80, 48), (70, 48)], 4)
+        L.line(75, 41, 75, 47, 4)
+        L.text(10, 58, 'NOTA AL FINAL', 1)
+    else:
+        L.text(10, 36, 'P1', 2)
+        check(L, 26, 38)
+        L.text(10, 46, 'P2', 2)
+        if t >= 8:
+            cross(L, 27, 46)
+            L.line(42, 48, 42 + int(min(t - 8, 2) * 20), 48, 1)
+        L.text(10, 58, 'SIN TIEMPO', 1)
+    return L.a
+
+
+SALA = {'ejercicios': sala_ejercicios, 'guias': sala_guias, 'pruebas': sala_pruebas}
 
 
 MURALES = {
