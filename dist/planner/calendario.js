@@ -6,10 +6,9 @@
   const M = () => window.NexoCalendarModel;
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const VIEWS = [['mes', 'Mes'], ['semana', 'Semana'], ['semestre', 'Semestre'], ['lista', 'Lista']];
-  const TYPES = [['exam', 'Prueba o control'], ['lab', 'Laboratorio'], ['deadline', 'Entrega'], ['task', 'Tarea o lectura'], ['recess', 'Receso (vacaciones, paro)']];
   const KIND_NAME = { theory: 'Teoría', exercises: 'Ejercicios', lab: 'Laboratorio', seminar: 'Seminario' };
   const TASK_WORD = { pendiente: 'Pendiente', progreso: 'En progreso', hecha: 'Hecha' };
-  const ui = { view: 'mes', month: null, week: null, day: null, add: false, addDate: null, edit: null, roll: false, schSettings: false, showPast: false, drag: null };
+  const ui = { view: 'mes', month: null, week: null, day: null, add: false, addDate: null, edit: null, availability: false, roll: false, schSettings: false, showPast: false, drag: null };
   let ctx = null;
   const bridge = () => ctx.bridge;
   const today = () => bridge().today();
@@ -31,7 +30,7 @@
   }
 
   // ——— Datos ———
-  const subj = id => bridge().subjectFor(id);
+  const subj = id => id === 'personal' ? { id, name: 'Mi vida', short: 'VIDA', color: '#92b9a0' } : bridge().subjectFor(id);
   const subjColor = e => e.type === 'recess' ? '#7494bc' : subj(e.subject).color;
   const tag = e => e.type === 'recess' ? '<span class="ramo" style="--ramo:#7494bc">RECESO</span>' : `<span class="ramo" style="--ramo:${esc(subj(e.subject).color)}">${esc(subj(e.subject).short)}</span>`;
   const schedule = () => { const o = org(); return Array.isArray(o.schedule) ? o.schedule : (typeof NEXO_SEMESTER !== 'undefined' ? NEXO_SEMESTER.schedule : []); };
@@ -58,12 +57,12 @@
       <article class="pergamino cal" aria-labelledby="calTit">
         <header class="pergamino-head"><div><p class="eyebrow">MESA DE PLANOS</p><h2 id="calTit">Calendario</h2></div>
           <div class="cal-acciones"><button type="button" class="pix-btn" data-cal-add aria-expanded="${ui.add}">+ Agregar</button>
+            <button type="button" class="pix-btn suave" data-cal-availability>Mis horarios</button>
             <button type="button" class="pix-btn suave" data-cal-ics title="Llévalo al calendario del celular">Exportar .ics</button></div></header>
-        ${ui.add && !ui.edit ? formulario(null, ui.addDate || today()) : ''}
         <nav class="cal-vistas" role="tablist" aria-label="Vista del calendario">${VIEWS.map(([id, t]) => `<button type="button" role="tab" aria-selected="${ui.view === id}" data-cal-view="${id}">${t}</button>`).join('')}</nav>
         ${body}
         ${leyenda()}
-      </article>${ui.day ? hojaDia() : ''}</div>`;
+      </article>${ui.day ? hojaDia() : ''}${ui.availability ? window.NexoEventEditor.availability(org(), b.state.settings?.dailyGoalMinutes || 120) : ui.add || ui.edit ? formulario(ui.edit ? b.state.events.find(e => e.id === ui.edit) : null, ui.addDate || today()) : ''}</div>`;
   }
   const leyenda = () => `<p class="cal-leyenda" aria-label="Leyenda">${icon('sello', '#e2b850')} prueba o control · ${icon('matraz', '#e2b850')} laboratorio · ${icon('pluma', '#e2b850')} entrega o tarea · <span class="leyenda-banda"></span> semana crítica</p>`;
 
@@ -89,6 +88,12 @@
     if (d < today()) return [];
     return window.NexoTodayPlan.planDay(bridge(), d, critical());
   }
+  const blockTime = b => b.start ? `<time class="agenda-slot">${b.start}–${b.end}</time>` : b.done ? '' : '<span class="agenda-slot pending">Sin horario</span>';
+  function capacity(d, blocks) {
+    const info = window.NexoSchedule.dayInfo(bridge().state, d, schedule());
+    const pending = blocks.filter(b => !b.done && (!b.start || b.remainingMinutes));
+    return `<div class="day-capacity${pending.length ? ' tight' : ''}"><span>${info.configured ? `${info.available} min libres` : 'Disponibilidad sin definir'}</span>${pending.length ? `<b>${pending.length} sesión${pending.length === 1 ? '' : 'es'} por ubicar</b>` : ''}${info.conflicts.length ? `<small role="status">Hay horarios superpuestos: ${info.conflicts.map(c => esc(c.a + ' / ' + c.b)).join('; ')}.</small>` : ''}${info.warnings.length ? `<small>${info.warnings.map(esc).join(' ')}</small>` : ''}</div>`;
+  }
   function vistaSemana() {
     const days = M().weekOf(ui.week), st = bridge().state;
     const label = `${M().shortDate(days[0])} – ${M().shortDate(days[6])}`;
@@ -98,10 +103,12 @@
         const evs = M().eventsOn(st.events, d), clases = M().scheduleFor(schedule(), d), bl = bloquesDe(d), rec = M().recessOn(st.events, d);
         return `<section class="sem-dia${d === today() ? ' hoy' : ''}${d < today() ? ' pasado' : ''}${inCritical(d) ? ' critica' : ''}${rec ? ' receso' : ''}" data-cal-drop="${d}" aria-label="${esc(longDate(d))}">
           <header><button type="button" data-cal-day="${d}"><b>${esc(M().weekdayName(d).slice(0, 3))}</b> ${dayNum(d)}</button>${rec ? '<small>receso</small>' : ''}</header>
-          <ul class="tablillas">${clases.map(c => `<li class="tablilla" style="--ramo:${esc(subj(c.subject).color)}" title="${esc(c.room || '')}"><b>${esc(c.start)}</b> ${esc(c.name || subj(c.subject).short)} <small>${esc(KIND_NAME[c.kind] || '')}</small></li>`).join('')}</ul>
+          ${capacity(d, bl)}
+          <ul class="tablillas">${clases.map(c => `<li class="tablilla" style="--ramo:${esc(subj(c.subject).color)}" title="${esc(c.room || '')}"><b>${esc(c.start)}–${esc(c.end)}</b> ${esc(c.name || subj(c.subject).short)} <small>${esc(KIND_NAME[c.kind] || '')}</small></li>`).join('')}</ul>
           <ul class="sem-evs">${evs.filter(e => e.type !== 'recess').map(e => `<li class="sem-ev"><button type="button" data-cal-day="${d}" style="--ramo:${esc(subjColor(e))}">${icon(M().kind(e), subjColor(e))}<span>${esc(subj(e.subject).short)} ${esc(e.title)}${e.time ? ` <small>${esc(e.time)}</small>` : ''}</span></button></li>`).join('')}</ul>
           ${bl.length ? `<ul class="sem-bloques" aria-label="Estudio propuesto">${bl.map(b => `<li class="sem-bloque${b.done ? ' hecho' : ''}" draggable="${b.done ? 'false' : 'true'}" data-cal-drag="${esc(b.event.id)}" data-from="${d}" style="--ramo:${esc(subj(b.subject).color)}">
-            <span class="ramo" style="--ramo:${esc(subj(b.subject).color)}">${esc(subj(b.subject).short)}</span> <b>${b.minutes} min</b> <span class="tinta">${esc(b.text)}</span>
+            ${blockTime(b)}<span class="ramo" style="--ramo:${esc(subj(b.subject).color)}">${esc(subj(b.subject).short)}</span> <b>${b.minutes} min</b> <span class="tinta">${esc(b.text)}</span>
+            ${b.remainingMinutes ? `<small>Quedan ${b.remainingMinutes} min por ubicar.</small>` : ''}${b.unplaced ? `<small class="block-warning">${esc(b.unplaced)}</small>` : ''}
             ${b.done ? '' : `<select class="mover" data-cal-mover="${esc(b.event.id)}" data-from="${d}" aria-label="Mover este bloque a otro día"><option value="">Mover a…</option>${days.filter(x => x !== d && x >= today()).map(x => `<option value="${x}">${esc(M().weekdayName(x))} ${dayNum(x)}</option>`).join('')}</select>`}</li>`).join('')}</ul>` : ''}
         </section>`;
       }).join('')}</div>
@@ -149,31 +156,8 @@
         <button type="button" class="pix-btn suave mini" data-cal-day="${e.date}" aria-label="Abrir ${esc(e.title)}">Abrir</button></li>`).join('')}</ul></section>`).join('') || '<p class="pergamino-vacio">Sin fechas por delante.</p>'}</div>`;
   }
 
-  function tiposOpt(e) {
-    const cur = M().isEval(e) ? 'exam' : (e.type || 'exam'), known = TYPES.some(([v]) => v === cur);
-    return TYPES.map(([v, t]) => `<option value="${v}"${cur === v ? ' selected' : ''}>${t}</option>`).join('') + (known ? '' : `<option value="${esc(cur)}" selected>${esc(cur)}</option>`);
-  }
-
-  // ——— Formulario: rápido (qué, ramo, fecha) + "Más detalles" ———
   function formulario(ev, date) {
-    const e = ev || {};
-    const subjects = bridge().subjects.map(s => `<option value="${esc(s.id)}"${(e.subject || ui.lastSubject || '') === s.id ? ' selected' : ''}>${esc(s.name)}</option>`).join('');
-    return `<form class="cal-form" data-cal-form="${esc(e.id || '')}"><h3>${ev ? 'Editar' : 'Agregar a la mesa'}</h3>
-      <div class="cal-form-rapido">
-        <label>Qué <input name="title" required maxlength="80" value="${esc(e.title || '')}" placeholder="Control 2, informe P-2…" ${ev ? '' : 'autofocus'}></label>
-        <label>Ramo <select name="subject">${subjects}</select></label>
-        <label>Fecha <input name="date" type="date" required value="${esc(e.date || date)}"></label>
-      </div>
-      <details class="mas"${ev ? ' open' : ''}><summary>Más detalles</summary><div class="cal-form-mas">
-        <label>Tipo <select name="type">${tiposOpt(e)}</select></label>
-        <label>Hora <input name="time" type="time" value="${esc(e.time || '')}"></label>
-        <label>Importancia <select name="priority">${[[1, 'Normal'], [2, 'Alta'], [3, 'Muy alta']].map(([v, t]) => `<option value="${v}"${Number(e.priority || (ev ? 2 : 3)) === v ? ' selected' : ''}>${t}</option>`).join('')}</select></label>
-        <label>Dificultad (1 fácil – 5 difícil) <select name="difficulty"><option value="">Sin definir</option>${[1, 2, 3, 4, 5].map(v => `<option value="${v}"${Number(e.difficulty) === v ? ' selected' : ''}>${v}</option>`).join('')}</select></label>
-        <label>Hasta (solo receso) <input name="until" type="date" value="${esc(e.until || '')}"></label>
-        <label class="ancho">Notas <input name="notes" maxlength="200" value="${esc(e.notes || '')}"></label>
-        ${ev ? '' : '<label class="check"><input name="weekly" type="checkbox"> Repetir cada semana (8 veces)</label>'}
-      </div></details>
-      <div class="cal-form-acc"><button type="submit" class="pix-btn">Guardar</button><button type="button" class="pix-btn suave" data-cal-cancel>Cancelar</button></div></form>`;
+    return window.NexoEventEditor.render(ev, date, bridge().subjects, ui.lastSubject);
   }
 
   // ——— Hoja del día (al costado en PC, desde abajo en celular) ———
@@ -191,16 +175,16 @@
     </aside>`;
   }
   function eventoHoja(e) {
-    if (ui.edit === e.id) return `<div class="evento editando">${formulario(e, e.date)}</div>`;
     const isTask = ['task', 'deadline'].includes(e.type), ts = M().taskState(e), g = gradeOf(e);
     const hist = e.dateHistory || [];
     return `<div class="evento${e.status === 'done' ? ' hecho' : ''}" style="--ramo:${esc(subjColor(e))}">
-      <div class="evento-cab">${icon(M().kind(e), subjColor(e))}<div><b>${esc(e.title)}</b>${e.time ? ` <small>${esc(e.time)}</small>` : ''}<br>${tag(e)} ${e.type === 'recess' && e.until ? `<small>hasta ${esc(M().shortDate(e.until))}</small>` : ''}${e.difficulty ? ` <small>dificultad ${esc(e.difficulty)}/5</small>` : ''}</div></div>
+      <div class="evento-cab">${icon(M().kind(e), subjColor(e))}<div><b>${esc(e.title)}</b>${e.time ? ` <small>${esc(e.time)}${e.endTime ? '–' + esc(e.endTime) : ''}</small>` : ''}<br>${tag(e)} ${e.type === 'recess' && e.until ? `<small>hasta ${esc(M().shortDate(e.until))}</small>` : ''}${e.difficulty ? ` <small>dificultad ${esc(e.difficulty)}/5</small>` : ''}</div></div>
       ${e.topic ? `<p class="ev-tema">${esc(e.topic)}</p>` : ''}${e.dateNote ? `<p class="ev-nota">${esc(e.dateNote)}</p>` : ''}${e.notes ? `<p class="ev-tema">${esc(e.notes)}</p>` : ''}
       ${g !== null ? `<p class="ev-nota">Nota: <b>${window.NexoGradeRules.fmt(g, 1)}</b></p>` : ''}
       ${isTask ? `<div class="ev-estado" role="group" aria-label="Estado">${['pendiente', 'progreso', 'hecha'].map(s => `<button type="button" class="pix-btn${ts === s ? '' : ' suave'}" aria-pressed="${ts === s}" data-cal-estado="${esc(e.id)}:${s}">${TASK_WORD[s]}</button>`).join('')}</div>`
         : `<div class="ev-estado"><button type="button" class="pix-btn suave" data-cal-hecho="${esc(e.id)}" aria-pressed="${e.status === 'done'}">${e.status === 'done' ? 'Hecha ✓ (deshacer)' : 'Marcar como hecha'}</button></div>`}
       <form class="ev-mover" data-cal-mover-form="${esc(e.id)}"><label>Mover a <input type="date" name="date" value="${esc(e.date)}" required></label><button type="submit" class="pix-btn suave">Mover</button></form>
+      ${e.series ? '<label class="series-scope">Borrar de la serie<select data-delete-scope><option value="one">Solo esta ocasión</option><option value="following">Esta y las siguientes</option></select></label>' : ''}
       <div class="ev-acc"><button type="button" class="pix-btn suave" data-cal-editar="${esc(e.id)}">Editar</button><button type="button" class="pix-btn suave" data-cal-borrar="${esc(e.id)}">Borrar</button></div>
       ${hist.length ? `<details class="historial"><summary>Historial de fechas (${hist.length})</summary><ol>${hist.map(h => `<li>${esc(M().shortDate(h.from))} → <b>${esc(M().shortDate(h.to))}</b> <small>${h.undo ? 'deshecho' : 'movida'} el ${esc(M().shortDate(h.on))}</small></li>`).join('')}</ol>
         <button type="button" class="pix-btn suave" data-cal-deshacer="${esc(e.id)}">Deshacer el último cambio</button></details>` : ''}
@@ -233,16 +217,18 @@
   function click(e) {
     const t = e.target.closest('button, [data-cal-cerrar]'); if (!t) return;
     const d = t.dataset;
+    if (d.agendaType) { const f = t.closest('.cal-form'); f.elements.type.value = d.agendaType; return window.NexoEventEditor.update(f); }
+    if (d.calAvailability !== undefined) { ui.availability = true; ui.add = false; ui.edit = null; return refresh(); }
     if (d.route) return bridge().go(d.route, d.routeSub);
-    if (d.calView) { ui.view = d.calView; ui.day = ui.view === 'mes' || ui.view === 'semana' ? ui.day : null; return refresh(); }
+    if (d.calView) { ui.view = d.calView; ui.day = null; ui.edit = null; return refresh(); }
     if (d.calMes) { ui.month = M().shiftMonth(ui.month, Number(d.calMes)); ui.roll = true; ctx.sound?.('pagina'); return refresh(); }
     if (d.calSem) { ui.week = M().addDays(ui.week, 7 * Number(d.calSem)); return refresh(); }
     if (d.calHoy !== undefined) { ui.month = M().monthKey(today()); ui.week = M().mondayOf(today()); ui.roll = ui.view === 'mes'; return refresh(); }
     if (d.calDay) { ui.day = d.calDay; ui.edit = null; ui.add = false; if (ui.view === 'mes') ui.month = d.calDay.slice(0, 7); if (ui.view === 'semestre' || ui.view === 'lista') { /* la hoja se ve igual */ } refresh(); return setTimeout(() => document.querySelector('.hoja-dia')?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' }), 40); }
     if (d.calCerrar !== undefined) { ui.day = null; ui.edit = null; return refresh(); }
-    if (d.calAdd !== undefined) { ui.add = !ui.add; ui.addDate = null; ui.edit = null; return refresh(); }
+    if (d.calAdd !== undefined) { ui.add = true; ui.addDate = null; ui.edit = null; ui.availability = false; return refresh(); }
     if (d.calAddAqui) { ui.add = true; ui.addDate = d.calAddAqui; ui.edit = null; ui.day = null; refresh(); return setTimeout(() => document.querySelector('.cal-form input[name=title]')?.focus(), 40); }
-    if (d.calCancel !== undefined) { ui.add = false; ui.edit = null; return refresh(); }
+    if (d.calCancel !== undefined) { ui.add = false; ui.edit = null; ui.availability = false; refresh(); return document.querySelector('[data-cal-add]')?.focus({ preventScroll: true }); }
     if (d.calIcs !== undefined) return bridge().exportIcs();
     if (d.calEditar) { ui.edit = d.calEditar; return refresh(); }
     if (d.calEstado) {
@@ -256,8 +242,11 @@
       return bridge().toast(ev.status === 'done' ? `${ev.title}: hecha.` : `${ev.title}: de nuevo pendiente.`, 'Deshacer', () => { ev.status = prev; keep(); refresh(); });
     }
     if (d.calBorrar) {
-      const r = M().removeEvent(bridge().state, d.calBorrar); if (!r.ok) return;
-      keep(); refresh(); return bridge().toast(`“${r.event.title}” borrada.`, 'Deshacer', () => { r.revert(); keep(); refresh(); });
+      const st = bridge().state, ev = st.events.find(x => x.id === d.calBorrar); if (!ev) return;
+      const scope = t.closest('.evento')?.querySelector('[data-delete-scope]')?.value;
+      const ids = new Set(window.NexoSchedule.seriesMembers(st.events, ev, scope).map(e => e.id));
+      const before = st.events.slice(); st.events = st.events.filter(e => !ids.has(e.id));
+      keep(); refresh(); return bridge().toast(`${ids.size === 1 ? 'Actividad borrada' : ids.size + ' ocasiones borradas'}.`, 'Deshacer', () => { st.events = before; keep(); refresh(); });
     }
     if (d.calDeshacer) {
       const r = M().undoLastMove(bridge().state, d.calDeshacer, { today: today() }); if (!r.ok) return bridge().toast('No hay un cambio de fecha para deshacer.');
@@ -267,35 +256,40 @@
     if (d.calSchDel !== undefined) { const o = org(); o.schedule = schedule().map(b => ({ ...b })); o.schedule.splice(Number(d.calSchDel), 1); ui.schSettings = true; keep(); return refresh(); }
   }
 
+  function formError(f, text) {
+    const el = f.querySelector('.agenda-error'); el.textContent = text; el.hidden = false; el.scrollIntoView({ block: 'nearest' });
+  }
   function guardarForm(f) {
-    const fd = new FormData(f), id = f.dataset.calForm, st = bridge().state;
-    const title = String(fd.get('title') || '').trim(), date = String(fd.get('date') || ''), type = String(fd.get('type') || 'exam');
-    if (!title || !M().valid(date)) return bridge().toast('Revisa el nombre y la fecha.');
-    const until = String(fd.get('until') || '');
-    const det = { title, subject: String(fd.get('subject')), type, time: String(fd.get('time') || ''), priority: Math.max(1, Math.min(3, Number(fd.get('priority')) || 2)),
-      difficulty: Number(fd.get('difficulty')) || undefined, notes: String(fd.get('notes') || '').trim().slice(0, 200), until: type === 'recess' && M().valid(until) && until >= date ? until : undefined };
-    ui.lastSubject = det.subject;
-    if (id) {
-      const ev = st.events.find(x => x.id === id); if (!ev) return;
-      const old = ev.date; Object.assign(ev, det); if (det.difficulty === undefined) delete ev.difficulty; if (det.until === undefined) delete ev.until;
-      if (old !== date) M().moveEvent(st, id, date, { today: today() });
-      ui.edit = null; keep(); ctx.sound?.('sello'); refresh(); return bridge().toast('Cambios guardados.');
-    }
-    const dates = [date]; if (fd.get('weekly')) for (let i = 1; i < 8; i++) dates.push(M().addDays(date, 7 * i));
-    dates.forEach((dd, i) => st.events.push({ id: bridge().uid('event'), ...det, title: i ? `${title} · semana ${i + 1}` : title, date: dd, status: 'planned', source: 'manual', dependencies: [],
-      series: fd.get('weekly') ? `serie-${date}` : undefined, lab: type === 'lab' && window.NexoLabPlan ? window.NexoLabPlan.normalize({}) : undefined }));
-    ui.add = false; ui.month = date.slice(0, 7); ui.day = date; keep(); ctx.sound?.('sello'); refresh();
-    bridge().toast(dates.length > 1 ? 'Serie de 8 fechas guardada.' : 'Guardado en el calendario.');
-    ctx.react?.('saludo', 'Anotado. Ya cuenta para tu plan.');
+    const fd = new FormData(f), st = bridge().state, id = f.dataset.calForm;
+    const type = String(fd.get('type') || 'exam');
+    const draft = { title: String(fd.get('title') || '').trim(), date: String(fd.get('date') || ''), type,
+      subject: String(fd.get('subject') || ''), time: String(fd.get('time') || ''), endTime: String(fd.get('endTime') || ''),
+      priority: Math.max(1, Math.min(3, Number(fd.get('priority')) || 2)), difficulty: Number(fd.get('difficulty')) || undefined,
+      notes: String(fd.get('notes') || '').trim().slice(0, 500), until: type === 'recess' ? String(fd.get('until') || '') : undefined };
+    const r = window.NexoSchedule.saveEvent(st, draft, { id, scope: String(fd.get('scope') || 'one'),
+      count: !id && fd.has('weekly') ? Number(fd.get('repeatCount')) || 8 : 1, uid: bridge().uid, today: today() });
+    if (!r.ok) return formError(f, r.error);
+    if (type === 'lab' && window.NexoLabPlan) st.events.filter(e => e.type === 'lab' && !e.lab).forEach(e => { e.lab = window.NexoLabPlan.normalize({}); });
+    ui.lastSubject = draft.subject; ui.edit = null; ui.add = false; ui.month = draft.date.slice(0, 7); ui.day = draft.date;
+    keep(); ctx.sound?.('sello'); refresh();
+    bridge().toast(r.count > 1 ? `${r.count} ocasiones guardadas. El plan se actualizó.` : 'Guardado. El plan se actualizó.', 'Deshacer', () => { r.revert(); keep(); refresh(); });
+    ctx.react?.('saludo', 'Anotado. Ya cuenta para tu semana.');
   }
 
   function submit(e) {
     const f = e.target; e.preventDefault();
+    if (f.matches('[data-availability-form]')) {
+      const values = window.NexoEventEditor.readAvailability(f); if (values.error) return formError(f, values.error);
+      const o = org(), before = { availability: o.availability, minutes: o.minutes, breakMinutes: o.breakMinutes };
+      Object.assign(o, values); ui.availability = false; ui.view = 'semana'; keep(); refresh();
+      return bridge().toast('Horarios guardados. Ya puedes revisar las horas propuestas.', 'Deshacer', () => { Object.assign(o, before); keep(); refresh(); });
+    }
     if (f.matches('[data-cal-form]')) return guardarForm(f);
     if (f.matches('[data-cal-mover-form]')) { const date = String(new FormData(f).get('date')); if (!mover(f.dataset.calMoverForm, date)) bridge().toast('Esa es la misma fecha, o no es válida.'); }
   }
   function change(e) {
     const t = e.target;
+    if (t.closest('.cal-form') && ['type', 'weekly'].includes(t.name)) return window.NexoEventEditor.update(t.closest('.cal-form'));
     if (t.matches('[data-cal-pasadas]')) { ui.showPast = t.checked; return refresh(); }
     if (t.dataset.calMover) return moverBloque(t.dataset.calMover, t.dataset.from, t.value);
     if (t.dataset.calSch) {
@@ -313,12 +307,29 @@
     const z = e.target.closest?.('[data-cal-drop]'); if (!z || !ui.drag) return;
     e.preventDefault(); const dr = ui.drag; ui.drag = null; moverBloque(dr.id, dr.from, z.dataset.calDrop);
   }
-  function keydown(e) { if (e.key === 'Escape' && (ui.day || ui.edit)) { ui.day = null; ui.edit = null; refresh(); } }
+  function keydown(e) {
+    const dialog = e.target.closest('[data-agenda-dialog]');
+    if (dialog && e.key === 'Tab') {
+      const controls = [...dialog.querySelectorAll('button, input, select, textarea, summary')].filter(el => !el.disabled && el.getClientRects().length);
+      const first = controls[0], last = controls[controls.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
+    }
+    if (e.key === 'Escape' && (ui.day || ui.edit || ui.add || ui.availability)) {
+      if (ui.add || ui.edit || ui.availability) { ui.add = false; ui.edit = null; ui.availability = false; }
+      else ui.day = null;
+      refresh(); document.querySelector('[data-cal-add]')?.focus({ preventScroll: true });
+    }
+  }
 
   function wire(root, c) {
     ctx = { ...ctx, ...c };
     root.onclick = click; root.onsubmit = submit; root.onchange = change; root.onkeydown = keydown;
+    root.oninput = e => { const error = e.target.closest('.agenda-form')?.querySelector('.agenda-error'); if (error) error.hidden = true; };
     root.ondragstart = dragstart; root.ondragover = dragover; root.ondragleave = dragleave; root.ondrop = drop;
+    const form = root.querySelector('.cal-form'); if (form) window.NexoEventEditor.update(form);
+    const dialog = root.querySelector('dialog.agenda-overlay'); if (dialog && !dialog.open) { dialog.showModal(); window.NexoEventEditor.peek(dialog); }
+    if (root.querySelector('[data-agenda-dialog]')) requestAnimationFrame(() => root.querySelector('.agenda-form input[name=title], .agenda-form input')?.focus({ preventScroll: true }));
   }
-  window.NexoCalendario = Object.freeze({ panel, wire, icon });
+  window.NexoCalendario = Object.freeze({ panel, wire, icon, openAvailability() { ui.availability = true; ui.add = false; ui.edit = null; } });
 })();

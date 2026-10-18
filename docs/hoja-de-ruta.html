@@ -33,9 +33,9 @@ ul{margin:0;padding-left:18px;font-size:14px}li{margin-bottom:4px}.vacio{color:v
 <h1>Tablero de Nexo</h1>
 <p class="sub">Actualizado el 2026-10-18 desde docs/chats/. Un chat = un tema = un modelo. Toca una tarjeta para ver el detalle.</p>
 <div class="resumen">
-  <div class="grande"><b>44%</b><span>de la app avanzada · 56 cosas hechas, 72 por hacer, 37 ideas guardadas</span></div>
-  <div class="barra" role="img" aria-label="44% avanzado"><i style="width:44%"></i></div>
-  <p>Lo urgente en marcha: <b>Aprender (Sótano de los Cristales)</b> (71%) · <b>Beta para compañeros</b> (38%) · <b>Clases (contenido y aula)</b> (57%) · <b>Estudio Orgánica II (PEP 1)</b> (40%) · <b>Organización (Bitácora viva)</b> (44%).</p>
+  <div class="grande"><b>45%</b><span>de la app avanzada · 58 cosas hechas, 70 por hacer, 35 ideas guardadas</span></div>
+  <div class="barra" role="img" aria-label="45% avanzado"><i style="width:45%"></i></div>
+  <p>Lo urgente en marcha: <b>Aprender (Sótano de los Cristales)</b> (71%) · <b>Beta para compañeros</b> (38%) · <b>Clases (contenido y aula)</b> (57%) · <b>Estudio Orgánica II (PEP 1)</b> (40%) · <b>Organización — continuidad del organizador semanal</b> (67%).</p>
 </div>
 <div class="tablero">
 <section class="col terminado"><h2>Terminado <span>0</span></h2><p class="vacio">Ningún tema todavía.</p></section>
@@ -136,24 +136,20 @@ Retoma desde &quot;Falta&quot; con una mini evaluación de 3 preguntas de selecc
 <details class="card p1">
   <summary>
     <span class="tag prio">Urgente</span>
-    <h3>Organización (Bitácora viva)</h3>
-    <div class="barra" role="img" aria-label="44% avanzado"><i style="width:44%"></i></div>
-    <p class="meta"><b>44%</b> · 4 hechas, 5 faltan<br>Fases 1 a 3 hechas, siguen Lab y Avisos</p>
+    <h3>Organización — continuidad del organizador semanal</h3>
+    <div class="barra" role="img" aria-label="67% avanzado"><i style="width:67%"></i></div>
+    <p class="meta"><b>67%</b> · 6 hechas, 3 faltan<br>integrado en master y publicado en el Artifact (17 oct 2026)</p>
   </summary>
   <div class="cols">
-    <section><h4>Hecho (4)</h4><ul><li>Diseño v2 y decisiones de 3 tandas; datos reales de los ramos cargados (ponderaciones, labs, fechas, horario).</li><li>Fase 1 aprobada: estudio de planos de la torre, vista Hoy con plan propuesto, avisos en el Inicio, sonidos, balanza y mesa viva.</li><li>Fase 2 aprobada: Notas e inasistencias (frascos, &quot;Necesitas X,X&quot;, simulador); Perfil ya redirige a Organización.</li><li>Fase 3 hecha, esperando aprobación visual: Calendario (mes, semana, semestre, lista) con historial de fechas y .ics.</li></ul></section>
-    <section><h4>Falta (5)</h4><ul><li>Aprobación visual del Calendario (1440 y 390).</li><li>Lab completo (laboratorios, pruebas de ciclo).</li><li>Avisos: bandeja de la campana, cambios de fecha, Inicio calmado el día de prueba, ritual del domingo, resumen del semestre.</li><li>Decidir Classroom vs pegar texto (AVISOS.md).</li><li>Editar o borrar una fecha desde el estudio y &quot;¿cómo te fue?&quot; después de rendir.</li></ul></section>
-    <section><h4>Ideas (2)</h4><ul><li>Plan semanal automático según evaluaciones cercanas, errores y tiempo (ya decidido en el v1, ver SPEC).</li><li>Aviso del celular fuera de la app (queda fuera de este cambio).</li></ul></section>
+    <section><h4>Hecho (6)</h4><ul><li>Se inspeccionó el Artifact Nexo en Claude y sus vistas Hoy, Calendario, semana y formularios.</li><li>Se tomó una instantánea del origin/master local bc13cd1 (17 oct). El clon de red no terminó: no asumir que incluye avances remotos posteriores.</li><li>Editor modal amplio sobre la torre, con secciones Estudio/Trabajo/Mi vida, horarios, notas, repetición configurable y edición/borrado de ocasiones con deshacer.</li><li>Disponibilidad semanal, pausas y asignación de horas al estudio; compromisos, choques y sesiones sin espacio visibles. Conserva tareas vencidas y exporta término en .ics.</li><li>Flujos del organizador comprobados en 1440/390: crear, validar, repetir, editar, mover prueba, borrar/deshacer serie, recargar, disponibilidad, teclado y exportar JSON/.ics.</li><li>Integrado sobre master d4f97b4 (pruebas 32/32) y aprobado visualmente. Editor y Semana con vida: kit `.pu-*`, pergamino que se despliega, luciérnagas, mascota que asoma, textos del alquimista.</li></ul></section>
+    <section><h4>Falta (3)</h4><ul><li>La mascota solo asoma: que reaccione (se asombre al elegir fecha, celebre al guardar) y que el sello se estampe al guardar de verdad.</li><li>Vistas Hoy y Mes con la misma vida que la Semana.</li><li>Lab y Avisos continúan en el tema anterior.</li></ul></section>
+    <section><h4>Ideas (0)</h4><p class="vacio">Nada por ahora.</p></section>
   </div>
   <div class="prompts">
-    <span class="tag">Sonnet 5.5 · medio</span>
-    <button data-copy="Chat: Organización (Bitácora viva). Lee CLAUDE.md y docs/update-02-organizacion/SPEC.md (sección Pendiente).
-Contexto: Fases 1, 2 y 3 (Hoy, Notas, Calendario) ya están programadas; el Calendario espera mi aprobación. Faltan Lab y Avisos. La PEP 1 es el 27 oct.
-Tarea: dime en una línea qué entendiste, revisa el Calendario en 1440 y 390 y pregúntame con selección múltiple si lo apruebo o qué ajustar; después propón el orden de Lab y Avisos.
-No te salgas del tema. Al terminar, usa nexo-cierre y actualiza docs/chats/organizacion.md.">Copiar prompt de inicio</button>
-    <button data-copy="Chat: Organización (Bitácora viva). Lee CLAUDE.md, docs/update-02-organizacion/SPEC.md y docs/chats/organizacion.md.
-Aún no se ha trabajado en este chat nuevo: parte desde &quot;Falta&quot; del archivo de chat y pregúntame cuál fase sigue.">Copiar prompt de continuación</button>
-    <span class="spec">docs/update-02-organizacion/SPEC.md</span>
+    <span class="tag">conservar configuración del chat</span>
+    <button data-copy="">Copiar prompt de inicio</button>
+    <button data-copy="Continuar el organizador de Nexo. Lee CLAUDE.md, docs/organizador-semanal/SPEC.md y docs/chats/organizacion.md. El organizador (editor modal, eventos personales/trabajo, disponibilidad y horas de estudio) ya está en master con vida visual en el editor y la Semana. Siguiente: que la mascota reaccione y el sello se estampe al guardar, y darle la misma vida a Hoy y Mes con el kit .pu-*. Parte de master actualizado, regenera el bundle y ejecuta schedule-test.cjs, organizador-e2e.cjs y las pruebas pertinentes. No tocar cloud ni migraciones.">Copiar prompt de continuación</button>
+    <span class="spec">docs/organizador-semanal/SPEC.md</span>
   </div>
 </details>
 <details class="card p2">

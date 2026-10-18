@@ -63,7 +63,7 @@
       if (item.stage === 'Informe') return { text: 'Avanzar el informe mientras está fresco', why: 'Los datos se olvidan rápido: mejor escribir pronto' };
       return { text: 'Prepara el práctico: procedimiento, reactivos y riesgos', why: d === 0 ? 'El práctico es hoy' : `El práctico es ${d === 1 ? 'mañana' : `en ${d} días`}` };
     }
-    if (!isEval(e)) return { text: 'Avanzar en la entrega', why: d <= 1 ? 'Vence pronto' : `Vence en ${d} días` };
+    if (!isEval(e)) return { text: 'Avanzar en la entrega', why: d < 0 ? 'Sigue pendiente: reserva tiempo para retomarla' : d <= 1 ? 'Vence pronto' : `Vence en ${d} días` };
     if (d === 0) return { text: 'Repaso flash: lo clave y los errores típicos, sin materia nueva', why: 'Día de prueba: repasar sin saturarte', flash: true };
     if (d === 1) return { text: 'Repaso liviano de lo clave y a dormir temprano', why: 'Dormir consolida lo estudiado (Diekelmann & Born 2010)', cap: 30 };
     if (d <= 3) return { text: 'Ensayo cronometrado: una PEP antigua o 5 ejercicios mezclados', why: 'Practicar como en la prueba (Roediger & Karpicke 2006)' };
@@ -74,7 +74,7 @@
 
   function candidate(item) {
     const e = item.event, d = item.days;
-    if (d < 0) return false;
+    if (d < 0) return ['task', 'deadline', 'report', 'prelab'].includes(e.type) || e.type === 'lab' && item.stage === 'Informe';
     if (isEval(e)) return d <= 21;
     if (e.type === 'lab') return item.stage === 'Pre-lab' ? d <= 7 : d <= 2;
     return ['task', 'deadline', 'report', 'prelab'].includes(e.type) && d <= 7;
@@ -86,6 +86,7 @@
      pins: ids de eventos que Niquito movió a este día (van primero) · recess: día de receso (plan liviano) · weak: errores abiertos por ramo.
      ranked: salida de NexoPriority.rank · minutes: tiempo de hoy · sessions: state.sessions · marks: { done:[], skip:[] } de hoy. */
   function plan({ ranked = [], today, minutes = 120, sessions = [], marks = {}, critical: crit = null, pins = [], recess = false, weak = {} } = {}) {
+    minutes = Math.max(0, Number(minutes) || 0); if (!minutes) return [];
     const skip = new Set(marks.skip || []), doneIds = new Set(marks.done || []);
     const pool = ranked.filter(candidate).filter(x => !skip.has(x.event.id));
     const flash = pool.filter(x => isEval(x.event) && x.days === 0);
@@ -93,7 +94,7 @@
     // Dificultad: Niquito parte con 1–5 y Nexo suma si el ramo tiene 3 o más errores abiertos (entra al orden con su razón).
     const diff = x => { const d = Number(x.event.difficulty) || 0; return d ? Math.min(5, d + ((weak[x.event.subject] || 0) >= 3 ? 1 : 0)) : 0; };
     const lift = x => x.score + (isEval(x.event) ? 10 : x.event.type === 'lab' && x.days <= 1 ? 6 : 0) + (diff(x) ? (diff(x) - 3) * 2 : 0);
-    const pinned = ranked.filter(x => (pins || []).includes(x.event.id) && !skip.has(x.event.id) && !flash.includes(x));
+    const pinned = ranked.filter(candidate).filter(x => (pins || []).includes(x.event.id) && !skip.has(x.event.id) && !flash.includes(x));
     const rest = pool.filter(x => !flash.includes(x) && !pinned.includes(x)).sort((a, b) => lift(b) - lift(a));
     rest.unshift(...pinned);
     const picked = [...flash.slice(0, 1)];
@@ -101,11 +102,11 @@
     const seen = new Set(picked.map(kind));
     for (const x of rest) if (picked.length < 3 && !seen.has(kind(x))) { picked.push(x); seen.add(kind(x)); }
     for (const x of rest) if (picked.length < 3 && !picked.includes(x)) picked.push(x);
-    let budget = Math.max(15, Number(minutes) || 0);
+    let budget = minutes;
     const blocks = [];
-    if (picked[0] && flash.includes(picked[0])) { blocks.push({ item: picked[0], minutes: 10 }); budget -= 10; }
+    if (picked[0] && flash.includes(picked[0])) { const m = Math.min(10, budget); blocks.push({ item: picked[0], minutes: m }); budget -= m; }
     const others = picked.filter(x => !flash.includes(x));
-    const room = Math.max(1, Math.min(others.length, Math.floor(budget / 15)));
+    const room = Math.max(0, Math.min(others.length, Math.floor(budget / 15)));
     const chosen = others.slice(0, room);
     const total = chosen.reduce((s, x) => s + x.score, 0) || 1;
     chosen.forEach(x => blocks.push({ item: x, minutes: Math.min(action(x).cap || 50, Math.max(15, round5(budget * x.score / total))) }));
@@ -119,7 +120,7 @@
     if (recess) {                                                      // receso (vacaciones, paro): un repaso liviano para mantener lo aprendido
       const first = blocks.find(b => !flash.includes(b.item)) || blocks[0];
       if (!first) return [];
-      blocks.length = 0; blocks.push({ item: first.item, minutes: 20, recess: true });
+      blocks.length = 0; blocks.push({ item: first.item, minutes: Math.min(20, minutes), recess: true });
     }
     return blocks.map(({ item, minutes: m, recess: rc }, i) => {
       const a = rc ? { text: 'Repaso liviano de lo visto: 3 ejercicios sin apuntes', why: 'En un receso basta con mantener lo aprendido: repasar espaciado rinde más que estudiar mucho un solo día (Cepeda et al. 2006)' } : action(item), e = item.event;
@@ -127,13 +128,13 @@
       const left = studied[e.subject] || 0;
       const auto = left >= m;
       studied[e.subject] = Math.max(0, left - m);
-      const when = item.days === 0 ? 'hoy' : item.days === 1 ? 'mañana' : `en ${item.days} días`;
+      const when = item.days < 0 ? `pendiente desde hace ${Math.abs(item.days)} días` : item.days === 0 ? 'hoy' : item.days === 1 ? 'mañana' : `en ${item.days} días`;
       const inCrit = crit && isEval(e) && e.date >= crit.from && e.date <= crit.to;
       const extra = item.reasons.filter(r => /error|base|compromisos/.test(r)).slice(0, 1);
       const dd = diff(item); if (dd >= 4) extra.push(`dificultad ${dd}/5`);
       if ((pins || []).includes(e.id)) extra.push('lo moviste a hoy');
       return {
-        id, order: i + 1, event: e, subject: e.subject, minutes: m, text: a.text, why: a.why, flash: !!a.flash,
+        id, order: i + 1, event: e, stage: item.stage, subject: e.subject, minutes: m, text: a.text, why: a.why, flash: !!a.flash,
         recess: !!rc, reason: [`${e.title} ${when}`, ...(rc ? ['receso'] : []), ...(inCrit ? ['semana crítica'] : []), ...extra].join(' · '),
         done: doneIds.has(id) || auto, auto: auto && !doneIds.has(id)
       };
@@ -148,8 +149,14 @@
     if (minutes <= 0) return [];
     const weak = {}; (st.errors || []).filter(e => e.status !== 'resolved').forEach(e => { weak[e.subject] = (weak[e.subject] || 0) + 1; });
     const recess = !!root.NexoCalendarModel?.recessOn(st.events, day);
-    return plan({ ranked: bridge.ranked(day), today: day, minutes, sessions: st.sessions, marks: o.marks?.[day] || {}, critical: crit,
+    const blocks = plan({ ranked: bridge.ranked(day), today: day, minutes, sessions: st.sessions, marks: o.marks?.[day] || {}, critical: crit,
       pins: o.pins?.[day] || [], recess, weak });
+    if (!root.NexoSchedule) return blocks;
+    const schedule = Array.isArray(o.schedule) ? o.schedule : (typeof NEXO_SEMESTER !== 'undefined' ? NEXO_SEMESTER.schedule : []);
+    const info = root.NexoSchedule.dayInfo(st, day, schedule);
+    const studied = (st.sessions || []).filter(s => s.date === day).reduce((n, s) => n + (Number(s.seconds) || Number(s.minutes || 0) * 60) / 60, 0);
+    const completed = blocks.filter(b => b.done).reduce((n, b) => n + b.minutes, 0);
+    return root.NexoSchedule.allocate(blocks, info, { breakMinutes: o.breakMinutes ?? 10, limit: Math.max(0, minutes - Math.max(studied, completed) - info.reservedStudyMinutes) });
   }
 
   const api = Object.freeze({ plan, planDay, critical, hourglasses, urgency, action, daysBetween, addDays, shortDate, range });

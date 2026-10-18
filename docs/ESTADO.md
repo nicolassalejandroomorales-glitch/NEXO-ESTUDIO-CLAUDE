@@ -2,6 +2,9 @@
 
 Historial de lo hecho por tema. Lo lee Claude solo cuando necesita contexto de otro tema; el cierre de cada chat agrega aquí una línea con fecha (skill nexo-cierre).
 
+## 17 oct 2026 · Organizador semanal, copia de revisión
+- Editor amplio de eventos, trabajo y actividades personales, series editables y disponibilidad semanal; propuestas de estudio con horario, pausas, choques y pendientes visibles. Ver `docs/organizador-semanal/SPEC.md`. Integrado sobre master (d4f97b4) y aprobado por Niquito; editor y Semana con vida visual (kit `.pu-*`, animaciones, mascota que asoma).
+
 ## Al 3–5 oct 2026
 
 - Base: UPDATE 01.2 (Sites v23) + Checkpoint 1. En Git desde el commit `f728d1e`.

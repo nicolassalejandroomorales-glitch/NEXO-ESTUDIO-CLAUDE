@@ -91,7 +91,7 @@
     }
     return `<svg class="pixel-digits" viewBox="0 0 ${Math.max(1, x - 1)} 7" aria-hidden="true" focusable="false" shape-rendering="crispEdges"><path d="${d}"/></svg>`;
   }
-  const subjectFor = id => SUBJECTS.find(subject => subject.id === id) || SUBJECTS[0];
+  const subjectFor = id => id === 'personal' ? { id, name: 'Vida personal y trabajo', short: 'VIDA', color: '#92b9a0', peps: [] } : SUBJECTS.find(subject => subject.id === id) || SUBJECTS[0];
   const allLessons = subjectId => subjectFor(subjectId).peps.flatMap(pep => pep.lessons);
   const lessonSubject = id => subjectFor(LESSONS[id]?.subject);
   const sessionSeconds = session => Number(session.seconds) || Number(session.minutes || 0) * 60;
@@ -258,7 +258,7 @@
       ...item,
       id: item.id || uid('event'),
       title: String(item.title || 'Evaluación'),
-      subject: subjectIds.has(item.subject) ? item.subject : 'organica',
+      subject: item.subject === 'personal' ? 'personal' : subjectIds.has(item.subject) ? item.subject : 'organica',
       type: String(item.type || 'Prueba'),
       time: /^\d{2}:\d{2}$/.test(String(item.time || '')) ? item.time : '',
       priority: clamp(Number(item.priority) || (['exam','Prueba','control'].includes(item.type) ? 3 : 2),1,3),
@@ -1645,7 +1645,8 @@
     const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Nexo Estudio//ES'];
     events.forEach(event => {
       const date = event.date.replaceAll('-', ''), time = event.time ? event.time.replace(':', '') + '00' : '';
-      lines.push('BEGIN:VEVENT', `UID:${event.id}@nexo-estudio`, `DTSTAMP:${todayKey().replaceAll('-', '')}T120000`, time ? `DTSTART:${date}T${time}` : `DTSTART;VALUE=DATE:${date}`, `SUMMARY:${event.title.replace(/[;,]/g, ' ')}`, `DESCRIPTION:${subjectFor(event.subject).name} · ${event.type}`, 'END:VEVENT');
+      const end = window.NexoCalendarModel.validTime(event.endTime) ? event.endTime.replace(':', '') + '00' : '';
+      lines.push('BEGIN:VEVENT', `UID:${event.id}@nexo-estudio`, `DTSTAMP:${todayKey().replaceAll('-', '')}T120000`, time ? `DTSTART:${date}T${time}` : `DTSTART;VALUE=DATE:${date}`, ...(time && end ? [`DTEND:${date}T${end}`] : []), `SUMMARY:${event.title.replace(/[;,]/g, ' ')}`, `DESCRIPTION:${subjectFor(event.subject).name} · ${event.type}`, 'END:VEVENT');
     });
     lines.push('END:VCALENDAR');
     const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar' }), url = URL.createObjectURL(blob), link = document.createElement('a');
