@@ -1,9 +1,6 @@
 /* Tutorial de Nexo (dist/tutorial/tutorial.js). Pixel art a x4 (x2 en móvil) con las piezas de dist/assets/tutorial/. */
 .tut { --s: 4; --e: 3; --m: 6; position: relative; display: grid; grid-template-rows: auto 1fr auto auto; gap: 12px; min-height: calc(100vh - 96px); padding: 14px 16px 18px; color: #fff0c4;
-  background: radial-gradient(120% 90% at 50% 20%, #2a2140 0%, #181426 60%, #100d1a 100%); border-radius: 14px; overflow: hidden; isolation: isolate; }
-.tut::before { content: ""; position: absolute; inset: 0; z-index: -1; background:
-  radial-gradient(2px 2px at 12% 20%, #fff6 50%, transparent 52%), radial-gradient(2px 2px at 80% 12%, #fff5 50%, transparent 52%),
-  radial-gradient(2px 2px at 64% 70%, #ffd86088 50%, transparent 52%), radial-gradient(2px 2px at 25% 78%, #9ce8f066 50%, transparent 52%); }
+  background: radial-gradient(110% 85% at 50% 38%, #3a2433 0%, #1f1722 48%, #0d1411 100%); border-radius: 14px; overflow: hidden; isolation: isolate; }
 .tut-top { display: flex; align-items: center; gap: 14px; }
 .tut-bar { flex: 1; height: 10px; border-radius: 6px; background: #0007; border: 2px solid #5a3616; overflow: hidden; }
 .tut-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #e2b850, #fff0a8); transition: width .35s steps(8); }
@@ -33,17 +30,43 @@
 .tut-err { min-height: 1.2em; margin: 0; font-size: .85rem; color: #ffb4a0; }
 
 .tut-talk { position: relative; display: flex; align-items: flex-end; gap: 6px; }
-.tut-grim { flex: none; width: calc(var(--s) * 68px); height: calc(var(--s) * 76px); background-repeat: no-repeat; image-rendering: pixelated; }
+.tut-grim { flex: none; position: relative; width: calc(var(--s) * 68px); height: calc(var(--s) * 76px); background-repeat: no-repeat; image-rendering: pixelated; }
 /* Grimorio vivo: flota y respira siempre (transform), salta al hablar (translate, por JS) y rebota al cambiar de pose (scale) */
 .tut-grim { animation: grimFloat 3.4s ease-in-out infinite; transform-origin: 50% 100%; }
 .tut-grim.pop { animation: grimFloat 3.4s ease-in-out infinite, grimPop .42s cubic-bezier(.3, 1.6, .5, 1); }
 @keyframes grimFloat { 0%, 100% { transform: translateY(0) rotate(-.6deg) scale(1, 1); } 50% { transform: translateY(calc(var(--s) * -3px)) rotate(.6deg) scale(1.015, 1.03); } }
+/* Velas del altar: la llama (3x8 px del arte) parpadea por cuadros y su luz pulsa encima, mezclada en "screen". Posiciones = las del arte (68x76). */
+.tut-llama { position: absolute; top: calc(var(--s) * 51px); width: calc(var(--s) * 3px); height: calc(var(--s) * 8px); pointer-events: none;
+  background: url("../assets/tutorial/llama.png") 0 0 / calc(var(--s) * 12px) calc(var(--s) * 8px) no-repeat; image-rendering: pixelated; animation: tutLlama .62s steps(1) infinite; }
+.tut-llama.l { left: calc(var(--s) * 13px); } .tut-llama.r { left: calc(var(--s) * 44px); animation-duration: .81s; animation-delay: -.3s; }
+.tut-llama::before { content: ""; position: absolute; left: 50%; top: 55%; width: calc(var(--s) * 30px); height: calc(var(--s) * 30px); translate: -50% -50%; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 176, 72, .55) 0%, rgba(255, 140, 50, .22) 38%, transparent 68%); mix-blend-mode: screen; animation: tutLuz 1.3s ease-in-out infinite; }
+.tut-llama.r::before { animation-duration: 1.7s; animation-delay: -.5s; }
+@keyframes tutLlama { 0% { background-position: 0 0; } 24% { background-position: calc(var(--s) * -3px) 0; } 41% { background-position: calc(var(--s) * -6px) 0; } 58% { background-position: calc(var(--s) * -3px) 0; } 80% { background-position: calc(var(--s) * -9px) 0; } }
+@keyframes tutLuz { 0%, 100% { opacity: .75; scale: 1; } 30% { opacity: 1; scale: 1.08; } 55% { opacity: .62; scale: .94; } 80% { opacity: .92; scale: 1.04; } }
 @keyframes grimPop { 0% { scale: .86 1.14; } 55% { scale: 1.1 .92; } 100% { scale: 1 1; } }
 .tut-mute { padding: 6px 10px; font-size: .95rem; } .tut-mute.off { opacity: .45; text-decoration: line-through; }
-@media (prefers-reduced-motion: reduce) { .tut-grim, .tut-grim.pop { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .tut-grim, .tut-grim.pop, .tut-llama, .tut-llama::before { animation: none; } }
 .tut-talk.pet .tut-grim { display: none; }
 .tut-box { position: relative; flex: 1; min-height: calc(var(--s) * 26px); cursor: pointer; box-sizing: border-box; padding: calc(var(--s) * 7px) calc(var(--s) * 8px) calc(var(--s) * 6px);
   border-style: solid; border-width: calc(var(--s) * 3px); border-image: url("../assets/tutorial/marco-dialogo.png") 12 fill / calc(var(--s) * 3px) stretch; image-rendering: pixelated; color: #3a2414; }
+/* Nube de diálogo con vida: borde que respira con brillo dorado, "pop" al empezar cada frase, chispas que titilan en las esquinas,
+   chispitas que suben al empezar cada palabra y cada letra nueva que aparece con un destello. */
+.tut-box { animation: tutBoxGlow 3.2s ease-in-out infinite; }
+.tut-box.entra { transform-origin: 0 100%; animation: tutBoxGlow 3.2s ease-in-out infinite, tutBoxIn .38s cubic-bezier(.3, 1.5, .5, 1); }
+@keyframes tutBoxGlow { 0%, 100% { filter: drop-shadow(0 0 calc(var(--s) * 1px) rgba(255, 200, 90, .2)); } 50% { filter: drop-shadow(0 0 calc(var(--s) * 3px) rgba(255, 210, 110, .55)); } }
+@keyframes tutBoxIn { 0% { scale: .92 .8; opacity: 0; } 60% { scale: 1.02 1.04; opacity: 1; } 100% { scale: 1 1; opacity: 1; } }
+.tut-chispa { position: absolute; width: calc(var(--s) * 5px); height: calc(var(--s) * 5px); pointer-events: none; opacity: 0; animation: tutChispa 2.4s steps(1) infinite;
+  background: linear-gradient(#fff6c8, #fff6c8) center / 100% calc(var(--s) * 1px) no-repeat, linear-gradient(#fff6c8, #fff6c8) center / calc(var(--s) * 1px) 100% no-repeat; }
+.tut-chispa.a { left: calc(var(--s) * -3px); top: calc(var(--s) * -3px); }
+.tut-chispa.b { right: calc(var(--s) * -3px); top: calc(var(--s) * -3px); animation-delay: -.7s; }
+.tut-chispa.c { left: calc(var(--s) * -3px); bottom: calc(var(--s) * -3px); animation-delay: -1.3s; }
+.tut-chispa.d { right: calc(var(--s) * -3px); bottom: calc(var(--s) * -3px); animation-delay: -1.8s; }
+@keyframes tutChispa { 0% { opacity: 0; scale: .4; } 10% { opacity: 1; scale: 1; } 22% { opacity: .55; scale: .7; } 34%, 100% { opacity: 0; scale: .4; } }
+.tut-chispita { position: absolute; width: calc(var(--s) * 1px); height: calc(var(--s) * 1px); pointer-events: none; background: #ffd860; box-shadow: 0 0 calc(var(--s) * 2px) #ffc850; animation: tutSube .9s ease-out forwards; }
+@keyframes tutSube { from { opacity: 1; translate: 0 0; } to { opacity: 0; translate: var(--dx, 0) calc(var(--s) * -11px); } }
+.tut-text .nl { animation: tutLetra .3s ease-out; }
+@keyframes tutLetra { 0% { color: #d9791c; text-shadow: 0 0 8px #ffc850, 0 0 2px #fff0a8; } 100% { color: inherit; text-shadow: 0 0 0 transparent; } }
 .tut-text { margin: 0; font-size: clamp(1rem, 1.5vw + .5rem, 1.35rem); line-height: 1.45; min-height: 3em; }
 .tut-tag { position: absolute; top: calc(var(--s) * -9px); left: calc(var(--s) * 4px); box-sizing: border-box; min-width: calc(var(--s) * 28px); padding: calc(var(--s) * 2px) calc(var(--s) * 3px); font-weight: 800; font-size: .9rem; text-align: center; color: #3a2414;
   border-style: solid; border-width: calc(var(--s) * 2px); border-image: url("../assets/tutorial/marco-nombre.png") 6 fill / calc(var(--s) * 2px) stretch; image-rendering: pixelated; }
@@ -63,7 +86,7 @@
   .tut-box { padding-top: calc(var(--s) * 8px); }
   .tut-tag { top: calc(var(--s) * -6px); left: auto; right: calc(var(--s) * 4px); }
 }
-@media (prefers-reduced-motion: reduce) { .tut-egg-btn, .tut-egg.shake, .tut-box.done .tut-arrow { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .tut-egg-btn, .tut-egg.shake, .tut-box, .tut-box.entra, .tut-chispa, .tut-text .nl, .tut-box.done .tut-arrow { animation: none; } .tut-chispa { display: none; } }
 
 @media (max-width: 1100px) { .tut { padding-bottom: 96px; } }
 

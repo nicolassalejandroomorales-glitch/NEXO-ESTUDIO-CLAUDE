@@ -94,10 +94,7 @@ def velas(c):
         c.rect(x, LEDGE - 3, x + 3, LEDGE, 'wax', 4)
         c.rect(x, LEDGE - 3, x + 1, LEDGE, 'wax', 5)
         c.rect(x + 2, LEDGE - 3, x + 3, LEDGE, 'wax', 2)
-        c.px(x + 1, LEDGE - 4, 'clay', 0)
-        c.rect(x, LEDGE - 6, x + 3, LEDGE - 4, 'flame', 3)
-        c.px(x + 1, LEDGE - 6, 'flame', 4)
-        c.px(x + 1, LEDGE - 7, 'flame', 5)
+        c.px(x + 1, LEDGE - 4, 'clay', 0)            # solo la mecha: la llama se anima aparte (build_llama.py)
 
 
 # ---------------------------------------------------------------- libro
@@ -555,11 +552,10 @@ def cuadro(name, p, phase=None):
     c.mat[edge] = c.mid('clay')
     c.lvl[edge] = 0
 
-    cl, cr = CX - 16, CX + 15
     if name == 'dormido':
-        halos = [(CX, LEDGE + 2, 22, '#5072a0', 0.7, 2.6), (cl, LEDGE - 6, 8, '#f89a30', 0.5, 1.0), (cr, LEDGE - 6, 8, '#f89a30', 0.5, 1.0)]
+        halos = [(CX, LEDGE + 2, 22, '#5072a0', 0.7, 2.6)]
     else:
-        halos = [(CX, LEDGE + 2, 26, '#9060dc', 0.9, 2.6), (cl, LEDGE - 6, 9, '#f89a30', 0.8, 1.0), (cr, LEDGE - 6, 9, '#f89a30', 0.8, 1.0)]
+        halos = [(CX, LEDGE + 2, 26, '#9060dc', 0.9, 2.6)]
     if p.get('excl'):
         halos.append((CX, 30, 30, '#ffd860', 0.6, 1.0))
     if p.get('halo'):

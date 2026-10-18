@@ -331,14 +331,18 @@
     {
       const m = next.mascot || {}, outfit = {};
       ['cabeza', 'cara', 'cuello', 'mano'].forEach(slot => { if (typeof m.outfit?.[slot] === 'string' && /^\w{1,20}$/.test(m.outfit[slot])) outfit[slot] = m.outfit[slot]; });
-      next.mascot = { name: String(m.name || '').trim().slice(0, 24) || 'Nexo', kind: ['matraz', 'atomo', 'slime'].includes(m.kind) ? m.kind : 'matraz', outfit };
+      const kind = ['matraz', 'atomo', 'slime'].includes(m.kind) ? m.kind : 'matraz';
+      // owned = mascotas que tienes: la inicial es gratis y para siempre; las otras se consiguen en la Tienda.
+      const owned = [...new Set([kind, ...(Array.isArray(m.owned) ? m.owned : []).filter(k => ['matraz', 'atomo', 'slime'].includes(k))])];
+      next.mascot = { name: String(m.name || '').trim().slice(0, 24) || 'Nexo', kind, owned, outfit };
     }
     // Tienda y cofres (docs/economia/SPEC.md): accesorios que tienes, polvo y cofres sin abrir.
     { next.shop = raw.shop; const s = window.NexoTienda.shopOf(next); s.owned = s.owned.filter(id => id in window.NexoTienda.RARITY_OF); }
     // Tutorial (docs/tutorial/SPEC.md): pending = lo verá solo; skipped/done = solo desde Ajustes. Datos viejos con progreso cuentan como ya vistos.
     {
       const tu = raw.tutorial && typeof raw.tutorial === 'object' ? raw.tutorial : null;
-      const hasProgress = (next.sessions?.length || 0) + (next.completedLessons?.length || 0) + Object.keys(next.practice || {}).length > 0;
+      // Una cuenta que ya eligió mascota (viaja en la nube) no repite el tutorial en otro dispositivo.
+      const hasProgress = (next.sessions?.length || 0) + (next.completedLessons?.length || 0) + Object.keys(next.practice || {}).length > 0 || !!raw.mascot?.kind;
       const sections = {}; ['clases', 'juegos', 'organizacion', 'perfil'].forEach(k => { if (tu?.sections?.[k]) sections[k] = true; });
       next.tutorial = tu && ['pending', 'skipped', 'done'].includes(tu.status) ? { status: tu.status, rewarded: !!tu.rewarded, sections, news: Math.max(0, Math.floor(Number(tu.news)) || 0) }
         : hasProgress ? { status: 'done', rewarded: true, sections: {}, news: 0 } : { status: 'pending', rewarded: false, sections: {}, news: 0 };
@@ -525,6 +529,15 @@
   }
   // La primera vez (cuenta nueva) el Inicio lleva al tutorial. Navegadores automatizados (pruebas) no lo ven.
   const tutorialDue = () => state.tutorial?.status === 'pending' && !navigator.webdriver;
+  // Pantalla de entrada (docs/cuentas/SPEC.md): con la nube activa y sin sesión, la primera vez ofrece Google o invitado antes del tutorial.
+  // Se espera a saber si hay sesión (cloudListo) para no mostrarla a quien ya entró.
+  const ENTRADA_KEY = 'nexo-entrada-vista';
+  let cloudListo = !cloud.enabled;
+  const marcarCloudListo = () => { if (cloudListo) return; cloudListo = true; if (['home', 'entrada'].includes(parseRoute()[0])) renderRoute(false); };
+  const entradaDue = () => {
+    if (!cloud.enabled || cloud.authenticated || navigator.webdriver) return false;
+    try { return !localStorage.getItem(ENTRADA_KEY); } catch (_) { return false; }
+  };
   // Avisos del Grimorio (dist/tutorial/avisos.js, carga perezosa): primera vez en cada sección si saltaste el tutorial, y novedades.
   const withAvisos = fn => {
     if (window.NexoAvisos) return fn(window.NexoAvisos);
@@ -581,7 +594,16 @@
     setActiveNav(route);
     closeMore();
     const renderers = {
-      home: () => (tutorialDue() ? routeTo('tutorial') : renderHome()),
+      home: () => (!cloudListo ? (app.innerHTML = '<section class="page"><p class="eyebrow">Abriendo la torre…</p></section>')
+        : entradaDue() ? routeTo('entrada') : tutorialDue() ? routeTo('tutorial') : renderHome()),
+      entrada: () => { // docs/cuentas/SPEC.md · se carga solo al abrirla
+        if (!cloudListo || !entradaDue()) return routeTo('home');
+        const go = () => { if (parseRoute()[0] === 'entrada') window.NexoEntrada.render(app, {
+          google: () => cloud.signInWithGoogle({ volver: 'home' }),
+          guest: () => { try { localStorage.setItem(ENTRADA_KEY, '1'); } catch (_) {} routeTo('home'); }
+        }); };
+        if (window.NexoEntrada) go(); else { const sc = document.createElement('script'); sc.src = 'cuentas/entrada.js?v=2'; sc.onload = go; document.head.append(sc); }
+      },
       learn: () => route[1] === 'course'
         ? (route[3] === 'lesson' ? (LESSONS[route[4]]?.subject===route[2] ? renderLesson(route[4]) : renderSubjects())
           : route[3] === 'concept' ? renderAcademicExplorer('knowledge',route[4])
@@ -626,7 +648,7 @@
           finish: () => { state.tutorial.status = 'done'; saveState({ backup: false }); withAvisos(a => { state.tutorial.news = Math.max(state.tutorial.news || 0, a.VERSION); saveState({ backup: false }); }); }
         };
         const go = () => { if (parseRoute()[0] === 'tutorial') window.NexoTutorial.render(app, { mode, api: mode === 'test' ? null : api, sound: () => !!state.settings?.sound, exit: () => routeTo('home') }); };
-        if (window.NexoTutorial) go(); else { const sc = document.createElement('script'); sc.src = 'tutorial/tutorial.js?v=5'; sc.onload = go; document.head.append(sc); }
+        if (window.NexoTutorial) go(); else { const sc = document.createElement('script'); sc.src = 'tutorial/tutorial.js?v=8'; sc.onload = go; document.head.append(sc); }
       }
     };
     try { (renderers[route[0]] || renderHome)(); app.dataset.renderedRoute = route.join('/'); }
@@ -898,7 +920,7 @@
   let mascotAcademicSubscribed=false;
   function loadAcademicFoundation() {
     if(!academicFoundation)academicFoundation=['model','graph','diagnosis','knowledge','ranks','classifiers','sources','reviews','structured','engine','library','inspector','explorer','rescue']
-      .reduce((promise,name)=>promise.then(()=>window.NexoLoader.script(`./academic/${name}.js?v=25760d4f`)),Promise.resolve())
+      .reduce((promise,name)=>promise.then(()=>window.NexoLoader.script(`./academic/${name}.js?v=e3f63c3f`)),Promise.resolve())
       .then(()=>{if(!mascotAcademicSubscribed){window.NexoAcademicEngine.subscribe(event=>
         window.NexoMascotController.react(event,app));mascotAcademicSubscribed=true;}})
       .catch(error=>{academicFoundation=null;throw error;});
@@ -970,7 +992,7 @@
         window.NexoLoader.script('./classes/willow-tower.js?v=09c21b87').catch(() => null), // Torre del Sauce (etapa 10); sin ella, quedan las hojas en lista
         window.NexoLoader.script(`./classes/${file}?v=18`),
         // Motor de evidencia y repaso espaciado (FSRS); si no cargan, la clase funciona igual sin agendar repasos.
-        window.NexoLoader.script('./classes/evidence.js?v=308f7a40'), window.NexoLoader.script('./classes/molecule.js?v=b3b2e5aa'), window.NexoLoader.script('./classes/editor.js?v=df0be94e'), window.NexoLoader.script('./academic/class-bridge.js?v=60a96b4e').catch(() => null), window.NexoLoader.script('./academic/reviews.js?v=0273ea6c').catch(() => null)])
+        window.NexoLoader.script('./classes/evidence.js?v=308f7a40'), window.NexoLoader.script('./classes/molecule.js?v=b3b2e5aa'), window.NexoLoader.script('./classes/editor.js?v=df0be94e'), window.NexoLoader.script('./academic/class-bridge.js?v=a668cb26').catch(() => null), window.NexoLoader.script('./academic/reviews.js?v=0273ea6c').catch(() => null)])
         .then(() => Promise.all([window.NexoLoader.script(`./classes/slides/${id}.js?v=268941af`).catch(() => null), // diapositivas reales, si ya se convirtieron
           window.NexoLoader.script(`./classes/${id}-gen.js?v=00c1b5a9`).catch(() => null)])) // generadores de ejercicios (etapa 8), si la clase los tiene
         .then(() => true);
@@ -2017,10 +2039,12 @@
     getCurrent: () => state,
     onState(next,{cached}={}) {
       state=normalizeState(next); updateChrome(); renderRoute(false);
-      if (!cached && cloud.authenticated && sessionStorage.getItem('nexo-google-return')) {
+      const volver = sessionStorage.getItem('nexo-google-return');
+      if (!cached && cloud.authenticated && volver) {
         sessionStorage.removeItem('nexo-google-return');
-        routeTo('profile','settings');
+        routeTo(...volver.split('/'));
       }
+      marcarCloudListo();
       let claim=null;
       try { claim=JSON.parse(localStorage.getItem('nexo-claim-after-auth-v13')||'null'); } catch (_) {}
       if (!cached && cloud.claimMatches(claim)
@@ -2033,7 +2057,7 @@
       }
       cloud.analyticsConsent(Boolean(state.settings.analytics));
     },
-    onGuest() { state=loadState(); cloud.analyticsConsent(Boolean(state.settings.analytics)); updateChrome(); renderRoute(false); },
+    onGuest() { state=loadState(); cloud.analyticsConsent(Boolean(state.settings.analytics)); updateChrome(); renderRoute(false); marcarCloudListo(); },
     onStatus(info) {
       const node=document.querySelector('#syncStatus');
       if (node) node.textContent=info.status==='synced'?'✓ Sincronizado':
@@ -2042,6 +2066,7 @@
         info.status==='failed'?'⚠ Pendiente de conexión':
         info.status==='pending'?'☁ Guardado localmente · pendiente':'En este dispositivo';
     }
-  }).catch(()=>{});
+  }).catch(()=>{}).finally(marcarCloudListo);
+  setTimeout(marcarCloudListo, 4000); // sin red o con la nube lenta, no dejar la puerta cerrada
   cloud.track('app_opened');
 })();
