@@ -29,7 +29,7 @@ W, H, CELL_H, COLS = 320, 200, 208, 8      # alto de celda múltiplo de 16: la c
 QUALITY = 80
 # milisegundos por cuadro según el tipo de tira (w caminar, u dar la vuelta, t girar a una puerta, e entrar, o orbitar, z acercarse, c llegada).
 # La app mezcla cuadros vecinos, por eso puede ir lento sin verse a saltos. 'ease' = la app suaviza arranque y frenada (las demás ya lo traen).
-MS_PER_FRAME = {'w': 200, 'u': 115, 't': 125, 'e': 145, 'o': 135, 'z': 150, 'c': 155, 'i': 0}
+MS_PER_FRAME = {'w': 200, 'u': 60, 't': 80, 'e': 145, 'o': 80, 'z': 150, 'c': 155, 'i': 0}
 IDLE_N = 6                                  # cuadros de la animación de reposo de cada parada (ida y vuelta)
 LOOK = 0.12
 JAR_LEVELS = [0.0, 0.25, 0.5, 0.75, 1.0]
@@ -120,6 +120,7 @@ def door_geometry(idx):
     return s, zd, st, ('M', idx), bs.OPEN_DEFAULT[st]
 
 
+TURN_N = 20                                 # cuadros de un giro de 60-90°: con pocos, la mezcla de cuadros deja doble imagen
 WALK_PER_UNIT = 6                           # la app mezcla cuadros vecinos, así que no hacen falta tantos
 
 
@@ -135,7 +136,7 @@ def walk(pos, dist, pose, k='h'):
     return out
 
 
-def turn_around(z, x=0.0, yaw0=0.0, yaw1=math.pi, n=16):
+def turn_around(z, x=0.0, yaw0=0.0, yaw1=math.pi, n=32):
     """Darse la vuelta en el lugar (giro lineal; la app lo suaviza)."""
     return [{'k': 'h', 'cam': CL.cam(x, z, yaw0 + (yaw1 - yaw0) * i / n, 0.9 * math.sin(math.pi * i / n), 0.0, i)} for i in range(1, n + 1)]
 
@@ -154,8 +155,8 @@ def build_hall():
     for name, (stop, idx) in DOOR.items():                           # girar hacia la puerta y acercarse a la pared de enfrente
         s, zd, st, key, d0 = door_geometry(idx)
         xb, yaw = -s * 0.65, s * math.pi / 2
-        CL.add(f't-{stop}-{name}', [{'k': 'h', 'cam': CL.cam(xb * ease(i / 12), zd, yaw * ease(i / 12), 0.8 * math.sin(math.pi * i / 12), 0.0, i), 'opens': {key: d0}}
-                                    for i in range(1, 13)])
+        CL.add(f't-{stop}-{name}', [{'k': 'h', 'cam': CL.cam(xb * ease(i / TURN_N), zd, yaw * ease(i / TURN_N), 0.8 * math.sin(math.pi * i / TURN_N), 0.0, i), 'opens': {key: d0}}
+                                    for i in range(1, TURN_N + 1)])
         seq = []
         for i in range(1, 13):                                       # se abre el portal
             u = ease(i / 12)
@@ -166,8 +167,8 @@ def build_hall():
             seq.append({'k': 'h', 'cam': CL.cam(xb + s * 1.95 * u, zd, yaw, 1.2 * math.sin(math.pi * u), 0.0, 12 + i),
                         'opens': {key: 1.0, 'burst': ('M', idx, 1.0 + u), 'zoom': u}, 'flash': max(0.0, (u - 0.65) / 0.35) * 0.85})
         CL.add(f'e-{name}', seq)
-    CL.add('t-h3-b0', [{'k': 'h', 'cam': CL.cam(0.0, HALL_Z['h3'] + (ZB - HALL_Z['h3']) * ease(i / 12), math.pi / 2 * ease(i / 12), 0.8 * math.sin(math.pi * i / 12), 0.0, i)}
-                       for i in range(1, 13)])
+    CL.add('t-h3-b0', [{'k': 'h', 'cam': CL.cam(0.0, HALL_Z['h3'] + (ZB - HALL_Z['h3']) * ease(i / TURN_N), math.pi / 2 * ease(i / TURN_N), 0.8 * math.sin(math.pi * i / TURN_N), 0.0, i)}
+                       for i in range(1, TURN_N + 1)])
     lat = list(LATERAL_Z)
     for a, b in zip(lat, lat[1:]):
         x0, x1 = LATERAL_Z[a], LATERAL_Z[b]
@@ -175,8 +176,8 @@ def build_hall():
         CL.add(f'w-q{lat.index(b)}-q{lat.index(a)}', walk(lambda p: (x1 + (x0 - x1) * p, ZB), x1 - x0, lambda x, z: (x, z, -math.pi / 2)))
     for name in lat[1:]:                                             # en el pasillo lateral también se da la vuelta (pasando por la pared opuesta)
         CL.add(f'u-{name}', turn_around(ZB, LATERAL_Z[name], math.pi / 2, 3 * math.pi / 2))
-    CL.add('t-q0-h3', [{'k': 'h', 'cam': CL.cam(0.0, ZB + (HALL_Z['h3'] - ZB) * i / 12, -math.pi / 2 + (math.pi / 2) * i / 12, 0.8 * math.sin(math.pi * i / 12), 0.0, i)}
-                       for i in range(1, 13)])
+    CL.add('t-q0-h3', [{'k': 'h', 'cam': CL.cam(0.0, ZB + (HALL_Z['h3'] - ZB) * ease(i / TURN_N), -math.pi / 2 + (math.pi / 2) * ease(i / TURN_N), 0.8 * math.sin(math.pi * i / TURN_N), 0.0, i)}
+                       for i in range(1, TURN_N + 1)])
 
 
 def orbit(deg):
@@ -199,7 +200,7 @@ def build_camara():
     CL.add('c-emerge', [{'k': 'c', 'cam': CL.cam(0.0, z0 + 0.35 * ease(i / 8), 0.0, 0.0, 0.16, i), 'swirl': 1 - ease(i / 8), 'flash': 0.45 * (1 - ease(i / 8))}
                         for i in range(0, 9)])
     zs = z0 + 0.35
-    n = 22
+    n = 32
     seq = []
     for i in range(1, n + 1):                                         # rodea el sauce por la derecha hasta quedar frente a Aminas
         u = ease(i / n)
@@ -211,9 +212,9 @@ def build_camara():
     for k, (name, deg) in enumerate(RING):                           # anillo: +60° = girar a la derecha
         nxt = RING[(k + 1) % 6][0]
         seq = []
-        for i in range(1, 13):
-            x, z, p = orbit(deg + 60 * ease(i / 12))
-            seq.append({'k': 'c', 'cam': CL.cam(x, z, p, 0.8 * math.sin(math.pi * i / 12), LOOK, i)})
+        for i in range(1, TURN_N + 1):
+            x, z, p = orbit(deg + 60 * ease(i / TURN_N))
+            seq.append({'k': 'c', 'cam': CL.cam(x, z, p, 0.8 * math.sin(math.pi * i / TURN_N), LOOK, i)})
         CL.add(f'o-{name}-{nxt}', seq)
     for name, deg in (('c0', 0), ('c60', 60)):                       # acercarse a la mesa de las alcobas con clase
         CL.add(f'z-{name}', [{'k': 'c', 'cam': table_cam(deg, ease(i / 8), i)} for i in range(1, 9)])

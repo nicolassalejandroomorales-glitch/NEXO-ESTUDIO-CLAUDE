@@ -120,7 +120,7 @@ Decisiones: **tiras de cuadros por paso** (fluido como el boceto), **reemplazar 
 - Pasillo: paradas `h0 · h1(Orgánica) · h2(Analítica) · h3(Fisico + cruce) · h4(Fisio)`, sus gemelas mirando atrás `r0..r4`, vistas de puerta `d-*`, pasillo lateral `b0..b3` y `q0..q3`.
 - Cámara: llegada `c-in`, anillo `c0 · c60 · c120 · c180(portal) · c-120 · c-60`, y vista de mesa `ct0 · ct60 · ct-60`.
 - **Nunca se retrocede de espaldas** (Niquito, 18 oct): "Volver" no existe en el pasillo. Se usa **Dar la vuelta** (giro de 180° en el lugar) y se camina hacia adelante mirando hacia la entrada. Por eso cada parada tiene su gemela mirando atrás (`r0..r4` en el pasillo, `q0..q3` en el lateral) y sus tramos de caminata propios. Salir de una puerta o de la mesa sí es un giro/acercamiento al revés, no una caminata.
-- **Ritmo** (Niquito, 18 oct: "muy rápido, muy GIF"): ~1,2 s por unidad caminada, giros de ~1,8 s; la app **mezcla cuadros vecinos** (movimiento continuo aunque sea lento) y suaviza arranque y frenada. La prueba exige ≥ 100 ms por cuadro en cada tira.
+- **Ritmo** (Niquito, 18 oct: "muy rápido, muy GIF"): ~1,2 s por unidad caminada, giros de ~1,8 s; la app **mezcla cuadros vecinos** (movimiento continuo aunque sea lento) y suaviza arranque y frenada. Los giros llevan ~20-32 cuadros (con menos, la mezcla deja doble imagen). La prueba exige ≥ 1 s por tira.
 - Controles: botones contextuales (Avanzar, Volver, ◀ ▶ girar/mirar puerta, Entrar), flechas y Enter del teclado, toque en las mitades del cuadro. Móvil (390) y escritorio (1440) usan el mismo lienzo de 320×200 escalado sin suavizar (`image-rendering: pixelated`).
 
 ### Formato de los cuadros
@@ -139,7 +139,7 @@ Decisiones: **tiras de cuadros por paso** (fluido como el boceto), **reemplazar 
 - Avanzar, girar, mirar una puerta y entrar se ven fluidos en 1440 y 390; el cuadro no se deforma ni se suaviza.
 - Con datos reales: los frascos de Aminas/Aromáticos reflejan las misiones respondidas, los cristales apagan o encienden según repaso, la cuenta regresiva sale del calendario.
 - Cada puerta abre su portal; Orgánica II entra a la Cámara y las clases abren con el player existente; Analítica, Fisicoquímica y Fisiopatología muestran sus clases reales.
-- Peso: ≤ ~8 MB de cuadros en total, cada tira carga sola. Pruebas `tools/aprender-test.cjs` en `npm test`.
+- Peso: ≤ ~11 MB de cuadros (9,3 MB hoy) en total, cada tira carga sola. Pruebas `tools/aprender-test.cjs` en `npm test`.
 
 ### Pendiente de v2
 Sauce y torre dentro de la Cámara (reemplaza la pantalla vieja `#/torre`), cámaras de los otros 3 ramos (cambiar `RAMOS` en `build_camara.py` ya los renderiza), sauce con estado real, grietas de error, grimorio-formulario del pedestal, Sala de entrenamiento y Sala de Laboratorio dentro del flujo, mapas de evaluación dentro de la Cámara, sonido por portal.

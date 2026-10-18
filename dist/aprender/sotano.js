@@ -32,7 +32,7 @@
   }
 
   function loadManifest() {
-    manifestPromise ||= fetch(`${BASE}manifest.json`).then(r => { if (!r.ok) throw new Error('manifest'); return r.json(); });
+    manifestPromise ||= fetch(`${BASE}manifest.json`, { cache: 'no-cache' }).then(r => { if (!r.ok) throw new Error('manifest'); return r.json(); });
     manifestPromise.catch(() => { manifestPromise = null; });
     return manifestPromise;
   }
@@ -118,7 +118,8 @@
   }
   // Posición fraccionaria: el cuadro de abajo más el de arriba mezclado por la parte decimal. Así un tramo puede ir lento y verse continuo (no "a GIF").
   function drawAt(G, img, pos, n, reverse) {
-    const k = Math.min(n - 1, Math.floor(pos)), f = pos - k, at = j => (reverse ? n - 1 - j : j);
+    // La mezcla solo ocurre en la mitad del paso entre dos cuadros: así el giro no deja doble imagen y el movimiento sigue siendo continuo.
+    const k = Math.min(n - 1, Math.floor(pos)), f = Math.min(1, Math.max(0, ((pos - k) - 0.25) / 0.5)), at = j => (reverse ? n - 1 - j : j);
     draw(G, img, at(k));
     if (f > 0.02 && k < n - 1) {
       G.vctx.globalAlpha = f;
@@ -129,13 +130,13 @@
   const smooth = p => 0.5 - 0.5 * Math.cos(Math.PI * p); // arranque y frenada suaves
 
   async function playClip(G, name, reverse) {
-    const info = G.M.clips[name], n = info.n, img = await sheet(G, name);
+    const info = G.M.clips[name], n = info.n, img = await sheet(G, name), ms = info.ms || n * 130; // sin tiempos en el manifiesto: ritmo por defecto
     if (reduced()) { draw(G, img, reverse ? 0 : n - 1); return; }
     await new Promise(done => {
       const t0 = performance.now();
       const tick = now => {
         if (!G.alive) return done();
-        const p = Math.min(1, (now - t0) / info.ms);
+        const p = Math.min(1, (now - t0) / ms);
         drawAt(G, img, (info.ease ? smooth(p) : p) * (n - 1), n, reverse);
         if (p >= 1) done(); else G.raf = requestAnimationFrame(tick);
       };
@@ -148,11 +149,11 @@
     const token = ++G.idleToken;
     if (reduced()) return;
     sheet(G, G.M.nodes[G.node].idle).then(img => {
-      const n = G.M.idleN, t0 = performance.now();
+      const n = G.M.idleN || 6, t0 = performance.now();
       const tick = now => {
         if (!G.alive || G.idleToken !== token) return;
         if (!document.hidden) {
-          const cycle = (now - t0) / G.M.idleMs % (2 * (n - 1)), pos = cycle <= n - 1 ? cycle : 2 * (n - 1) - cycle;
+          const cycle = (now - t0) / (G.M.idleMs || 280) % (2 * (n - 1)), pos = cycle <= n - 1 ? cycle : 2 * (n - 1) - cycle;
           drawAt(G, img, pos, n, false);
         }
         G.raf = requestAnimationFrame(tick);

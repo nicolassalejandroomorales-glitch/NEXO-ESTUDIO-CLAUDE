@@ -91,7 +91,7 @@ test('el manifiesto es coherente: cada parada, tramo y sprite existe', { skip: !
   assert.ok(M.v);
   for (const [name, clip] of Object.entries(M.clips)) {
     assert.ok(fs.existsSync(img(name)), `falta la hoja ${name}`);
-    if (!name.startsWith('i-')) assert.ok(clip.ms >= clip.n * 100, `${name}: va demasiado rápido (${clip.ms} ms para ${clip.n} cuadros)`);
+    if (!name.startsWith('i-')) assert.ok(clip.ms >= (name.startsWith('w-') ? 750 : 1000), `${name}: va demasiado rápido (${clip.ms} ms)`);
   }
   // Nunca se retrocede de espaldas: ningún botón reproduce al revés un tramo de caminata.
   for (const [id, node] of Object.entries(M.nodes)) for (const m of node.moves.filter(x => x.to)) {
@@ -120,10 +120,10 @@ test('el manifiesto es coherente: cada parada, tramo y sprite existe', { skip: !
   }
 });
 
-test('el peso de los cuadros cabe en el presupuesto (≤ 9 MB)', { skip: !fs.existsSync(manifestPath) && 'sin cuadros exportados' }, () => {
+test('el peso de los cuadros cabe en el presupuesto (≤ 11 MB)', { skip: !fs.existsSync(manifestPath) && 'sin cuadros exportados' }, () => {
   const dir = path.join(dist, 'aprender', 'img');
   const total = fs.readdirSync(dir).reduce((sum, f) => sum + fs.statSync(path.join(dir, f)).size, 0);
-  assert.ok(total <= 9 * 1024 * 1024, `pesan ${(total / 1048576).toFixed(1)} MB`);
+  assert.ok(total <= 11 * 1024 * 1024, `pesan ${(total / 1048576).toFixed(1)} MB`);
 });
 
 test('los módulos de Aprender compilan', () => {
