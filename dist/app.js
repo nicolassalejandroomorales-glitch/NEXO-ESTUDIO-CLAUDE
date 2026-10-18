@@ -1042,7 +1042,7 @@
   const classroomLoads = new Map();
   function loadClassroom(id) {
     if (classroomLoads.has(id)) return classroomLoads.get(id);
-    const promise = Promise.resolve(window.NexoClassCatalog || window.NexoLoader.script('./classes/catalog.js?v=8dec702d')).then(() => {
+    const promise = Promise.resolve(window.NexoClassCatalog || window.NexoLoader.script('./classes/catalog.js?v=6e3ef878')).then(() => {
       const file = window.NexoClassCatalog?.[id];
       if (!file) return false;
       return Promise.all([window.NexoLoader.script('./classes/player.js?v=d54f576f'),
@@ -1050,8 +1050,8 @@
         window.NexoLoader.script(`./classes/${file}?v=19`),
         // Motor de evidencia y repaso espaciado (FSRS); si no cargan, la clase funciona igual sin agendar repasos.
         window.NexoLoader.script('./classes/evidence.js?v=308f7a40'), window.NexoLoader.script('./classes/molecule.js?v=b3b2e5aa'), window.NexoLoader.script('./classes/editor.js?v=df0be94e'), window.NexoLoader.script('./academic/class-bridge.js?v=34abe0b8').catch(() => null), window.NexoLoader.script('./academic/reviews.js?v=0273ea6c').catch(() => null)])
-        .then(() => Promise.all([window.NexoLoader.script(`./classes/slides/${id}.js?v=c9609eec`).catch(() => null), // diapositivas reales, si ya se convirtieron
-          window.NexoLoader.script(`./classes/${id}-gen.js?v=5ae66a14`).catch(() => null)])) // generadores de ejercicios (etapa 8), si la clase los tiene
+        .then(() => Promise.all([window.NexoLoader.script(`./classes/slides/${id}.js?v=ec5f18b5`).catch(() => null), // diapositivas reales, si ya se convirtieron
+          window.NexoLoader.script(`./classes/${id}-gen.js?v=220d5b53`).catch(() => null)])) // generadores de ejercicios (etapa 8), si la clase los tiene
         .then(() => true);
     });
     promise.catch(() => classroomLoads.delete(id));
@@ -1084,7 +1084,7 @@
     if (!window.NexoWillowView) app.innerHTML = '<section class="page"><div class="app-loader" role="status"><span></span><p>Subiendo a la torre…</p></div></section>';
     // La torre junta las clases de la PEP 1 del ramo que ya existen (Orgánica: Aminas, Aromaticidad y SEA).
     const pepIds = (subject.peps?.[0]?.lessons || lessonIds);
-    Promise.resolve(window.NexoClassCatalog || window.NexoLoader.script('./classes/catalog.js?v=8dec702d')).then(() => {
+    Promise.resolve(window.NexoClassCatalog || window.NexoLoader.script('./classes/catalog.js?v=6e3ef878')).then(() => {
       const ids = pepIds.filter(l => window.NexoClassCatalog?.[l]);
       return Promise.all([window.NexoLoader.style('./classes/willow.css?v=5a60c6e7'), window.NexoLoader.script('./classes/willow-tower.js?v=09c21b87'), ...ids.map(loadClassroom)])
         .then(() => window.NexoLoader.script('./classes/willow-view.js?v=291be729')).then(() => ids);
