@@ -18,8 +18,9 @@
 - Prioridad de Niquito: que cada ramo tenga clases de verdad (PPT real, explicación a fondo, ejemplos, versión simple, práctica y prueba) al menos hasta su PEP 1. Orden pedido: Analítica (control 19 oct) → Orgánica → FQ → Fisiopatología.
 - Analítica: PPT de cátedra 2026 bajados de Classroom (Conceptos, Etapas, Errores, Análisis volumétrico, Volumetría ácido-base). ana-01 (89 diapositivas), ana-02 (35), ana-03 (61) ya muestran las diapositivas reales y cada actividad apunta a su página real. Pruebas OK.
 - Analítica control 1 (19 oct): bajados de Gmail el PPT «Clase 2 Ejercicios» y la «Guía 1 2026» (Vidal). Guía = errores y análisis de datos. ana-01 ahora enseña test Q de Dixon (diapositivas 83 y 86) y «elegir al mejor laboratorio/método» (misión m2, parte 3) y tiene 2 generadores nuevos (`dixon`, `comparar`). Pendiente: probar en celular (390) y que Niquito revise la química; la diapositiva 87 de Pizarro tiene un error (B: Er = 0,64 %, no 0,006 %).
-- Clases vacías para PEP 1: org-02 (pKa), org-03 (Aminas), fq-02 (Actividad), fq-03 (Nernst). Orgánica y FQ tienen Classroom (ids en el correo usach); Fisiopatología: correos de Hugo Cárdenas (sistema nervioso).
-- Prompt de continuación: «Chat Clases. Lee CLAUDE.md, la skill nexo-clase y docs/chats/clases.md. Sigue por Orgánica: baja los PPT desde su Classroom (Chrome) y construye org-02 y org-03 igual que ana-01.»
+- Orgánica (hecho 18 oct): org-02 (pKa) y org-03 (par libre) ya vivían en org-01 (misiones 4 y 5), así que se quitaron del mapa; la PEP 1 queda con Aminas, Aromaticidad y SEA (3 clases con contenido). PPT y 3 guías 2021 bajados de su Classroom (ids en el correo usach); las guías aún no se usan como ejercicios: pendiente decidir si se suman a org-01/04/05.
+- Clases vacías para PEP 1: fq-02 (Actividad) y fq-03 (Nernst); la PEP 1 de FQ es el 21 oct. Su Classroom: «FQII - Farmacia» (clases del Dr. Pino). Fisiopatología ya tiene sus 4 clases.
+- Prompt de continuación: «Chat Clases. Lee CLAUDE.md, la skill nexo-clase y docs/chats/clases.md. Sigue por FQ: baja los PPT de «FQII - Farmacia» (Classroom, Chrome) y construye fq-02 y fq-03 igual que ana-01 (slides.py + mapear cada slide:).»
 
 ## Falta
 - Que la clase de Aminas → Basicidad se sienta increíble (corrección real, actividades variadas). Es lo más importante del producto.
