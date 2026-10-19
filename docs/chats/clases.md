@@ -14,6 +14,16 @@
 - Paso 1 hecho: 3 versiones visuales de la estación Basicidad (`docs/clases-v2/estacion-basicidad.html`, SPEC en `docs/clases-v2/SPEC.md`). Decidido: mini juego "Atrapa el H⁺", habla la mascota.
 - Elegida la versión C (cristal-pantalla). Paso 2 hecho: prototipo en `dist/classes/estacion-prueba.html` (mascota real, textos cortos, animaciones fluidas). Niquito descartó "Atrapa el H⁺" (no prepara para la PEP): ahora Práctica + Demuestra con la pregunta 3 de la PEP (reloj, un intento, puntos asegurados, repaso). Aprobado. Paso 3 hecho: estructuras dibujadas (RDKit) y conectado a la app (`#/station/org-01/m4`, tarjeta en las misiones, evidencia + repaso). Falta: otras misiones, celular real.
 
+## Clases funcionales hasta la PEP 1 (18 oct 2026)
+- Prioridad de Niquito: que cada ramo tenga clases de verdad (PPT real, explicación a fondo, ejemplos, versión simple, práctica y prueba) al menos hasta su PEP 1. Orden pedido: Analítica (control 19 oct) → Orgánica → FQ → Fisiopatología.
+- Analítica: PPT de cátedra 2026 bajados de Classroom (Conceptos, Etapas, Errores, Análisis volumétrico, Volumetría ácido-base). ana-01 (89 diapositivas), ana-02 (35), ana-03 (61) ya muestran las diapositivas reales y cada actividad apunta a su página real. Pruebas OK.
+- Analítica control 1 (19 oct): bajados de Gmail el PPT «Clase 2 Ejercicios» y la «Guía 1 2026» (Vidal). Guía = errores y análisis de datos. ana-01 ahora enseña test Q de Dixon (diapositivas 83 y 86) y «elegir al mejor laboratorio/método» (misión m2, parte 3) y tiene 2 generadores nuevos (`dixon`, `comparar`). Pendiente: probar en celular (390) y que Niquito revise la química; la diapositiva 87 de Pizarro tiene un error (B: Er = 0,64 %, no 0,006 %).
+- Orgánica (hecho 18 oct): org-02 (pKa) y org-03 (par libre) ya vivían en org-01 (misiones 4 y 5), así que se quitaron del mapa; la PEP 1 queda con Aminas, Aromaticidad y SEA (3 clases con contenido). PPT y 3 guías 2021 bajados de su Classroom (ids en el correo usach); las guías aún no se usan como ejercicios: pendiente decidir si se suman a org-01/04/05.
+- FQ II (hecho 18 oct): fq-02 «Actividad y fuerza iónica» (3 misiones: electrolitos y actividad, Debye–Hückel con solubilidad y Ka, conductividad; 104 diapositivas) y fq-03 «Celdas galvánicas y Nernst» (3 misiones: potenciales y celdas, ΔG/K/Nernst, pH por fem y Faraday; 101 diapositivas), ambas con generadores propios. PPT: Classroom «FQII - Farmacia» (Clases 5 I, 5 II y 6). fq-01 ya muestra las diapositivas reales (Clases 1–4, 192 páginas; las referencias van al inicio de cada sección porque casi todo son imágenes). Pendiente: revisión química de Niquito.
+- Errores en el material de FQ (avisados dentro de la clase o evitados): la diapositiva 22 de fq-02 da I = 0,01 y la suma correcta es 0,10; los ejercicios «Aplicaciones de FEM» de la Clase 6 (diap. 83–93 de fq-03) tienen datos incoherentes (γ± ≈ 27, pH negativo) y no se usaron.
+- Límite del reproductor (chat de diseño): las respuestas numéricas tienen una tolerancia mínima absoluta de 1e-12, así que en respuestas < 1e-10 (p. ej. K°ps del AgBr) cualquier valor se acepta; en fq-02 se evitó. Si algún día se cambia, quitar el filtro de `solub` nivel 4.
+- Prompt de continuación: «Chat Clases. Lee CLAUDE.md, la skill nexo-clase y docs/chats/clases.md. Sigue por Fisiopatología: sus 4 clases PEP 1 ya tienen contenido, pero sin diapositivas reales; busca las de cátedra (correos de Hugo Cárdenas y Drive), conviértelas con slides.py y reasigna cada slide: como se hizo en ana-01. »
+
 ## Falta
 - Que la clase de Aminas → Basicidad se sienta increíble (corrección real, actividades variadas). Es lo más importante del producto.
 - Revisar las clases hechas en móvil (390 px).
@@ -46,4 +56,15 @@ Tocas un frasco = una misión → la cámara entra al frasco → el cristal-pant
 Falta por conversar (sin código): sonido de la sala (propuesta: Web Audio sintetizado, acorde que se afina con tu avance, Demuestra casi en silencio, botón de silencio; Niquito aún no respondió si quiere zumbido de fondo o silencio) y cómo se ven las grietas de errores.
 Primero dime en una línea qué entendiste y hazme máximo 3 preguntas de selección múltiple. Luego: plan de construcción en pasos chicos en el SPEC (Opus), y recién ahí implementar con Sonnet 5.5. Primer corte sugerido: Cámara de Aminas navegable en la app + abrir el frasco de Basicidad (m4) con la estación existente. Probar en 1440 y 390.
 Al terminar, usa nexo-cierre y actualiza docs/chats/clases.md.
+```
+
+## Aula nueva y prueba final (19 oct 2026)
+- Hecho: `dist/classes/aula.js` (+ `aula.css`) es la pantalla de cada misión, en el estilo de la estación; `demuestra` por misión con la prueba final en formato PEP. Detalle en `docs/clases-v2/SPEC.md` («El aula nueva y la prueba final»).
+- Escena final, campanilla y grietas de errores ya están en el Sótano (`dist/aprender/sotano-luz.js`). La Cámara propia de la rama `clases-camara` queda solo como referencia.
+
+## Prompt de continuación (aula nueva)
+```
+Chat: Clases v2 (aula nueva). Lee CLAUDE.md, la skill nexo-clase, docs/clases-v2/SPEC.md («El aula nueva y la prueba final») y docs/chats/clases.md.
+Hecho: aula.js en estilo estación para todas las misiones, prueba final PEP por misión, mezcla de alternativas.
+Hecho también: panel «Camino al 7», mini clase y clase a profundidad. Tarea: glosario, formulario, recetario y bestiario dentro del aula nueva; `demuestra` para FQ II 02 y 03 cuando estén en master. Regla: nunca el aspecto de la pantalla vieja; contraste y animaciones revisados antes de entregar. 1440 y 390. Sonnet 5.5.
 ```

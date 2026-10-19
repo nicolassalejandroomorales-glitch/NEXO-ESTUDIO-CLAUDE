@@ -1,18 +1,17 @@
 /* Estación de clase (versión C, cristal-pantalla). Pixel art en los canvas; el texto va en letra de pergamino (serif del Grimorio). */
-.st{--serif:"Iowan Old Style","Palatino Linotype",Georgia,serif;--pet:200px;position:relative;overflow:hidden;width:100%;min-height:560px;aspect-ratio:16/10;background:#0c1e2c;border:2px solid #3a2f33;color:#f3e8cf;font-family:var(--serif);container-type:inline-size}
-.st-art{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated}
+.st{--serif:"Iowan Old Style","Palatino Linotype",Georgia,serif;--pet:200px;position:absolute;inset:0;overflow:hidden;background:radial-gradient(ellipse at 60% 45%,rgba(8,20,30,.55),rgba(4,8,14,.82));z-index:6;color:#f3e8cf;font-family:var(--serif);container-type:inline-size}
 .st-pet{position:absolute;left:6%;bottom:12%;width:var(--pet);aspect-ratio:40/44;image-rendering:pixelated;filter:drop-shadow(0 6px 0 rgba(0,0,0,.35));z-index:2}
-.st-bubble{position:absolute;left:4%;top:12%;width:30%;padding:10px 14px;background:linear-gradient(#f3e3b8,#e2c98f);color:#2b1d22;border:2px solid #2b1d22;border-radius:6px;font-size:16px;line-height:1.3;font-style:italic;z-index:3;box-shadow:0 4px 0 rgba(0,0,0,.3)}
+.st-bubble{position:absolute;left:4%;top:70px;width:30%;padding:10px 14px;background:linear-gradient(#f3e3b8,#e2c98f);color:#2b1d22;border:2px solid #2b1d22;border-radius:6px;font-size:16px;line-height:1.3;font-style:italic;z-index:3;box-shadow:0 4px 0 rgba(0,0,0,.3)}
 .st-bubble b{display:block;font-style:normal;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#8a552e;margin-bottom:2px}
 .st-bubble:after{content:"";position:absolute;left:40px;bottom:-14px;border:9px solid transparent;border-top:14px solid #2b1d22;border-bottom:0}
-.st-panel{position:absolute;left:41%;top:4%;right:3%;bottom:4%;display:flex;flex-direction:column;gap:8px;overflow:auto;z-index:3;padding:14px 20px;
+.st-panel{position:absolute;left:41%;top:56px;right:3%;bottom:3%;display:flex;flex-direction:column;gap:8px;overflow:auto;z-index:3;padding:14px 20px;
   background:linear-gradient(160deg,rgba(14,44,62,.72),rgba(10,26,40,.82));border:1px solid rgba(156,232,240,.4);border-radius:10px;backdrop-filter:blur(2px);
   animation:st-glow 4.2s ease-in-out infinite}
 @keyframes st-glow{0%,100%{box-shadow:0 0 22px rgba(92,196,220,.22),inset 0 0 24px rgba(92,196,220,.06)}50%{box-shadow:0 0 38px rgba(92,196,220,.42),inset 0 0 34px rgba(92,196,220,.14)}}
 .st-steps{display:flex;gap:6px;list-style:none;margin:0;padding:0;font-size:13px;flex-wrap:wrap}
 .st-steps li{padding:2px 10px;border:1px solid rgba(255,255,255,.18);border-radius:99px;color:#a89880;transition:all .4s}
 .st-steps li.on{border-color:#ffd860;color:#ffd860;box-shadow:0 0 10px rgba(255,216,96,.35)}.st-steps li.done{border-color:#70a46a;color:#cfeccb}
-.st .pixel-text{height:26px;width:auto;fill:#ffd860;display:block;margin:2px 0 4px}
+.st-h{margin:2px 0 6px;font:700 clamp(24px,4.2cqw,34px)/1.1 var(--serif);letter-spacing:.14em;text-transform:uppercase;color:#ffd860;text-shadow:0 0 14px rgba(255,216,96,.45),0 2px 0 #2b1d22}
 .st b{color:#9ce8f0}
 .st-q{margin:4px 0 8px;font-size:19px;line-height:1.35}
 .st-opts{display:flex;flex-direction:column;gap:8px}
@@ -72,21 +71,28 @@
 .st-fx{position:absolute;inset:0;pointer-events:none;z-index:5;overflow:hidden}
 .st-spark{position:absolute;border-radius:50%}
 @media (max-width:700px){
-  .st{aspect-ratio:auto;min-height:780px;--pet:120px}
-  .st-pet{left:4%;top:2%;bottom:auto}
-  .st-bubble{left:36%;right:3%;top:3%;width:auto;font-size:15px}
+  .st{--pet:120px}
+  .st-pet{left:4%;top:56px;bottom:auto}
+  .st-bubble{left:36%;right:3%;top:12px;width:auto;font-size:15px}
   .st-bubble:after{left:-15px;top:16px;bottom:auto;border:9px solid transparent;border-right:14px solid #2b1d22;border-left:0}
-  .st-panel{left:3%;right:3%;top:24%;bottom:2%;padding:12px 14px}
+  .st-panel{left:3%;right:3%;top:28%;bottom:2%;padding:12px 14px}
   .st-q{font-size:17px}.st-opt,.st-next{font-size:16px}
   .st-react{height:84px}
 }
 @media (prefers-reduced-motion:reduce){.st *{animation:none!important;transition:none!important}.st-hp{display:none}.st-prod{opacity:1}.st-n{display:none}}
 
-/* Pantalla completa: la estación cubre toda la app y sus botones quedan dentro */
-.st.is-full{position:fixed;inset:0;z-index:1000;width:100vw;height:100dvh;min-height:0;aspect-ratio:auto;border:0}
-.st.is-full .st-panel{top:56px;bottom:3%}
 .st-exit{position:absolute;left:14px;top:12px;z-index:6;padding:8px 14px;background:rgba(20,12,16,.85);border:1px solid #9a8068;border-radius:8px;color:#f3e8cf;font:inherit;font-size:15px;cursor:pointer}
 .st-exit:hover{border-color:#9ce8f0}
 .st-next{position:sticky;bottom:6px;z-index:2;box-shadow:0 0 0 8px rgba(10,26,40,.92)}
-.st.is-full .st-bubble{top:70px}
-@media (max-width:700px){.st.is-full .st-bubble{top:12px;left:36%}.st.is-full .st-pet{top:56px}.st.is-full .st-panel{top:28%}.st-exit{top:10px}}
+@media (max-width:700px){.st-exit{top:10px}}
+
+/* El cristal-pantalla flota sobre la piedra */
+.st-panel{box-shadow:0 0 0 2px #18506a,0 0 28px rgba(92,196,220,.28),inset 0 0 40px rgba(92,196,220,.08)}
+
+/* Modo «solo Demuestra»: sin barra de pasos */
+.st.is-only .st-steps{display:none}
+.st-num{width:9ch;padding:8px 10px;background:rgba(8,24,36,.88);border:1px solid #9ce8f0;border-radius:8px;color:#f3e8cf;font:inherit;font-size:18px}
+.st-num:focus{outline:2px solid #ffd860;outline-offset:2px}
+.st-unit{color:#c9bfa6}
+.st-pep .st-next{position:static;box-shadow:none;margin-top:10px}
+.st .st-bubble b{color:#8a552e}

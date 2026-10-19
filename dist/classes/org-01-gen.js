@@ -30,15 +30,17 @@
   }
   const order = (prompt, cards, answer, extra) => ({ type: 'order', prompt, cards, answer, ...extra });
   // Afirmaciones (formato PEP): "¿cuál es correcta?", "¿cuál es INCORRECTA?" o "¿cuántas son verdaderas?". T = hechos; F = [texto, por qué es falso, error típico].
+  // Prefiere afirmaciones de largo parecido a la correcta: si no, la más larga se adivina sin saber la materia.
+  const near = (rng, list, ref, n) => list.map(x => [x, Math.abs((Array.isArray(x) ? x[0] : x).length - ref.length) + rng() * 50]).sort((a, b) => a[1] - b[1]).slice(0, n).map(x => x[0]);
   function statements(rng, level, bank, extra) {
     if (level >= 4 && rng() < 0.4) {
       const nT = 1 + Math.floor(rng() * 3), list = shuffle(rng, [...sample(rng, bank.T, nT).map(t => [t, true]), ...sample(rng, bank.F, 4 - nT).map(f => [f[0], false, f[1]])]);
       return { type: 'number', prompt: `${level === 5 ? 'Estilo PEP: ' : ''}${bank.topic}. ¿Cuántas de estas afirmaciones son verdaderas? ${list.map((x, i) => `(${i + 1}) ${x[0]}`).join(' ')}`, answer: nT, unit: '', tol: 0, label: 'verdaderas',
         traps: [{ value: 4, note: 'No todas son verdaderas: revisa cada una.' }].filter(t => t.value !== nT), solution: list.map((x, i) => `(${i + 1}) ${x[1] ? 'V' : `F: ${x[2]}`}`), ...extra, explain: `${nT} verdadera(s).` }; }
     if (level >= 3 && rng() < 0.5) { const [f, why, mis] = pick(rng, bank.F);
-      return choice(rng, `${level === 5 ? 'Estilo PEP: ' : ''}${bank.topic}: ¿cuál afirmación es INCORRECTA?`, f, sample(rng, bank.T, 3).map(t => ({ text: t, note: 'Esta es verdadera.' })), { ...extra, misconception: mis, explain: `Es falsa: ${why}` }); }
+      return choice(rng, `${level === 5 ? 'Estilo PEP: ' : ''}${bank.topic}: ¿cuál afirmación es INCORRECTA?`, f, near(rng, bank.T, f, 3).map(t => ({ text: t, note: 'Esta es verdadera.' })), { ...extra, misconception: mis, explain: `Es falsa: ${why}` }); }
     const t = pick(rng, bank.T);
-    return choice(rng, `${level === 5 ? 'Estilo PEP: ' : ''}${bank.topic}: ¿cuál afirmación es correcta?`, t, sample(rng, bank.F, 3).map(([text, why, mis]) => ({ text, note: why, misconception: mis })), { ...extra, explain: t });
+    return choice(rng, `${level === 5 ? 'Estilo PEP: ' : ''}${bank.topic}: ¿cuál afirmación es correcta?`, t, near(rng, bank.F, t, 3).map(([text, why, mis]) => ({ text, note: why, misconception: mis })), { ...extra, explain: t });
   }
   const BANKS = {
     lewis: { topic: 'Estructuras de Lewis y cargas', T: ['Un N neutro con 3 enlaces tiene un par libre.', 'Un N con 4 enlaces y sin pares tiene carga +1.', 'Un O con 1 enlace y 3 pares tiene carga −1.', 'Un C con 3 enlaces y sin pares (carbocatión) tiene carga +1.', 'La carga formal es valencia − (electrones en pares + enlaces).', 'En el ion amonio el N no tiene pares libres.'],
@@ -370,7 +372,7 @@
       if (level === 2) {
         const salt = rng() < 0.5;
         return choice(rng, salt ? `¿Dónde se disuelve mejor el ${a.sn}: en agua o en éter?` : `Tienes octilamina (8 C, neutra). ¿Dónde se disuelve mejor: en agua o en éter?`, salt ? 'En agua: es iónico' : 'En éter: la cadena larga manda',
-          [{ text: salt ? 'En éter: es orgánico' : 'En agua: tiene un NH₂', note: salt ? 'Tiene carga: las sales van al agua.' : 'Con 8 carbonos, la cadena apolar gana.', misconception: salt ? 'salt-organic' : 'size-solubility' }, { text: 'En ninguno', note: 'Siempre hay un solvente que le acomoda.' }],
+          [{ text: salt ? 'En éter: es orgánico' : 'En agua: tiene un NH₂', note: salt ? 'Tiene carga: las sales van al agua.' : 'Con 8 carbonos, la cadena apolar gana.', misconception: salt ? 'salt-organic' : 'size-solubility' }, { text: 'En los dos solventes por igual', note: 'Hay un solvente que le acomoda más: el iónico, el agua.' }],
           { ...base, explain: salt ? 'Una sal de amonio es iónica: se disuelve en agua y no en éter.' : 'La octilamina neutra es casi toda cadena apolar: prefiere el éter. Con HCl pasaría al agua.' });
       }
       if (level === 3) {

@@ -24,6 +24,7 @@
   function destroy() {
     if (!live) return;
     live.alive = false;
+    window.NexoSotanoMusica?.stop();
     cancelAnimationFrame(live.raf);
     document.removeEventListener('keydown', live.onKey);
     window.removeEventListener('resize', live.onResize);
@@ -40,7 +41,7 @@
   function render(app, ctx) {
     destroy();
     app.innerHTML = `<section class="page sotano" aria-label="Sótano de los Cristales">
-      <header class="sotano-top"><h1 class="sotano-title" data-s="title">Sótano de los Cristales</h1><span class="sotano-chip" data-s="chip" hidden></span></header>
+      <header class="sotano-top"><h1 class="sotano-title" data-s="title">Sótano de los Cristales</h1><span class="sotano-chip" data-s="chip" hidden></span><button class="sotano-music" data-s="music" type="button" aria-pressed="true" aria-label="Música del sótano" title="Música del sótano">♪</button></header>
       <div class="sotano-stage" data-s="stage" role="group" aria-label="Vista del Sótano">
         <canvas class="sotano-view" data-s="view" width="320" height="200" aria-hidden="true"></canvas>
         <canvas class="sotano-over" data-s="over" width="320" height="200" aria-hidden="true"></canvas>
@@ -71,6 +72,9 @@
     window.addEventListener('resize', G.onResize);
     window.addEventListener('hashchange', G.onHash);
     live = G;
+    const M = window.NexoSotanoMusica, paintMusic = () => { const on = !M || M.enabled; el.music.hidden = !M; el.music.setAttribute('aria-pressed', String(on)); el.music.classList.toggle('is-off', !on); };
+    paintMusic();
+    el.music.addEventListener('click', () => { M?.toggle(); paintMusic(); });
     el.stage.addEventListener('pointerup', ev => onStage(G, ev));
     el.pad.addEventListener('click', ev => { const b = ev.target.closest('[data-move]'); if (b) act(G, b.dataset.move); });
     el.card.addEventListener('click', ev => onCard(G, ev));
@@ -200,6 +204,7 @@
     if (!G.alive || G.node !== node) return;
     draw(G, img, info.off || 0);
     remember(node);
+    window.NexoSotanoMusica?.start(G.M.nodes[node].ramo || 'pasillo');   // el pasillo y cada Cámara tienen su tono
     refresh(G);
     idle(G);
     if (G.M.nodes[node].ramo) loadRamo(G, G.M.nodes[node].ramo);
@@ -262,6 +267,7 @@
 
   // ---------- estado real sobre el cuadro ----------
   function clearOverlay(G) {
+    window.NexoSotanoLuz?.stop(G);
     G.octx.clearRect(0, 0, 320, 200);
     G.el.over.classList.remove('on');
   }
@@ -280,6 +286,7 @@
       const e = ov.crys[i], at = e && c.state !== null ? e.s[String(c.state)] : null;
       if (at) G.octx.drawImage(atlas, at[0], at[1], e.w, e.h, e.x, e.y, e.w, e.h);
     });
+    window.NexoSotanoLuz?.afterPaint(G, ov, atlas);   // grietas de errores y escena final al volver de una misión (sotano-luz.js)
     G.el.over.classList.add('on');
   }
 
@@ -289,6 +296,8 @@
     const ov = G.M.overlay[G.node];
     if (ov && G.alcove?.jars.length) {
       const hit = (list, pad) => list.findIndex(e => e && x >= e.x - pad && x <= e.x + e.w + pad && y >= e.y - pad && y <= e.y + e.h + pad);
+      const crack = window.NexoSotanoLuz?.hit(G, x, y);
+      if (crack) { G.pick = crack; renderCard(G); return; }
       const j = hit(ov.jars, 4), c = j < 0 ? hit(ov.crys, 3) : -1;
       if (j >= 0 || c >= 0) { G.pick = j >= 0 ? { kind: 'jar', i: j } : { kind: 'crystal', i: c }; renderCard(G); return; }
     }
@@ -313,16 +322,18 @@
       const c = a.crystals[pick.i], label = { review: 'toca repasar', ok: 'al día' };
       detail = `<p class="sotano-detail"><b>Cristal ${pick.i + 1} · ${c.state === 0 ? 'apagado: toca repasar' : c.state === 1 ? 'encendido' : 'sin empezar'}</b></p>
         <ul class="sotano-concepts">${c.concepts.map(k => `<li data-state="${k.state || 'none'}">${esc(k.title)}<small>${label[k.state] || 'sin empezar'}</small></li>`).join('')}</ul>`;
-    }
+    } else if (pick?.kind === 'crack') detail = window.NexoSotanoLuz?.detail(G, pick, esc) || '';
     card.innerHTML = `<h2>${esc(a.name)}</h2><p>${esc(S.summary(a))}</p>
       <ol class="sotano-jars" aria-label="Misiones">${a.jars.map((j, i) => `<li><button class="sotano-jar${pick?.kind === 'jar' && pick.i === i ? ' is-pick' : ''}" data-jar="${i}" aria-label="Misión ${i + 1}: ${esc(j.title)}, ${j.done} de ${j.total}"><span class="sotano-fill" style="--p:${j.level * 25}%"></span><b>${i + 1}</b></button></li>`).join('')}</ol>
+      ${window.NexoSotanoLuz?.list(G, esc) || ''}
       ${detail}
       <div class="sotano-actions">${a.classes.map(id => `<button class="pu-btn" data-open="${esc(id)}">${pt(('Clase: ' + G.ctx.lessonTitle(id)).slice(0, 36))}</button>`).join('')}</div>`;
   }
 
   function onCard(G, ev) {
-    const open = ev.target.closest('[data-open]'), jar = ev.target.closest('[data-jar]');
-    if (open) return G.ctx.openLesson(open.dataset.open, open.dataset.mission);
+    const open = ev.target.closest('[data-open]'), jar = ev.target.closest('[data-jar]'), crack = ev.target.closest('[data-crack]');
+    if (open) { window.NexoSotanoLuz?.beforeOpen(G); return G.ctx.openLesson(open.dataset.open, open.dataset.mission); }
+    if (crack) { G.pick = { kind: 'crack', i: Number(crack.dataset.crack) }; renderCard(G); return; }
     if (jar) { G.pick = { kind: 'jar', i: Number(jar.dataset.jar) }; renderCard(G); }
   }
 

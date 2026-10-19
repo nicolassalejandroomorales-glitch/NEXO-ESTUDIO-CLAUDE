@@ -18,6 +18,12 @@
     subject: 'fisio',
     title: 'Digestivo: barrera, secreción, motilidad e hígado',
     evaluation: 'PEP 1',
+    /* Prueba final de cada misión (estación en modo «solo Demuestra»): formato PEP, un intento, reloj opcional.
+       `gen` = generador(es) de fis-09-gen.js (nivel 5); `pep` = pregunta de `goal.questions` que asegura. */
+    demuestra: {
+      m1: { gen: ['esofago', 'ulcera', 'farmacos'], pep: 'P7' },
+      m2: { gen: ['brecha', 'diarrea', 'ictericia', 'cirrosis'], pep: 'P8' }
+    },
     status: 'borrador',
     sources: {
       [SRC]: { title: 'Fisiopatología (cap. esófago, estómago, intestino, páncreas e hígado)', author: 'Silbernagl y Lang', detail: 'Bibliografía básica del programa 2026-2 (clases del Dr. Cárdenas aún no están en el Drive)', authority: 'Libro de texto' }
@@ -82,7 +88,7 @@
           hook: { title: 'El científico que se tomó una bacteria', sage: 'Durante décadas se creyó que la úlcera era "de estrés y de ácido". En 1984 un médico se tomó un cultivo de Helicobacter pylori, se enfermó de gastritis y cambió la medicina. La úlcera tenía otra explicación.',
             text: 'En la PEP: explicar los mecanismos (qué agrede, qué defiende) y relacionarlos con el tratamiento. Como futuro químico farmacéutico, el **porqué del fármaco** es la parte importante.' },
           diagnostic: [
-            q('m1-d1', '¿Cómo dañan el estómago los AINE?', [{ text: 'Inhiben la COX y bajan las prostaglandinas protectoras', correct: true }, { text: 'Aumentan mucho la secreción de ácido', misconception: 'nsaid-mech' }, { text: 'Infectan la mucosa', note: 'Eso es H. pylori.' }], { concept: 'fis.ulcera', explain: 'Bajan la defensa.', slide: 3 }),
+            q('m1-d1', '¿Cómo dañan el estómago los AINE?', [{ text: 'Inhiben la COX y bajan las prostaglandinas protectoras', correct: true }, { text: 'Aumentan directamente la secreción de ácido', misconception: 'nsaid-mech' }, { text: 'Infectan la mucosa gástrica con bacterias', note: 'Eso es H. pylori.' }], { concept: 'fis.ulcera', explain: 'Bajan la defensa.', slide: 3 }),
             q('m1-d2', 'Disfagia a sólidos y líquidos desde el inicio, con regurgitación de comida sin digerir. Sugiere…', [{ text: 'Acalasia', correct: true }, { text: 'ERGE', misconception: 'achalasia-erge' }, { text: 'Úlcera duodenal', note: 'No da disfagia.' }], { concept: 'fis.esofago', explain: 'El esfínter no se abre.', slide: 2 })
           ],
           fundamentals: [
@@ -91,7 +97,7 @@
           ],
           explain: [],
           transfer: [
-            q('m1-t1', 'Estilo PEP: mujer de 68 años con artrosis que toma ibuprofeno diario; consulta por dolor epigástrico y melena. ¿Mecanismo de la lesión y medida farmacológica más lógica?', [{ text: 'AINE inhibe COX → ↓ prostaglandinas → ↓ defensa; suspender el AINE e iniciar un IBP', correct: true }, { text: 'Exceso de gastrina por un tumor; cirugía inmediata', note: 'Nada sugiere un gastrinoma.' }, { text: 'Exceso de ácido por estrés; antiácidos', misconception: 'ulcer-acid' }],
+            q('m1-t1', 'Estilo PEP: mujer de 68 años con artrosis que toma ibuprofeno diario; consulta por dolor epigástrico y melena. ¿Mecanismo de la lesión y medida farmacológica más lógica?', [{ text: 'AINE inhibe COX → ↓ prostaglandinas → ↓ defensa; suspender el AINE e iniciar un IBP', correct: true }, { text: 'Exceso de gastrina por un tumor; cirugía inmediata para extirparlo', note: 'Nada sugiere un gastrinoma.' }, { text: 'Exceso de ácido por estrés; antiácidos y reposo', misconception: 'ulcer-acid' }],
               { concept: 'fis.ulcera', explain: 'Úlcera por AINE: falla la defensa.', slide: 3 }),
             write('m1-w1', 'Enséñale a tu compañero: ¿por qué la úlcera péptica se explica como una "balanza"?', 'Porque la mucosa está siempre expuesta a agresores (ácido, pepsina, Helicobacter pylori, AINE) y se protege con moco, bicarbonato, prostaglandinas y flujo sanguíneo. La úlcera aparece cuando la balanza se inclina hacia la agresión: por ejemplo, los AINE bajan las prostaglandinas y la defensa, aunque el ácido sea normal. El tratamiento busca reequilibrarla: bajar el ácido con IBP, erradicar H. pylori o suspender el AINE.',
               ['Agresores: ácido, pepsina, H. pylori, AINE', 'Defensas: moco, HCO₃⁻, prostaglandinas, flujo', 'Úlcera = la balanza se inclina a la agresión; el tratamiento la reequilibra'],
@@ -100,7 +106,7 @@
         },
         parts: [
           { id: 'r1', intro: 'Parte 1: **esófago: abrir y cerrar**.',
-            pretest: q('m1-pre1', 'Adivina antes: la pirosis (ardor que sube) aparece cuando el esfínter esofágico inferior…', [{ text: 'Se abre cuando no debe', correct: true }, { text: 'No se abre nunca', misconception: 'achalasia-erge' }, { text: 'Funciona normal', note: 'Algo falla.' }], { concept: 'fis.esofago', explain: 'Reflujo.', slide: 2 }),
+            pretest: q('m1-pre1', 'Adivina antes: la pirosis (ardor que sube) aparece cuando el esfínter esofágico inferior…', [{ text: 'Se abre cuando no debe', correct: true }, { text: 'Permanece cerrado y no se abre al tragar', misconception: 'achalasia-erge' }, { text: 'Funciona con normalidad y el problema está en el estómago', note: 'Algo falla.' }], { concept: 'fis.esofago', explain: 'Reflujo.', slide: 2 }),
             explain: [
               { id: 'm1b1', concept: 'fis.esofago', title: 'Esófago: abrir y cerrar', slide: 2, body: '**ERGE**: el **esfínter esofágico inferior** (EEI) pierde tono o se relaja de más (hernia hiatal, obesidad, embarazo, comidas grasas, tabaco) → el ácido sube → **pirosis** y regurgitación ácida. Si persiste: esofagitis y **esófago de Barrett** (metaplasia intestinal, riesgo de adenocarcinoma). **Acalasia**: se pierden las neuronas **inhibitorias** (NO, VIP) del plexo mientérico → el EEI **no se relaja** y no hay peristalsis → **disfagia** a sólidos **y** líquidos, regurgitación, esófago dilatado ("pico de pájaro").',
                 deeper: 'Una obstrucción mecánica (tumor) da disfagia **primero a sólidos** y luego a líquidos; un trastorno motor como la acalasia da disfagia a ambos desde el inicio.' }
@@ -109,7 +115,7 @@
               classify('m1-p1', '¿ERGE o acalasia?', [['e', 'ERGE'], ['a', 'Acalasia']],
                 [['a', 'Pirosis después de comer', 'e'], ['b', 'EEI que no se relaja', 'a'], ['c', 'Hernia hiatal', 'e'], ['d', 'Pérdida de neuronas inhibitorias', 'a'], ['e', 'Esófago de Barrett', 'e'], ['f', 'Disfagia a sólidos y líquidos', 'a']],
                 { concept: 'fis.esofago', explain: 'Se abre de más frente a no se abre.', slide: 2, hint: '¿El problema es que sube el ácido o que no baja la comida?', misconception: 'achalasia-erge' }),
-              q('m1-p2', 'Disfagia que empezó con la carne y ahora también con líquidos, con baja de peso en un fumador de 65 años. Sospechas…', [{ text: 'Obstrucción mecánica (cáncer de esófago)', correct: true }, { text: 'Acalasia', note: 'La acalasia da disfagia a ambos desde el inicio.', misconception: 'achalasia-erge' }, { text: 'ERGE no complicada', note: 'No explica la disfagia progresiva.' }],
+              q('m1-p2', 'Disfagia que empezó con la carne y ahora también con líquidos, con baja de peso en un fumador de 65 años. Sospechas…', [{ text: 'Obstrucción mecánica (cáncer de esófago)', correct: true }, { text: 'Acalasia (falla de relajación del esfínter)', note: 'La acalasia da disfagia a ambos desde el inicio.', misconception: 'achalasia-erge' }, { text: 'ERGE no complicada con esofagitis leve', note: 'No explica la disfagia progresiva.' }],
                 { concept: 'fis.esofago', explain: 'Primero sólidos, luego líquidos = obstrucción que crece.', slide: 2, hint: '¿Cómo progresó la disfagia?' }),
               order('m1-p3', 'Ordena la progresión de un reflujo no tratado:', [['a', 'EEI con tono bajo'], ['b', 'Reflujo ácido repetido'], ['c', 'Esofagitis'], ['d', 'Esófago de Barrett (metaplasia)'], ['e', 'Adenocarcinoma']], ['a', 'b', 'c', 'd', 'e'],
                 { concept: 'fis.esofago', direction: 'En el tiempo.', explain: 'Daño crónico → metaplasia → neoplasia.', slide: 2, hint: 'La metaplasia viene antes del cáncer.' })
@@ -141,7 +147,7 @@
             text: 'En la PEP: clasificar diarreas (con la brecha osmolar), reconocer malabsorción, tipos de ictericia y las consecuencias de la cirrosis.' },
           diagnostic: [
             q('m2-d1', 'Diarrea que persiste en ayuno, con brecha osmolar fecal de 20. Es…', [{ text: 'Secretora', correct: true }, { text: 'Osmótica', misconception: 'diarrhea-type' }, { text: 'No se puede saber', note: 'Ayuno + brecha baja lo dicen.' }], { concept: 'fis.diarrea', explain: 'El epitelio secreta sal.', slide: 5 }),
-            q('m2-d2', 'Ictericia con orina oscura y deposiciones blancas sugiere…', [{ text: 'Obstrucción biliar (posthepática)', correct: true }, { text: 'Hemólisis', misconception: 'jaundice-type' }, { text: 'Normalidad', note: 'No es normal.' }], { concept: 'fis.higado', explain: 'Coluria y acolia: bilirrubina conjugada que no llega al intestino.', slide: 7 })
+            q('m2-d2', 'Ictericia con orina oscura y deposiciones blancas sugiere…', [{ text: 'Obstrucción biliar (posthepática)', correct: true }, { text: 'Hemólisis (prehepática)', misconception: 'jaundice-type' }, { text: 'Un hígado y vías biliares normales', note: 'No es normal.' }], { concept: 'fis.higado', explain: 'Coluria y acolia: bilirrubina conjugada que no llega al intestino.', slide: 7 })
           ],
           fundamentals: [
             { id: 'm2f1', concept: 'base.agua', title: 'Desde cero: agua y bilirrubina', slide: 5, body: 'El intestino absorbe agua **siguiendo a los solutos** (sobre todo Na⁺): si un soluto no se absorbe, retiene agua en la luz; si el epitelio secreta Cl⁻, el agua sale con él. La **bilirrubina** viene de la hemoglobina: es **no conjugada** (liposoluble, va unida a albúmina), el hígado la **conjuga** (hidrosoluble) y la excreta por la bilis; en el intestino da color café a las heces.',
@@ -159,7 +165,7 @@
         },
         parts: [
           { id: 'r1', intro: 'Parte 1: **diarrea y malabsorción**.',
-            pretest: q('m2-pre1', 'Adivina antes: una persona con déficit de lactasa toma leche y tiene diarrea porque la lactosa…', [{ text: 'Se queda en el intestino y arrastra agua', correct: true }, { text: 'Hace secretar cloruro al epitelio', misconception: 'diarrhea-type' }, { text: 'Infecta el intestino', note: 'No es infecciosa.' }], { concept: 'fis.diarrea', explain: 'Diarrea osmótica.', slide: 5 }),
+            pretest: q('m2-pre1', 'Adivina antes: una persona con déficit de lactasa toma leche y tiene diarrea porque la lactosa…', [{ text: 'Se queda en el intestino y arrastra agua', correct: true }, { text: 'Hace secretar cloruro al epitelio intestinal', misconception: 'diarrhea-type' }, { text: 'Infecta el intestino y causa inflamación', note: 'No es infecciosa.' }], { concept: 'fis.diarrea', explain: 'Diarrea osmótica.', slide: 5 }),
             explain: [
               { id: 'm2b1', concept: 'fis.diarrea', title: 'Diarrea y malabsorción', slide: 5, body: '**Osmótica**: un soluto no absorbido retiene agua (déficit de lactasa, laxantes de Mg²⁺, sorbitol); **cesa con el ayuno**; brecha **> 100**. **Secretora**: el epitelio secreta Cl⁻ (toxina del **cólera** → ↑ **AMPc** → canal **CFTR** abierto; tumores secretores de VIP); **persiste en ayuno**; brecha **< 50**. **Inflamatoria**: sangre, fiebre, leucocitos (Shigella, colitis ulcerosa). **Malabsorción**: **insuficiencia pancreática** (↓ lipasa → **esteatorrea**, déficit de vitaminas liposolubles A, D, E, K), **enfermedad celíaca** (gluten → atrofia de vellosidades). Brecha = **290 − 2([Na⁺] + [K⁺])**.',
                 deeper: 'La rehidratación oral funciona incluso en el cólera porque el cotransportador Na⁺-glucosa (SGLT1) sigue funcionando: la glucosa arrastra Na⁺ y el agua lo sigue.' }
@@ -170,12 +176,12 @@
                 { concept: 'fis.diarrea', explain: 'Soluto que retiene agua frente a epitelio que secreta.', slide: 5, hint: '¿Qué pasa con el ayuno?', misconception: 'diarrhea-type' }),
               num('m2-p2', 'Na⁺ fecal 95 y K⁺ fecal 45 mmol/L. Calcula la brecha osmolar fecal.', 10, 'mOsm/kg',
                 { concept: 'fis.diarrea', label: 'brecha', slide: 5, tol: 0.05, hint: '290 − 2(95 + 45).', traps: [{ value: 150, note: 'Falta multiplicar por 2.' }], solution: ['2 × 140 = 280', '290 − 280 = 10 → secretora'], explain: '10: secretora.' }),
-              q('m2-p3', 'Deposiciones grasosas, flotantes y malolientes, con baja de peso, en un alcohólico crónico. ¿Mecanismo más probable?', [{ text: 'Insuficiencia pancreática exocrina: falta lipasa', correct: true }, { text: 'Diarrea secretora por toxina', misconception: 'diarrhea-type' }, { text: 'Déficit de lactasa', note: 'No da esteatorrea.' }],
+              q('m2-p3', 'Deposiciones grasosas, flotantes y malolientes, con baja de peso, en un alcohólico crónico. ¿Mecanismo más probable?', [{ text: 'Insuficiencia pancreática exocrina: falta lipasa', correct: true }, { text: 'Diarrea secretora por una toxina bacteriana', misconception: 'diarrhea-type' }, { text: 'Déficit de lactasa con intolerancia a la leche', note: 'No da esteatorrea.' }],
                 { concept: 'fis.diarrea', explain: 'Esteatorrea por pancreatitis crónica.', slide: 6, hint: 'Grasa en las heces → ¿quién digiere grasa?' })
             ],
             rule: { title: 'Regla del sabio: la diarrea', concept: 'fis.diarrea', steps: ['Cesa en ayuno y brecha > 100 → osmótica', 'Persiste en ayuno y brecha < 50 → secretora', 'Grasa en heces → malabsorción (páncreas, celíaca)'] } },
           { id: 'r2', intro: 'Parte 2: **hígado y páncreas**.',
-            pretest: q('m2-pre2', 'Adivina antes: en la cirrosis, ¿por qué sangran más fácil?', [{ text: 'El hígado fabrica menos factores de coagulación', correct: true }, { text: 'Tienen más plaquetas', note: 'Suelen tener menos (bazo grande).' }, { text: 'Por la bilirrubina', note: 'No es la causa.' }], { concept: 'fis.higado', explain: 'Falla de síntesis.', slide: 7 }),
+            pretest: q('m2-pre2', 'Adivina antes: en la cirrosis, ¿por qué sangran más fácil?', [{ text: 'El hígado fabrica menos factores de coagulación', correct: true }, { text: 'Tienen más plaquetas de lo normal', note: 'Suelen tener menos (bazo grande).' }, { text: 'Por el exceso de bilirrubina en la sangre', note: 'No es la causa.' }], { concept: 'fis.higado', explain: 'Falla de síntesis.', slide: 7 }),
             explain: [
               { id: 'm2b2', concept: 'fis.higado', title: 'Hígado y páncreas', slide: 7, body: '**Ictericia**: **prehepática** (hemólisis) → bilirrubina **no conjugada**, sin coluria; **hepática** (hepatitis, cirrosis) → mixta; **posthepática** (cálculo en el colédoco, cáncer de cabeza de páncreas) → **conjugada**, **coluria**, **acolia**, prurito. **Cirrosis** (alcohol, hepatitis B/C, hígado graso): fibrosis → **hipertensión portal** (**ascitis**, **várices esofágicas**, esplenomegalia) e **insuficiencia hepática** (↓ **albúmina**, ↓ **factores de coagulación** → INR alto, **encefalopatía** por NH₃). **Pancreatitis aguda** (cálculos biliares, alcohol): la **tripsina** se activa **dentro** del páncreas → autodigestión → dolor en cinturón, **↑ lipasa** y amilasa.',
                 deeper: 'Fármacos: la lactulosa trata la encefalopatía (acidifica el colon: NH₃ → NH₄⁺, que no se absorbe); los betabloqueadores no selectivos bajan la presión portal y previenen el sangrado de várices; la espironolactona (antialdosterónico) trata la ascitis.' }

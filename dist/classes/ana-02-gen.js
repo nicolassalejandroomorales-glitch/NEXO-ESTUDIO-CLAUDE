@@ -51,20 +51,20 @@
     make(rng, level) {
       if (level === 1) { const [text, term] = pick(rng, TERMS);
         return choice(rng, `¿Cómo se llama esto? "${text}"`, term, take(rng, TERMS.map(t => t[1]).filter(t => t !== term), 3).map(t => ({ text: t, note: 'Repasa las piezas de la titulación.', misconception: (term + t).includes('Punto') ? 'eq-vs-end' : undefined })),
-          { concept: 'ana.volumetria', slide: 2, hint: 'Teórico frente a observado; bureta frente a matraz.', explain: `${term}.` }); }
+          { concept: 'ana.volumetria', slide: 7, hint: 'Teórico frente a observado; bureta frente a matraz.', explain: `${term}.` }); }
       if (level <= 3) { const veq = between(rng, 15, 40, 0.01), d = pick(rng, [-1, 1]) * between(rng, 0.05, 0.6, 0.01), vf = Number((veq + d).toFixed(2));
-        return number(`Según la estequiometría, la equivalencia está en ${fix(veq, 2)} mL, pero el indicador vira a los ${fix(vf, 2)} mL. ¿Cuál es el error de titulación (mL, con signo)?`, vf - veq, 'mL', { concept: 'ana.volumetria', slide: 2, label: 'error', tol: 0.02, hint: 'Error = V(punto final) − V(equivalencia).',
+        return number(`Según la estequiometría, la equivalencia está en ${fix(veq, 2)} mL, pero el indicador vira a los ${fix(vf, 2)} mL. ¿Cuál es el error de titulación (mL, con signo)?`, vf - veq, 'mL', { concept: 'ana.volumetria', slide: 7, label: 'error', tol: 0.02, hint: 'Error = V(punto final) − V(equivalencia).',
           traps: [{ value: veq - vf, note: 'Es punto final menos equivalencia.', misconception: 'eq-vs-end' }, { value: (vf - veq) / veq * 100, note: 'Eso es el error relativo en %; se pide en mL.' }],
           solution: [`Error = ${fix(vf, 2)} − ${fix(veq, 2)} = ${dec(vf - veq, 2)} mL`, vf > veq ? 'Positivo: el indicador viró tarde (se pasó de la equivalencia).' : 'Negativo: el indicador viró antes de la equivalencia.'], explain: `${dec(vf - veq, 2)} mL.` }); }
       if (level === 4) { const [text, kind] = pick(rng, KINDS_T);
         return choice(rng, `${text}. ¿Qué tipo de titulación es?`, kind, [...new Set(KINDS_T.map(k => k[1]))].filter(k => k !== kind).concat(['Gravimetría: se pesa el producto']).map(t => ({ text: t, note: '¿Se titula el analito, un exceso que sobra o un producto liberado?' })),
-          { concept: 'ana.volumetria', slide: 3, hint: '¿Qué está en el matraz cuando se titula?', explain: `${kind}.` }); }
+          { concept: 'ana.volumetria', slide: 23, hint: '¿Qué está en el matraz cuando se titula?', explain: `${kind}.` }); }
       // Retroceso con números: CaCO₃ + 2 HCl
       const mTab = between(rng, 0.3, 0.9, 0.0001), pct = between(rng, 0.7, 0.98, 0.001), nCa = mTab * 1000 * pct / 100.09, Vh = pick(rng, [50, 50, 40]), Ch = pick(rng, [0.5, 0.4]), nH = Vh * Ch;
       const nBack = nH - 2 * nCa; if (nBack <= 0.5) return this.make(() => 0.3, level);
       const Vn = between(rng, 12, 40, 0.01), Cn = Number((nBack / Vn).toFixed(4)), nCaC = (nH - Vn * Cn) / 2, mgCa = nCaC * 100.09, pctC = mgCa / (mTab * 1000) * 100;
       return number(`Estilo PEP: una tableta antiácido de ${fix(mTab, 4)} g se disuelve en ${Vh},00 mL de HCl ${fix(Ch, 3)} M (exceso). El HCl que sobra gasta ${fix(Vn, 2)} mL de NaOH ${fix(Cn, 4)} M. ¿Qué % de CaCO₃ (100,09 g/mol) tiene la tableta?`, pctC, '%',
-        { concept: 'ana.volumetria', slide: 3, label: '%', tol: 0.01, hint: 'HCl total − HCl que sobra = HCl que reaccionó; CaCO₃ + 2 HCl.',
+        { concept: 'ana.volumetria', slide: 23, label: '%', tol: 0.01, hint: 'HCl total − HCl que sobra = HCl que reaccionó; CaCO₃ + 2 HCl.',
           traps: [{ value: pctC * 2, note: 'Cada CaCO₃ gasta 2 HCl: divide por 2.', misconception: 'stoich-ratio' }, { value: Vn * Cn / 2 * 100.09 / (mTab * 1000) * 100, note: 'Usaste el HCl que sobró, no el que reaccionó.' }],
           solution: [`HCl total = ${Vh},00 × ${fix(Ch, 3)} = ${dec(nH, 3)} mmol`, `HCl que sobra = ${fix(Vn, 2)} × ${fix(Cn, 4)} = ${dec(Vn * Cn, 3)} mmol`, `HCl que reaccionó = ${dec(nH - Vn * Cn, 3)} mmol → CaCO₃ = ${dec(nCaC, 3)} mmol`, `m = ${dec(nCaC, 3)} × 100,09 = ${dec(mgCa, 1)} mg → ${dec(pctC, 1)} %`], explain: `${dec(pctC, 1)} %.` });
     }
@@ -77,18 +77,18 @@
     id: 'patron', title: 'Patrones y estandarización', mission: 'm1', concepts: ['ana.patron'],
     make(rng, level) {
       if (level === 1) { const good = pick(rng, STD.filter(s => s[1]))[0];
-        return choice(rng, '¿Cuál de estos sirve como patrón primario?', good, take(rng, STD.filter(s => !s[1]), 3).map(s => ({ text: s[0], note: `No: ${s[2]}.`, misconception: 'primary-std' })), { concept: 'ana.patron', slide: 4, hint: 'Puro, estable y no higroscópico.', explain: `${good}.` }); }
+        return choice(rng, '¿Cuál de estos sirve como patrón primario?', good, take(rng, STD.filter(s => !s[1]), 3).map(s => ({ text: s[0], note: `No: ${s[2]}.`, misconception: 'primary-std' })), { concept: 'ana.patron', slide: 15, hint: 'Puro, estable y no higroscópico.', explain: `${good}.` }); }
       if (level === 2) { const [bad, , why] = pick(rng, STD.filter(s => !s[1])), reasons = STD.filter(s => !s[1] && s[0] !== bad).map(s => s[2]);
         return choice(rng, `¿Por qué ${bad} NO sirve como patrón primario?`, `Porque ${why}`, [...take(rng, reasons, 2).map(r => ({ text: `Porque ${r}`, note: 'Esa razón es de otro reactivo.' })), { text: 'Porque su masa molar es demasiado alta', note: 'Una masa molar alta es una ventaja.', misconception: 'primary-std' }],
-          { concept: 'ana.patron', slide: 4, hint: 'Piensa qué le pasa al pesarlo o guardarlo.', explain: `${bad}: ${why}.` }); }
+          { concept: 'ana.patron', slide: 15, hint: 'Piensa qué le pasa al pesarlo o guardarlo.', explain: `${bad}: ${why}.` }); }
       if (level === 4 || (level === 5 && rng() < 0.5)) { // HCl con Na₂CO₃ (1:2)
         const m = between(rng, 0.1, 0.3, 0.0001), V = between(rng, 18, 45, 0.01), n = m * 1000 / 105.99, C = 2 * n / V;
         return number(`${level === 5 ? 'Estilo PEP: ' : ''}Se pesan ${fix(m, 4)} g de Na₂CO₃ (105,99 g/mol) y se titulan con ${fix(V, 2)} mL de HCl hasta el segundo punto (Na₂CO₃ + 2 HCl). ¿Concentración del HCl?`, C, 'M',
-          { concept: 'ana.patron', slide: 5, label: 'C', tol: 0.005, hint: 'mmol Na₂CO₃ × 2 = mmol HCl; C = mmol/mL.', traps: [{ value: n / V, note: 'Falta la relación 1:2.', misconception: 'stoich-ratio' }, { value: C / 1000, note: 'Mezclaste mol con mL.', misconception: 'ml-l' }],
+          { concept: 'ana.patron', slide: 17, label: 'C', tol: 0.005, hint: 'mmol Na₂CO₃ × 2 = mmol HCl; C = mmol/mL.', traps: [{ value: n / V, note: 'Falta la relación 1:2.', misconception: 'stoich-ratio' }, { value: C / 1000, note: 'Mezclaste mol con mL.', misconception: 'ml-l' }],
             solution: [`n(Na₂CO₃) = ${dec(m * 1000, 1)} / 105,99 = ${dec(n, 4)} mmol`, `n(HCl) = 2 × ${dec(n, 4)} = ${dec(2 * n, 4)} mmol`, `C = ${dec(2 * n, 4)} / ${fix(V, 2)} = ${dec(C, 4)} M`], explain: `${dec(C, 4)} M.` }); }
       const m = between(rng, 0.3, 0.9, 0.0001), V = between(rng, 15, 45, 0.01), n = m * 1000 / 204.22, C = n / V;
       return number(`${level === 5 ? 'Estilo PEP: ' : ''}Se pesan ${fix(m, 4)} g de KHP (204,22 g/mol, 1:1 con NaOH) y se titulan con ${fix(V, 2)} mL de NaOH. ¿Concentración del NaOH?`, C, 'M',
-        { concept: 'ana.patron', slide: 5, label: 'C', tol: 0.005, hint: 'n = m/MM (en mmol); C = n/V (mL).', traps: [{ value: C / 1000, note: 'Mezclaste mol con mL.', misconception: 'ml-l' }, { value: m / V, note: 'Falta pasar la masa a moles.' }],
+        { concept: 'ana.patron', slide: 17, label: 'C', tol: 0.005, hint: 'n = m/MM (en mmol); C = n/V (mL).', traps: [{ value: C / 1000, note: 'Mezclaste mol con mL.', misconception: 'ml-l' }, { value: m / V, note: 'Falta pasar la masa a moles.' }],
           solution: [`n = ${dec(m * 1000, 1)} mg / 204,22 = ${dec(n, 4)} mmol`, `C = ${dec(n, 4)} / ${fix(V, 2)} = ${dec(C, 4)} M`], explain: `${dec(C, 4)} M.` });
     }
   };
@@ -99,10 +99,10 @@
     make(rng, level) {
       const rx = pick(rng, level <= 2 ? RXN.slice(0, 3) : RXN), Ct = between(rng, 0.05, 0.2, 0.0001), Vt = between(rng, 10, 40, 0.01), Va = pick(rng, [10, 20, 25]);
       const nt = Ct * Vt, na = nt * rx.r, Ca = na / Va;
-      if (level === 1) return number(`¿Cuántos mmol de ${rx.titrant} hay en ${fix(Vt, 2)} mL de solución ${fix(Ct, 4)} M?`, nt, 'mmol', { concept: 'ana.estequio', slide: 6, label: 'n', tol: 0.005, hint: 'mmol = mL × M.',
+      if (level === 1) return number(`¿Cuántos mmol de ${rx.titrant} hay en ${fix(Vt, 2)} mL de solución ${fix(Ct, 4)} M?`, nt, 'mmol', { concept: 'ana.estequio', slide: 32, label: 'n', tol: 0.005, hint: 'mmol = mL × M.',
         traps: [{ value: nt / 1000, note: 'Eso son mol.', misconception: 'ml-l' }], solution: [`${fix(Vt, 2)} × ${fix(Ct, 4)} = ${dec(nt, 4)} mmol`], explain: `${dec(nt, 4)} mmol.` });
       return number(`${level === 5 ? 'Estilo PEP: ' : ''}${Va},00 mL de ${rx.analyte} gastan ${fix(Vt, 2)} mL de ${rx.titrant} ${fix(Ct, 4)} M (${rx.eq}). ¿Concentración de ${rx.analyte}?`, Ca, 'M',
-        { concept: 'ana.estequio', slide: 6, label: 'C', tol: 0.005, hint: `mmol titulante = V × C; relación ${ratioText(rx.r)}; divide por ${Va},00 mL.`,
+        { concept: 'ana.estequio', slide: 32, label: 'C', tol: 0.005, hint: `mmol titulante = V × C; relación ${ratioText(rx.r)}; divide por ${Va},00 mL.`,
           traps: [{ value: nt / Va, note: 'Olvidaste la estequiometría.', misconception: 'stoich-ratio' }, { value: nt / rx.r / Va, note: 'Aplicaste la estequiometría al revés.' }, { value: Ct * Va / Vt * rx.r, note: 'Invertiste los volúmenes.' }],
           solution: [`n(${rx.titrant}) = ${fix(Vt, 2)} × ${fix(Ct, 4)} = ${dec(nt, 4)} mmol`, `n(${rx.analyte}) = ${dec(nt, 4)} × ${rx.r === 1 ? '1' : '1/2'} = ${dec(na, 4)} mmol`, `C = ${dec(na, 4)} / ${Va},00 = ${dec(Ca, 4)} M`], explain: `${dec(Ca, 4)} M.` });
     }
@@ -114,7 +114,7 @@
     make(rng, level) {
       const rx = pick(rng, level <= 2 ? RXN.slice(0, 3) : RXN), Ca = between(rng, 0.05, 0.15, 0.001), Va = pick(rng, [10, 20, 25]), Ct = pick(rng, [0.05, 0.1, 0.1, 0.2]), Ve = Ca * Va / rx.r / Ct;
       return number(`${level === 5 ? 'Estilo PEP: ' : ''}¿Qué volumen de ${rx.titrant} ${dec(Ct, 2)} M se necesita para llegar a la equivalencia con ${Va},00 mL de ${rx.analyte} ${fix(Ca, 3)} M? (${rx.eq})`, Ve, 'mL',
-        { concept: 'ana.estequio', slide: 6, label: 'V', tol: 0.005, hint: 'mmol analito → estequiometría → V = mmol/C.', traps: [{ value: Ca * Va / Ct, note: 'Olvidaste la estequiometría.', misconception: 'stoich-ratio' }, { value: Ca * Va * rx.r / Ct, note: 'Estequiometría al revés.' }],
+        { concept: 'ana.estequio', slide: 32, label: 'V', tol: 0.005, hint: 'mmol analito → estequiometría → V = mmol/C.', traps: [{ value: Ca * Va / Ct, note: 'Olvidaste la estequiometría.', misconception: 'stoich-ratio' }, { value: Ca * Va * rx.r / Ct, note: 'Estequiometría al revés.' }],
           solution: [`n(${rx.analyte}) = ${Va},00 × ${fix(Ca, 3)} = ${dec(Ca * Va, 4)} mmol`, `n(${rx.titrant}) = ${dec(Ca * Va / rx.r, 4)} mmol`, `V = ${dec(Ca * Va / rx.r, 4)} / ${dec(Ct, 2)} = ${dec(Ve, 2)} mL`], explain: `${dec(Ve, 2)} mL.` });
     }
   };
@@ -126,19 +126,19 @@
     make(rng, level) {
       const Vt = pick(rng, [100, 250, 500]), Va = pick(rng, [10, 20, 25]), f = Vt / Va;
       if (level <= 2) { const n = between(rng, 0.1, 2, 0.001);
-        return number(`Una alícuota de ${Va},00 mL de un aforado de ${dec(Vt)},0 mL contiene ${fix(n, 3)} mmol de analito. ¿Cuántos mmol hay en todo el aforado?`, n * f, 'mmol', { concept: 'ana.alicuotas', slide: 7, label: 'n', tol: 0.005, hint: '× V_total/V_alícuota.',
+        return number(`Una alícuota de ${Va},00 mL de un aforado de ${dec(Vt)},0 mL contiene ${fix(n, 3)} mmol de analito. ¿Cuántos mmol hay en todo el aforado?`, n * f, 'mmol', { concept: 'ana.alicuotas', slide: 19, label: 'n', tol: 0.005, hint: '× V_total/V_alícuota.',
           traps: [{ value: n, note: 'Falta el factor de alícuota.', misconception: 'aliquot-factor' }, { value: n / f, note: 'Al revés: el total es mayor.' }], solution: [`${fix(n, 3)} × ${dec(Vt)}/${Va} = ${dec(n * f, 3)} mmol`], explain: `${dec(n * f, 3)} mmol.` }); }
       if (level === 3) { const C1 = between(rng, 0.1, 1, 0.01), V1 = pick(rng, [5, 10, 25]), V2 = pick(rng, [100, 250, 500]), C2 = C1 * V1 / V2;
-        return number(`Se toman ${V1},00 mL de una solución ${fix(C1, 2)} M y se aforan a ${V2},0 mL. ¿Nueva concentración?`, C2, 'M', { concept: 'ana.alicuotas', slide: 7, label: 'C₂', tol: 0.005, hint: 'C₂ = C₁V₁/V₂.',
+        return number(`Se toman ${V1},00 mL de una solución ${fix(C1, 2)} M y se aforan a ${V2},0 mL. ¿Nueva concentración?`, C2, 'M', { concept: 'ana.alicuotas', slide: 19, label: 'C₂', tol: 0.005, hint: 'C₂ = C₁V₁/V₂.',
           traps: [{ value: C1 * V2 / V1, note: 'Al revés: diluir baja la concentración.' }], solution: [`C₂ = ${fix(C1, 2)} × ${V1} / ${V2} = ${dec(C2, 4)} M`], explain: `${dec(C2, 4)} M.` }); }
       const d = pick(rng, DRUGS), mg = d.label * between(rng, 0.93, 1.05, 0.001), mtab = between(rng, mg / 1000 + 0.08, mg / 1000 + 0.3, 0.0001), Ct = pick(rng, [0.05, 0.1]);
       const nAli = mg / d.mm / f, Vb = Number((nAli / Ct).toFixed(2)), mgCalc = Vb * Ct * f * d.mm, pct = mgCalc / (mtab * 1000) * 100;
       const ask = level === 5 ? 'pct' : 'mg';
       const p = `${level === 5 ? 'Estilo PEP: ' : ''}Un comprimido de ${fix(mtab, 4)} g se disuelve y se afora a ${dec(Vt)},0 mL. Una alícuota de ${Va},00 mL gasta ${fix(Vb, 2)} mL de NaOH ${dec(Ct, 2)} M (1:1). MM del ${d.name} = ${fix(d.mm, 2)} g/mol. ${ask === 'pct' ? '¿Qué % del comprimido es principio activo?' : '¿Cuántos mg de principio activo tiene el comprimido?'}`;
       const sol = [`n en la alícuota = ${fix(Vb, 2)} × ${dec(Ct, 2)} = ${dec(Vb * Ct, 4)} mmol`, `Total = ${dec(Vb * Ct, 4)} × ${dec(Vt)}/${Va} = ${dec(Vb * Ct * f, 4)} mmol`, `m = ${dec(Vb * Ct * f, 4)} × ${fix(d.mm, 2)} = ${dec(mgCalc, 1)} mg`];
-      if (ask === 'mg') return number(p, mgCalc, 'mg', { concept: 'ana.alicuotas', slide: 7, label: 'masa', tol: 0.01, hint: 'mmol → × factor de alícuota → × MM.',
+      if (ask === 'mg') return number(p, mgCalc, 'mg', { concept: 'ana.alicuotas', slide: 19, label: 'masa', tol: 0.01, hint: 'mmol → × factor de alícuota → × MM.',
         traps: [{ value: mgCalc / f, note: 'Esa es la masa en la alícuota.', misconception: 'aliquot-factor' }, { value: mgCalc / 1000, note: 'mmol × g/mol = mg.', misconception: 'ml-l' }], solution: sol, explain: `${dec(mgCalc, 1)} mg.` });
-      return number(p, pct, '%', { concept: 'ana.alicuotas', slide: 7, label: '%', tol: 0.01, hint: 'Masa de activo / masa del comprimido × 100.',
+      return number(p, pct, '%', { concept: 'ana.alicuotas', slide: 19, label: '%', tol: 0.01, hint: 'Masa de activo / masa del comprimido × 100.',
         traps: [{ value: pct / f, note: 'Falta el factor de alícuota.', misconception: 'aliquot-factor' }, { value: mgCalc / d.label * 100, note: 'Divide por la masa del comprimido, no por lo rotulado.' }], solution: [...sol, `% = ${dec(mgCalc, 1)} / ${dec(mtab * 1000, 1)} × 100 = ${dec(pct, 1)} %`], explain: `${dec(pct, 1)} %.` });
     }
   };
@@ -148,7 +148,7 @@
     id: 'moles', title: 'mmol y mg', mission: null, concepts: ['base.moles'],
     make(rng, level) {
       const mm = pick(rng, [[204.22, 'KHP'], [105.99, 'Na₂CO₃'], [40.0, 'NaOH'], [180.16, 'aspirina']]), m = between(rng, 50, 900, 0.1);
-      return number(`${level === 5 ? 'Estilo PEP: ' : ''}¿Cuántos mmol hay en ${dec(m, 1)} mg de ${mm[1]} (${fix(mm[0], 2)} g/mol)?`, m / mm[0], 'mmol', { concept: 'base.moles', slide: 6, label: 'n', tol: 0.005, hint: 'mmol = mg / (g/mol).',
+      return number(`${level === 5 ? 'Estilo PEP: ' : ''}¿Cuántos mmol hay en ${dec(m, 1)} mg de ${mm[1]} (${fix(mm[0], 2)} g/mol)?`, m / mm[0], 'mmol', { concept: 'base.moles', slide: 32, label: 'n', tol: 0.005, hint: 'mmol = mg / (g/mol).',
         traps: [{ value: m / mm[0] / 1000, note: 'mg / (g/mol) da mmol directamente.', misconception: 'ml-l' }, { value: m * mm[0], note: 'Se divide por la masa molar.' }], solution: [`${dec(m, 1)} / ${fix(mm[0], 2)} = ${dec(m / mm[0], 4)} mmol`], explain: `${dec(m / mm[0], 4)} mmol.` });
     }
   };
@@ -156,7 +156,7 @@
     id: 'estequio', title: 'Relación estequiométrica', mission: null, concepts: ['base.estequio'],
     make(rng, level) {
       const rx = pick(rng, RXN.slice(3)), nt = between(rng, 0.5, 5, 0.01);
-      return number(`${level === 5 ? 'Estilo PEP: ' : ''}${rx.eq}. Si reaccionan ${fix(nt, 2)} mmol de ${rx.titrant}, ¿cuántos mmol de ${rx.analyte} había?`, nt * rx.r, 'mmol', { concept: 'base.estequio', slide: 6, label: 'n', tol: 0.005, hint: 'Mira los coeficientes.',
+      return number(`${level === 5 ? 'Estilo PEP: ' : ''}${rx.eq}. Si reaccionan ${fix(nt, 2)} mmol de ${rx.titrant}, ¿cuántos mmol de ${rx.analyte} había?`, nt * rx.r, 'mmol', { concept: 'base.estequio', slide: 32, label: 'n', tol: 0.005, hint: 'Mira los coeficientes.',
         traps: [{ value: nt, note: 'Falta la relación 1:2.', misconception: 'stoich-ratio' }, { value: nt * 2, note: 'Al revés.' }], solution: [`n = ${fix(nt, 2)} × 1/2 = ${dec(nt / 2, 3)} mmol`], explain: `${dec(nt / 2, 3)} mmol.` });
     }
   };

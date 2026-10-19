@@ -17,3 +17,6 @@ description: Crear o editar una clase de Nexo (contenido y lógica; la pantalla 
    (`want` es opcional: pide una variante concreta). La clase se registra con una línea en `dist/classes/catalog.js`.
 9. **Regla de calidad** (`node tools/exercise-quality.cjs`, corre en `npm test`): por generador ≥ 60 ejercicios distintos y ≥ 3 moldes
    (enunciados distintos al borrar los números), ≥ 3 alternativas por pregunta y nada de "ninguna/todas las anteriores".
+
+## La pantalla de la clase (19 oct 2026)
+`dist/classes/aula.js` (+ `aula.css`) dibuja cada misión en el estilo de la estación y usa la lógica de `player.js`; la prueba final por misión sale de `cls.demuestra` (estación en modo `only: 'demuestra'`, `estacion.js`). Se prueba con `node tools/demuestra-test.cjs`. Detalle: `docs/clases-v2/SPEC.md`.

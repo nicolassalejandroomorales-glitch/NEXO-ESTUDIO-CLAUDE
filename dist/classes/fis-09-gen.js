@@ -36,12 +36,14 @@
   };
 
   /* ════════ Úlcera: caso → mecanismo → tratamiento con su porqué ════════ */
+  // Prefiere afirmaciones de largo parecido a la correcta: si no, la más larga se adivina sin saber la materia.
+  const near = (rng, list, ref, n) => list.map(x => [x, Math.abs((Array.isArray(x) ? x[0] : x).length - ref.length) + rng() * 50]).sort((a, b) => a[1] - b[1]).slice(0, n).map(x => x[0]);
   function statements(rng, level, bank, extra) {
     const askFalse = level >= 3 ? rng() < 0.5 : false;
     if (askFalse) { const [f, why, mis] = pick(rng, bank.F);
-      return choice(rng, `${level === 5 ? 'Estilo PEP: ' : ''}${bank.topic}: ¿cuál afirmación es INCORRECTA?`, f, take(rng, bank.T, 3).map(t => ({ text: t, note: 'Esta es verdadera.' })), { ...extra, misconception: mis, explain: `Es falsa: ${why}` }); }
+      return choice(rng, `${level === 5 ? 'Estilo PEP: ' : ''}${bank.topic}: ¿cuál afirmación es INCORRECTA?`, f, near(rng, bank.T, f, 3).map(t => ({ text: t, note: 'Esta es verdadera.' })), { ...extra, misconception: mis, explain: `Es falsa: ${why}` }); }
     const t = pick(rng, bank.T);
-    return choice(rng, `${level === 5 ? 'Estilo PEP: ' : ''}${bank.topic}: ¿cuál afirmación es correcta?`, t, take(rng, bank.F, 3).map(([text, why, mis]) => ({ text, note: why, misconception: mis })), { ...extra, explain: t });
+    return choice(rng, `${level === 5 ? 'Estilo PEP: ' : ''}${bank.topic}: ¿cuál afirmación es correcta?`, t, near(rng, bank.F, t, 3).map(([text, why, mis]) => ({ text, note: why, misconception: mis })), { ...extra, explain: t });
   }
   const list3 = xs => xs.length > 1 ? `${xs.slice(0, -1).join(', ')} y ${xs[xs.length - 1]}` : xs[0];
   const caseSigns = (rng, d, n) => { const k = pick(rng, d.key); return shuffle(rng, [k, ...take(rng, [...d.key, ...d.other].filter(x => x !== k), Math.max(0, n - 1))]); };
