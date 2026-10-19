@@ -11,7 +11,10 @@
   };
   const RESPONSE = { choice: 'multiple_choice', poe: 'multiple_choice', pick: 'multiple_choice', spot: 'multiple_choice', write: 'short_text',
     number: 'numeric', arrows: 'chemical_structure', build: 'chemical_structure', order: 'ordering', classify: 'matching', match: 'matching', recipe: 'ordering' };
-  const SKILL = { arrows: 'draw', build: 'draw', write: 'justify', number: 'calculate', poe: 'predict' };
+  /* Familia = habilidad dentro del concepto (docs/motor-rangos/SPEC.md): reconocer, organizar, calcular, dibujar o justificar.
+     Los rangos altos piden aciertos en varias familias: dominar el concepto de varias formas, no solo eligiendo. */
+  const SKILL = { choice: 'identify', pick: 'identify', spot: 'identify', poe: 'identify', order: 'compare', classify: 'compare', match: 'compare',
+    recipe: 'compare', number: 'calculate', build: 'draw', arrows: 'draw', write: 'justify' };
   const ready = new Set();
   // Cada clase tiene sus propios conceptos ("base.gases" de Fisiología no es el de Fisicoquímica); solo los alias se comparten.
   const conceptOf = (cls, id) => ALIAS[cls.id]?.[id] || `${cls.id}:${id}`;
@@ -56,14 +59,14 @@
         description: `Misión «${mission?.title || concept}» de ${cls.title}`, tags: [cls.id, 'clase'], active: true }] });
     }
     const sources = sourcesOf(cls, item.source, item.slide);
-    const familyId = `class.${cls.id}.${conceptId}`;
-    const type = item.type || 'choice', selfGraded = type === 'write';
+    const type = item.type || 'choice', selfGraded = type === 'write', skill = SKILL[type] || 'identify';
+    const familyId = `class.${cls.id}.${conceptId}.${skill}`;
     model.extend({
       sources,
-      families: [{ id: familyId, conceptIds: [conceptId], skillIds: ['identify'], difficulty: 2, generatorType: 'curated', version: 1,
+      families: [{ id: familyId, conceptIds: [conceptId], skillIds: [skill], difficulty: 2, generatorType: 'curated', version: 1,
         validator: 'class_item', misconceptionIds: [], active: true, transferLevel: 'standard', examStyle: false }],
       conceptSources: sources.map(s => ({ conceptId, sourceId: s.id })),
-      exercises: [{ id, lessonId: cls.id, familyId, conceptIds: [conceptId], skillIds: [SKILL[type] || 'identify'],
+      exercises: [{ id, lessonId: cls.id, familyId, conceptIds: [conceptId], skillIds: [skill],
         difficulty: Number(item.gen?.level) || 2, expectedResponseType: RESPONSE[type] || 'structured_fields',
         validator: selfGraded ? 'self_rubric' : 'class_item', version: 1, active: true, misconceptionIds: [],
         examStyle: Boolean(transfer), transfer: Boolean(transfer), sourceIds: sources.map(s => s.id) }]
@@ -81,11 +84,21 @@
     return engine.recordAttempt(api, {
       id: ev.id, exerciseId, outcome: ev.correct ? 'correct' : 'incorrect', assistanceUsed: ev.hint || ev.retry,
       confidence: ev.confidence ?? null, at: ev.at, review: ev.delayed, attemptNumber: ev.retry ? 2 : 1,
+      reasoningSupported: item.type === 'write' && ev.correct, // escribir el porqué cumple "justificó" (rango 3), aunque no es verificada
       misconceptionId: !ev.correct && ev.misconception && engine.model.byId(engine.model.misconceptions, `${cls.id}.${ev.misconception}`)
         ? `${cls.id}.${ev.misconception}` : null,
       activityType, activityId: cls.id
     });
   }
 
-  window.NexoAcademicBridge = { record, ensureClass, ensureItem, conceptOf, aliases: ALIAS };
+  /* Al recargar, el catálogo solo trae el piloto. El perfil carga las clases con evidencia guardada (prefijo "<clase>:"
+     del ejercicio) y llama a esto para calcular los rangos con sus conceptos y prerrequisitos. */
+  function ensureFromEvidence(state) {
+    const engine = window.NexoAcademicEngine;
+    if (!engine) return;
+    const ids = new Set((state?.academicIntelligence?.evidence || []).map(e => String(e.exerciseId || '').split(':')[0]));
+    for (const id of ids) if (window.NexoClasses?.[id]?.concepts) ensureClass(engine.model, window.NexoClasses[id]);
+  }
+
+  window.NexoAcademicBridge = { record, ensureClass, ensureItem, ensureFromEvidence, conceptOf, aliases: ALIAS };
 })();

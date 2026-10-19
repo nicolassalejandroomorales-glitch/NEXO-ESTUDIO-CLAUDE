@@ -16,7 +16,7 @@
     const correct=relevant.filter(item=>item.outcome==='correct');
     const independent=correct.filter(item=>!item.assistanceUsed);
     const verified=independent.filter(item=>item.validationStatus==='verified'&&
-      ['structured_validator','instructor_review'].includes(item.source));
+      ['structured_validator','instructor_review','class_item'].includes(item.source)); // class_item: clase o juego corregido por la app
     const verifiedFamilies=new Set(verified.map(item=>item.familyId).filter(Boolean));
     const exercises=new Set(independent.map(item=>item.exerciseId||byAttempt.get(item.attemptId)?.exerciseId).filter(Boolean));
     const families=new Set(independent.map(item=>item.familyId).filter(Boolean));

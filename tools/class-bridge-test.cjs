@@ -47,6 +47,17 @@ const rec = (extra = {}) => ({ id: `x:${Math.random()}`, conceptId: 'am.pka', co
   assert.equal(model.exercises.filter(e => e.id === 'org-01:gen:pka:2').length, 1);
   await bridge.record(api, cls, item('m4-p1'), rec({ transfer: true }));
   assert.ok(model.byId(model.exercises, 'org-01:m4-p1#t').transfer);
+  // 6b) Familias por habilidad (docs/motor-rangos/SPEC.md): elegir y calcular son familias distintas del mismo concepto;
+  //     una escrita correcta marca "justificó" sin ser verificada.
+  await bridge.record(api, cls, item('m4-n1', 'number'), rec());
+  const fams = new Set(state.academicIntelligence.evidence.filter(e => e.conceptId === 'org.pka' && e.source === 'class_item').map(e => e.familyId));
+  assert.ok(fams.has('class.org-01.org.pka.identify') && fams.has('class.org-01.org.pka.calculate'), [...fams].join(','));
+  await bridge.record(api, cls, item('m4-w2', 'write'), rec());
+  assert.equal(state.academicIntelligence.evidence[0].reasoningSupported, true);
+  assert.equal(state.academicIntelligence.evidence[0].source, 'self_rubric');
+  // 6c) Al recargar, ensureFromEvidence vuelve a armar el catálogo de las clases con evidencia.
+  bridge.ensureFromEvidence({ academicIntelligence: { evidence: [{ exerciseId: 'fq-01:x' }] } });
+  assert.ok(model.byId(model.concepts, bridge.conceptOf(window.NexoClasses['fq-01'], window.NexoClasses['fq-01'].concepts[0].id)));
   // 7) Todas las clases: catálogo válido, sin ciclos, sin choques entre ramos y cada ejercicio con su diapositiva.
   const all = Object.values(window.NexoClasses).filter(c => c.concepts);
   assert.ok(all.length >= 10, 'se cargaron las clases');

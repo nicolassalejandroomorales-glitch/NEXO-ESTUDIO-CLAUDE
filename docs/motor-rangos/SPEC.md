@@ -34,10 +34,10 @@ Pero **las clases no pueden dar ningún rango** (`dist/academic/ranks.js`), por 
    - `skillIds` del ejercicio según la habilidad.
    - Agregar `ensureFromEvidence(state)`: para cada clase con evidencia (prefijo `<clase>:` en `exerciseId`) y ya cargada en `window.NexoClasses`, llamar a `ensureClass`.
 2. **`ranks.js`:** sumar `'class_item'` a la lista de fuentes verificadas. La regla `validationStatus === 'verified'` sigue igual, así que una escrita (`self_rubric`) nunca entra.
-3. **`player.js`:**
-   - Al mostrar un momento con concepto (pregunta o lección), llamar a `NexoActiveStudy.begin(bridge.conceptOf(cls, concepto), actividad)`.
-   - Actividad según el momento: lección → `lesson`; práctica, entrenar y diagnóstico → `practice`; alba → `review`; simulacro y transfer → `assessment`; rescate y desvío → `rescue`.
-   - Los cambios de ruta ya llaman a `stop` (`app.js`, en `renderRoute`).
+3. **Estación (`renderStation` en `app.js`).** Al implementar resultó que la pantalla vieja de la torre ya no existe en `master` (commit 69a2420) y que `player.js` quedó solo como lógica. Hoy la única clase jugable es la estación de Basicidad, y no llamaba al puente.
+   - Al montar la estación: `NexoActiveStudy.begin(conceptOf(cls, 'am.orden'), 'practice')`. Los cambios de ruta ya llaman a `stop`.
+   - En `onResult`, además de la evidencia de clase, llamar a `NexoAcademicBridge.record` (tipo `order` → familia organizar).
+   - Una **escrita correcta** se marca como `reasoningSupported`. Es el requisito "justificó" del rango 3 (5º bloqueo, visto al implementar). Sigue sin contar como verificada.
 4. **`app.js`, carta del perfil:** si hay evidencia de clases, cargar esas clases con el mismo cargador que usa el aula, llamar a `ensureFromEvidence` y recién ahí calcular el máximo. Cambio mínimo, con `try`, como hoy.
 5. **Pruebas:** ampliar `tools/class-bridge-test.cjs` y `tools/rank-test.cjs` (ver criterios).
 
@@ -52,7 +52,15 @@ La evidencia antigua no se reescribe: es inmutable. Las respuestas viejas quedan
 - [ ] Los juegos (`encounter.js`) siguen registrando, con las mismas familias por habilidad.
 - [ ] `node tools/run-tests.cjs` en verde. Probado en 1440 y 390.
 
+## Estado (19 oct 2026)
+
+Implementado en la rama `motor-rangos`, con 41/41 pruebas OK.
+Probado en el navegador (1440 y 390): con evidencia solo de FQ, tras recargar la carta muestra "Mago Intermedio" (antes: "Sin rango"), y la estación suma minutos a `org-01:am.orden`.
+No se probó en el navegador un resultado real de "Demuestra" en la estación: lo cubre `class-bridge-test`.
+
 ## Pendiente
+
+- **Tema clases:** cuando Clases v2 sume más estaciones o actividades, cada una debe llamar a `NexoActiveStudy.begin` y a `NexoAcademicBridge.record`, como `renderStation`. `player.js` → `logEvidence` ya no lo llama nadie.
 
 - `world/torre-mundo.js` (`labProgress`) cuenta como casos del piloto todo `exerciseId` que empiece con `org-01:`, y ahora la clase org-01 también usa ese prefijo. Anotado en `docs/pendientes.md` (tema torre).
 - `study_bank` (motor de estudio piloto) también se corrige de forma exacta, pero no cuenta como verificado. Decidirlo aparte.

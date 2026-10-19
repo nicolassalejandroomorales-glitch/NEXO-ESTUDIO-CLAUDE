@@ -29,4 +29,10 @@ assert.equal(rank.derive(input).level,5);
 assert.equal(rank.derive({...input,errors:[{conceptId,status:'pending',misconceptionId:'x'}]}).level,3);
 assert.equal(rank.derive({...input,prerequisiteStates:{required:'unseen'}}).level,2);
 assert.equal(rank.derive({...input,evidence:e.map(item=>({...item,at:'2026-09-01T12:00:00Z'}))}).level,4);
+// Clases (docs/motor-rangos/SPEC.md): lo corregido por la app (class_item) es verificado; solo escritas no pasa del rango 2.
+assert.equal(rank.derive({...input,evidence:e.map(item=>({...item,source:'class_item'}))}).level,5,'class_item cuenta como verificada');
+assert.equal(rank.derive({...input,evidence:e.map(item=>({...item,source:'self_rubric',validationStatus:'self_reported',reasoningSupported:true}))}).level,2,
+  'solo escritas autoevaluadas no pasan del rango 2');
+assert.equal(rank.derive({...input,evidence:e.map(item=>({...item,source:'class_item',familyId:'class.x.c.identify'}))}).level,2,
+  'una sola familia (solo elegir) no llega al rango 3');
 console.log('Rangos: tiempo, evidencia, familias, error crítico y recuerdo diferido OK');

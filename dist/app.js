@@ -945,7 +945,7 @@
   let mascotAcademicSubscribed=false;
   function loadAcademicFoundation() {
     if(!academicFoundation)academicFoundation=['model','graph','diagnosis','knowledge','ranks','classifiers','sources','reviews','structured','engine','pending','library','inspector','explorer','rescue']
-      .reduce((promise,name)=>promise.then(()=>window.NexoLoader.script(`./academic/${name}.js?v=528c3a29`)),Promise.resolve())
+      .reduce((promise,name)=>promise.then(()=>window.NexoLoader.script(`./academic/${name}.js?v=b5d166cf`)),Promise.resolve())
       .then(()=>{if(!mascotAcademicSubscribed){window.NexoAcademicEngine.subscribe(event=>
         window.NexoMascotController.react(event,app));mascotAcademicSubscribed=true;}})
       .catch(error=>{academicFoundation=null;throw error;});
@@ -974,11 +974,15 @@
       return;
     }
     app.innerHTML = '<section class="page station-page"><div id="stationHost"></div></section>';
+    // Minutos activos del concepto para los rangos (docs/motor-rangos/SPEC.md); el cambio de ruta lo detiene.
+    window.NexoActiveStudy?.begin(window.NexoAcademicBridge?.conceptOf(cls, 'am.orden'), 'practice');
     window.NexoStation.mount(app.querySelector('#stationHost'), { cls, mission: missionId, pet: state.mascot, fullscreen: true, onExit: () => { location.hash = `#/lesson/${id}`; }, onResult: result => {
       const E = window.NexoClassEvidence; if (!E) return;
       const rec = E.record(state, id, { itemId: result.itemId, conceptId: 'am.orden', missionId, stage: 'transfer', step: 5, correct: result.correct, hint: false, retry: false, transfer: true, at: result.at });
       saveState({ backup: false });
       E.schedule(state, id, rec).then(() => saveState({ backup: false })).catch(() => {});
+      window.NexoAcademicBridge?.record({ getState: () => state, saveState: () => saveState({ backup: false }), track: (...args) => cloud.track(...args) },
+        cls, { id: result.itemId, type: 'order', concept: 'am.orden' }, rec).catch(() => {});
     } });
   }
   function renderAcademicRescue(conceptId) {
@@ -1049,7 +1053,7 @@
         window.NexoLoader.script('./classes/willow-tower.js?v=09c21b87').catch(() => null), // Torre del Sauce (etapa 10); sin ella, quedan las hojas en lista
         window.NexoLoader.script(`./classes/${file}?v=19`),
         // Motor de evidencia y repaso espaciado (FSRS); si no cargan, la clase funciona igual sin agendar repasos.
-        window.NexoLoader.script('./classes/evidence.js?v=308f7a40'), window.NexoLoader.script('./classes/molecule.js?v=b3b2e5aa'), window.NexoLoader.script('./classes/editor.js?v=df0be94e'), window.NexoLoader.script('./academic/class-bridge.js?v=34abe0b8').catch(() => null), window.NexoLoader.script('./academic/reviews.js?v=0273ea6c').catch(() => null)])
+        window.NexoLoader.script('./classes/evidence.js?v=308f7a40'), window.NexoLoader.script('./classes/molecule.js?v=b3b2e5aa'), window.NexoLoader.script('./classes/editor.js?v=df0be94e'), window.NexoLoader.script('./academic/class-bridge.js?v=2c147b02').catch(() => null), window.NexoLoader.script('./academic/reviews.js?v=0273ea6c').catch(() => null)])
         .then(() => Promise.all([window.NexoLoader.script(`./classes/slides/${id}.js?v=268941af`).catch(() => null), // diapositivas reales, si ya se convirtieron
           window.NexoLoader.script(`./classes/${id}-gen.js?v=33f747c1`).catch(() => null)])) // generadores de ejercicios (etapa 8), si la clase los tiene
         .then(() => true);
@@ -1277,9 +1281,22 @@
         state.claimedChallenges.length > 0, Object.values(pet.outfit || {}).some(Boolean)]
     };
   }
+  /* El rango de la carta usa todos los conceptos: carga el motor y las clases con evidencia (al recargar solo está el piloto). */
+  let rankCatalog = null;
+  function loadRankCatalog() {
+    if (!rankCatalog) rankCatalog = loadAcademicFoundation()
+      .then(() => Promise.all([...new Set((state.academicIntelligence?.evidence || []).map(e => String(e.exerciseId || '').split(':')[0]))]
+        .map(id => loadClassroom(id).catch(() => false))))
+      .then(() => window.NexoAcademicBridge?.ensureFromEvidence(state))
+      .catch(() => { /* sin motor, la carta queda con el rango que alcance a calcular */ });
+    return rankCatalog;
+  }
   function renderProfile(tab = '') {
     const active = ['mascot', 'grades', 'absences', 'stats', 'settings'].includes(tab) ? tab : '';
-    if (!active) { petBind(); return window.NexoCarta.render(app, profileCardData()); }
+    if (!active) {
+      if (!rankCatalog) loadRankCatalog().then(() => { if (parseRoute().join('/') === 'profile') renderRoute(false); });
+      petBind(); return window.NexoCarta.render(app, profileCardData());
+    }
     if (active === 'stats') renderStats();
     else if (active === 'grades') renderProfileGrades();
     else if (active === 'absences') renderProfileAbsences();
