@@ -34,6 +34,9 @@ Solo la **cima de la torre**, en **pixel art detallado con sombras y volumen** (
 - Aparecen runas y los 4 elementos en espiral; termina fundiéndose al refugio.
 - Saltable siempre; ~45 s; fluida en 390x844 y 844x390; sin errores en consola.
 
+## Hecho
+- Paso 1 (19 oct): arte base con `tools/umbral-pixel/build_umbral.py` → `dist/assets/umbral/` (cielo, nubes-lejos, nubes-cerca, torre-oscura, torre-rayo, torre-despierta; 384x384 px de arte, nubes 384x200 repetibles). Vista previa: `docs/umbral/preview-arte.png`. La torre trae balcón con libro abierto y vela gastada (el último estudiante), hiedra, musgo y pararrayos.
+
 ## Pendiente
 - Frases exactas del último estudiante (3 a 4 líneas): proponerlas a Niquito antes de fijar.
 - Decidir si el sonido de lluvia continúa suave en el refugio (idea).
