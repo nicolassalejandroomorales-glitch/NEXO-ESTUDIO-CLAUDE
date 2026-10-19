@@ -56,5 +56,5 @@ Al terminar, usa nexo-cierre y actualiza docs/chats/clases.md.
 ```
 Chat: Clases v2 (aula nueva). Lee CLAUDE.md, la skill nexo-clase, docs/clases-v2/SPEC.md («El aula nueva y la prueba final») y docs/chats/clases.md.
 Hecho: aula.js en estilo estación para todas las misiones, prueba final PEP por misión, mezcla de alternativas.
-Tarea: panel «Camino al 7» y mini clase / a profundidad dentro del aula nueva; `demuestra` para FQ II 02 y 03 cuando estén en master. Regla: nunca el aspecto de la pantalla vieja; contraste y animaciones revisados antes de entregar. 1440 y 390. Sonnet 5.5.
+Hecho también: panel «Camino al 7», mini clase y clase a profundidad. Tarea: glosario, formulario, recetario y bestiario dentro del aula nueva; `demuestra` para FQ II 02 y 03 cuando estén en master. Regla: nunca el aspecto de la pantalla vieja; contraste y animaciones revisados antes de entregar. 1440 y 390. Sonnet 5.5.
 ```

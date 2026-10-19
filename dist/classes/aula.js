@@ -244,6 +244,69 @@
   }
   const projection = (cls, n) => `<button class="au-projection" data-au="slides" data-slide="${esc(n)}" aria-label="Ver la diapositiva ${esc(n)} en grande"><span class="au-projection-label">Diapositiva ${esc(n)} · toca para ampliar</span>${slideMarkup(cls, n)}</button>`;
 
+  /* ───────── Camino al 7, mini clase y clase a profundidad (paneles sobre la misión) ───────── */
+  const goalMeter = goal => {
+    const seg = (n, c, label) => `<span class="au-goal-seg ${c}" style="flex:${n}" title="${esc(label)}"></span>`;
+    return `<div class="au-goal-meter" role="img" aria-label="Llevas ${pts(goal.earned)} de ${goal.total} puntos demostrados">
+      ${goal.earned ? seg(goal.earned, 'won', 'Demostrado') : ''}${goal.max - goal.earned > 0 ? seg(goal.max - goal.earned, 'open', 'Por demostrar en esta clase') : ''}
+      ${(goal.rest || []).map(r => seg(r.points, 'later', r.label)).join('')}</div>`;
+  };
+  function leafList(cls, api, filter = () => true) {
+    const E = EV(); if (!E || !cls.concepts) return '';
+    const all = E.leaves(cls, E.storeFor(api.getState(), cls.id));
+    return `<ul class="au-leaves">${cls.concepts.filter(filter).map(c => { const l = all[c.id]; return `<li class="leaf ${esc(l.shown)}"><b>${esc(c.title)}</b><small>${esc(l.label)}</small></li>`; }).join('')}</ul>`;
+  }
+  function calibrationLine(cls, api) {
+    const E = EV(); if (!E) return '';
+    const bands = E.calibration(E.storeFor(api.getState(), cls.id).records).filter(x => x.n);
+    return bands.length ? `<p class="au-note"><b>Tu calibración:</b> ${bands.map(x => `cuando dices ${x.label} %, aciertas ${x.right} de ${x.n}`).join(' · ')}.</p>` : '';
+  }
+  /* Más ayuda: si la explicación simple no alcanzó → mini clase; si quieres más → a profundidad. */
+  function moreHelp(cls, blk, simpleShown) {
+    const c = blk?.concept, mini = c && cls.mini?.[c], deepC = c && cls.deep?.[c];
+    if (!mini && !deepC) return '';
+    return `<div class="au-more">${mini && simpleShown ? `<button class="au-mini" data-au="mini" data-concept="${esc(c)}">¿Todavía no? Mini clase de 2 min</button>` : ''}${deepC ? `<button class="au-mini" data-au="deepclass" data-concept="${esc(c)}">Ver a profundidad ▸</button>` : ''}</div>`;
+  }
+  const optionRow = (o, i, ans, action) => `<li><button class="st-opt au-opt ${ans === undefined ? '' : i === ans ? (o.correct ? 'ok' : 'bad') : o.correct ? 'ok' : 'dim'}" data-au="${action}" data-i="${i}" ${ans === undefined ? '' : 'disabled'}><span class="au-letter">${letter(i)}</span><span>${md(o.text)}</span></button></li>`;
+  function miniPanel(cls, s) {
+    const c = s.miniC, m = cls.mini[c], title = (cls.concepts || []).find(k => k.id === c)?.title || c, step = s.miniStep || 0, last = m.steps.length + 1;   // 0 idea · 1..n pasos · n+1 pregunta
+    let inner = '';
+    if (step === 0) inner = `<p class="au-eyebrow">La idea</p><p class="au-big">${md(m.idea)}</p>`;
+    else if (step <= m.steps.length) inner = `<p class="au-eyebrow">Paso ${step} de ${m.steps.length}</p><ol class="au-worked">${m.steps.slice(0, step).map((t, i) => `<li class="${i === step - 1 ? 'now' : ''}"><span>${i + 1}</span><p>${md(t)}</p></li>`).join('')}</ol>`;
+    else {
+      const ans = s.miniAns?.[c];
+      inner = `<p class="au-eyebrow">¿Lo pillaste? (no cuenta para nada)</p><p class="au-q">${md(m.check.prompt)}</p><ol class="au-options">${m.check.options.map((o, i) => optionRow(o, i, ans, 'mini-ans')).join('')}</ol>
+        ${ans === undefined ? '' : `<p class="au-route">${m.check.options[ans].correct ? `<b>¡Eso!</b> ${md(m.check.explain)}` : `${md(m.check.options[ans].note || '')} ${md(m.check.explain)} Si quieres, repasa los pasos o mira la versión a profundidad.`}</p>`}`;
+    }
+    const dots = `<div class="au-dots" aria-hidden="true">${[...Array(last + 1)].map((_, i) => `<i class="${i === step ? 'on' : ''}"></i>`).join('')}</div>`;
+    const nav = `<div class="au-check"><button class="au-mini" data-au="mini-step" data-dir="-1" ${step > 0 ? '' : 'disabled'}>◂ Atrás</button>${step < last ? '<button class="st-next" data-au="mini-step" data-dir="1">Siguiente ▸</button>' : '<button class="st-next" data-au="panel-close">Volver a la clase ▸</button>'}</div>`;
+    return { title: `Mini clase · ${title}`, body: `<div class="au-mini-class">${inner}${dots}${nav}</div>` };
+  }
+  function deepPanel(cls, s) {
+    const c = s.deepC, d = cls.deep[c], ans = s.deepAns?.[c];
+    const src = x => (x.slide ? `<button class="au-link" data-au="slides" data-slide="${x.slide}">${esc(x.label)}</button>` : `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.label)}</a>`);
+    return { title: `A profundidad · ${d.title}`, body: `<div class="au-deepclass">${d.sections.map(([h, t]) => `<section><h3>${esc(h)}</h3><p>${md(t)}</p></section>`).join('')}
+      <section class="au-box"><p class="au-eyebrow">Desafío a fondo (no cuenta para tu nota)</p><p class="au-q">${md(d.challenge.prompt)}</p><ol class="au-options">${d.challenge.options.map((o, i) => optionRow(o, i, ans, 'deep-ans')).join('')}</ol>
+        ${ans === undefined ? '' : `<p class="au-route">${d.challenge.options[ans].correct ? '<b>¡Exacto!</b> ' : `${md(d.challenge.options[ans].note || '')} `}${md(d.challenge.explain)}</p>`}</section>
+      <p class="au-note"><b>Fuentes:</b> ${d.sources.map(src).join(' · ')}</p></div>` };
+  }
+  function goalPanel(cls, api, s) {
+    const goal = NX().goalOf(cls, s);
+    if (!goal) return { title: 'Tu camino al 7', body: '<p class="au-help">Esta clase todavía no tiene meta de puntos.</p>' };
+    const mission = id => cls.missions.find(m => m.id === id);
+    return { title: 'Tu camino al 7', body: `<p>Un <b>7</b> es tener los <b>${goal.total} puntos</b> de la ${esc(cls.evaluation)}. Esta clase te prepara para <b>${goal.max}</b>. Cada punto cuenta cuando lo <b>demuestras</b>: aciertas sin ayuda el caso estilo prueba de las misiones que lo preparan.</p>
+      <div class="au-goal-big"><b>${pts(goal.earned)}</b><span>de ${goal.total} pts demostrados</span></div>${goalMeter(goal)}
+      <p class="au-legend"><i class="won"></i> demostrado <i class="open"></i> por demostrar en ${esc(cls.title)} <i class="later"></i> otras clases</p>
+      <ul class="au-goal-list">${goal.qs.map(q => `<li><div class="au-goal-row"><b>${esc(q.id)} · ${esc(q.label)}</b><span>${pts(q.earned)} / ${pts(q.points)} pts</span></div>
+        <div class="au-meter"><span style="width:${q.points ? Math.round(q.earned / q.points * 100) : 0}%"></span></div>
+        <div class="au-check">${q.missions.map(id => { const m = mission(id); return m ? `<button class="au-mini" data-au="mission" data-mission="${esc(m.id)}">${esc(m.title)} ▸</button>` : ''; }).join('')}</div></li>`).join('')}
+        ${(goal.rest || []).map(r => `<li class="later"><div class="au-goal-row"><b>${esc(r.label)}</b><span>${pts(r.points)} pts · ${esc(r.note || '')}</span></div></li>`).join('')}</ul>
+      <p class="au-eyebrow">Lo que sabes, concepto por concepto</p>
+      ${cls.missions.map(m => `<div class="au-leaf-group"><b>${esc(m.title)}</b>${leafList(cls, api, c => c.mission === m.id)}</div>`).join('')}
+      <div class="au-leaf-group"><b>Raíces (clase base)</b>${leafList(cls, api, c => c.root)}</div>${calibrationLine(cls, api)}
+      <p class="au-note">Las misiones marcadas como <b>base</b> no dan puntos directos, pero sin ellas no se puede responder lo que sí los da. Y ojo: demostrarlo hoy no es dominarlo. Cuenta como <b>retenido</b> cuando lo repites sin ayuda 24 horas o más después.</p>` };
+  }
+
   /* ───────── Cada momento de la misión: qué dice la mascota, qué se ve y qué botones hay ───────── */
   function moment(cls, api, s, b) {
     const say = { text: '', mood: 'idle' }, out = { say, body: '', actions: '' };
@@ -296,6 +359,7 @@
       say.text = `**${blk.title}.** ${blk.body}`; say.mood = 'idle';
       out.actions = `${blk.deeper ? `<button class="au-mini" data-au="deeper" data-key="${deepKey}" aria-expanded="${Boolean(deep)}">${deep ? 'Ocultar la explicación simple' : 'Explícame más simple'}</button>` : ''}${cont('Entendido')}`;
       const deepHtml = deep ? `<div class="au-deeper"><p class="au-eyebrow">Más simple, paso a paso</p><p>${md(blk.deeper)}</p></div>` : '';
+      const more = moreHelp(cls, blk, deep);
       let card = '';
       if (mw) {
         const f = blk.frames[Math.min(mw.i, blk.frames.length - 1)];
@@ -304,16 +368,17 @@
           <div class="au-mech-controls" role="group" aria-label="Controles del mecanismo"><button class="au-mini" data-au="mech" data-dir="-1" ${mw.i > 0 ? '' : 'disabled'}>◂ Atrás</button>
             <button class="au-mini" data-au="mech" data-dir="play" aria-pressed="${Boolean(mw.playing)}">${mw.playing ? '❚❚ Pausa' : '▶ Reproducir'}</button>
             <button class="au-mini" data-au="mech" data-dir="1" ${mw.i < blk.frames.length - 1 ? '' : 'disabled'}>Siguiente paso ▸</button></div>
-          <div class="au-dots" aria-hidden="true">${blk.frames.map((_, i) => `<i class="${i === mw.i ? 'on' : ''}"></i>`).join('')}</div>${deepHtml}</div>`;
+          <div class="au-dots" aria-hidden="true">${blk.frames.map((_, i) => `<i class="${i === mw.i ? 'on' : ''}"></i>`).join('')}</div>${deepHtml}${more}</div>`;
       } else if (blk.svg || blk.rows || blk.note || deep) {
         card = `<div class="au-card"><p class="au-eyebrow">${b.zero ? 'Desde cero' : 'Lección'} · ${esc(blk.title.replace(/^Desde cero: /, ''))}</p>${blk.svg ? `<div class="au-figure">${blk.svg}</div>` : ''}
-          ${blk.rows ? `<dl class="au-rows">${blk.rows.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>` : ''}${blk.note ? `<p class="au-note">${md(blk.note)}</p>` : ''}${deepHtml}</div>`;
+          ${blk.rows ? `<dl class="au-rows">${blk.rows.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>` : ''}${blk.note ? `<p class="au-note">${md(blk.note)}</p>` : ''}${deepHtml}${more}</div>`;
       }
+      if (!card && more) card = `<div class="au-card">${more}</div>`;
       out.body = `<div class="au-lesson">${blk.slide ? projection(cls, blk.slide) : ''}${card}</div>`;
       // Sin diapositiva ni figura (clase base): la explicación va escrita en la tarjeta y la mascota solo la presenta.
       if (!blk.slide && !blk.svg && !blk.rows && !mw) {
         say.text = `**${blk.title}.** Léelo con calma. Si algo no queda claro, pídeme la explicación simple.`;
-        out.body = `<div class="au-card"><p class="au-eyebrow">${b.m?.concept ? 'Repaso desde cero' : b.zero ? 'Desde cero' : 'Lección'}</p><h3>${esc(blk.title.replace(/^Desde cero: /, ''))}</h3><p>${md(blk.body)}</p>${blk.note ? `<p class="au-note">${md(blk.note)}</p>` : ''}${deepHtml}</div>`;
+        out.body = `<div class="au-card"><p class="au-eyebrow">${b.m?.concept ? 'Repaso desde cero' : b.zero ? 'Desde cero' : 'Lección'}</p><h3>${esc(blk.title.replace(/^Desde cero: /, ''))}</h3><p>${md(blk.body)}</p>${blk.note ? `<p class="au-note">${md(blk.note)}</p>` : ''}${deepHtml}${more}</div>`;
       }
       return out;
     }
@@ -392,7 +457,7 @@
     const cls = opts.cls, api = opts.api, id = cls.id, NXc = NX();
     if (window.NexoClassSlides?.[id]) cls.slideImages = window.NexoClassSlides[id];   // imágenes reales del PPT
     const s = NXc.sessionFor(api, id);
-    let destroyed = false, stopPet = () => {}, timer = 0, lastBeat = -1, slideOpen = null;
+    let destroyed = false, stopPet = () => {}, timer = 0, lastBeat = -1, slideOpen = null, panel = null;   // panel: 'goal' | 'mini' | 'deep'
     const mood = { expr: 'neutral', arm: 'rest', hopUntil: 0, hopFrom: 0, look: 0 };
     const petInfo = opts.pet || {}, P = window.PixelMascotas;
     const petName = petInfo.name && petInfo.name !== 'Nexo' ? petInfo.name : (P?.list.find(([k]) => k === petInfo.kind)?.[1] || 'Matraz');
@@ -405,7 +470,7 @@
     }
 
     host.innerHTML = `<section class="st au"><canvas class="st-pet" width="40" height="44" aria-hidden="true"></canvas><div class="st-bubble" role="status"></div>
-      <div class="st-panel au-panel"><div class="au-top"><span class="au-where"></span></div><div class="st-body au-body" aria-live="polite"></div><div class="au-actions"></div></div>
+      <div class="st-panel au-panel"><div class="au-top"><span class="au-where"></span>${cls.goal ? '<button class="au-mini au-goal-btn" data-au="panel-goal" aria-label="Ver tu camino al 7"></button>' : ''}</div><div class="st-body au-body" aria-live="polite"></div><div class="au-actions"></div></div>
       <button class="st-exit" data-au="exit" aria-label="Salir de la misión">← Salir</button><div class="au-lightbox" hidden></div></section>`;
     const root = host.firstElementChild, bubble = root.querySelector('.st-bubble'), body = root.querySelector('.au-body'), actions = root.querySelector('.au-actions'), where = root.querySelector('.au-where'), lightbox = root.querySelector('.au-lightbox');
     if (window.NexoStation?.startPet) stopPet = window.NexoStation.startPet(root.querySelector('.st-pet'), petInfo, mood);
@@ -431,12 +496,20 @@
       setMood(s.mascotMood || m.say.mood);
       const mission = cls.missions.find(x => x.id === s.mission);
       where.textContent = mission ? `${cls.title} · Misión ${cls.missions.indexOf(mission) + 1} · ${mission.title}` : cls.title;
+      const goalNow = NXc.goalOf(cls, s), goalBtn = root.querySelector('.au-goal-btn');
+      if (goalBtn && goalNow) goalBtn.innerHTML = `<span aria-hidden="true">★</span> Camino al 7 · <b>${pts(goalNow.earned)}</b>/${goalNow.total}`;
       const keepScroll = !fresh && body.firstElementChild ? root.querySelector('.au-panel').scrollTop : 0;
       body.classList.toggle('still', !fresh);   // sin animación de entrada si solo cambió algo dentro del mismo momento
       body.innerHTML = m.body; actions.innerHTML = m.actions;
       if (fresh && !reduced()) body.animate([{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }], { duration: 360, easing: 'cubic-bezier(.2,.8,.2,1)' });
-      const panel = root.querySelector('.au-panel'); panel.scrollTop = fresh ? 0 : keepScroll;
-      lightbox.hidden = slideOpen === null; if (slideOpen !== null) lightbox.innerHTML = `<div class="au-lightbox-in"><header><b>Diapositiva ${esc(slideOpen)}</b><button class="au-mini" data-au="slides-close">Cerrar ✕</button></header>${slideMarkup(cls, slideOpen, true)}</div>`;
+      const scroller = root.querySelector('.au-panel'); scroller.scrollTop = fresh ? 0 : keepScroll;
+      lightbox.hidden = slideOpen === null && panel === null;
+      if (slideOpen !== null) lightbox.innerHTML = `<div class="au-lightbox-in"><header><b>Diapositiva ${esc(slideOpen)}</b><button class="au-mini" data-au="slides-close">Cerrar ✕</button></header>${slideMarkup(cls, slideOpen, true)}</div>`;
+      else if (panel !== null) {
+        const pan = panel === 'goal' ? goalPanel(cls, api, s) : panel === 'mini' && cls.mini?.[s.miniC] ? miniPanel(cls, s) : panel === 'deep' && cls.deep?.[s.deepC] ? deepPanel(cls, s) : null;
+        if (!pan) panel = null; else lightbox.innerHTML = `<div class="au-lightbox-in au-panelbox" role="dialog" aria-modal="true" aria-label="${esc(pan.title)}"><header><b>${esc(pan.title)}</b><button class="au-mini" data-au="panel-close">Cerrar ✕</button></header><div>${pan.body}</div></div>`;
+        lightbox.hidden = panel === null;
+      }
       s.mascotSay = ''; s.mascotMood = null; s.burst = null;
       window.NexoMolEditor?.mount(body, { work: (itemId, retry) => NXc.workOf(s, NXc.findItem(cls, itemId), retry), item: itemId => NXc.findItem(cls, itemId), commit: () => rerender() });
       clearTimeout(timer);
@@ -488,8 +561,15 @@
       if (!button || button.disabled) return;
       const action = button.dataset.au, list = NXc.beats(cls, s), b = list[s.beat];
       if (action === 'exit') { clearTimeout(timer); api.saveState(); return opts.onExit?.(s); }
-      if (action === 'slides') { slideOpen = button.dataset.slide; return draw(); }
+      if (action === 'slides') { if (button.dataset.slide) slideOpen = button.dataset.slide; return draw(); }
       if (action === 'slides-close') { slideOpen = null; return draw(); }
+      if (action === 'panel-close') { panel = null; slideOpen = null; return draw(); }
+      if (action === 'panel-goal') { panel = 'goal'; slideOpen = null; return draw(); }
+      if (action === 'mini') { slideOpen = null; panel = 'mini'; s.miniC = button.dataset.concept; s.miniStep = 0; return draw(); }
+      if (action === 'mini-step') { s.miniStep = Math.max(0, (s.miniStep || 0) + Number(button.dataset.dir)); return rerender(); }
+      if (action === 'mini-ans') { (s.miniAns ||= {})[s.miniC] = Number(button.dataset.i); return rerender(); }
+      if (action === 'deepclass') { slideOpen = null; panel = 'deep'; s.deepC = button.dataset.concept; return draw(); }
+      if (action === 'deep-ans') { (s.deepAns ||= {})[s.deepC] = Number(button.dataset.i); return rerender(); }
       if (action === 'deeper') { s.revealed[button.dataset.key] = !s.revealed[button.dataset.key]; return rerender(); }
       if (action === 'tip') { s.tips[button.dataset.tip] = true; return rerender(); }
       if (action === 'conf-why') { const k = button.dataset.item; s.confWhy[k] = s.confWhy[k] === button.dataset.why ? null : button.dataset.why; return rerender(); }
@@ -498,7 +578,7 @@
         if (button.dataset.dir === 'play') { mw.playing = !mw.playing; if (mw.playing && mw.i >= blk.frames.length - 1) mw.i = 0; } else { mw.playing = false; mw.i = Math.max(0, Math.min(blk.frames.length - 1, mw.i + Number(button.dataset.dir))); }
         return rerender();
       }
-      if (action === 'mission') { s.mission = button.dataset.mission; const far = s.far[s.mission] || 0, n = NXc.beats(cls, s).length; s.beat = far > 1 && far < n - 1 ? far : 1; if (s.beat > 1) s.mascotSay = 'Retomamos donde quedaste la última vez.'; return rerender(); }
+      if (action === 'mission') { panel = null; slideOpen = null; s.mission = button.dataset.mission; const far = s.far[s.mission] || 0, n = NXc.beats(cls, s).length; s.beat = far > 1 && far < n - 1 ? far : 1; if (s.beat > 1) s.mascotSay = 'Retomamos donde quedaste la última vez.'; return rerender(); }
       if (action.startsWith('act-')) return onActivity(action, button, b);
       if (action === 'next') { if (NXc.beatDone(s, b)) { s.beat += 1; } return rerender(); }
       if (action === 'offer') { s.skipExplain[b.m.id] = button.dataset.skip === '1'; s.beat += 1; s.mascotMood = 'happy'; return rerender(); }
@@ -556,7 +636,7 @@
       if (u) { const it = NXc.findItem(cls, u.dataset.auUnit); if (it) NXc.workOf(s, it, u.dataset.retry === '1').unit = u.value; }
     });
     root.addEventListener('keydown', event => {
-      if (event.key === 'Escape') { if (slideOpen !== null) { slideOpen = null; draw(); } else { api.saveState(); opts.onExit?.(s); } }
+      if (event.key === 'Escape') { if (slideOpen !== null) { slideOpen = null; draw(); } else if (panel !== null) { panel = null; draw(); } else { api.saveState(); opts.onExit?.(s); } }
       if (event.key === 'Enter' && event.target.closest?.('.au-num-input')) root.querySelector('[data-au="act-check"]:not(:disabled)')?.click();
     });
 

@@ -209,3 +209,21 @@ body.in-classroom{overflow:hidden}
 .au-say p{margin:0}
 .au .cr-check{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
 .au .cr-eyebrow{margin:0 0 6px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#ffd860}
+
+/* Camino al 7, mini clase y a profundidad */
+.au-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.au-goal-btn b{color:#ffd860}
+.au-more{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.au-big{font-size:21px;line-height:1.5}
+.au-panelbox{max-width:760px}
+.au-goal-big{display:flex;align-items:baseline;gap:10px;margin:8px 0}.au-goal-big b{font-size:44px;color:#ffd860;line-height:1}.au-goal-big span{color:#c9bfa6}
+.au-goal-meter{display:flex;height:14px;border-radius:99px;overflow:hidden;background:#1b3446;margin:6px 0}
+.au-goal-seg.won{background:linear-gradient(90deg,#5cc4dc,#ffd860);box-shadow:0 0 10px rgba(255,216,96,.5)}.au-goal-seg.open{background:#2c6f88}.au-goal-seg.later{background:repeating-linear-gradient(135deg,#1b3446 0 6px,#142838 6px 12px)}
+.au-legend{font-size:14px;color:#c9bfa6}.au-legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin:0 4px 0 10px;vertical-align:-1px}.au-legend i.won{background:#ffd860}.au-legend i.open{background:#2c6f88}.au-legend i.later{background:#1b3446;border:1px solid #3d5a6a}
+.au-goal-list{list-style:none;margin:10px 0;padding:0;display:grid;gap:10px}
+.au-goal-list>li{padding:10px 12px;background:rgba(8,24,36,.88);border:1px solid rgba(156,232,240,.28);border-radius:10px}.au-goal-list>li.later{opacity:.7}
+.au-goal-row{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}.au-goal-row span{color:#9ce8f0}
+.au-leaf-group{margin:8px 0}.au-leaf-group>b{color:#f3e8cf}
+.au-deepclass{display:grid;gap:12px}.au-deepclass h3{margin:0 0 4px;color:#ffd860}.au-deepclass section p{margin:0;line-height:1.55}
+.au-mini-class{display:grid;gap:10px}
+.au-leaves li.leaf.brote b,.au-leaves li.leaf.clara b{color:#c6d862}
