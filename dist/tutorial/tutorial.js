@@ -71,8 +71,6 @@
       panel: '<div class="tut-vs"><div><h4>Mirar la respuesta</h4><p>Se siente bien.<br>Enseña poco.</p></div><div class="win"><h4>Recordarla jugando</h4><p>Cuesta un poco.<br>Se queda.</p></div></div>' },
     { id: 'rec-organizacion', pose: 'senalar', text: 'Ahora tu *estudio de planos*: fechas, plan del día, notas y labs.', scene: 'mascota', next: 'Vamos', recorrido: 'organizacion' },
     { id: 'rec-perfil', pose: 'importante', text: 'Por último, tu *perfil*. Sígueme.', scene: 'mascota', next: 'Vamos', recorrido: 'perfil' },
-    { id: 'config', pose: 'importante', text: 'Último paso serio: dime tus *ramos*, las fechas de tus pruebas y cuánto tiempo tienes. Con eso la ruta nace a tu medida.', scene: 'panel',
-      panel: '<div class="tut-chips"><span>ramos</span><span>fechas de pruebas</span><span>tiempo disponible</span></div><div class="tut-links"><a class="secondary-btn" href="#/planner/calendar">Ir al calendario</a><a class="secondary-btn" href="#/profile">Ir al perfil</a></div><small class="tut-cite">Cuando termines, vuelve a #/tutorial y seguimos donde quedaste.</small>' },
     { id: 'premio', who: 'M', text: '¡Terminamos! Esto es para ti. Gasta con cabeza.', scene: 'premio', noBack: true },
     { id: 'fin', pose: 'feliz', text: 'Fue un honor. Si me necesitas, estoy en Ajustes… y no, no me pagan.', scene: 'mascota', noBack: true }
   ];

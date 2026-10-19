@@ -70,7 +70,7 @@ Expresiones entre [corchetes]. Los datos de estudio son resúmenes generales de 
 25. **Estadísticas y rangos:** "Tu avance real y tus **rangos arcanos**. Subes por evidencia, no por tiempo sentado."
 26. **Ajustes e inasistencias:** "Sonido, tutoriales (aquí vuelves a verme) y control de faltas."
 
-## 7. Configurar (G)
+## 7. Configurar (G) — QUITADO el 18 oct (Niquito: «no tiene sentido»; la app ya trae el semestre)
 
 27. "Último paso serio. Dime tus **ramos**, las **fechas de pruebas** y cuánto tiempo tienes. Con eso la ruta parte hecha a tu medida."
 
