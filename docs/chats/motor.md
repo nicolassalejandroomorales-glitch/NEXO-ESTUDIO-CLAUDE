@@ -10,12 +10,7 @@
 - Etapas 4 a 10 (diagnóstico, intuitivo, grimorio, prueba, entrenar, replicar, arte) con su SPEC.
 - Ejercicios con regla de calidad (`docs/calidad-ejercicios/SPEC.md`).
 - 18 oct: puente clase → motor (`class-bridge.js`). Las 11 clases y los juegos escriben evidencia.
-- 19 oct: las clases ya pueden dar rangos (`docs/motor-rangos/SPEC.md`):
-  - minutos por concepto en el aula y la estación
-  - `class_item` cuenta como verificada
-  - familias por habilidad
-  - la escrita correcta cuenta como justificada
-  - la carta del perfil usa todos los conceptos
+- 19 oct: las clases ya pueden dar rangos (`docs/motor-rangos/SPEC.md`): minutos por concepto en el aula y la estación, `class_item` verificada, familias por habilidad, la escrita correcta cuenta como justificada y la carta del perfil usa todos los conceptos.
 
 ## Falta
 - Corrección real de respuestas abiertas: la escrita sigue siendo autorúbrica. Auditoría 19 oct: mostrar la respuesta modelo antes de marcar y exigir palabras clave.
