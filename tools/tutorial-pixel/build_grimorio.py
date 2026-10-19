@@ -5,7 +5,8 @@ que dist/tutorial/grimorio-vivo.js apila en un canvas (de atrás hacia adelante)
   grimorio-fondo.png   atril y velas, con el halo de luz de la pose
   grimorio-manoI.png   brazo y mano izquierda (detrás del libro)
   grimorio-manoD.png   brazo y mano derecha, con el cartel si lo sostiene (detrás del libro)
-  grimorio-libro.png   libro, páginas y marcapáginas
+  grimorio-paginas.png  cantos de las páginas, página con oreja, mancha de tinta y marcapáginas (detrás de la tapa)
+  grimorio-tapa.png    tapa de cuero con lomo, cinchas, esquineros, broche y remiendo
   grimorio-cara.png    ojos, cejas, mejillas, nariz y lágrimas/sudor (2 columnas: normal, parpadeo)
   grimorio-barba.png   mechones y bigote
   grimorio-boca.png    boca (3 columnas: cerrada, media, abierta)
@@ -106,12 +107,11 @@ def velas(c):
 
 
 # ---------------------------------------------------------------- libro
-def libro(c, dy):
+def paginas_canto(c, dy):
+    """Cantos de las páginas (derecha y abajo); se prolongan por debajo de la tapa para que ella pueda moverse sin dejar huecos."""
     x0, x1, y0, y1 = BX0, BX1, BY0 + dy, BY1 + dy
-    yy, xx = c.grid()
-    # páginas gruesas (lado y abajo)
-    c.rect(x1, y0 + 3, x1 + 4, y1 + 2, 'paper', 4)
-    c.rect(x0 + 3, y1, x1 + 4, y1 + 4, 'paper', 4)
+    c.rect(x1 - 3, y0 + 3, x1 + 4, y1 + 2, 'paper', 4)
+    c.rect(x0 + 3, y1 - 3, x1 + 4, y1 + 4, 'paper', 4)
     for y in range(y0 + 4, y1 + 1, 2):
         c.rect(x1, y, x1 + 4, y + 1, 'paper', 3)
     for x in range(x0 + 4, x1 + 1, 2):
@@ -119,6 +119,10 @@ def libro(c, dy):
     c.rect(x1 + 3, y0 + 3, x1 + 4, y1 + 2, 'paper', 2)
     c.rect(x0 + 3, y1 + 3, x1 + 3, y1 + 4, 'paper', 2)
 
+
+def tapa(c, dy):
+    x0, x1, y0, y1 = BX0, BX1, BY0 + dy, BY1 + dy
+    yy, xx = c.grid()
     # tapa abombada con esquinas suaves
     r = 4.0
     m = (xx >= x0) & (xx < x1) & (yy >= y0) & (yy < y1)
@@ -169,6 +173,12 @@ def pagina_con_oreja(c, dy):
     c.px(x + 5, y0 + 21, 'paper', 1)
 
 
+def mancha_tinta(c, dy):
+    y0 = BY0 + dy
+    for (a, b, l) in ((0, 0, 1), (1, 0, 0), (-1, 1, 1), (0, 1, 0), (1, 1, 0), (2, 2, 1)):
+        c.px(BX1 + 1 + a, y0 + 32 + b, 'blue', l)
+
+
 def detalles_libro(c, dy):
     y0, y1 = BY0 + dy, BY1 + dy
     # un solo remiendo con puntadas (abajo, izquierda)
@@ -180,9 +190,6 @@ def detalles_libro(c, dy):
     for j in range(y1 - 9, y1 - 5, 2):
         c.px(BX0 + 4, j, 'paper', 4)
         c.px(BX0 + 11, j, 'paper', 4)
-    # mancha de tinta en las páginas
-    for (a, b, l) in ((0, 0, 1), (1, 0, 0), (-1, 1, 1), (0, 1, 0), (1, 1, 0), (2, 2, 1)):
-        c.px(BX1 + 1 + a, y0 + 32 + b, 'blue', l)
     # emblema alquímico (triángulo de fuego) entre las cejas
     c.sprite(CX - 1, y0 + 4, ['.#.', '###'], 'brass', {'#': 5})
     c.px(CX, y0 + 4, 'brass', 6)
@@ -541,7 +548,7 @@ DORMIDO = dict(POSES['dormido'])
 POSAS = dict(HABLAR, dormido=DORMIDO)           # 16 poses; 'dormido' va al final
 SWAY = {'dormido': 1}
 # Orden de apilado (de atrás hacia adelante). Los brazos van detrás del libro, como en el dibujo original.
-CAPAS = ['fondo', 'manoI', 'manoD', 'libro', 'cara', 'barba', 'boca', 'extras']
+CAPAS = ['fondo', 'manoI', 'manoD', 'paginas', 'tapa', 'cara', 'barba', 'boca', 'extras']
 
 
 def _contorno(mats):
@@ -576,17 +583,19 @@ def _foto(c, edge, post=None, halo=False):
 def capas(name, p):
     """Devuelve {capa: imagen} de una pose; 'cara' = [normal, parpadeo] y 'boca' = [fase 0..2] (o [fija])."""
     dy = p['dy']
-    fondo, izq, der, libro_c, ojos0, ojos1, barbac, extras_c = (Canvas(W, H) for _ in range(8))
+    fondo, izq, der, pag, tap, ojos0, ojos1, barbac, extras_c = (Canvas(W, H) for _ in range(9))
     atril(fondo)
     velas(fondo)
     mano_izq(izq, p, dy)
     mano_der(der, p, dy)
     if p.get('panel'):
         panel(der, dy, p['panel'] == 'lista')              # el cartel va con la mano que lo sostiene
-    pagina_con_oreja(libro_c, dy)
-    libro(libro_c, dy)
-    detalles_libro(libro_c, dy)
-    marcapaginas(libro_c, dy, SWAY.get(name, 2))
+    paginas_canto(pag, dy)
+    pagina_con_oreja(pag, dy)
+    mancha_tinta(pag, dy)
+    marcapaginas(pag, dy, SWAY.get(name, 2))
+    tapa(tap, dy)
+    detalles_libro(tap, dy)
     extras(extras_c, p, dy)
     efectos_pose(extras_c, p, dy)
     if p.get('excl'):
@@ -611,7 +620,7 @@ def capas(name, p):
         boca(b, ey, p, ph)
         bocas.append(b)
 
-    lista = [fondo, izq, der, libro_c, barbac, extras_c] + bocas
+    lista = [fondo, izq, der, pag, tap, barbac, extras_c] + bocas
     edges = _contorno([c.mat != 0 for c in lista])
     if name == 'dormido':
         halos = [(CX, LEDGE + 2, 22, '#5072a0', 0.7, 2.6)]
@@ -637,11 +646,12 @@ def capas(name, p):
         'fondo': _foto(fondo, edges[0], post, halo=True),
         'manoI': _foto(izq, edges[1], post),
         'manoD': _foto(der, edges[2], post),
-        'libro': _foto(libro_c, edges[3], post),
+        'paginas': _foto(pag, edges[3], post),
+        'tapa': _foto(tap, edges[4], post),
         'cara': [_foto(ojos0, nada, post), _foto(ojos1, nada, post)],
-        'barba': _foto(barbac, edges[4], post),
-        'extras': _foto(extras_c, edges[5], post),
-        'boca': [_foto(b, e, post) for b, e in zip(bocas, edges[6:])],
+        'barba': _foto(barbac, edges[5], post),
+        'extras': _foto(extras_c, edges[6], post),
+        'boca': [_foto(b, e, post) for b, e in zip(bocas, edges[7:])],
     }
 
 

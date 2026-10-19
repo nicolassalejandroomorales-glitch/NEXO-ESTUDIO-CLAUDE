@@ -80,7 +80,7 @@
 
     let actual = 'reposo', typeTimer = 0, altoTexto = 0, vivo = null;
     const pose = (name, col = 0) => { actual = name; if (vivo) { vivo.set(name); vivo.mouth(col); } };
-    Promise.resolve().then(() => window.NexoLoader.script(new URL('./grimorio-vivo.js?v=2', HERE).href)).then(() => { if (ui && ui.box === box) { vivo = window.NexoGrimorioVivo.mount(g); vivo.set(actual); } }).catch(() => {});
+    Promise.resolve().then(() => window.NexoLoader.script(new URL('./grimorio-vivo.js?v=3', HERE).href)).then(() => { if (ui && ui.box === box) { vivo = window.NexoGrimorioVivo.mount(g); vivo.set(actual); } }).catch(() => {});
     // Texto letra por letra con el blip del Grimorio (opts.voz) y la boca que se mueve; tocar el globo lo completa.
     const PAUSA = { '…': 380, '.': 280, '?': 280, '!': 260, ':': 220, ',': 170, '—': 170 };
     const escribe = raw => {

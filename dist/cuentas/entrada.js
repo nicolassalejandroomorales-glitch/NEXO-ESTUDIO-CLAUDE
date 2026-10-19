@@ -49,7 +49,7 @@
     grim.innerHTML = '<i class="tut-llama l"></i><i class="tut-llama r"></i>';
     let vivo = null, boca = 0;
     const draw = col => { boca = col; if (vivo) vivo.mouth(col); };
-    Promise.resolve().then(() => window.NexoLoader.script(new URL('../tutorial/grimorio-vivo.js?v=2', HERE).href)).then(() => {
+    Promise.resolve().then(() => window.NexoLoader.script(new URL('../tutorial/grimorio-vivo.js?v=3', HERE).href)).then(() => {
       if (!root.isConnected) return;
       vivo = window.NexoGrimorioVivo.mount(grim); vivo.set('feliz'); vivo.mouth(boca); vivo.talk(!!timer);
     }).catch(() => {});

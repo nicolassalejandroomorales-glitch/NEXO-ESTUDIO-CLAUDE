@@ -267,7 +267,9 @@ Pedido: movimiento de todo tipo, las 4 magias y pergamino vivo. Se hace en 3 pas
    - Borradas: `grimorio-hablar.png/json` y `grimorio-v1.png`. Con «reducir movimiento» no corre el bucle (solo se dibuja al cambiar de pose o boca).
    - **Tanda 2 HECHA (18 oct), esperando aprobación de Niquito:** brazos y accesorios como capas. `grimorio-cuerpo.png` se partió en `fondo` (atril, velas y halo), `manoI`, `manoD` (con el cartel si lo sostiene), `libro` (libro, páginas y marcapáginas) y `extras` (nubes, signos, estrellas, estela, zZ y chispas); lágrimas y sudor viajan con la `cara`. Orden de apilado: fondo → manos (detrás del libro, como el dibujo original) → libro → cara → barba → boca → extras.
    - Las manos oscilan cada una con su resorte y gesticulan al hablar (cada salto de palabra las impulsa hacia arriba); los extras flotan ±1 px. Todo en píxeles enteros.
-   - Falta (tanda 3): tapa y páginas del libro (hoy salen juntas en `libro`) y, si hace falta, cuadros extra para 3 o 4 poses clave.
+   - **Tanda 3 HECHA (18 oct), esperando aprobación de Niquito:** `libro` se partió en `paginas` (cantos, página con oreja, mancha de tinta y marcapáginas; se prolongan por debajo de la tapa para que no queden huecos) y `tapa` (cuero, lomo, cinchas, esquineros, broche, remiendo y emblema). Orden: fondo → manos → páginas → tapa → cara → barba → boca → extras.
+   - Animación: el canto y la oreja de las páginas ondean hacia afuera (0 a 2 px, más al hablar); la tapa se alza 1 px al abrir la boca y de vez en cuando «respira», y con ella suben cara, barba y boca (la «cabeza» del libro).
+   - Falta (opcional): cuadros extra para 3 o 4 poses clave (hablar, sorpresa, enojo, aparecer) si Niquito los quiere después de verlo.
 3. **Cuadros extra** solo para 3 o 4 poses clave (hablar, sorpresa, enojo, aparecer). Sesión aparte.
 
 ## Pendiente (ideas a futuro, no bloquean)
