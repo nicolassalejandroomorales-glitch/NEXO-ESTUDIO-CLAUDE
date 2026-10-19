@@ -24,6 +24,7 @@
   function destroy() {
     if (!live) return;
     live.alive = false;
+    window.NexoSotanoMusica?.stop();
     cancelAnimationFrame(live.raf);
     document.removeEventListener('keydown', live.onKey);
     window.removeEventListener('resize', live.onResize);
@@ -40,7 +41,7 @@
   function render(app, ctx) {
     destroy();
     app.innerHTML = `<section class="page sotano" aria-label="Sótano de los Cristales">
-      <header class="sotano-top"><h1 class="sotano-title" data-s="title">Sótano de los Cristales</h1><span class="sotano-chip" data-s="chip" hidden></span></header>
+      <header class="sotano-top"><h1 class="sotano-title" data-s="title">Sótano de los Cristales</h1><span class="sotano-chip" data-s="chip" hidden></span><button class="sotano-music" data-s="music" type="button" aria-pressed="true" aria-label="Música del sótano" title="Música del sótano">♪</button></header>
       <div class="sotano-stage" data-s="stage" role="group" aria-label="Vista del Sótano">
         <canvas class="sotano-view" data-s="view" width="320" height="200" aria-hidden="true"></canvas>
         <canvas class="sotano-over" data-s="over" width="320" height="200" aria-hidden="true"></canvas>
@@ -71,6 +72,9 @@
     window.addEventListener('resize', G.onResize);
     window.addEventListener('hashchange', G.onHash);
     live = G;
+    const M = window.NexoSotanoMusica, paintMusic = () => { const on = !M || M.enabled; el.music.hidden = !M; el.music.setAttribute('aria-pressed', String(on)); el.music.classList.toggle('is-off', !on); };
+    paintMusic();
+    el.music.addEventListener('click', () => { M?.toggle(); paintMusic(); });
     el.stage.addEventListener('pointerup', ev => onStage(G, ev));
     el.pad.addEventListener('click', ev => { const b = ev.target.closest('[data-move]'); if (b) act(G, b.dataset.move); });
     el.card.addEventListener('click', ev => onCard(G, ev));
@@ -200,6 +204,7 @@
     if (!G.alive || G.node !== node) return;
     draw(G, img, info.off || 0);
     remember(node);
+    window.NexoSotanoMusica?.start(G.M.nodes[node].ramo || 'pasillo');   // el pasillo y cada Cámara tienen su tono
     refresh(G);
     idle(G);
     if (G.M.nodes[node].ramo) loadRamo(G, G.M.nodes[node].ramo);

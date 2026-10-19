@@ -5,16 +5,6 @@ window.NEXO_ORGANIC_COURSE = Object.assign(window.NEXO_ORGANIC_COURSE || {}, {
     "central": "Basicidad desde el par libre, la aromaticidad y la estabilidad de la base y su ácido conjugado.",
     "duration": 85
   },
-  "org-02": {
-    "title": "Ácido–base: la dirección y la forma de la amina",
-    "central": "¿Cuándo una amina está libre, protonada y capaz de reaccionar como nucleófilo?",
-    "duration": 70
-  },
-  "org-03": {
-    "title": "Aminas: basicidad, síntesis y heterociclos",
-    "central": "¿Cómo decide el entorno del N su basicidad y qué ruta crea un enlace C–N sin sobrealquilación?",
-    "duration": 95
-  },
   "org-04": {
     "title": "Aromaticidad y heterociclos: cerrar el circuito",
     "central": "¿Por qué algunos anillos con dobles enlaces son aromáticos, otros antiaromáticos y otros ninguno?",

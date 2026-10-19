@@ -31,15 +31,17 @@
 
   /* Afirmaciones (cátedra + McMurry cap. 16): hechos verdaderos (T) y errores típicos (F: [texto, por qué, error típico]).
      Se preguntan como "¿cuál es correcta?", "¿cuál es INCORRECTA?" o "¿cuántas son verdaderas?" (formato V/F de la PEP). */
+  // Prefiere afirmaciones de largo parecido a la correcta: si no, la más larga se adivina sin saber la materia.
+  const near = (rng, list, ref, n) => list.map(x => [x, Math.abs((Array.isArray(x) ? x[0] : x).length - ref.length) + rng() * 50]).sort((a, b) => a[1] - b[1]).slice(0, n).map(x => x[0]);
   function statements(rng, level, bank, extra) {
     if (level >= 4 && rng() < 0.4) {
       const nT = 1 + Math.floor(rng() * 3), list = shuffle(rng, [...sample(rng, bank.T, nT).map(t => [t, true]), ...sample(rng, bank.F, 4 - nT).map(f => [f[0], false, f[1]])]);
       return { type: 'number', prompt: `${level === 5 ? 'Estilo PEP: ' : ''}${bank.topic}. ¿Cuántas de estas afirmaciones son verdaderas? ${list.map((x, i) => `(${i + 1}) ${x[0]}`).join(' ')}`, answer: nT, unit: '', tol: 0, label: 'verdaderas',
         traps: [{ value: 4, note: 'No todas son verdaderas: revisa cada una.' }].filter(t => t.value !== nT), solution: list.map((x, i) => `(${i + 1}) ${x[1] ? 'V' : `F: ${x[2]}`}`), ...extra, explain: `${nT} verdadera(s).` }; }
     if (level >= 3 && rng() < 0.5) { const [f, why, mis] = pick(rng, bank.F);
-      return choice(rng, `${level === 5 ? 'Estilo PEP: ' : ''}${bank.topic}: ¿cuál afirmación es INCORRECTA?`, f, sample(rng, bank.T, 3).map(t => ({ text: t, note: 'Esta es verdadera.' })), { ...extra, misconception: mis, explain: `Es falsa: ${why}` }); }
+      return choice(rng, `${level === 5 ? 'Estilo PEP: ' : ''}${bank.topic}: ¿cuál afirmación es INCORRECTA?`, f, near(rng, bank.T, f, 3).map(t => ({ text: t, note: 'Esta es verdadera.' })), { ...extra, misconception: mis, explain: `Es falsa: ${why}` }); }
     const t = pick(rng, bank.T);
-    return choice(rng, `${level === 5 ? 'Estilo PEP: ' : ''}${bank.topic}: ¿cuál afirmación es correcta?`, t, sample(rng, bank.F, 3).map(([text, why, mis]) => ({ text, note: why, misconception: mis })), { ...extra, explain: t });
+    return choice(rng, `${level === 5 ? 'Estilo PEP: ' : ''}${bank.topic}: ¿cuál afirmación es correcta?`, t, near(rng, bank.F, t, 3).map(([text, why, mis]) => ({ text, note: why, misconception: mis })), { ...extra, explain: t });
   }
   const BANK = {
     halogenos: { topic: 'Halógenos como sustituyentes', T: ['Los halógenos desactivan el anillo frente a la SEA.', 'Los halógenos orientan a orto y para.', 'El clorobenceno reacciona más lento que el benceno.', 'El efecto inductivo de los halógenos saca densidad del anillo.', 'Un par libre del halógeno estabiliza el complejo σ en orto/para.', 'La nitración del clorobenceno da sobre todo p-cloronitrobenceno.'],
@@ -97,7 +99,7 @@
       if (rank(a) === rank(b)) return choice(rng, `Estilo PEP: un benceno lleva ${a.g} y ${b.g} y sus orientaciones se oponen. ¿Qué esperas?`, 'Mezcla de productos (fuerzas parecidas)', [{ text: `Manda ${a.g}`, note: 'Son de la misma clase: ninguno domina claramente.' }, { text: `Manda ${b.g}`, note: 'Son de la misma clase: ninguno domina claramente.' }],
         { concept: 'sea.multiples', slide: 35, hint: 'Clase 1 > clase 2 > meta.', explain: 'Misma clase: mezclas probables.' });
       const win = rank(a) > rank(b) ? a : b, lose = win === a ? b : a;
-      return choice(rng, `${level === 5 ? 'Estilo PEP: ' : ''}Un benceno lleva ${a.g} y ${b.g}${level >= 3 ? ' en posiciones que no se ponen de acuerdo' : ''}. ¿Qué grupo decide dónde entra el electrófilo?`, `${win.g}`, [{ text: `${lose.g}`, note: 'Manda el activador más fuerte: –OH/–OR/–NR₂ > –R/–X > meta.', misconception: 'activator-loses' }, { text: 'Ninguno: entra al azar', note: 'Siempre domina el más fuerte cuando son de distinta clase.' }],
+      return choice(rng, `${level === 5 ? 'Estilo PEP: ' : ''}Un benceno lleva ${a.g} y ${b.g}${level >= 3 ? ' en posiciones que no se ponen de acuerdo' : ''}. ¿Qué grupo decide dónde entra el electrófilo?`, `${win.g}`, [{ text: `${lose.g}`, note: 'Manda el activador más fuerte: –OH/–OR/–NR₂ > –R/–X > meta.', misconception: 'activator-loses' }, { text: 'Depende de qué grupo llegó primero al anillo', note: 'Domina el grupo más activador, no el orden de llegada.' }],
         { concept: 'sea.multiples', slide: 35, hint: 'Clase 1 (pares libres) > clase 2 (alquilos, halógenos) > clase 3 (meta).', explain: `${win.g} es de una clase más fuerte.` });
     }
   };
@@ -145,7 +147,7 @@
       const ch = pick(rng, level === 2 ? CHAINS.slice(0, 5) : CHAINS);
       const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
       if (level <= 3) return choice(rng, `Benceno + ${ch.rx} / AlCl₃: ¿producto principal?`, cap(ch.ok ? ch.p : ch.gets),
-        [ch.ok ? { text: 'No reacciona', note: 'Sí reacciona: es una alquilación normal (este carbocatión no se reordena).' } : { text: cap(ch.p), note: 'El carbocatión primario se reordena a uno más estable.', misconception: 'fc-rearrange' }, { text: 'Un producto de adición al anillo', note: 'Es una SEA: sustitución.' }, { text: `${cap(ch.ok ? ch.p : ch.gets)} como único producto, sin polialquilación posible`, note: 'Es el principal, pero el alquilo activa el anillo y puede entrar otro (polialquilación).' }],
+        [ch.ok ? { text: 'No reacciona', note: 'Sí reacciona: es una alquilación normal (este carbocatión no se reordena).' } : { text: cap(ch.p), note: 'El carbocatión primario se reordena a uno más estable.', misconception: 'fc-rearrange' }, { text: 'Un producto de adición al anillo', note: 'Es una SEA: sustitución.' }, { text: `${cap(ch.ok ? ch.p : ch.gets)} , sin polialquilación`, note: 'Es el principal, pero el alquilo activa el anillo y puede entrar otro (polialquilación).' }],
         { concept: 'sea.friedel', slide: 41, hint: '¿El carbocatión puede reordenarse a uno más estable?', explain: ch.ok ? 'Sin reordenamiento posible.' : `El carbocatión se reordena: ${ch.gets}.` });
       const lin = pick(rng, CHAINS.filter(x => !x.ok));
       return choice(rng, `${level === 5 ? 'Estilo PEP (P5): ' : ''}¿Cómo preparas ${lin.p} (cadena sin ramificar) desde benceno?`, `${lin.acyl} / AlCl₃ y después Zn(Hg) / HCl`, [{ text: `${lin.rx} / AlCl₃`, note: `Se reordena y da ${lin.gets}.`, misconception: 'fc-rearrange' }, { text: `${lin.acyl} / AlCl₃ solo`, note: 'Eso deja la cetona: falta reducir con Clemmensen.' }, { text: `${lin.rx} con luz`, note: 'Eso es halogenación radicalaria, no una alquilación.' }],
@@ -187,7 +189,7 @@
       if (level === 3 || (level === 2 && rng() < 0.4)) return stm(rng, level, 'sna', 'sea.sna', 'Atractores en orto/para estabilizan el carbanión.');
       let a, b; do { [a, b] = sample(rng, SNA, 2); } while (Math.abs(a.r - b.r) < 0.5);
       const hi = a.r > b.r ? a : b, lo = hi === a ? b : a;
-      return choice(rng, `¿Cuál reacciona más rápido con NaOH (SNA): ${a.n} o ${b.n}?`, hi.n.charAt(0).toUpperCase() + hi.n.slice(1), [{ text: lo.n.charAt(0).toUpperCase() + lo.n.slice(1), note: 'Más NO₂ en orto/para estabiliza mejor la carga negativa.', misconception: 'sna-no-ewg' }, { text: 'Ninguno reacciona', note: hi.r > 0 ? 'Con NO₂ en orto/para sí hay SNA.' : 'Revisa los NO₂.' }],
+      return choice(rng, `¿Cuál reacciona más rápido con NaOH (SNA): ${a.n} o ${b.n}?`, hi.n.charAt(0).toUpperCase() + hi.n.slice(1), [{ text: lo.n.charAt(0).toUpperCase() + lo.n.slice(1), note: 'Más NO₂ en orto/para estabiliza mejor la carga negativa.', misconception: 'sna-no-ewg' }, { text: 'Reaccionan igual de rápido', note: hi.r > 0 ? 'Con NO₂ en orto/para sí hay SNA, y mientras más NO₂, más rápido.' : 'Revisa los NO₂.' }],
         { concept: 'sea.sna', slide: 49, hint: '¿Cuántos NO₂ hay en orto o para al Cl?', explain: `${hi.n}: más atractores en orto/para.` });
     }
   };

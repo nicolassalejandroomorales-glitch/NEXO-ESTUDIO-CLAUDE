@@ -14,8 +14,6 @@ const NEXO_DATA = {
           "name": "PEP 1 · Aminas y aromáticos",
           "lessons": [
             "org-01",
-            "org-02",
-            "org-03",
             "org-04",
             "org-05"
           ]
@@ -149,7 +147,7 @@ const NEXO_DATA = {
   "lessons": {
     "org-01": {
       "subject": "organica",
-      "title": "El lenguaje de los electrones",
+      "title": "Aminas: del par libre a la síntesis",
       "duration": 35,
       "reward": 45,
       "central": "¿Cómo predigo qué enlace se forma sin memorizar el producto?",
@@ -196,114 +194,6 @@ const NEXO_DATA = {
       },
       "application": "Antes de resolver una transformación completa, haz un inventario de fuentes y destinos. Esa pausa reduce productos dibujados por intuición.",
       "trap": "En pruebas reales se pierde el mecanismo desde la primera flecha: hacerla nacer del signo negativo o del átomo, en vez del par o enlace que se mueve."
-    },
-    "org-02": {
-      "subject": "organica",
-      "title": "Ácido–base y pKa como dirección",
-      "duration": 40,
-      "reward": 50,
-      "central": "¿Hacia qué lado se favorece una transferencia de protón?",
-      "map": [
-        "Base usa un par",
-        "Ácido pierde H⁺",
-        "Se forman conjugados",
-        "Favorece el ácido más débil"
-      ],
-      "visual": "<div class=\"balance-visual\"><div><small>reactivos</small><strong>B: + H—A</strong><span>base + ácido</span></div><div class=\"balance-beam\">⇌</div><div><small>productos</small><strong>B—H⁺ + A⁻</strong><span>ácidos/bases conjugados</span></div></div>",
-      "explanation": "La base dona un par al protón; el enlace H—A devuelve sus electrones a A. Para estimar la dirección compara los ácidos de ambos lados: el equilibrio prefiere formar el ácido con pKa mayor, es decir, el ácido más débil.",
-      "example": "HO⁻ desprotona un ácido carboxílico porque el ácido carboxílico (pKa cercano a 5) es mucho más fuerte que H₂O (pKa cercano a 16). Se forma la base conjugada estabilizada por resonancia.",
-      "note": "El equilibrio favorece el lado cuyo ácido tiene mayor pKa. Dibuja siempre las bases conjugadas.",
-      "dont": "No uses “más oxígenos = más ácido” sin revisar resonancia, inducción y átomo que porta la carga.",
-      "question": "Si el ácido de los reactivos tiene pKa 5 y el ácido de los productos pKa 16, ¿qué lado se favorece?",
-      "choices": [
-        "Reactivos, porque 5 es menor",
-        "Productos, porque contienen el ácido más débil",
-        "Quedan exactamente 50:50",
-        "No se puede razonar con pKa"
-      ],
-      "answer": 1,
-      "feedback": "El equilibrio se desplaza hacia el ácido más débil: el de pKa 16. La diferencia de 11 unidades indica una preferencia enorme por productos.",
-      "errorRule": "Se eligió el ácido más fuerte como producto favorecido; el equilibrio busca el ácido de mayor pKa.",
-      "foundations": [
-        {
-          "title": "Brønsted y Lewis se conectan",
-          "body": "Una base de Brønsted capta H⁺ porque, en lenguaje de Lewis, dona un par. El enlace H—A se rompe hacia A."
-        },
-        {
-          "title": "Los conjugados difieren en un protón",
-          "body": "Ácido y base conjugada deben conservar el esqueleto. Si cambias más átomos, ya no estás escribiendo el par conjugado."
-        },
-        {
-          "title": "pKa mide la fuerza del ácido",
-          "body": "Menor pKa significa ácido más fuerte. El equilibrio favorece formar el ácido y la base más débiles."
-        },
-        {
-          "title": "La diferencia importa",
-          "body": "De forma aproximada, K≈10^(pKa del ácido producto − pKa del ácido reactivo). Once unidades no son una preferencia pequeña."
-        }
-      ],
-      "comparison": {
-        "leftTitle": "Fuerza de ácido",
-        "left": "Se compara con pKa: menor pKa, más fácil perder H⁺.",
-        "rightTitle": "Dirección del equilibrio",
-        "right": "Se decide buscando el lado que contiene el ácido de mayor pKa."
-      },
-      "application": "Este razonamiento decide si una base puede formar un enolato, desprotonar una amina protonada o dejar intacto un alcohol.",
-      "trap": "Comparar las bases visualmente y olvidar comparar los ácidos de ambos lados invierte con frecuencia la dirección."
-    },
-    "org-03": {
-      "subject": "organica",
-      "title": "Aminas: ¿par libre disponible?",
-      "duration": 45,
-      "reward": 55,
-      "central": "¿Por qué dos nitrógenos con par libre pueden tener basicidades tan distintas?",
-      "map": [
-        "Localiza el par",
-        "Busca resonancia",
-        "Imagina BH⁺",
-        "Compara estabilización perdida"
-      ],
-      "visual": "<div class=\"availability-visual\"><div class=\"availability high\"><b>Etilamina</b><span>par localizado</span><strong>disponible</strong></div><div class=\"availability mid\"><b>Anilina</b><span>par conjugado con anillo</span><strong>menos disponible</strong></div><div class=\"availability low\"><b>Acetamida</b><span>par conjugado con C=O</span><strong>muy poco disponible</strong></div></div>",
-      "explanation": "La basicidad depende de cuánto cuesta usar el par. En una amina alifática está localizado. En anilina se deslocaliza hacia el anillo. En una amida se acopla fuertemente con el carbonilo; protonar el N destruye esa estabilización.",
-      "example": "Orden cualitativo habitual: etilamina > anilina >> acetamida. No se cuenta cuántas estructuras de resonancia hay: se pregunta qué estabilización pierde la especie al protonarse.",
-      "note": "Compara disponibilidad del par y estabilidad de B frente a BH⁺.",
-      "dont": "No concluyas que todo nitrógeno neutro es una base semejante.",
-      "question": "¿Cuál tiene el par de nitrógeno menos disponible para captar H⁺?",
-      "choices": [
-        "Etilamina",
-        "Anilina",
-        "Acetamida",
-        "Las tres por igual"
-      ],
-      "answer": 2,
-      "feedback": "En la acetamida el par del N estabiliza el carbonilo por resonancia. Usarlo para unirse a H⁺ sacrifica una estabilización especialmente importante.",
-      "errorRule": "Se comparó el tipo de átomo, pero no la deslocalización del par libre.",
-      "foundations": [
-        {
-          "title": "Basicidad no es “tener nitrógeno”",
-          "body": "La pregunta es cuán disponible está el par y cuán estable queda la especie protonada. El mismo átomo puede comportarse muy distinto."
-        },
-        {
-          "title": "Resonancia puede secuestrar el par",
-          "body": "En anilina el par conversa con el anillo; en una amida conversa con el carbonilo, una interacción especialmente estabilizante."
-        },
-        {
-          "title": "Inducción también modifica densidad",
-          "body": "Grupos atractores retiran densidad y suelen disminuir basicidad; grupos donadores pueden aumentarla. El efecto cae con la distancia."
-        },
-        {
-          "title": "Basicidad y nucleofilicidad no son sinónimos",
-          "body": "Basicidad es equilibrio con H⁺; nucleofilicidad es rapidez de ataque y depende además de solvente, impedimento y polarizabilidad."
-        }
-      ],
-      "comparison": {
-        "leftTitle": "Anilina",
-        "left": "Par deslocalizado hacia un anillo aromático; es menos básico que una amina alifática.",
-        "rightTitle": "Amida",
-        "right": "Par fuertemente conjugado con C=O; protonar N sacrifica mucha estabilización."
-      },
-      "application": "Para ordenar aminas, dibuja B y BH⁺. Compara la estabilización que existe antes y después de captar H⁺, no el número bruto de resonantes.",
-      "trap": "Contar estructuras de resonancia sin preguntar si son importantes, equivalentes o si se pierden al protonar."
     },
     "org-04": {
       "subject": "organica",

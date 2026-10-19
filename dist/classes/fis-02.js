@@ -105,7 +105,7 @@
         },
         parts: [
           { id: 'r1', intro: 'Parte 1: **sin flujo no hay ATP**.',
-            pretest: q('m1-pre1', 'Adivina antes: si se acaba el ATP de una neurona, su bomba Na⁺/K⁺…', [{ text: 'Se detiene y entra Na⁺', correct: true }, { text: 'Trabaja más rápido', note: 'Necesita ATP para funcionar.' }, { text: 'No cambia', note: 'Depende del ATP.' }], { concept: 'base.energia', explain: 'Sin ATP, sin bomba.', slide: 2 }),
+            pretest: q('m1-pre1', 'Adivina antes: si se acaba el ATP de una neurona, su bomba Na⁺/K⁺…', [{ text: 'Se detiene y entra Na⁺ a la célula', correct: true }, { text: 'Trabaja más rápido para compensar la falta', note: 'Necesita ATP para funcionar.' }, { text: 'No cambia: funciona sin ATP', note: 'Depende del ATP.' }], { concept: 'base.energia', explain: 'Sin ATP, sin bomba.', slide: 2 }),
             explain: [
               { id: 'm1b1', concept: 'fis.isquemia', title: 'Sin flujo no hay ATP', slide: 2, body: '**↓ flujo → ↓ ATP → falla de la Na⁺/K⁺-ATPasa** → entra Na⁺ y agua, la neurona se **despolariza** → se libera **glutamato** y falla su **recaptación** → el glutamato activa receptores **NMDA** → entra **Ca²⁺** → se activan **proteasas, lipasas, NO sintasa** y se forman **radicales libres** → muerte neuronal. Además hay acidosis (glucólisis anaeróbica → lactato).',
                 deeper: 'Por eso se dice que el daño "se amplifica": la primera neurona que se despolariza libera glutamato que excita a sus vecinas, que a su vez se despolarizan. El Ca²⁺ es el ejecutor final.' }
@@ -121,7 +121,7 @@
             ],
             rule: { title: 'Regla del sabio: la cascada', concept: 'fis.isquemia', steps: ['Sin flujo → sin ATP → sin bombas', 'Despolarización → glutamato → NMDA → Ca²⁺', 'Ca²⁺ → enzimas y radicales → muerte'] } },
           { id: 'r2', intro: 'Parte 2: **núcleo, penumbra y tiempo**.',
-            pretest: q('m1-pre2', 'Adivina antes: ¿qué zona de un infarto cerebral se beneficia de la trombolisis?', [{ text: 'La penumbra', correct: true }, { text: 'El núcleo', misconception: 'core-penumbra' }, { text: 'Ninguna', note: 'La penumbra sí.' }], { concept: 'fis.penumbra', explain: 'Solo lo vivo se puede salvar.', slide: 3 }),
+            pretest: q('m1-pre2', 'Adivina antes: ¿qué zona de un infarto cerebral se beneficia de la trombolisis?', [{ text: 'La penumbra, tejido en riesgo pero salvable', correct: true }, { text: 'El núcleo, tejido ya infartado', misconception: 'core-penumbra' }, { text: 'Ni la penumbra ni el núcleo', note: 'La penumbra sí.' }], { concept: 'fis.penumbra', explain: 'Solo lo vivo se puede salvar.', slide: 3 }),
             explain: [
               { id: 'm1b2', concept: 'fis.penumbra', title: 'Núcleo y penumbra', slide: 3, body: 'El **núcleo** (flujo muy bajo) muere por necrosis en minutos. La **penumbra** (flujo reducido) deja de funcionar pero **sigue viva** por horas: es el blanco del tratamiento. En el ACV **isquémico** se puede disolver el coágulo con **trombolisis (rtPA) dentro de 4,5 horas** o sacarlo con trombectomía. En el **hemorrágico** la trombolisis está **contraindicada**.',
                 deeper: 'Si la penumbra no se reperfunde, la cascada isquémica la convierte en núcleo. La reperfusión tardía también tiene riesgo: radicales libres y sangrado.' }
@@ -163,7 +163,7 @@
         },
         parts: [
           { id: 'r1', intro: 'Parte 1: **edema y Monro-Kellie**.',
-            pretest: q('m2-pre1', 'Adivina antes: en las primeras horas de un infarto cerebral, el edema es…', [{ text: 'Citotóxico (las células se hinchan)', correct: true }, { text: 'Vasogénico', misconception: 'edema-type' }, { text: 'No hay edema', note: 'Aparece temprano.' }], { concept: 'fis.edema', explain: 'Fallan las bombas.', slide: 4 }),
+            pretest: q('m2-pre1', 'Adivina antes: en las primeras horas de un infarto cerebral, el edema es…', [{ text: 'Citotóxico: las células se hinchan', correct: true }, { text: 'Vasogénico: se rompe la barrera hematoencefálica', misconception: 'edema-type' }, { text: 'Inexistente: el edema aparece días después', note: 'Aparece temprano.' }], { concept: 'fis.edema', explain: 'Fallan las bombas.', slide: 4 }),
             explain: [
               { id: 'm2b1', concept: 'fis.edema', title: 'Edema y Monro-Kellie', slide: 4, body: '**Edema citotóxico**: fallan las bombas (falta de ATP) → la **célula** se hincha; la barrera hematoencefálica está **intacta**; típico de la isquemia temprana y la hiponatremia. **Edema vasogénico**: se rompe la **BHE** → sale plasma rico en proteínas al espacio **extracelular**, sobre todo en sustancia blanca; típico de **tumores**, abscesos y trauma; en tumores responde a **corticoides** (dexametasona). **Monro-Kellie**: cerebro + sangre + LCR = volumen **constante**; si uno crece, los otros deben salir. Cuando ya no pueden, la PIC sube **bruscamente**.',
                 deeper: 'La curva presión-volumen intracraneal es plana al principio (compensación) y luego se dispara: un poco más de volumen produce un gran aumento de PIC. Por eso un paciente puede verse estable y empeorar de golpe. Con el tiempo, un infarto también desarrolla edema vasogénico (la BHE se daña).' }
@@ -174,7 +174,7 @@
                 { concept: 'fis.edema', explain: '¿Dentro de la célula o fuera?', slide: 4, hint: '¿Se rompió la barrera?', misconception: 'edema-type' }),
               order('m2-p2', 'Ordena lo que pasa al crecer un tumor dentro del cráneo:', [['a', 'Sale LCR hacia el canal raquídeo'], ['b', 'Sale sangre venosa'], ['c', 'Se agota la compensación'], ['d', 'La PIC sube bruscamente']], ['a', 'b', 'c', 'd'],
                 { concept: 'fis.pic', direction: 'En el tiempo.', explain: 'Monro-Kellie.', slide: 5, hint: 'Primero se compensa.' }),
-              q('m2-p3', '¿Por qué un paciente con un tumor cerebral puede estar estable semanas y empeorar en horas?', [{ text: 'Se agota la compensación y la PIC sube de golpe', correct: true }, { text: 'El tumor crece de golpe', note: 'El tumor crece lento; lo que cambia es la compensación.' }, { text: 'Se le acaba el LCR', note: 'El LCR se desplaza, no "se acaba".' }],
+              q('m2-p3', '¿Por qué un paciente con un tumor cerebral puede estar estable semanas y empeorar en horas?', [{ text: 'Se agota la compensación y la PIC sube de golpe', correct: true }, { text: 'El tumor crece de golpe en pocas horas', note: 'El tumor crece lento; lo que cambia es la compensación.' }, { text: 'Se le acaba el LCR que amortiguaba el crecimiento', note: 'El LCR se desplaza, no "se acaba".' }],
                 { concept: 'fis.pic', explain: 'Curva presión-volumen.', slide: 5, hint: 'Piensa en la curva presión-volumen.' })
             ],
             rule: { title: 'Regla del sabio: edema', concept: 'fis.edema', steps: ['Citotóxico: célula hinchada, BHE intacta (isquemia temprana)', 'Vasogénico: BHE rota (tumor, trauma), responde a corticoides en tumores', 'Monro-Kellie: compensación limitada'] } },
@@ -187,7 +187,7 @@
             practice: [
               num('m2-p4', 'PA 140/80 mmHg y PIC 35 mmHg. Calcula la PPC.', 65, 'mmHg',
                 { concept: 'fis.pic', label: 'PPC', slide: 6, hint: 'PAM = 80 + (140 − 80)/3; luego resta la PIC.', traps: [{ value: 105, note: 'Usaste la sistólica.', misconception: 'ppc-sign' }, { value: 135, note: 'Se resta la PIC.', misconception: 'ppc-sign' }], solution: ['PAM = 80 + 60/3 = 100 mmHg', 'PPC = 100 − 35 = 65 mmHg'], explain: '65 mmHg.' }),
-              q('m2-p5', 'Paciente con TEC: PA 190/100, FC 48 y respiración irregular. ¿Qué indica?', [{ text: 'Tríada de Cushing: hipertensión intracraneal grave con riesgo de herniación', correct: true }, { text: 'Crisis hipertensiva aislada: hay que bajar la presión rápido', note: 'Bajarla puede empeorar la perfusión cerebral.', misconception: 'cushing' }, { text: 'Shock', note: 'En el shock la presión cae.' }],
+              q('m2-p5', 'Paciente con TEC: PA 190/100, FC 48 y respiración irregular. ¿Qué indica?', [{ text: 'Tríada de Cushing: hipertensión intracraneal grave con riesgo de herniación', correct: true }, { text: 'Crisis hipertensiva aislada: hay que bajar la presión rápido', note: 'Bajarla puede empeorar la perfusión cerebral.', misconception: 'cushing' }, { text: 'Shock con compensación: hay que dar volumen', note: 'En el shock la presión cae.' }],
                 { concept: 'fis.pic', explain: 'HTA + bradicardia + respiración irregular.', slide: 7, hint: 'Tres signos juntos con un TEC.', misconception: 'cushing' }),
               match('m2-p6', 'Une cada valor con su significado:', [['PIC 10 mmHg', 'Normal'], ['PIC 25 mmHg', 'Hipertensión intracraneal'], ['PPC 45 mmHg', 'Perfusión insuficiente (riesgo de isquemia)'], ['PPC 70 mmHg', 'Perfusión adecuada']],
                 { concept: 'fis.pic', explain: 'PIC normal 5–15; PPC meta ≥ 60.', slide: 6, hint: 'Recuerda los umbrales 20 y 60.' })

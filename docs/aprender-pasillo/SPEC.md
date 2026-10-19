@@ -161,3 +161,12 @@ Sauce y torre dentro de la Cámara (reemplaza la pantalla vieja `#/torre`), sauc
 - Pulir: cristales que aún parecen pegados, legibilidad de murales vistos de lado.
 - Relación con la Torre (`docs/mundo-torre/SPEC.md`: pisos, escalera, ascensor).
 - Tutorial: su recorrido de Aprender espera a este rediseño (`docs/chats/tutorial.md`).
+
+## Música del Sótano (18 oct 2026)
+
+- **Qué**: música de ambiente "cripta misteriosa", sintetizada en vivo con WebAudio (sin archivos, original), en `dist/aprender/sotano-musica.js`.
+- **Capas**: zumbido grave que se mueve despacio (raíz, doble desafinado, quinta, octava), viento suave, goteo lejano al azar y campanitas de cristal sobre una escala pentatónica; todo con reverberación larga (impulso generado).
+- **Tono por lugar**: el pasillo (Re), Orgánica (La), Analítica (Sol), Fisicoquímica (Re) y Fisiopatología (Mi), cada uno con su escala. Al cambiar de parada la raíz se desliza (≈1,6 s), sin corte.
+- **Control**: botón ♪ arriba a la derecha del Sótano (silencia y prende; se recuerda en `localStorage` `nexo-sotano-musica`). Por defecto prendida; el volumen sigue el control de música de Ajustes. Solo suena tras un gesto del usuario y se apaga con la pestaña oculta o al salir de Aprender.
+- **Criterio de aceptación**: suena a nivel suave (RMS ≈ 0,02–0,06) al entrar, cambia de tono en las Cámaras y el botón ♪ la apaga.
+- **Pendiente**: afinar con oído de Niquito (más/menos goteo, volumen, si una Cámara pide otro carácter); efectos de pasos al caminar.
