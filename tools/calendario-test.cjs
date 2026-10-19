@@ -21,7 +21,8 @@ assert.strictEqual(M.weekOf('2026-11-01')[0], '2026-10-26'); assert.strictEqual(
 const st = mk();
 assert.strictEqual(M.kind(st.events.find(e => e.id === 'official-fq-pep1')), 'sello'); assert.strictEqual(M.kind(st.events.find(e => e.id === 'official-org-lab-1')), 'matraz');
 assert.strictEqual(M.kind({ type: 'deadline' }), 'pluma'); assert.strictEqual(M.kind({ type: 'recess' }), 'receso');
-assert.strictEqual(M.eventsOn(st.events, '2026-10-21').length, 2, 'PEP 1 FQ + Lab 2 FQ el 21 oct');
+assert.strictEqual(M.eventsOn(st.events, '2026-10-21').length, 1, 'solo el Lab 2 FQ el 21 oct (la PEP 1 se movió al 28)');
+assert.ok(M.eventsOn(st.events, '2026-10-28').some(e => e.id === 'official-fq-pep1'), 'PEP 1 FQ el 28 oct');
 
 // Mover una fecha: historial, sincroniza la nota, deshace, y no acepta fechas inválidas.
 const r = M.moveEvent(st, 'official-fq-c1', '2026-10-28', { today: '2026-10-14' });
@@ -56,7 +57,7 @@ const subjects = [{ id: 'organica' }, { id: 'analitica' }, { id: 'fisico' }, { i
 const sem = M.semester(mk().events, subjects, '2026-10-14');
 assert.strictEqual(sem.rows.length, 4); assert.ok(sem.today > 0 && sem.today < 100);
 assert.ok(sem.rows.every(r => r.items.every(i => i.left >= 0 && i.left <= 100)));
-assert.ok(sem.bands.some(b => b.from === '2026-10-19' && b.to === '2026-10-27' && b.count === 4), 'semana crítica 19–27 oct');
+assert.ok(sem.bands.some(b => b.from === '2026-10-19' && b.to === '2026-10-27' && b.count === 3), 'semana crítica 19–27 oct');
 assert.ok(sem.rows[0].items.some(i => i.kind === 'matraz') && sem.rows[0].items.some(i => i.kind === 'sello'));
 assert.strictEqual(M.semester([], subjects, '2026-10-14'), null);
 

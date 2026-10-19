@@ -5,7 +5,7 @@ const NEXO_SEMESTER = {
   version: '2026-10-14',
   events: [
     { id: 'official-fq-c1', title: 'Control 1', subject: 'fisico', type: 'exam', date: '2026-10-26', topic: 'Equilibrio químico, electrolitos, equilibrio iónico y electroquímico', source: 'Calendarización Ejercicios FQII QyF 2s2026', dateNote: 'El calendario de ejercicios 2S2026 indica 26/10; antes se había informado 20/10. Confirma con cátedra.' },
-    { id: 'official-fq-pep1', title: 'PEP 1', subject: 'fisico', type: 'exam', date: '2026-10-21', topic: 'Equilibrio químico, iónico y electroquímico', source: 'Programación FQII (Dr. Eduardo Pino): miércoles 21 de octubre' },
+    { id: 'official-fq-pep1', title: 'PEP 1', subject: 'fisico', type: 'exam', date: '2026-10-28', topic: 'Equilibrio químico, iónico y electroquímico', source: 'Correo del Dr. Eduardo Pino (19 oct 2026): la PEP 1 se traslada al miércoles 28 de octubre (antes 21)' },
     { id: 'official-org-c1', title: 'Control 1', subject: 'organica', type: 'exam', date: '2026-10-14', topic: 'Aminas', source: 'Classroom QOII (aplazado una semana, anuncio del 30-09)', dateNote: 'Confirmado por Niquito el 05-10 con el calendario de ejercicios actualizado.' },
     { id: 'official-org-pep1', title: 'PEP 1', subject: 'organica', type: 'exam', date: '2026-10-27', topic: 'Aminas, heterociclos y compuestos aromáticos' },
     { id: 'official-ana-c1', title: 'Control 1', subject: 'analitica', type: 'exam', date: '2026-10-19' },
@@ -73,7 +73,7 @@ const NEXO_SEMESTER = {
         'Lab: 100 % de asistencia; la tabla de datos se entrega el mismo día al terminar la sesión.'
       ],
       components: [
-        { id: 'official-fq-pep1', name: 'PEP 1', group: 'theory', weight: 80 / 3, grade: '', date: '2026-10-21' },
+        { id: 'official-fq-pep1', name: 'PEP 1', group: 'theory', weight: 80 / 3, grade: '', date: '2026-10-28' },
         { id: 'official-fq-pep2', name: 'PEP 2', group: 'theory', weight: 80 / 3, grade: '', date: '2026-11-25' },
         { id: 'official-fq-pep3', name: 'PEP 3', group: 'theory', weight: 80 / 3, grade: '', date: '2026-12-29' },
         { id: 'official-fq-controls', name: 'Controles de ejercicios (promedio)', group: 'theory', weight: 20, grade: '', date: '' },
