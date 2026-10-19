@@ -72,13 +72,13 @@
       if (mode === 'which') { // ¿cuál de estas es…? una correcta y tres de otras clases
         const want2 = pick(rng, KINDS.filter(K => avail.some(x => kind(x) === K))), right = pick(rng, avail.filter(x => kind(x) === want2));
         const others = sample(rng, SP.filter(x => kind(x) !== want2 && x.lvl <= Math.max(level, 2) + 1), 3);
-        return choice(rng, `${level === 5 ? 'Estilo PEP (P1): ' : ''}¿Cuál de estas especies es ${want2.toLowerCase().replace(/o$/, 'a')}?`, right.n, others.map(o => ({ text: o.n, note: `${kind(o)}: ${o.why}.`, misconception: mcOf(o) })),
+        return choice(rng, `${level === 5 ? 'Estilo PEP (P5): ' : ''}¿Cuál de estas especies es ${want2.toLowerCase().replace(/o$/, 'a')}?`, right.n, others.map(o => ({ text: o.n, note: `${kind(o)}: ${o.why}.`, misconception: mcOf(o) })),
           { concept: c, slide: slideOf(right), hint: 'Revisa cada una: ¿plana y continua? ¿cuántos π?', explain: `${right.n}: ${right.why}.` }); }
       if (mode === 'why') { const right = `${k}, porque ${REASONS[k](s.pi)}`;
         const wrong = KINDS.filter(K => K !== k).map(K => ({ text: `${K}, porque ${REASONS[K](K === 'No aromático' ? 0 : s.pi)}`, note: s.ok ? `Tiene ${s.pi} π: ${s.why}.` : `Falla un criterio: ${s.why}.`, misconception: mcOf(s) }));
         if (s.ok) wrong.push({ text: `${k}, porque ${REASONS[k === 'Aromático' ? 'Antiaromático' : 'Aromático'](s.pi)}`, note: `${s.pi} es ${s.pi % 4 === 2 ? '4n + 2' : '4n'}.`, misconception: 'huckel-4n' });
         else wrong.push({ text: `No aromático, porque tiene ${s.pi} e⁻ π`, note: 'El número de π no es el problema: el problema es que falla un criterio.', misconception: 'skip-planarity' });
-        return choice(rng, `${level === 5 ? 'Estilo PEP (P1): ' : ''}Clasifica ${art(s.n)} ${s.n} y justifica.`, right, wrong.filter(w => w.text !== right),
+        return choice(rng, `${level === 5 ? 'Estilo PEP (P5): ' : ''}Clasifica ${art(s.n)} ${s.n} y justifica.`, right, wrong.filter(w => w.text !== right),
           { concept: c, slide, hint: 'Primero los criterios (cíclico, plano, continuo); después cuenta π.', explain: `${right}: ${s.why}.` }); }
       return choice(rng, `${art(s.n) === 'la' ? 'La' : 'El'} ${s.n} es…`, k, KINDS.filter(x => x !== k).map(text => ({ text, note: NOTE[text], misconception: mcOf(s) })),
         { concept: c, slide, hint: 'Primero: ¿cíclico, plano y con un p en cada átomo? Después cuenta π.', explain: `${k}: ${s.why}${s.ok ? ` (${s.pi} electrones π)` : ''}.` });
