@@ -1,0 +1,6 @@
+/* La luz del Sótano (dist/aprender/sotano-luz.js): aviso de lo que se encendió y lista de grietas. */
+.sotano-reward { margin: 6px 0; padding: 6px 10px; border-left: 3px solid #ffd860; background: #ffd86014; color: #fbe08a; }
+.sotano-cracks { list-style: none; margin: 8px 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.sotano-crack { display: inline-flex; align-items: baseline; gap: 6px; padding: 4px 10px; border: 2px solid #b5683c; background: #0b0f16; color: #ffb36b; font: 600 .9rem Georgia, serif; cursor: pointer; }
+.sotano-crack small { color: #9fb2ad; font-weight: 400; }
+.sotano-crack:hover, .sotano-crack:focus-visible { border-color: #fbe08a; outline: 0; box-shadow: 0 0 0 2px #fbe08a55; }
