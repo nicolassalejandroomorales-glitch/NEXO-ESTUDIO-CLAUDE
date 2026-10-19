@@ -33,7 +33,7 @@ ul{margin:0;padding-left:18px;font-size:14px}li{margin-bottom:4px}.vacio{color:v
 <h1>Tablero de Nexo</h1>
 <p class="sub">Actualizado el 2026-10-19 desde docs/chats/. Un chat = un tema = un modelo. Toca una tarjeta para ver el detalle.</p>
 <div class="resumen">
-  <div class="grande"><b>48%</b><span>de la app avanzada · 69 cosas hechas, 75 por hacer, 36 ideas guardadas</span></div>
+  <div class="grande"><b>48%</b><span>de la app avanzada · 71 cosas hechas, 76 por hacer, 36 ideas guardadas</span></div>
   <div class="barra" role="img" aria-label="48% avanzado"><i style="width:48%"></i></div>
   <p>Lo urgente en marcha: <b>Aprender (Sótano de los Cristales)</b> (75%) · <b>Beta para compañeros</b> (38%) · <b>Clases (contenido y aula)</b> (57%) · <b>Estudio Orgánica II (PEP 1)</b> (40%) · <b>Organización — continuidad del organizador semanal</b> (70%).</p>
 </div>
@@ -224,23 +224,24 @@ Parte desde &quot;Falta&quot; y pregúntame qué grupo de restos sigue.">Copiar 
   <summary>
     <span class="tag prio">Pronto</span>
     <h3>Motor académico (diseño)</h3>
-    <div class="barra" role="img" aria-label="50% avanzado"><i style="width:50%"></i></div>
-    <p class="meta"><b>50%</b> · 3 hechas, 3 faltan<br>piloto hecho en Aminas</p>
+    <div class="barra" role="img" aria-label="63% avanzado"><i style="width:63%"></i></div>
+    <p class="meta"><b>63%</b> · 5 hechas, 3 faltan<br>piloto en Aminas; clases y juegos ya alimentan evidencia y rangos</p>
   </summary>
   <div class="cols">
-    <section><h4>Hecho (3)</h4><ul><li>Conceptos, evidencia, estados de conocimiento y FSRS en `dist/academic/*`. Piloto org-01 / Aminas.</li><li>Etapas 4 a 10 (diagnóstico, intuitivo, grimorio, prueba, entrenar, replicar, arte) con su SPEC.</li><li>Ejercicios con regla de calidad (`docs/calidad-ejercicios/SPEC.md`).</li></ul></section>
-    <section><h4>Falta (3)</h4><ul><li>Extender el motor a otros ramos (Fisiopatología, Analítica, FQ II) sin reescribir.</li><li>Corrección real de respuestas abiertas y de flechas/mecanismos.</li><li>Que los juegos y las clases alimenten la misma evidencia (hoy el juego PEP 1 no registra intentos).</li></ul></section>
-    <section><h4>Ideas (3)</h4><ul><li>Repaso espaciado diario de 10 min que mezcle ramos según cercanía de evaluaciones.</li><li>Detección de &quot;falsa sensación de dominio&quot;: acertar con ayuda no cuenta igual que sin ayuda.</li><li>Panel de &quot;qué tan listo estoy&quot; por evaluación, con evidencia y no con porcentaje inventado.</li></ul></section>
+    <section><h4>Hecho (5)</h4><ul><li>Conceptos, evidencia, estados de conocimiento y FSRS en `dist/academic/*`. Piloto org-01 / Aminas.</li><li>Etapas 4 a 10 (diagnóstico, intuitivo, grimorio, prueba, entrenar, replicar, arte) con su SPEC.</li><li>Ejercicios con regla de calidad (`docs/calidad-ejercicios/SPEC.md`).</li><li>18 oct: puente clase → motor (`class-bridge.js`). Las 11 clases y los juegos escriben evidencia.</li><li>19 oct: las clases ya pueden dar rangos (`docs/motor-rangos/SPEC.md`):</li></ul></section>
+    <section><h4>Falta (3)</h4><ul><li>Corrección real de respuestas abiertas: la escrita sigue siendo autorúbrica. Auditoría 19 oct: mostrar la respuesta modelo antes de marcar y exigir palabras clave.</li><li>Regla de la &quot;hoja verde&quot; (`classes/evidence.js`): solo escribir y calcular cuentan como producir, así que hay conceptos que nunca llegan a verde (8/22 en org-01, 6/11 en org-05). Dibujar sin ayuda debería contar.</li><li>Decidir si `study_bank` (motor de estudio piloto) también cuenta como verificado.</li></ul></section>
+    <section><h4>Ideas (3)</h4><ul><li>Repaso espaciado diario de 10 min que mezcle ramos según cercanía de evaluaciones.</li><li>Panel de &quot;qué tan listo estoy&quot; por evaluación, con evidencia y no con porcentaje inventado.</li><li>Auditoría 19 oct, para el tema clases: ejemplos resueltos y casos de corrección en FQ y Analítica, y actividades interactivas (predice y observa, recetas) fuera de Orgánica.</li></ul></section>
   </div>
   <div class="prompts">
-    <span class="tag">Opus · esfuerzo alto</span>
-    <button data-copy="Chat: Motor académico (solo diseño, Opus). Lee CLAUDE.md, la skill nexo-motor y los SPEC de docs/etapa-4-diagnostico y docs/calidad-ejercicios.
-Tarea: conversemos. Dime en una línea qué entendiste y hazme máximo 3 preguntas de selección múltiple sobre cómo extender el motor a otros ramos y cómo corregir respuestas abiertas de verdad.
-No escribas código hasta que yo diga &quot;implementa&quot;. El resultado es un docs/motor/SPEC.md corto y un prompt listo para un chat Sonnet que lo construya.
-Al terminar, usa nexo-cierre y actualiza docs/chats/motor.md.">Copiar prompt de inicio</button>
+    <span class="tag">Opus · esfuerzo medio (diseño); Sonnet para implementar</span>
     <button data-copy="Chat: Motor académico (Opus). Lee CLAUDE.md, la skill nexo-motor y docs/chats/motor.md.
-Parte desde &quot;Falta&quot; y pregúntame qué decisión de diseño toca primero.">Copiar prompt de continuación</button>
-    <span class="spec">docs/etapa-4-diagnostico/SPEC.md</span>
+Parte desde &quot;Falta&quot; y pregúntame qué decisión de diseño toca primero.">Copiar prompt de inicio</button>
+    <button data-copy="Chat: Motor académico (Opus para diseñar, Sonnet para implementar). Lee CLAUDE.md, la skill nexo-motor, docs/chats/motor.md y docs/motor-rangos/SPEC.md.
+Ya está hecho: las clases y los juegos dan rangos (minutos, verificadas, familias por habilidad, carta del perfil).
+Sigue con el punto 2 de la auditoría del 19 oct: la regla de la &quot;hoja verde&quot; en dist/classes/evidence.js
+(hoy solo escribir y calcular cuentan como &quot;producir solo&quot;, y hay conceptos que nunca llegan a verde).
+Hazme máximo 3 preguntas de selección múltiple y escribe docs/motor-verde/SPEC.md antes de programar.">Copiar prompt de continuación</button>
+    <span class="spec">docs/motor-rangos/SPEC.md</span>
   </div>
 </details>
 <details class="card p2">
@@ -269,12 +270,12 @@ Parte desde &quot;Falta&quot; y pregúntame qué sigue.">Copiar prompt de contin
   <summary>
     <span class="tag prio">Pronto</span>
     <h3>Tutorial (Grimorio guía)</h3>
-    <div class="barra" role="img" aria-label="50% avanzado"><i style="width:50%"></i></div>
-    <p class="meta"><b>50%</b> · 8 hechas, 8 faltan<br>todo conectado y publicado (Artifact v39); esperando que Niquito revise la animación del Grimorio por capas</p>
+    <div class="barra" role="img" aria-label="47% avanzado"><i style="width:47%"></i></div>
+    <p class="meta"><b>47%</b> · 8 hechas, 9 faltan<br>todo conectado y publicado (Artifact v39); esperando que Niquito revise la animación del Grimorio por capas</p>
   </summary>
   <div class="cols">
     <section><h4>Hecho (8)</h4><ul><li>Diseño cerrado (SPEC, GUION, FRASES) y arte pixel: huevos con nacimiento, marcos y Grimorio.</li><li>Guion programado y conectado: cuenta nueva lo ve sola, guarda mascota y nombre reales, premio de 150 ⚛ una vez, Ajustes › Tutoriales, filtro de nombres.</li><li>Avisos del Grimorio (primera vez por sección y novedades con versión).</li><li>Inicio mágico (fondo con runas, aura, nube), huevos vivos por especie, nacimiento con estallido, dab y voz por especie.</li><li>Voz del Grimorio (blip grave por letra) y textos con personalidad.</li><li>Recorrido por la app real (`dist/tutorial/recorrido.js`): Inicio, Aprender (Sótano de los Cristales), Organización y Perfil, con voz por letra, «hazlo tú» (tocar *Avanzar* en el Sótano) y globo bien ubicado en móvil. **Sin Juegos** (Niquito, 18 oct: se bugea) **y sin el paso «Configurar»** (no tenía sentido).</li><li>Animación del Grimorio (18 oct): aura por emoción, humo, brasas, gestos por emoción y pergamino que se desenrolla.</li><li>Grimorio por capas (18 oct, 9 capas en `dist/tutorial/grimorio-vivo.js`): fondo, manos, páginas, tapa, cara (parpadea), barba (ondea con inercia), boca, extras. Hojas nuevas `grimorio-*.png`; las viejas se borraron. Lo usan tutorial, recorrido, avisos y entrada.</li></ul></section>
-    <section><h4>Falta (8)</h4><ul><li>Que Niquito revise y apruebe: Grimorio por capas, aura/humo/pergamino, recorrido y «hazlo tú» (todo sin aprobar aún).</li><li>Ajustar la intensidad de los movimientos según lo que él vea (barba, manos, tapa, páginas).</li><li>(Opcional) Cuadros extra para 3 o 4 poses clave: hablar, sorpresa, enojo, aparecer.</li><li>Revisar el Grimorio por capas con captura en 390 (solo se probó por texto y en escritorio).</li><li>Volver a poner el recorrido de Juegos cuando la sala de juegos esté lista.</li><li>En 390 el documento mide 389 px de ancho: se sale ~14 px (lienzo `.tut-egg-fx` de los huevos y/o la app). Revisar en el tema de los huevos.</li><li>Premio con nube (necesita permiso explícito, hoy no se toca Supabase).</li><li>Revisar que 150 ⚛ siga bien si cambian los precios de la tienda.</li></ul></section>
+    <section><h4>Falta (9)</h4><ul><li>Que Niquito revise y apruebe: Grimorio por capas, aura/humo/pergamino, recorrido y «hazlo tú» (todo sin aprobar aún).</li><li>Ajustar la intensidad de los movimientos según lo que él vea (barba, manos, tapa, páginas).</li><li>(Opcional) Cuadros extra para 3 o 4 poses clave: hablar, sorpresa, enojo, aparecer.</li><li>Revisar el Grimorio por capas con captura en 390 (solo se probó por texto y en escritorio).</li><li>Volver a poner el recorrido de Juegos cuando la sala de juegos esté lista.</li><li>En 390 el documento mide 389 px de ancho: se sale ~14 px (lienzo `.tut-egg-fx` de los huevos y/o la app). Revisar en el tema de los huevos.</li><li>Premio con nube (necesita permiso explícito, hoy no se toca Supabase).</li><li>Revisar que 150 ⚛ siga bien si cambian los precios de la tienda.</li><li>(18 oct) **URGENTE antes de publicar el Artifact**: el Artifact tiene versiones de `tutorial/tutorial.js`, `tutorial.css` y `magia.js` más nuevas que el repo (el repo: 35838 / 15989 / 17693 bytes; el Artifact: 38000 / 17360 / 20581). Ese trabajo está solo en la carpeta `NEXO_tutorial` (sin commit) y en el Artifact. Commitearlo y subirlo (`git push claude &lt;rama&gt;:master`) para no perderlo.</li></ul></section>
     <section><h4>Ideas (3)</h4><ul><li>Mini tutoriales por sección que se activan la primera vez que entras.</li><li>El Grimorio recuerda tus preferencias y sugiere la primera sesión.</li><li>Más pasos «hazlo tú» (usar un `sel` cuyo toque no cambie de pantalla; ver SPEC).</li></ul></section>
   </div>
   <div class="prompts">
