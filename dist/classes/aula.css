@@ -16,12 +16,12 @@
 .au-link{align-self:flex-start;background:none;border:0;color:#9ce8f0;text-decoration:underline;font:inherit;font-size:15px;cursor:pointer;padding:4px 0}
 
 /* tarjetas y textos */
-.au-card,.au-box{padding:14px 16px;background:rgba(8,24,36,.62);border:1px solid rgba(156,232,240,.28);border-radius:10px}
+.au-card,.au-box{padding:14px 16px;background:rgba(8,24,36,.9);border:1px solid rgba(156,232,240,.28);border-radius:10px}
 .au-card.right{border-color:#70c58a;box-shadow:0 0 20px rgba(112,197,138,.25)}
 .au-card.wrong{border-color:#d4645a;box-shadow:0 0 20px rgba(212,100,90,.2)}
 .au-card h3{margin:2px 0 8px;font-size:22px;color:#ffd860}
 .au-eyebrow{margin:0 0 6px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#ffd860}
-.au-q{margin:2px 0 10px;font-size:19px;line-height:1.4}
+.au-q{margin:2px 0 10px;font-size:21px;line-height:1.4}
 .au-help,.au-note,.au-gate-note{margin:6px 0;font-size:15px;color:#c9bfa6;line-height:1.45}
 .au-note{padding:8px 10px;border-left:3px solid #ffd860;background:rgba(255,216,96,.06)}
 .au-hint{padding:8px 12px;border-left:3px solid #ffd860;background:rgba(255,216,96,.1);border-radius:0 8px 8px 0}
@@ -205,7 +205,7 @@
 body.in-classroom{overflow:hidden}
 .au-piece{position:fixed;inset:0;z-index:5100;background:radial-gradient(ellipse at 60% 40%,#0e2c3e 0%,#08141e 60%,#04080e 100%)}
 .au .st-bubble strong{font-style:normal;color:#8a552e}
-.au-say{font-size:20px;line-height:1.5}
+.au-say{font-size:22px;line-height:1.5}
 .au-say p{margin:0}
 .au .cr-check{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
 .au .cr-eyebrow{margin:0 0 6px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#ffd860}
