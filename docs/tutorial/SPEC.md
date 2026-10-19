@@ -265,7 +265,9 @@ Pedido: movimiento de todo tipo, las 4 magias y pergamino vivo. Se hace en 3 pas
    - `build_grimorio.py` ahora saca 4 hojas: `grimorio-cuerpo.png` (libro, atril, velas, brazos y efectos, con el halo de luz), `grimorio-cara.png` (ojos, cejas, mejillas y nariz; columna 2 = parpadeo), `grimorio-barba.png` y `grimorio-boca.png` (3 columnas) + `grimorio-capas.json`. Cada capa lleva su propio contorno oscuro exterior.
    - `dist/tutorial/grimorio-vivo.js` las apila en un canvas 68×76 (orden: cuerpo, cara, barba, boca): parpadeo automático cada 2–5 s, barba que ondea con inercia en cortes de píxel entero (más la punta; se sacude con cada salto al hablar con `kick`), y boca por letra. Lo usan `tutorial.js`, `recorrido.js`, `avisos.js` y `cuentas/entrada.js`.
    - Borradas: `grimorio-hablar.png/json` y `grimorio-v1.png`. Con «reducir movimiento» no corre el bucle (solo se dibuja al cambiar de pose o boca).
-   - Falta (tandas 2 y 3): brazos y accesorios como capas, y tapa y páginas del libro (seguirán saliendo del cuerpo hasta entonces).
+   - **Tanda 2 HECHA (18 oct), esperando aprobación de Niquito:** brazos y accesorios como capas. `grimorio-cuerpo.png` se partió en `fondo` (atril, velas y halo), `manoI`, `manoD` (con el cartel si lo sostiene), `libro` (libro, páginas y marcapáginas) y `extras` (nubes, signos, estrellas, estela, zZ y chispas); lágrimas y sudor viajan con la `cara`. Orden de apilado: fondo → manos (detrás del libro, como el dibujo original) → libro → cara → barba → boca → extras.
+   - Las manos oscilan cada una con su resorte y gesticulan al hablar (cada salto de palabra las impulsa hacia arriba); los extras flotan ±1 px. Todo en píxeles enteros.
+   - Falta (tanda 3): tapa y páginas del libro (hoy salen juntas en `libro`) y, si hace falta, cuadros extra para 3 o 4 poses clave.
 3. **Cuadros extra** solo para 3 o 4 poses clave (hablar, sorpresa, enojo, aparecer). Sesión aparte.
 
 ## Pendiente (ideas a futuro, no bloquean)

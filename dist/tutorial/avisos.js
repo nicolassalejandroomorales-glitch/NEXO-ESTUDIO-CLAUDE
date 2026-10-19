@@ -31,7 +31,7 @@
     box.className = 'nx-aviso'; box.setAttribute('role', 'status'); box.setAttribute('aria-live', 'polite');
     box.innerHTML = '<div class="nx-aviso-grim"></div><div class="nx-aviso-body"><b></b><p></p><button class="secondary-btn" type="button">Entendido</button></div>';
     const g = box.querySelector('.nx-aviso-grim');
-    Promise.resolve().then(() => window.NexoLoader.script(new URL('./grimorio-vivo.js?v=1', HERE).href)).then(() => { if (box.isConnected) window.NexoGrimorioVivo.mount(g).set(pose); }).catch(() => {});
+    Promise.resolve().then(() => window.NexoLoader.script(new URL('./grimorio-vivo.js?v=2', HERE).href)).then(() => { if (box.isConnected) window.NexoGrimorioVivo.mount(g).set(pose); }).catch(() => {});
     box.querySelector('b').textContent = title;
     box.querySelector('p').textContent = text;
     box.querySelector('button').addEventListener('click', () => { close(); done(); });

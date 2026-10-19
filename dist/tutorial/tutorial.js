@@ -118,7 +118,7 @@
   function ensureVivo() {
     if (window.NexoGrimorioVivo) return Promise.resolve(window.NexoGrimorioVivo);
     vivoLoading = vivoLoading || new Promise((ok, fail) => {
-      const s = document.createElement('script'); s.src = new URL('./grimorio-vivo.js?v=1', HERE).href; s.onload = () => ok(window.NexoGrimorioVivo); s.onerror = fail; document.head.append(s);
+      const s = document.createElement('script'); s.src = new URL('./grimorio-vivo.js?v=2', HERE).href; s.onload = () => ok(window.NexoGrimorioVivo); s.onerror = fail; document.head.append(s);
     });
     return vivoLoading;
   }
@@ -127,7 +127,7 @@
   function ensureRecorrido() {
     if (window.NexoRecorrido) return Promise.resolve(window.NexoRecorrido);
     recLoading = recLoading || new Promise((ok, fail) => {
-      const s = document.createElement('script'); s.src = new URL('./recorrido.js?v=14', HERE).href; s.onload = () => ok(window.NexoRecorrido); s.onerror = fail; document.head.append(s);
+      const s = document.createElement('script'); s.src = new URL('./recorrido.js?v=15', HERE).href; s.onload = () => ok(window.NexoRecorrido); s.onerror = fail; document.head.append(s);
     });
     return recLoading;
   }

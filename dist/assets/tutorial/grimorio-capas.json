@@ -21,6 +21,16 @@
   "dedo",
   "dormido"
  ],
+ "capas": [
+  "fondo",
+  "manoI",
+  "manoD",
+  "libro",
+  "cara",
+  "barba",
+  "boca",
+  "extras"
+ ],
  "cara": [
   "normal",
   "parpadeo"

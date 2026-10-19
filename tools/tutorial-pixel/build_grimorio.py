@@ -1,12 +1,16 @@
 """Grimorio del tutorial de Nexo (pixel art, v4 por capas): libro de cuero abombado con cara, barba de mechones, manitas y marcapáginas, sobre un atril mágico.
 
 Usa el motor y las rampas del refugio (tools/home-pixel/pixel.py). Cada pose es un cuadro de 68x76 px de arte (se muestra x4) y se dibuja en CAPAS
-que dist/tutorial/grimorio-vivo.js apila en un canvas, para que la barba ondee, los ojos parpadeen y la boca se mueva por separado:
-  dist/assets/tutorial/grimorio-cuerpo.png   libro, atril, velas, brazos y efectos de la pose (1 columna x 16 poses; incluye 'dormido')
-  dist/assets/tutorial/grimorio-cara.png     ojos, cejas, mejillas y nariz (2 columnas: normal, parpadeo)
-  dist/assets/tutorial/grimorio-barba.png    mechones y bigote (1 columna)
-  dist/assets/tutorial/grimorio-boca.png     boca (3 columnas: cerrada, media, abierta)
-  dist/assets/tutorial/grimorio-capas.json   filas y medidas
+que dist/tutorial/grimorio-vivo.js apila en un canvas (de atrás hacia adelante), para que cada pieza se mueva por separado:
+  grimorio-fondo.png   atril y velas, con el halo de luz de la pose
+  grimorio-manoI.png   brazo y mano izquierda (detrás del libro)
+  grimorio-manoD.png   brazo y mano derecha, con el cartel si lo sostiene (detrás del libro)
+  grimorio-libro.png   libro, páginas y marcapáginas
+  grimorio-cara.png    ojos, cejas, mejillas, nariz y lágrimas/sudor (2 columnas: normal, parpadeo)
+  grimorio-barba.png   mechones y bigote
+  grimorio-boca.png    boca (3 columnas: cerrada, media, abierta)
+  grimorio-extras.png  accesorios flotantes: nubes, signos, estrellas, estela, zZ, chispas
+  grimorio-capas.json  filas, orden de capas y medidas        (todo en dist/assets/tutorial/; 16 poses por hoja, 'dormido' al final)
   docs/tutorial/grimorio-expresiones-preview.png   vista previa x2 de las 16 poses apilando las capas
 Uso:  python tools/tutorial-pixel/build_grimorio.py
 """
@@ -386,14 +390,18 @@ def brazo(c, x0, y0, x1, y1):
     c.line(x1, y1, x1, y1 + 2, 'petal', 3)
 
 
-def manos(c, p, dy):
-    lh, rh = p['lh'], p['rh']
+def mano_izq(c, p, dy):
+    lh = p['lh']
     if lh == 'down':
         brazo(c, BX0, 31 + dy, BX0 - 4, 34 + dy)
         manopla(c, BX0 - 10, 33 + dy)
     elif lh == 'up':
         brazo(c, BX0, 28 + dy, BX0 - 5, 21 + dy)
         manopla(c, BX0 - 11, 15 + dy)
+
+
+def mano_der(c, p, dy):
+    rh = p['rh']
     if rh == 'down':
         brazo(c, BX1 + 4, 31 + dy, BX1 + 9, 34 + dy)
         manopla(c, BX1 + 7, 34 + dy)
@@ -449,17 +457,22 @@ def zeta(c, x, y, s):
     c.px(x, y, 'crystal', 7)
 
 
+def rostro_extras(c, p, dy):
+    """Lágrimas y gota de sudor: viajan con la cara."""
+    ey = BY0 + dy + 8
+    if p.get('tear'):
+        for x in (CX - 9, CX + 8):
+            c.rect(x, ey + 7, x + 2, ey + 10, 'crystal', 5)
+            c.px(x, ey + 7, 'crystal', 7)
+    if p.get('sweat'):
+        c.sprite(BX1 - 5, BY0 + dy + 2, ['.o.', 'o#o', 'o#o', '.o.'], 'crystal', {'o': ('clay', 0), '#': ('crystal', 6)})
+
+
 def extras(c, p, dy):
     ey = BY0 + dy + 8
     if p.get('dots'):                                         # "..." pensando
         for (x, y) in ((CX + 15, 11 + dy), (CX + 19, 8 + dy), (CX + 23, 5 + dy)):
             c.rect(x, y, x + 2, y + 2, 'rune', 4)
-    if p.get('tear'):                                         # lágrimas
-        for x in (CX - 9, CX + 8):
-            c.rect(x, ey + 7, x + 2, ey + 10, 'crystal', 5)
-            c.px(x, ey + 7, 'crystal', 7)
-    if p.get('sweat'):                                        # gota de sudor
-        c.sprite(BX1 - 5, BY0 + dy + 2, ['.o.', 'o#o', 'o#o', '.o.'], 'crystal', {'o': ('clay', 0), '#': ('crystal', 6)})
     if p.get('mark'):                                         # marca de enojo
         c.sprite(BX1 + 1, BY0 + dy - 5, ['#...#', '.#.#.', '..#..', '.#.#.', '#...#'], 'red', {'#': 5})
     if p.get('spark'):                                        # destello (guiño)
@@ -527,6 +540,8 @@ def particulas(c):
 DORMIDO = dict(POSES['dormido'])
 POSAS = dict(HABLAR, dormido=DORMIDO)           # 16 poses; 'dormido' va al final
 SWAY = {'dormido': 1}
+# Orden de apilado (de atrás hacia adelante). Los brazos van detrás del libro, como en el dibujo original.
+CAPAS = ['fondo', 'manoI', 'manoD', 'libro', 'cara', 'barba', 'boca', 'extras']
 
 
 def _contorno(mats):
@@ -543,13 +558,14 @@ def _contorno(mats):
     return out
 
 
-def _foto(c, edge, post=None):
+def _foto(c, edge, post=None, halo=False):
+    """Capa a imagen RGBA. La luz de color (post) tiñe los píxeles de cada capa; solo la de fondo suma el halo en el aire."""
     c.mat[edge] = c.mid('clay')
     c.lvl[edge] = 0
     base = np.array(c.render(scale=1))
     lit = np.array(c.render(scale=1, post=post)) if post else base
     solid = c.mat != 0
-    if post:
+    if post and halo:
         diff = np.abs(lit.astype(int) - base.astype(int)).sum(axis=2)
         alpha = np.where(solid, 255, np.clip(diff * 1.3, 0, 150)).astype(np.uint8)
     else:
@@ -558,32 +574,35 @@ def _foto(c, edge, post=None):
 
 
 def capas(name, p):
-    """Devuelve {'cuerpo', 'cara': [normal, parpadeo], 'barba', 'boca': [fase 0..2] o [fija]} de una pose."""
+    """Devuelve {capa: imagen} de una pose; 'cara' = [normal, parpadeo] y 'boca' = [fase 0..2] (o [fija])."""
     dy = p['dy']
-    cuerpo, barbac, ojos0, ojos1 = Canvas(W, H), Canvas(W, H), Canvas(W, H), Canvas(W, H)
-    atril(cuerpo)
-    velas(cuerpo)
-    manos(cuerpo, p, dy)
-    pagina_con_oreja(cuerpo, dy)
-    libro(cuerpo, dy)
-    detalles_libro(cuerpo, dy)
-    marcapaginas(cuerpo, dy, SWAY.get(name, 2))
-    extras(cuerpo, p, dy)
-    efectos_pose(cuerpo, p, dy)
+    fondo, izq, der, libro_c, ojos0, ojos1, barbac, extras_c = (Canvas(W, H) for _ in range(8))
+    atril(fondo)
+    velas(fondo)
+    mano_izq(izq, p, dy)
+    mano_der(der, p, dy)
     if p.get('panel'):
-        panel(cuerpo, dy, p['panel'] == 'lista')
+        panel(der, dy, p['panel'] == 'lista')              # el cartel va con la mano que lo sostiene
+    pagina_con_oreja(libro_c, dy)
+    libro(libro_c, dy)
+    detalles_libro(libro_c, dy)
+    marcapaginas(libro_c, dy, SWAY.get(name, 2))
+    extras(extras_c, p, dy)
+    efectos_pose(extras_c, p, dy)
     if p.get('excl'):
-        exclamacion(cuerpo, dy)
+        exclamacion(extras_c, dy)
     if name != 'dormido':
-        particulas(cuerpo)
+        particulas(extras_c)
     if p.get('zz'):
-        zeta(cuerpo, BX1 + 9, 12, 6)
-        zeta(cuerpo, BX1 + 16, 5, 4)
+        zeta(extras_c, BX1 + 9, 12, 6)
+        zeta(extras_c, BX1 + 16, 5, 4)
     ey = cara(ojos0, p, dy)
+    rostro_extras(ojos0, p, dy)
     q = dict(p)
     cierra = lambda e: 'closed' if e in ('open', 'wide', 'lid') else e
     q['eye'] = tuple(cierra(e) for e in p['eye']) if isinstance(p['eye'], tuple) else cierra(p['eye'])
     cara(ojos1, q, dy)
+    rostro_extras(ojos1, q, dy)
     barba(barbac, ey)
     fases = [None] if name == 'dormido' else [0, 1, 2]
     bocas = []
@@ -592,8 +611,8 @@ def capas(name, p):
         boca(b, ey, p, ph)
         bocas.append(b)
 
-    masks = [cuerpo.mat != 0, barbac.mat != 0] + [b.mat != 0 for b in bocas]
-    edges = _contorno(masks)
+    lista = [fondo, izq, der, libro_c, barbac, extras_c] + bocas
+    edges = _contorno([c.mat != 0 for c in lista])
     if name == 'dormido':
         halos = [(CX, LEDGE + 2, 22, '#5072a0', 0.7, 2.6)]
     else:
@@ -615,10 +634,14 @@ def capas(name, p):
 
     nada = np.zeros((H, W), bool)
     return {
-        'cuerpo': _foto(cuerpo, edges[0], post),
-        'barba': _foto(barbac, edges[1]),
-        'cara': [_foto(ojos0, nada), _foto(ojos1, nada)],
-        'boca': [_foto(b, e) for b, e in zip(bocas, edges[2:])],
+        'fondo': _foto(fondo, edges[0], post, halo=True),
+        'manoI': _foto(izq, edges[1], post),
+        'manoD': _foto(der, edges[2], post),
+        'libro': _foto(libro_c, edges[3], post),
+        'cara': [_foto(ojos0, nada, post), _foto(ojos1, nada, post)],
+        'barba': _foto(barbac, edges[4], post),
+        'extras': _foto(extras_c, edges[5], post),
+        'boca': [_foto(b, e, post) for b, e in zip(bocas, edges[6:])],
     }
 
 
@@ -627,26 +650,20 @@ def main():
     names = list(POSAS)
     out = ROOT / 'dist' / 'assets' / 'tutorial'
     out.mkdir(parents=True, exist_ok=True)
-    cuerpo = Image.new('RGBA', (W, H * len(names)), (0, 0, 0, 0))
-    cara_ = Image.new('RGBA', (W * 2, H * len(names)), (0, 0, 0, 0))
-    barba_ = Image.new('RGBA', (W, H * len(names)), (0, 0, 0, 0))
-    boca_ = Image.new('RGBA', (W * 3, H * len(names)), (0, 0, 0, 0))
+    ancho = {'cara': 2, 'boca': 3}
+    hojas = {k: Image.new('RGBA', (W * ancho.get(k, 1), H * len(names)), (0, 0, 0, 0)) for k in CAPAS}
     todo = {}
     for r, n in enumerate(names):
         L = capas(n, POSAS[n])
         todo[n] = L
-        cuerpo.paste(L['cuerpo'], (0, r * H))
-        for i, im in enumerate(L['cara']):
-            cara_.paste(im, (i * W, r * H))
-        barba_.paste(L['barba'], (0, r * H))
-        for i in range(3):                           # 'dormido' tiene boca fija: se repite en las 3 columnas
-            boca_.paste(L['boca'][min(i, len(L['boca']) - 1)], (i * W, r * H))
-    cuerpo.save(out / 'grimorio-cuerpo.png')
-    cara_.save(out / 'grimorio-cara.png')
-    barba_.save(out / 'grimorio-barba.png')
-    boca_.save(out / 'grimorio-boca.png')
+        for k in CAPAS:
+            ims = L[k] if isinstance(L[k], list) else [L[k]]
+            for i in range(ancho.get(k, 1)):                 # 'dormido' tiene boca fija: se repite en las 3 columnas
+                hojas[k].paste(ims[min(i, len(ims) - 1)], (i * W, r * H))
+    for k in CAPAS:
+        hojas[k].save(out / f'grimorio-{k}.png')
     (out / 'grimorio-capas.json').write_text(json.dumps(
-        {'frame': [W, H], 'filas': names, 'cara': ['normal', 'parpadeo'], 'boca': ['cerrada', 'media', 'abierta'],
+        {'frame': [W, H], 'filas': names, 'capas': CAPAS, 'cara': ['normal', 'parpadeo'], 'boca': ['cerrada', 'media', 'abierta'],
          'nota': 'dormido es la ultima fila; su boca es fija'},
         ensure_ascii=False, indent=1), encoding='utf-8')
 
@@ -658,13 +675,13 @@ def main():
     for i, n in enumerate(names):
         L = todo[n]
         f = Image.new('RGBA', (W, H), (0, 0, 0, 0))
-        for im in (L['cuerpo'], L['cara'][0], L['barba'], L['boca'][-1]):
-            f.alpha_composite(im)
+        for k in CAPAS:
+            f.alpha_composite(L[k][0] if k == 'cara' else L[k][-1] if k == 'boca' else L[k])
         x, y = (i % cols) * cw, (i // cols) * ch
         pv.alpha_composite(f.resize((cw, H * S2), Image.NEAREST), (x, y))
         d.text((x + 6, y + H * S2 + 1), n, fill=(255, 240, 196, 255))
     pv.convert('RGB').save(ROOT / 'docs' / 'tutorial' / 'grimorio-expresiones-preview.png')
-    print('ok', cuerpo.size, cara_.size, boca_.size)
+    print('ok', {k: hojas[k].size for k in CAPAS})
 
 
 if __name__ == '__main__':
