@@ -304,6 +304,8 @@ body[data-nexo-room="home"] #app { padding-top:0;background:#28332a; }
 @container (max-width:1170px) { .home-clock[data-cs="4"] { --fr:3;--ts:3;--dg:6; } }
 @container (max-width:930px) { .home-clock[data-cs="3"],.home-clock[data-cs="4"] { --fr:2;--ts:2;--dg:4;top:12px; } }
 .home-clock .pixel-text { --s:var(--ts); }
+.home-clock[hidden],.hc-show[hidden] { display:none; }
+.hc-show { position:absolute;z-index:9;left:12px;top:12px;--ts:2;--pu:2; }
 .home-clock .pu-btn { padding:calc(var(--ts)*1px) calc(var(--ts)*4px) 0; }
 .home-clock .pu-btn:active { padding-top:calc(var(--ts)*1px + 2*var(--pu)*1px); }
 .home-clock .hc-now { display:grid;gap:calc(var(--ts)*2px);justify-items:start;margin-left:var(--frame); }

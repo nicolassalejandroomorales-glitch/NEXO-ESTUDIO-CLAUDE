@@ -1,6 +1,16 @@
 /* El Sótano de los Cristales (Aprender). Cuadros pre-renderizados de 320×200 ampliados por múltiplos enteros en el lienzo. */
-.sotano { max-width: 1280px; margin: 0 auto; padding: 8px 12px 28px; display: grid; justify-items: center; gap: 10px; }
-.sotano-top { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+/* Inmersivo: el Sótano ocupa toda la ventana; título, salir y música flotan arriba, y los botones y la tarjeta flotan sobre el cuadro. */
+.sotano-inmersivo :is(.top-bar, .rail-nav, .mobile-nav) { display: none !important; }
+.sotano { position: fixed; inset: 0; z-index: 60; background: #04060b; display: grid; place-items: center; overflow: hidden; }
+.sotano-top { position: absolute; z-index: 4; left: 0; right: 0; top: 0; padding: max(8px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) 0 max(10px, env(safe-area-inset-left)); display: flex; align-items: center; gap: 10px; pointer-events: none; }
+.sotano-top > * { pointer-events: auto; }
+.sotano-exit { width: 40px; height: 36px; padding: 0; border: 2px solid #b58a3c; background: #1a0f13d9; color: #fbe08a; font: 700 1.2rem/1 Georgia, serif; cursor: pointer; box-shadow: 0 0 12px #fbe08a44; }
+.sotano-exit:hover, .sotano-exit:focus-visible { background: #3a2410; box-shadow: 0 0 18px #fbe08a99; }
+.sotano-turn { position: absolute; z-index: 6; inset: 0; display: grid; place-content: center; justify-items: center; gap: 10px; background: #04060bd9; color: #fbe08a; font: 1.05rem Georgia, serif; text-align: center; padding: 20px; }
+.sotano-turn[hidden] { display: none; }
+.sotano-turn i { font-style: normal; font-size: 3rem; animation: sotanoTurn 2.4s ease-in-out infinite; }
+.sotano-turn p { margin: 0; }
+@keyframes sotanoTurn { 0%, 30% { transform: rotate(0); } 70%, 100% { transform: rotate(-90deg); } }
 .sotano-title { margin: 0; font: 700 1.05rem/1.2 Georgia, 'Palatino Linotype', serif; letter-spacing: .06em; text-transform: uppercase; color: var(--pu-brass, #fbe08a); text-shadow: 0 2px 0 #0008; }
 .sotano-music { margin-left: auto; width: 34px; height: 30px; padding: 0; border: 2px solid #b58a3c; background: #1a0f13cc; color: #fbe08a; font: 700 1.05rem/1 Georgia, serif; cursor: pointer; }
 .sotano-music.is-off { color: #7d6a45; text-decoration: line-through; }
@@ -18,12 +28,13 @@
 .sotano-load span { width: 30px; height: 30px; border: 3px solid #25407055; border-top-color: #7fe0f0; border-radius: 50%; animation: spin .8s linear infinite; }
 .sotano-load p { margin: 0; }
 
-.sotano-live { margin: 0; min-height: 1.2em; max-width: 640px; text-align: center; color: #b9c8c4; font: .92rem/1.35 Georgia, serif; }
-.sotano-pad { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.sotano-live { position: absolute; z-index: 3; left: 50%; bottom: 62px; translate: -50% 0; margin: 0; max-width: min(640px, 92vw); text-align: center; color: #e4efe9; font: .92rem/1.35 Georgia, serif; text-shadow: 0 1px 4px #000, 0 0 8px #000; pointer-events: none; }
+.sotano-live:empty { display: none; }
+.sotano-pad { position: absolute; z-index: 3; left: 0; right: 0; bottom: max(8px, env(safe-area-inset-bottom)); display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; pointer-events: none; }
+.sotano-pad > * { pointer-events: auto; }
 .sotano-move i { font-style: normal; color: var(--pu-ink, #2a1a0a); font-size: .8rem; margin-right: 2px; }
-.sotano-hint { margin: 0; color: #8fa3a0; font-size: .8rem; text-align: center; }
 
-.sotano-card { box-sizing: border-box; width: min(100%, 720px); padding: 12px 16px 14px; background: #1a0f13e6; border: 3px solid #b58a3c; color: #efe4c8; font: 1rem/1.45 Georgia, 'Palatino Linotype', serif; box-shadow: 0 10px 22px #0009; }
+.sotano-card { position: absolute; z-index: 5; left: 50%; bottom: 56px; translate: -50% 0; max-height: 68%; overflow-y: auto; box-sizing: border-box; width: min(94%, 720px); padding: 12px 16px 14px; background: #1a0f13e6; border: 3px solid #b58a3c; color: #efe4c8; font: 1rem/1.45 Georgia, 'Palatino Linotype', serif; box-shadow: 0 10px 22px #0009; }
 .sotano-card[hidden] { display: none; }
 .sotano-card h2 { margin: 0 0 4px; font-size: 1.2rem; color: #fbe08a; }
 .sotano-card p { margin: 4px 0 8px; }

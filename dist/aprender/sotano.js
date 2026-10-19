@@ -29,6 +29,9 @@
     document.removeEventListener('keydown', live.onKey);
     window.removeEventListener('resize', live.onResize);
     window.removeEventListener('hashchange', live.onHash);
+    live.fx?.destroy();
+    document.documentElement.classList.remove('sotano-inmersivo');
+    try { if (document.fullscreenElement) document.exitFullscreen(); screen.orientation?.unlock?.(); } catch { /* ya salió */ }
     live = null;
   }
 
@@ -41,17 +44,17 @@
   function render(app, ctx) {
     destroy();
     app.innerHTML = `<section class="page sotano" aria-label="Sótano de los Cristales">
-      <header class="sotano-top"><h1 class="sotano-title" data-s="title">Sótano de los Cristales</h1><span class="sotano-chip" data-s="chip" hidden></span><button class="sotano-music" data-s="music" type="button" aria-pressed="true" aria-label="Música del sótano" title="Música del sótano">♪</button></header>
+      <header class="sotano-top"><button class="sotano-exit" data-s="exit" type="button" aria-label="Salir del sótano" title="Salir">←</button><h1 class="sotano-title" data-s="title">Sótano de los Cristales</h1><span class="sotano-chip" data-s="chip" hidden></span><button class="sotano-music" data-s="music" type="button" aria-pressed="true" aria-label="Música del sótano" title="Música del sótano">♪</button></header>
       <div class="sotano-stage" data-s="stage" role="group" aria-label="Vista del Sótano">
         <canvas class="sotano-view" data-s="view" width="320" height="200" aria-hidden="true"></canvas>
         <canvas class="sotano-over" data-s="over" width="320" height="200" aria-hidden="true"></canvas>
         <div class="sotano-flash" data-s="flash" aria-hidden="true"></div>
         <div class="sotano-load" data-s="load" role="status"><span></span><p>Bajando al sótano…</p></div>
       </div>
+      <div class="sotano-turn" data-s="turn" hidden><i aria-hidden="true">⟳</i><p>Gira el celular para bajar al sótano</p></div>
       <p class="sotano-live" data-s="live" role="status" aria-live="polite"></p>
       <nav class="sotano-pad" data-s="pad" aria-label="Moverse por el sótano"></nav>
       <aside class="sotano-card" data-s="card" hidden></aside>
-      <p class="sotano-hint">Toca los botones o el cuadro, o usa las flechas del teclado.</p>
     </section>`;
     const root = app.querySelector('.sotano');
     const el = Object.fromEntries([...root.querySelectorAll('[data-s]')].map(n => [n.dataset.s, n]));
@@ -71,7 +74,11 @@
     document.addEventListener('keydown', G.onKey);
     window.addEventListener('resize', G.onResize);
     window.addEventListener('hashchange', G.onHash);
+    el.exit.addEventListener('click', () => { location.hash = '#/home'; });
+    // Pantalla completa al entrar (el navegador la permite solo tras un gesto: si la niega, queda el modo fijo a toda la ventana).
+    try { root.requestFullscreen?.({ navigationUI: 'hide' })?.then(() => screen.orientation?.lock?.('landscape')).catch(() => {}); } catch { /* sin pantalla completa */ }
     live = G;
+    document.documentElement.classList.add('sotano-inmersivo');
     const M = window.NexoSotanoMusica, paintMusic = () => { const on = !M || M.enabled; el.music.hidden = !M; el.music.setAttribute('aria-pressed', String(on)); el.music.classList.toggle('is-off', !on); };
     paintMusic();
     el.music.addEventListener('click', () => { M?.toggle(); paintMusic(); });
@@ -79,6 +86,7 @@
     el.pad.addEventListener('click', ev => { const b = ev.target.closest('[data-move]'); if (b) act(G, b.dataset.move); });
     el.card.addEventListener('click', ev => onCard(G, ev));
     fit(G);
+    G.fx = window.NexoSotanoFx?.mount(el.stage);
     loadManifest().then(M => {
       if (!G.alive) return;
       G.M = M;
@@ -103,8 +111,8 @@
   // El cuadro mantiene 16:10 y ocupa casi todo el alto libre (deja a la vista la fila de botones).
   // Los lienzos se agrandan a un múltiplo entero de 320×200 (píxeles parejos) y el navegador los ajusta al tamaño exacto.
   function fit(G) {
-    const availW = Math.min(G.root.clientWidth || innerWidth, 1280), top = G.el.stage.getBoundingClientRect().top;
-    const availH = Math.max(200, innerHeight - Math.max(top, 70) - 80);
+    const availW = innerWidth, availH = innerHeight;
+    G.el.turn.hidden = !(innerHeight > innerWidth && innerWidth < 700);   // vertical en celular: pide girar
     let w = Math.floor(Math.min(availW, availH * 1.6));
     const up = Math.ceil(w / 320) * 320;
     if (w >= 640 && up <= availW && w >= up * 0.88) w = up;   // casi un múltiplo entero: se usa justo ese (píxeles perfectos)

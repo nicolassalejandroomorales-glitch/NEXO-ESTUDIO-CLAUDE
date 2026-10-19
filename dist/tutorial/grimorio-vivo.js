@@ -24,6 +24,9 @@
     const cv = document.createElement('canvas'); cv.width = W; cv.height = H; cv.setAttribute('aria-hidden', 'true');
     cv.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;image-rendering:pixelated;pointer-events:none';
     host.prepend(cv);
+    // Juguetón: rebota al aparecer y se estira un poco cada vez que empieza a hablar (resorte con sobrepaso).
+    const rebote = (de, a, ms) => { if (!reduced() && host.animate) host.animate([{ transform: de }, { transform: a }], { duration: ms, easing: 'cubic-bezier(.3,1.9,.5,1)' }); };
+    rebote('translateY(24px) scale(.8,1.2)', 'none', 650);
     const g = cv.getContext('2d'); g.imageSmoothingEnabled = false;
     let im = null, fila = 0, boca = 0, ojos = 0, talking = false, x = 0, vx = 0, t = 0, ultimo = 0, sigParpadeo = 1.5, raf = 0, viva = true, huella = '';
     const brazo = [{ y: 0, v: 0, ph: 0 }, { y: 0, v: 0, ph: 2.1 }];     // [izquierdo, derecho]
@@ -81,7 +84,7 @@
     return {
       set(pose) { fila = Math.max(0, ROWS.indexOf(pose)); pinta(); },
       mouth(fase) { boca = fase; if (fase === 2) tAbierta = t; if (reduced()) pinta(); },
-      talk(on) { talking = !!on; },
+      talk(on) { if (on && !talking) rebote('scale(1.06,.94)', 'none', 380); talking = !!on; },
       kick(v) { vx += v; for (const a of brazo) a.v -= Math.abs(v) * 1.6; },
       destroy() { viva = false; cancelAnimationFrame(raf); cv.remove(); }
     };
