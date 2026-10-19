@@ -6263,6 +6263,8 @@ window.NEXO_ORGANIC_COURSE = Object.assign(window.NEXO_ORGANIC_COURSE || {}, {
 window.NexoClassCatalog = Object.freeze({
   'org-01': 'org-01.js',
   'fq-01': 'fq-01.js',
+  'fq-02': 'fq-02.js',
+  'fq-03': 'fq-03.js',
   'org-04': 'org-04.js',
   'org-05': 'org-05.js',
   'ana-01': 'ana-01.js',
