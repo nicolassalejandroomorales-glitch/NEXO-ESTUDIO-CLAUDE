@@ -25,6 +25,8 @@
 - Premio con nube (necesita permiso explícito, hoy no se toca Supabase).
 - Revisar que 150 ⚛ siga bien si cambian los precios de la tienda.
 
+- (18 oct) **URGENTE antes de publicar el Artifact**: el Artifact tiene versiones de `tutorial/tutorial.js`, `tutorial.css` y `magia.js` más nuevas que el repo (el repo: 35838 / 15989 / 17693 bytes; el Artifact: 38000 / 17360 / 20581). Ese trabajo está solo en la carpeta `NEXO_tutorial` (sin commit) y en el Artifact. Commitearlo y subirlo (`git push claude <rama>:master`) para no perderlo.
+
 ## Ideas
 - Mini tutoriales por sección que se activan la primera vez que entras.
 - El Grimorio recuerda tus preferencias y sugiere la primera sesión.

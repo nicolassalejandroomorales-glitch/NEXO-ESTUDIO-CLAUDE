@@ -27,10 +27,12 @@ IMG = os.path.join(DEST, 'img')
 CACHE = os.path.join(tempfile.gettempdir(), 'nexo-aprender-cache')
 W, H, CELL_H, COLS = 320, 200, 208, 8      # alto de celda múltiplo de 16: la compresión no mezcla colores entre cuadros
 QUALITY = 90
+D = 2                                       # densidad de cuadros: más cuadros por tramo = movimiento fluido (la app mezcla vecinos)
+DS = 4                                      # los tramos lentos (entrar, acercarse, salir del remolino) necesitan aún más
 # milisegundos por cuadro según el tipo de tira (w caminar, u dar la vuelta, t girar a una puerta, e entrar, o orbitar, z acercarse, c llegada).
 # La app mezcla cuadros vecinos, por eso puede ir lento sin verse a saltos. 'ease' = la app suaviza arranque y frenada (las demás ya lo traen).
-MS_PER_FRAME = {'w': 60, 'u': 60, 't': 80, 'e': 145, 'o': 80, 'z': 150, 'c': 155, 'i': 0}
-IDLE_N = 6                                  # cuadros de la animación de reposo de cada parada (ida y vuelta)
+MS_PER_FRAME = {'w': 60 / D, 'u': 60 / D, 't': 80 / D, 'e': 145 / DS, 'o': 80 / D, 'z': 150 / DS, 'c': 155 / DS, 'i': 0}
+IDLE_N = 16                                 # cuadros de la animación de reposo de cada parada (ida y vuelta)
 LOOK = 0.12
 JAR_LEVELS = [0.0, 0.25, 0.5, 0.75, 1.0]
 SOURCE_HASH = hashlib.sha1(b''.join(open(os.path.join(HERE, f), 'rb').read() for f in ('build_sotano.py', 'build_camara.py', 'murales.py'))).hexdigest()[:10]   # solo el motor: los recorridos ya van dentro de cada cuadro pedido
@@ -103,7 +105,7 @@ class Clips:
             self.camera.add(name)
 
     def cam(self, x, z, yaw=0.0, bob=0.0, pitch=0.0, i=0):
-        return (x, z, yaw, bob + 0.5 * math.sin(i * 0.4), pitch, 3.0 + i * 0.45)
+        return (x, z, yaw, bob + 0.5 * math.sin(i * 0.4 / D), pitch, 3.0 + i * 0.45 / D)
 
 
 CL = Clips()
@@ -122,8 +124,8 @@ def door_geometry(idx):
     return s, zd, st, ('M', idx), bs.OPEN_DEFAULT[st]
 
 
-TURN_N = 20                                 # cuadros de un giro de 60-90°: con pocos, la mezcla de cuadros deja doble imagen
-WALK_PER_UNIT = 12                          # ~17 cuadros reales por segundo al caminar; la app además mezcla vecinos
+TURN_N = 20 * D                                # cuadros de un giro de 60-90°: con pocos, la mezcla de cuadros deja doble imagen
+WALK_PER_UNIT = 12 * D                         # ~17 cuadros reales por segundo al caminar; la app además mezcla vecinos
 
 
 def walk(pos, dist, pose, k='h'):
@@ -138,7 +140,7 @@ def walk(pos, dist, pose, k='h'):
     return out
 
 
-def turn_around(z, x=0.0, yaw0=0.0, yaw1=math.pi, n=32):
+def turn_around(z, x=0.0, yaw0=0.0, yaw1=math.pi, n=32 * D):
     """Darse la vuelta en el lugar (giro lineal; la app lo suaviza)."""
     return [{'k': 'h', 'cam': CL.cam(x, z, yaw0 + (yaw1 - yaw0) * i / n, 0.9 * math.sin(math.pi * i / n), 0.0, i)} for i in range(1, n + 1)]
 
@@ -160,13 +162,13 @@ def build_hall():
         CL.add(f't-{stop}-{name}', [{'k': 'h', 'cam': CL.cam(xb * ease(i / TURN_N), zd, yaw * ease(i / TURN_N), 0.8 * math.sin(math.pi * i / TURN_N), 0.0, i), 'opens': {key: d0}}
                                     for i in range(1, TURN_N + 1)])
         seq = []
-        for i in range(1, 13):                                       # se abre el portal
-            u = ease(i / 12)
-            seq.append({'k': 'h', 'cam': CL.cam(xb, zd, yaw, 1.4 * math.sin(i * 2.7) * (1 - u), 0.0, i),
+        for i in range(1, 12 * DS + 1):                                       # se abre el portal
+            u = ease(i / (12 * DS))
+            seq.append({'k': 'h', 'cam': CL.cam(xb, zd, yaw, 1.4 * math.sin(i * 2.7 / DS) * (1 - u), 0.0, i / DS * D),
                         'opens': {key: d0 + (1 - d0) * u, 'burst': ('M', idx, u)}})
-        for i in range(1, 15):                                       # entra
-            u = ease(i / 14)
-            seq.append({'k': 'h', 'cam': CL.cam(xb + s * 1.95 * u, zd, yaw, 1.2 * math.sin(math.pi * u), 0.0, 12 + i),
+        for i in range(1, 14 * DS + 1):                                       # entra
+            u = ease(i / (14 * DS))
+            seq.append({'k': 'h', 'cam': CL.cam(xb + s * 1.95 * u, zd, yaw, 1.2 * math.sin(math.pi * u), 0.0, (12 * DS + i) / DS * D),
                         'opens': {key: 1.0, 'burst': ('M', idx, 1.0 + u), 'zoom': u}, 'flash': max(0.0, (u - 0.65) / 0.35) * 0.85})
         CL.add(f'e-{name}', seq)
     CL.add('t-h3-b0', [{'k': 'h', 'cam': CL.cam(0.0, HALL_Z['h3'] + (ZB - HALL_Z['h3']) * ease(i / TURN_N), math.pi / 2 * ease(i / TURN_N), 0.8 * math.sin(math.pi * i / TURN_N), 0.0, i)}
@@ -216,10 +218,10 @@ def build_camara(ramo):
     p = cfg['p']
     tag = {} if ramo == 'organica' else {'ramo': ramo}      # Orgánica II no lleva etiqueta: sus cuadros ya estaban en la caché
     z0 = -(bc.R + 0.35)
-    CL.add(p + 'c-emerge', [{'k': 'c', **tag, 'cam': CL.cam(0.0, z0 + 0.35 * ease(i / 8), 0.0, 0.0, 0.16, i), 'swirl': 1 - ease(i / 8), 'flash': 0.45 * (1 - ease(i / 8))}
-                            for i in range(0, 9)], True)
+    CL.add(p + 'c-emerge', [{'k': 'c', **tag, 'cam': CL.cam(0.0, z0 + 0.35 * ease(i / (8 * DS)), 0.0, 0.0, 0.16, i / DS * D), 'swirl': 1 - ease(i / (8 * DS)), 'flash': 0.45 * (1 - ease(i / (8 * DS)))}
+                            for i in range(0, 8 * DS + 1)], True)
     zs = z0 + 0.35
-    n = 32
+    n = 32 * D
     seq = []
     for i in range(1, n + 1):                                         # rodea el sauce por la derecha hasta quedar frente a la primera alcoba
         u = ease(i / n)
@@ -237,7 +239,7 @@ def build_camara(ramo):
         CL.add(f'{p}o-{name}-{nxt}', seq, True)
     for _, deg, jars, _c in cfg['alc']:                              # acercarse a la mesa de las alcobas con clase
         if jars:
-            CL.add(f'{p}z-c{view_deg(deg)}', [{'k': 'c', **tag, 'cam': table_cam(deg, ease(i / 8), i)} for i in range(1, 9)], True)
+            CL.add(f'{p}z-c{view_deg(deg)}', [{'k': 'c', **tag, 'cam': table_cam(deg, ease(i / (8 * DS)), i / DS * D)} for i in range(1, 8 * DS + 1)], True)
 
 
 def view_deg(deg):
@@ -299,7 +301,7 @@ NODES = HALL_NODES + [n for ramo in CAMARAS for n in camera_nodes(ramo)]
 
 def build_idle():
     for node in NODES:
-        CL.add(f'i-{node}', [stop_spec(node, 60 + i * 2) for i in range(IDLE_N)], split_node(node)[1].startswith('c'))
+        CL.add(f'i-{node}', [stop_spec(node, 60 + i * 0.75) for i in range(IDLE_N)], split_node(node)[1].startswith('c'))
 
 
 # ---------------------------------------------------------------- sprites del estado de la Cámara
@@ -547,7 +549,7 @@ def main(which, ramos):
     digest = hashlib.sha1()                                          # versión de los cuadros: cambia el ?v= de cada hoja
     for f in sorted(os.listdir(IMG)):
         digest.update(f.encode() + open(os.path.join(IMG, f), 'rb').read())
-    manifest = {'v': digest.hexdigest()[:8], 'w': W, 'h': H, 'cellH': CELL_H, 'cols': COLS, 'idleMs': 280, 'idleN': IDLE_N, 'clips': clips,
+    manifest = {'v': digest.hexdigest()[:8], 'w': W, 'h': H, 'cellH': CELL_H, 'cols': COLS, 'idleMs': 100, 'idleN': IDLE_N, 'clips': clips,
                 'nodes': nodes, 'edges': edges, 'overlay': overlay}
     json.dump(manifest, open(manifest_path, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
     print('listo:', len(clips), 'tiras,', round(total / 1e6, 2), 'MB de hojas nuevas')

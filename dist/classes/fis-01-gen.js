@@ -47,15 +47,17 @@
   /* ════════ Afirmaciones: "señale la correcta / la incorrecta" ════════
      Bancos de hechos verdaderos (T) y errores típicos (F: [texto, por qué es falso, error típico]). Al combinarlos salen cientos de preguntas
      distintas, y cada distractor falso trae su explicación. */
+  // Prefiere afirmaciones de largo parecido a la correcta: si no, la más larga se adivina sin saber la materia.
+  const near = (rng, list, ref, n) => list.map(x => [x, Math.abs((Array.isArray(x) ? x[0] : x).length - ref.length) + rng() * 50]).sort((a, b) => a[1] - b[1]).slice(0, n).map(x => x[0]);
   function statements(rng, level, bank, extra) {
     const askFalse = level >= 3 ? rng() < 0.5 : false, T = bank.T, F = bank.F;
     if (askFalse) {
       const [f, why, mis] = pick(rng, F);
-      return choice(rng, `${level === 5 ? 'Estilo PEP: ' : ''}${bank.topic}: ¿cuál afirmación es INCORRECTA?`, f, take(rng, T, 3).map(t => ({ text: t, note: 'Esta es verdadera.' })),
+      return choice(rng, `${level === 5 ? 'Estilo PEP: ' : ''}${bank.topic}: ¿cuál afirmación es INCORRECTA?`, f, near(rng, T, f, 3).map(t => ({ text: t, note: 'Esta es verdadera.' })),
         { ...extra, misconception: mis, explain: `Es falsa: ${why}` });
     }
     const t = pick(rng, T);
-    return choice(rng, `${level === 5 ? 'Estilo PEP: ' : ''}${bank.topic}: ¿cuál afirmación es correcta?`, t, take(rng, F, 3).map(([text, why, mis]) => ({ text, note: why, misconception: mis })), { ...extra, explain: t });
+    return choice(rng, `${level === 5 ? 'Estilo PEP: ' : ''}${bank.topic}: ¿cuál afirmación es correcta?`, t, near(rng, F, t, 3).map(([text, why, mis]) => ({ text, note: why, misconception: mis })), { ...extra, explain: t });
   }
 
   /* ════════ Enfermedades: caso → diagnóstico → mecanismo → fármaco con su porqué ════════

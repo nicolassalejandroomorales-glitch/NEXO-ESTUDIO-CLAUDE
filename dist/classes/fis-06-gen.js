@@ -147,7 +147,7 @@
       const vr2 = vr + between(rng, 1, 2, 0.05), cpt2 = rng() < 0.5 ? cpt : cpt * between(rng, 0.6, 0.75, 0.01);
       const trapped = Math.abs(cpt2 - cpt) < 0.01, right = trapped ? 'Atrapamiento aéreo (obstrucción, como en el enfisema)' : 'Restricción (baja la CPT)';
       const shown = trapped ? `el VR sube de ${fix(vr, 2)} a ${fix(vr2, 2)} L con CPT igual (${fix(cpt, 2)} L)` : `la CPT baja de ${fix(cpt, 2)} a ${fix(cpt2, 2)} L y la CV también cae`;
-      return choice(rng, `${level === 5 ? 'Estilo PEP: ' : ''}En un control, ${shown}. ¿Qué significa?`, right, ['Atrapamiento aéreo (obstrucción, como en el enfisema)', 'Restricción (baja la CPT)', 'Mejoría de la función pulmonar', 'Error de medición: el VR no cambia nunca'].filter(x => x !== right).map(text => ({ text, note: 'VR alto = aire atrapado; CPT baja = restricción.', misconception: 'obs-res' })),
+      return choice(rng, `${level === 5 ? 'Estilo PEP: ' : ''}En un control, ${shown}. ¿Qué significa?`, right, ['Atrapamiento aéreo (obstrucción, como en el enfisema)', 'Restricción (baja la CPT)', 'Mejoría de la función pulmonar', 'Error de medición: el VR debería mantenerse'].filter(x => x !== right).map(text => ({ text, note: 'VR alto = aire atrapado; CPT baja = restricción.', misconception: 'obs-res' })),
         { concept: 'base.volumenes', slide: 2, hint: 'El VR es lo que no logras botar; la CPT es todo el pulmón lleno.', explain: right + '.' });
     }
   };

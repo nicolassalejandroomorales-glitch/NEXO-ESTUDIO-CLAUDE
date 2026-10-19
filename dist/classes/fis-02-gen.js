@@ -36,12 +36,14 @@
   const take = (rng, list, n) => shuffle(rng, list).slice(0, n);
   const AGE = rng => pick(rng, ['Mujer de 58 años', 'Hombre de 66 años', 'Mujer de 74 años', 'Hombre de 49 años', 'Hombre de 81 años']);
   // "Señale la correcta / la incorrecta" desde bancos de hechos (T) y errores típicos (F: [texto, por qué, error típico]).
+  // Prefiere afirmaciones de largo parecido a la correcta: si no, la más larga se adivina sin saber la materia.
+  const near = (rng, list, ref, n) => list.map(x => [x, Math.abs((Array.isArray(x) ? x[0] : x).length - ref.length) + rng() * 50]).sort((a, b) => a[1] - b[1]).slice(0, n).map(x => x[0]);
   function statements(rng, level, bank, extra) {
     const askFalse = level >= 3 ? rng() < 0.5 : false;
     if (askFalse) { const [f, why, mis] = pick(rng, bank.F);
-      return choice(rng, `${level === 5 ? 'Estilo PEP: ' : ''}${bank.topic}: ¿cuál afirmación es INCORRECTA?`, f, take(rng, bank.T, 3).map(t => ({ text: t, note: 'Esta es verdadera.' })), { ...extra, misconception: mis, explain: `Es falsa: ${why}` }); }
+      return choice(rng, `${level === 5 ? 'Estilo PEP: ' : ''}${bank.topic}: ¿cuál afirmación es INCORRECTA?`, f, near(rng, bank.T, f, 3).map(t => ({ text: t, note: 'Esta es verdadera.' })), { ...extra, misconception: mis, explain: `Es falsa: ${why}` }); }
     const t = pick(rng, bank.T);
-    return choice(rng, `${level === 5 ? 'Estilo PEP: ' : ''}${bank.topic}: ¿cuál afirmación es correcta?`, t, take(rng, bank.F, 3).map(([text, why, mis]) => ({ text, note: why, misconception: mis })), { ...extra, explain: t });
+    return choice(rng, `${level === 5 ? 'Estilo PEP: ' : ''}${bank.topic}: ¿cuál afirmación es correcta?`, t, near(rng, bank.F, t, 3).map(([text, why, mis]) => ({ text, note: why, misconception: mis })), { ...extra, explain: t });
   }
 
   /* ════════ Núcleo, penumbra y la decisión de trombolizar ════════

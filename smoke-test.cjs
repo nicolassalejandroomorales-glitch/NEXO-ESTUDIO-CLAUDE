@@ -14,7 +14,7 @@ vm.runInThisContext(fs.readFileSync(path.join(dist, 'semester-2026.js'), 'utf8')
 const { subjects, lessons, companions, rewards, exercises, guides, exams, backgrounds } = NEXO_DATA;
 const ids = subjects.flatMap(subject => subject.peps.flatMap(pep => pep.lessons));
 if (subjects.length !== 4) throw new Error(`Se esperaban 4 ramos y hay ${subjects.length}`);
-if (ids.length !== 40 || new Set(ids).size !== 40) throw new Error(`El catálogo debe tener 40 clases únicas; tiene ${ids.length}`);
+if (ids.length !== 38 || new Set(ids).size !== 38) throw new Error(`El catálogo debe tener 38 clases únicas; tiene ${ids.length}`);
 for (const id of ids) {
   const lesson = lessons[id];
   if (!lesson || lesson.subject !== subjects.find(s => s.peps.some(p => p.lessons.includes(id))).id) throw new Error(`Clase desconectada: ${id}`);

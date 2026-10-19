@@ -116,9 +116,9 @@
           hook: { title: 'El reactivo que no se decolora', sage: 'Echa agua de bromo a un alqueno: el rojo desaparece al tiro. Échala al benceno: nada. ¿Qué tiene de especial ese anillo?',
             text: 'Los anillos de benceno están en la mayoría de los fármacos (paracetamol, ibuprofeno, lidocaína). Entender por qué son tan estables explica por qué reaccionan distinto: **sustituyen** en vez de sumar.' },
           diagnostic: [
-            q('m1-d1', 'En el benceno, los enlaces C–C…', [{ text: 'Miden todos lo mismo (entre simple y doble)', correct: true }, { text: 'Alternan simples y dobles', misconception: 'kekule-alternating' }, { text: 'Son todos dobles', note: 'Habría 6 dobles enlaces: imposible con 6 C y 6 H.' }],
+            q('m1-d1', 'En el benceno, los enlaces C–C…', [{ text: 'Miden todos lo mismo, entre simple y doble', correct: true }, { text: 'Alternan enlaces simples y dobles', misconception: 'kekule-alternating' }, { text: 'Son todos enlaces dobles', note: 'Habría 6 dobles enlaces: imposible con 6 C y 6 H.' }],
               { concept: 'ar.benceno', explain: 'El benceno es el híbrido de resonancia: orden de enlace 1½ en todos.', slide: 4 }),
-            q('m1-d2', 'Si mezclas benceno con Br₂ (sin catalizador), ¿qué pasa?', [{ text: 'Nada: el color del Br₂ se mantiene', correct: true }, { text: 'Se adiciona Br₂ como en un alqueno', misconception: 'benzene-adds' }, { text: 'Explota', note: 'No reacciona.' }],
+            q('m1-d2', 'Si mezclas benceno con Br₂ (sin catalizador), ¿qué pasa?', [{ text: 'Nada: el color del Br₂ se mantiene', correct: true }, { text: 'Se adiciona Br₂ como en un alqueno y se decolora', misconception: 'benzene-adds' }, { text: 'Reacciona con violencia y libera calor', note: 'No reacciona.' }],
               { concept: 'ar.estabilidad', explain: 'Sumar Br₂ rompería la aromaticidad: no ocurre.', slide: 7 })
           ],
           fundamentals: [
@@ -144,7 +144,7 @@
                 deeper: 'Imagina 6 "salchichas" (los orbitales p) paradas alrededor del hexágono: se tocan con sus vecinas por arriba y por abajo, formando dos "donas" de electrones. Los 6 electrones π viajan por toda la dona: nadie es dueño de un doble enlace.' }
             ],
             practice: [
-              q('m1-p1', '¿Por qué los C–C del benceno son más cortos que un C–C simple pero más largos que un C=C?', [{ text: 'Porque tienen orden de enlace 1½ por la deslocalización', correct: true }, { text: 'Porque alternan y se promedian al medirlos', misconception: 'kekule-alternating' }, { text: 'Porque el anillo está tensionado', note: 'Los ángulos de 120° son los ideales para sp²: no hay tensión.' }],
+              q('m1-p1', '¿Por qué los C–C del benceno son más cortos que un C–C simple pero más largos que un C=C?', [{ text: 'Porque tienen orden de enlace 1½ por la deslocalización', correct: true }, { text: 'Porque alternan simple y doble y se promedian al medirlos', misconception: 'kekule-alternating' }, { text: 'Porque el anillo está tensionado y los acorta', note: 'Los ángulos de 120° son los ideales para sp²: no hay tensión.' }],
                 { concept: 'ar.benceno', explain: 'Cada enlace tiene "medio" enlace π.', slide: 4, hint: 'Piensa en el híbrido.' }),
               match('m1-p2', 'Une cada rasgo del benceno con su explicación:', [['Ángulos de 120°', 'C sp² en un hexágono plano'], ['Enlaces C–C iguales', 'Electrones π deslocalizados'], ['Círculo dentro del hexágono', 'Representa el híbrido de resonancia']],
                 { concept: 'ar.benceno', explain: 'Todo sale de los 6 p en un anillo plano.', slide: 5, hint: 'Hibridación y resonancia.' }),
@@ -153,7 +153,7 @@
             ],
             rule: { title: 'Regla del sabio: leer un benceno', concept: 'ar.benceno', steps: ['6 C sp², plano, 120°', 'Un p por C → anillo continuo con 6 π', 'Kekulé para mecanismos; círculo para el híbrido'] } },
           { id: 'r2', intro: 'Parte 2: **más estable de lo esperado**.',
-            pretest: q('m1-pre2', 'Adivina antes: ¿liberará la hidrogenación del benceno más o menos calor que 3 veces la del ciclohexeno?', [{ text: 'Menos: el benceno ya es más estable', correct: true }, { text: 'Más', note: 'Si fuera menos estable liberaría más.' }, { text: 'Exactamente el triple', note: 'Eso sería si no hubiera estabilización extra.' }],
+            pretest: q('m1-pre2', 'Adivina antes: ¿liberará la hidrogenación del benceno más o menos calor que 3 veces la del ciclohexeno?', [{ text: 'Menos: el benceno ya es más estable', correct: true }, { text: 'Más: el benceno tiene más energía que tres alquenos', note: 'Si fuera menos estable liberaría más.' }, { text: 'Exactamente el triple, como tres dobles enlaces', note: 'Eso sería si no hubiera estabilización extra.' }],
               { concept: 'ar.estabilidad', explain: 'Libera 208 frente a 360 kJ/mol esperados.', slide: 8 }),
             explain: [
               { id: 'm1b2', concept: 'ar.estabilidad', title: 'Reacciones inusuales y energía de resonancia', slide: 8, body: 'El benceno **no** decolora KMnO₄ ni Br₂ (los alquenos sí). Con **FeBr₃** sí reacciona, pero por **sustitución**: sale HBr y los 3 "C=C" quedan intactos. La razón es su **energía de resonancia**: el ciclohexeno libera 120 kJ/mol al hidrogenarse; el benceno, que "tiene 3 dobles", debería liberar 360, pero libera solo **208**. La diferencia, **≈ 151 kJ/mol**, es estabilidad extra (un dieno conjugado solo gana ≈ 8 kJ/mol).',
@@ -180,7 +180,7 @@
           diagnostic: [
             q('m2-d1', 'El ciclobutadieno (4 electrones π, plano) es…', [{ text: 'Antiaromático', correct: true }, { text: 'Aromático', misconception: 'huckel-4n' }, { text: 'No aromático', note: 'Es plano y continuo: Hückel aplica.' }],
               { concept: 'ar.huckel', explain: '4 = 4n (n = 1): antiaromático.', slide: 20 }),
-            q('m2-d2', 'El ciclopentadieno neutro (C₅H₆) es…', [{ text: 'No aromático: tiene un CH₂ sp³', correct: true }, { text: 'Aromático', misconception: 'skip-planarity' }, { text: 'Antiaromático', note: 'Sin p en todos los átomos no puede ser antiaromático.' }],
+            q('m2-d2', 'El ciclopentadieno neutro (C₅H₆) es…', [{ text: 'No aromático: tiene un CH₂ sp³ en el anillo', correct: true }, { text: 'Aromático, porque tiene 4 electrones π en un anillo', misconception: 'skip-planarity' }, { text: 'Antiaromático, porque tiene 4n electrones π', note: 'Sin p en todos los átomos no puede ser antiaromático.' }],
               { concept: 'ar.criterios', explain: 'El CH₂ sp³ corta el anillo de orbitales p.', slide: 19 })
           ],
           fundamentals: [
@@ -199,7 +199,7 @@
         },
         parts: [
           { id: 'r1', intro: 'Parte 1: **los criterios y la regla**.',
-            pretest: q('m2-pre1', 'Adivina antes: el ciclooctatetraeno tiene 8 electrones π. ¿Será antiaromático?', [{ text: 'No: se dobla y queda no aromático', correct: true }, { text: 'Sí, por tener 4n', misconception: 'skip-planarity' }, { text: 'Es aromático', note: '8 no es 4n + 2.' }],
+            pretest: q('m2-pre1', 'Adivina antes: el ciclooctatetraeno tiene 8 electrones π. ¿Será antiaromático?', [{ text: 'No: se dobla y queda no aromático', correct: true }, { text: 'Sí, por tener 4n electrones π', misconception: 'skip-planarity' }, { text: 'No es antiaromático: es aromático por tener 8 electrones π', note: '8 no es 4n + 2.' }],
               { concept: 'ar.criterios', explain: 'Para escapar de la antiaromaticidad se dobla en forma de tina.', slide: 11 }),
             explain: [
               { id: 'm2b1', concept: 'ar.huckel', title: 'Cuatro criterios + Hückel', slide: 20, body: 'Para ser aromático o antiaromático: (1) **cíclico** y conjugado; (2) un **p** en cada átomo del anillo; (3) los p forman un anillo **continuo** (casi siempre, **plano**). Si falla alguno → **no aromático**. Si cumple, cuenta los π: **4n + 2 (2, 6, 10, 14…) → aromático**; **4n (4, 8, 12…) → antiaromático**.',
@@ -216,7 +216,7 @@
             ],
             rule: { title: 'Regla del sabio: Hückel con orden', concept: 'ar.huckel', steps: ['Cíclico, un p en cada átomo, plano: si no, no aromático', 'Cuenta solo electrones en orbitales p del anillo', '4n + 2 → aromático; 4n → antiaromático'] } },
           { id: 'r2', intro: 'Parte 2: **iones aromáticos**.',
-            pretest: q('m2-pre2', 'Adivina antes: el catión tropilio (C₇H₇⁺, 7 C sp²) tiene…', [{ text: '6 electrones π: aromático', correct: true }, { text: '7 electrones π', note: 'Un catión tiene un p vacío: 3 dobles = 6.' }, { text: '8 electrones π', misconception: 'ion-count' }],
+            pretest: q('m2-pre2', 'Adivina antes: el catión tropilio (C₇H₇⁺, 7 C sp²) tiene…', [{ text: '6 electrones π: aromático', correct: true }, { text: '7 electrones π: un electrón desapareado', note: 'Un catión tiene un p vacío: 3 dobles = 6.' }, { text: '8 electrones π: dos más que el benceno', misconception: 'ion-count' }],
               { concept: 'ar.iones', explain: '3 dobles enlaces (6 π) + un p vacío.', slide: 23 }),
             explain: [
               { id: 'm2b2', concept: 'ar.iones', title: 'Contar π en iones', slide: 23, body: 'Un **carbocatión** sp² aporta un p **vacío** (0 e⁻); un **carbanión** conjugado pone su par en un p (2 e⁻). Así: **anión ciclopentadienilo** = 4 + 2 = **6 π (aromático)**; **catión ciclopentadienilo** = 4 π (antiaromático); **tropilio** C₇H₇⁺ = 6 π (aromático); **catión ciclopropenilo** = 2 π (aromático, n = 0).',
@@ -241,7 +241,7 @@
           hook: { title: 'La nicotina otra vez', sage: '¿Te acuerdas de la nicotina en Aminas? Tiene una piridina y una pirrolidina. Ahora vas a entender por qué el N de la piridina es básico pero el del pirrol casi nada: todo depende de si su par está o no en el anillo π.',
             text: 'Los heterociclos aromáticos (piridina, pirrol, imidazol, purina) están en la cafeína, el ADN y muchísimos fármacos. Saber si el par del heteroátomo cuenta como π es la pregunta clásica de la PEP.' },
           diagnostic: [
-            q('m3-d1', 'En la piridina, el par libre del N…', [{ text: 'No forma parte del sistema π (está en un sp², en el plano)', correct: true }, { text: 'Forma parte del sistema π', misconception: 'count-all-pairs' }, { text: 'No existe', note: 'Sí existe: por eso la piridina es básica.' }],
+            q('m3-d1', 'En la piridina, el par libre del N…', [{ text: 'No forma parte del sistema π: está en un sp², en el plano', correct: true }, { text: 'Forma parte del sistema π, como en el pirrol', misconception: 'count-all-pairs' }, { text: 'Desaparece: el N usa sus electrones en enlaces', note: 'Sí existe: por eso la piridina es básica.' }],
               { concept: 'ar.heterociclos', explain: 'El N ya aporta 1 e⁻ por su doble enlace; su par queda en el plano.', slide: 49 }),
             q('m3-d2', 'p-xileno es lo mismo que…', [{ text: '1,4-dimetilbenceno', correct: true }, { text: '1,3-dimetilbenceno', misconception: 'omp-numbers' }, { text: '1,2-dimetilbenceno', misconception: 'omp-numbers' }],
               { concept: 'ar.nombres', explain: 'para = 1,4.', slide: 35 })
@@ -255,7 +255,7 @@
             num('m3-t1', 'Estilo PEP: el imidazol tiene un N tipo piridina y un N–H tipo pirrol. ¿Cuántos electrones π tiene su anillo?', 6, 'e⁻',
               { concept: 'ar.heterociclos', label: 'electrones π', slide: 24, tol: 0, traps: [{ value: 8, note: 'Contaste el par del N tipo piridina: ese queda en el plano.', misconception: 'count-all-pairs' }, { value: 4, note: 'Falta el par del N–H, que sí entra al anillo.' }],
                 solution: ['2 dobles enlaces (C=C y C=N) → 4 e⁻', 'N–H tipo pirrol: su par en p → 2 e⁻', 'N tipo piridina: par en sp² → 0', 'Total 6 → aromático'], explain: '6 π: aromático.' }),
-            q('m3-t2', 'Estilo PEP: ¿cuál es la base más fuerte?', [{ text: 'Piridina: su par no es parte del anillo aromático', correct: true }, { text: 'Pirrol: tiene un N–H', note: 'Si el pirrol usa su par para captar H⁺, pierde la aromaticidad: casi no es básico.', misconception: 'count-all-pairs' }, { text: 'Son iguales', note: 'La diferencia es enorme (pKaH ≈ 5,2 frente a ≈ −3,8).' }],
+            q('m3-t2', 'Estilo PEP: ¿cuál es la base más fuerte?', [{ text: 'Piridina: su par no es parte del anillo aromático', correct: true }, { text: 'Pirrol: tiene un N–H que puede ceder el par', note: 'Si el pirrol usa su par para captar H⁺, pierde la aromaticidad: casi no es básico.', misconception: 'count-all-pairs' }, { text: 'Son igual de básicas: ambos tienen un N con par', note: 'La diferencia es enorme (pKaH ≈ 5,2 frente a ≈ −3,8).' }],
               { concept: 'ar.heterociclos', explain: 'El par de la piridina está libre en el plano; el del pirrol está comprometido en los 6 π.', slide: 49 }),
             write('m3-w1', 'Enséñale a tu compañero: ¿por qué el par libre del N del pirrol "cuenta" para la aromaticidad y el de la piridina no?', 'En el pirrol el N tiene solo enlaces simples en el anillo, así que pone su par en el orbital p y lo suma a los 4 electrones de los dos dobles enlaces: 6 π, aromático. En la piridina el N ya tiene un doble enlace que ocupa su orbital p; su par queda en un sp² en el plano del anillo, apuntando hacia afuera, y no forma parte del sistema π.',
               ['Pirrol: el par del N está en un orbital p y completa 6 π', 'Piridina: el p del N ya está en un doble enlace', 'En la piridina el par queda en un sp² en el plano (fuera del sistema π)'],
@@ -276,7 +276,7 @@
                 { concept: 'ar.heterociclos', explain: 'Si el átomo ya tiene un doble enlace en el anillo, su par queda en el plano.', slide: 49, hint: '¿Ese átomo tiene un doble enlace en el anillo?', misconception: 'count-all-pairs' }),
               num('m3-p2', '¿Cuántos electrones π tiene la piridina?', 6, 'e⁻', { concept: 'ar.heterociclos', label: 'electrones π', slide: 24, tol: 0, hint: '3 dobles enlaces; el par del N no cuenta.',
                 traps: [{ value: 8, note: 'El par del N está en el plano: no cuenta.', misconception: 'count-all-pairs' }], solution: ['3 dobles enlaces (2 C=C y 1 C=N) × 2 = 6 e⁻', 'Par del N en sp²: 0'], explain: '6 π.' }),
-              q('m3-p3', '¿Por qué el pirrol es una base muchísimo más débil que la piridina?', [{ text: 'Al protonar su N perdería la aromaticidad', correct: true }, { text: 'Porque su N es más electronegativo', note: 'Es el mismo elemento; la diferencia es dónde está el par.' }, { text: 'Porque no tiene par libre', note: 'Sí lo tiene, pero está comprometido en el anillo.' }],
+              q('m3-p3', '¿Por qué el pirrol es una base muchísimo más débil que la piridina?', [{ text: 'Al protonar su N perdería la aromaticidad', correct: true }, { text: 'Porque su N es más electronegativo que el de la piridina', note: 'Es el mismo elemento; la diferencia es dónde está el par.' }, { text: 'Porque su N no tiene ningún par libre', note: 'Sí lo tiene, pero está comprometido en el anillo.' }],
                 { concept: 'ar.heterociclos', explain: 'El par del pirrol es parte de los 6 π.', slide: 49, hint: '¿Qué le pasa al anillo si el par se usa para el H⁺?' })
             ],
             rule: { title: 'Regla del sabio: el par del heteroátomo', concept: 'ar.heterociclos', steps: ['¿El heteroátomo tiene doble enlace en el anillo? → su par queda fuera (tipo piridina)', 'Si solo tiene enlaces simples → un par entra al p (tipo pirrol)', 'Suma y aplica Hückel'] } },
@@ -307,7 +307,7 @@
             practice: [
               match('m3-p7', 'Une cada técnica con la señal típica de un anillo aromático:', [['IR', '≈ 1600 cm⁻¹ y =C–H sobre 3000'], ['RMN ¹H', '7–9 ppm'], ['RMN ¹³C', '120–150 ppm'], ['Masas (alquilbencenos)', 'm/z 91 (tropilio)']],
                 { concept: 'ar.espectro', explain: 'Cuatro huellas del anillo.', slide: 43, hint: 'ppm para RMN, cm⁻¹ para IR.' }),
-              q('m3-p8', 'Un compuesto muestra IR a 1600 y 3030 cm⁻¹ y RMN ¹H a 7,3 ppm (5H). ¿Qué tiene?', [{ text: 'Un anillo de benceno monosustituido', correct: true }, { text: 'Un alqueno aislado', misconception: 'ir-alkene' }, { text: 'Un alcohol', note: 'Un O–H daría una banda ancha cerca de 3300.' }],
+              q('m3-p8', 'Un compuesto muestra IR a 1600 y 3030 cm⁻¹ y RMN ¹H a 7,3 ppm (5H). ¿Qué tiene?', [{ text: 'Un anillo de benceno monosustituido', correct: true }, { text: 'Un alqueno aislado con un C=C', misconception: 'ir-alkene' }, { text: 'Un alcohol alifático con un O–H', note: 'Un O–H daría una banda ancha cerca de 3300.' }],
                 { concept: 'ar.espectro', explain: '1600 + 3030 + 7,3 ppm (5 H) = C₆H₅–.', slide: 44, hint: '5 H aromáticos = monosustituido.' }),
               num('m3-p9', 'El n-butilbenceno se fragmenta en masas dando el ion tropilio. ¿A qué m/z aparece?', 91, '', { concept: 'ar.espectro', label: 'm/z', slide: 48, tol: 0.001, hint: 'C₇H₇⁺: 7 × 12 + 7 × 1.',
                 traps: [{ value: 77, note: '77 es el fenilo C₆H₅⁺.' }, { value: 134, note: 'Ese es el ion molecular del butilbenceno.' }], solution: ['C₇H₇⁺ = 7(12) + 7(1) = 91'], explain: 'm/z 91.' })
