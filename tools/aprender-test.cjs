@@ -135,5 +135,5 @@ test('el peso de los cuadros cabe en el presupuesto (≤ 100 MB)', { skip: !fs.e
 });
 
 test('los módulos de Aprender compilan', () => {
-  for (const f of ['estado.js', 'sotano.js']) assert.doesNotThrow(() => new Function(fs.readFileSync(path.join(dist, 'aprender', f), 'utf8')), f);
+  for (const f of ['estado.js', 'sotano.js', 'sotano-musica.js']) assert.doesNotThrow(() => new Function(fs.readFileSync(path.join(dist, 'aprender', f), 'utf8')), f);
 });
