@@ -68,7 +68,7 @@ El mecanismo del piridino (guía 9b) y el de la piridina con NaNH₂ **no están
 
 - Cátedra: PPT 2S-2025 del Dr. Echeverría (Aminas, Aromáticos I y II) y guías 2021.
 - Drive de Niquito: `Química_Organica_Wade_Vol_I.pdf` y `Carey - Química orgánica 6a Ed.pdf` (carpeta Química Orgánica I). **No se encontró en el Drive el libro oficial de Orgánica II ni los capítulos exactos**; los números de capítulo de abajo salen de las ediciones en inglés y hay que cotejarlos con la edición en español.
-- OpenStax, *Organic Chemistry* (McMurry; gratis en openstax.org). **Cotejado el 19 oct:** cap. 16 = Chemistry of Benzene: SEA (sec. 16.1 bromación: FeBr₃ polariza el Br₂, complejo σ no aromático, sustitución y no adición) y sec. 24.9 Heterocyclic Amines (pirrol reacciona en C2 con 3 formas de resonancia contra 2 en C3; piridina reacciona en C3, mal, y su bromación pide ≈300 °C con ≈30 % de 3-bromopiridina). Eso confirma las diap. 42/50 y las actividades  de org-01. El cap. 15 (aromaticidad) no se abrió.
+- OpenStax, *Organic Chemistry* (McMurry; gratis en openstax.org). **Cotejado el 19 oct:** cap. 16 = Chemistry of Benzene: SEA (sec. 16.1 bromación: FeBr₃ polariza el Br₂, complejo σ no aromático, sustitución y no adición) y sec. 24.9 Heterocyclic Amines (pirrol reacciona en C2 con 3 formas de resonancia contra 2 en C3; piridina reacciona en C3, mal, y su bromación pide ≈300 °C con ≈30 % de 3-bromopiridina). Eso confirma las diap. 42/50 y las actividades `m7-h1` a `m7-h4` de org-01. El cap. 15 (aromaticidad) no se abrió.
 - Wade, *Organic Chemistry*: cap. 16 (aromáticos) y 17 (reacciones de aromáticos), como ya decían los encabezados de org-04 y org-05.
 
 ## 6. Qué falta para sacar de "borrador" (lo hace Niquito)
