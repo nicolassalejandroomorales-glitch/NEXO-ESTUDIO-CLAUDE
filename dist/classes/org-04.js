@@ -23,12 +23,13 @@
        `gen` = generador(es) de org-04-gen.js (nivel 5); `pep` = pregunta de `goal.questions` que asegura. */
     demuestra: {
       m1: { gen: 'benceno' },
-      m2: { gen: 'huckel', pep: 'P1' },
-      m3: { gen: ['hetero', 'nombres', 'espectro'], pep: 'P1' }
+      m2: { gen: 'huckel', pep: 'P5' },
+      m3: { gen: ['hetero', 'nombres', 'espectro'], pep: 'P5' }
     },
     status: 'borrador',
     sources: {
-      [SRC]: { title: 'Compuestos Aromáticos I', author: 'Dr. Javier Echeverría', detail: 'Química Orgánica II, Química y Farmacia, USACH, 2025-2S', authority: 'Material oficial del curso' }
+      [SRC]: { title: 'Compuestos Aromáticos I', author: 'Dr. Javier Echeverría', detail: 'Química Orgánica II, Química y Farmacia, USACH, 2025-2S', authority: 'Material oficial del curso' },
+      guia2021: { title: 'Guía de ejercicios 2021: Compuestos aromáticos', author: 'Dr. Javier Echeverría', detail: 'Química Orgánica II, Química y Farmacia, USACH, 2021 (sin solucionario completo: las respuestas las razonó Claude y deben cotejarse)', authority: 'Guía del curso (año anterior)' }
     },
     misconceptions: {
       'count-all-pairs': { label: 'Contaste un par libre que no está en el anillo π', why: 'Un par libre cuenta solo si está en un orbital **p** paralelo al anillo. En la **piridina** el par del N está en un sp² en el plano (apunta hacia afuera): no cuenta. En el **pirrol** sí cuenta, porque el N usa ese par para completar el anillo de 6 π.',
@@ -51,9 +52,9 @@
         prereq: { title: 'Huellas del anillo aromático', mission: 'm3', block: 'm3b3' }, base: 'base.resonancia' }
     },
     goal: {
-      total: 15, text: 'Asegurar los 3 puntos de aromaticidad de la PEP 1 (reparto según la PEP anterior: P1)',
-      questions: [{ id: 'P1', label: 'Aromático, antiaromático o no aromático (Hückel, iones, heterociclos)', points: 3, missions: ['m2', 'm3'] }],
-      rest: [{ label: 'Aminas (P3, P4 y P6)', points: 6, note: 'clase lista' }, { label: 'SEA: orientación y síntesis (P2 y P5)', points: 6, note: 'clase org-05' }]
+      total: 15, text: 'Asegurar los 3 puntos de aromaticidad de la PEP 1 (PEP 1 2025: pregunta 5, 3 puntos)',
+      questions: [{ id: 'P5', label: 'Aromático, antiaromático o no aromático (Hückel, iones, heterociclos)', points: 3, missions: ['m2', 'm3'] }],
+      rest: [{ label: 'Aminas (P3, P4 y P6)', points: 6, note: 'clase lista' }, { label: 'SEA: productos y rutas desde benceno (P1 y P2)', points: 6, note: 'clase org-05' }]
     },
     glossary: [
       { term: 'Aromático', mission: 'm1', def: 'Compuesto cíclico, plano, con un orbital p en cada átomo del anillo y 4n + 2 electrones π deslocalizados; es mucho más estable que su análogo de cadena abierta.',
@@ -118,7 +119,7 @@
     },
     missions: [
       {
-        id: 'm1', title: 'El benceno, ese anillo terco', subtitle: 'Resonancia y una estabilidad que no calza', minutes: 20, slides: '4–8', pep: 'Base de P1 y de toda la SEA',
+        id: 'm1', title: 'El benceno, ese anillo terco', subtitle: 'Resonancia y una estabilidad que no calza', minutes: 20, slides: '4–8', pep: 'Base de P5 y de toda la SEA',
         stages: {
           hook: { title: 'El reactivo que no se decolora', sage: 'Echa agua de bromo a un alqueno: el rojo desaparece al tiro. Échala al benceno: nada. ¿Qué tiene de especial ese anillo?',
             text: 'Los anillos de benceno están en la mayoría de los fármacos (paracetamol, ibuprofeno, lidocaína). Entender por qué son tan estables explica por qué reaccionan distinto: **sustituyen** en vez de sumar.' },
@@ -180,7 +181,7 @@
         ]
       },
       {
-        id: 'm2', title: 'Hückel', subtitle: 'Aromático, antiaromático o no aromático', minutes: 25, slides: '18–23', pep: 'P1: clasificar anillos e iones',
+        id: 'm2', title: 'Hückel', subtitle: 'Aromático, antiaromático o no aromático', minutes: 25, slides: '18–23', pep: 'P5: clasificar anillos e iones',
         stages: {
           hook: { title: 'Mismo tamaño, destinos opuestos', sage: 'El ciclopentadieno es un hidrocarburo cualquiera. Quítale un H⁺ y el anión es tan estable que el ciclopentadieno es ácido como un alcohol (pKa ≈ 16). Quítale un H⁻ y el catión casi no existe. ¿Qué cambió? Solo el número de electrones π.',
             text: 'En la PEP te van a mostrar anillos e iones para clasificar. La receta: primero revisa si el anillo es **cíclico, plano y con un p en cada átomo**; recién ahí cuenta electrones π.' },
@@ -196,7 +197,7 @@
           ],
           explain: [],
           transfer: [
-            classify('m2-t1', 'Estilo PEP (P1): clasifica cada especie.', AROM,
+            classify('m2-t1', 'Estilo PEP (P5): clasifica cada especie.', AROM,
               [['bz', 'Benceno (6 π)', 'aro'], ['cbd', 'Ciclobutadieno (4 π, plano)', 'anti'], ['cot', 'Ciclooctatetraeno (forma de tina)', 'no'], ['cpa', 'Anión ciclopentadienilo', 'aro'], ['cpc', 'Catión ciclopentadienilo', 'anti'], ['trop', 'Catión tropilio (C₇H₇⁺)', 'aro'], ['cpd', 'Ciclopentadieno (C₅H₆)', 'no']],
               { concept: 'ar.huckel', explain: 'Primero criterios (plano y continuo), después 4n + 2 o 4n.', slide: 23, misconception: 'huckel-4n' }),
             write('m2-w1', 'Enséñale a tu compañero: ¿por qué el anión ciclopentadienilo es aromático pero el catión es antiaromático?', 'Ambos tienen los 5 C sp² con un orbital p cada uno, en un anillo plano. El anión tiene un par en el C cargado: 4 + 2 = 6 electrones π (4n + 2, aromático). El catión tiene un p vacío: solo 4 electrones π (4n, antiaromático).',
@@ -243,7 +244,7 @@
         ]
       },
       {
-        id: 'm3', title: 'Heterociclos, nombres y huellas', subtitle: '¿El par participa? · orto, meta, para · IR y RMN', minutes: 25, slides: '24–49', pep: 'P1: heterociclos; base para P2 y P5',
+        id: 'm3', title: 'Heterociclos, nombres y huellas', subtitle: '¿El par participa? · orto, meta, para · IR y RMN', minutes: 25, slides: '24–49', pep: 'P5: heterociclos; base para P1 y P2',
         stages: {
           hook: { title: 'La nicotina otra vez', sage: '¿Te acuerdas de la nicotina en Aminas? Tiene una piridina y una pirrolidina. Ahora vas a entender por qué el N de la piridina es básico pero el del pirrol casi nada: todo depende de si su par está o no en el anillo π.',
             text: 'Los heterociclos aromáticos (piridina, pirrol, imidazol, purina) están en la cafeína, el ADN y muchísimos fármacos. Saber si el par del heteroátomo cuenta como π es la pregunta clásica de la PEP.' },
@@ -283,6 +284,10 @@
                 { concept: 'ar.heterociclos', explain: 'Si el átomo ya tiene un doble enlace en el anillo, su par queda en el plano.', slide: 49, hint: '¿Ese átomo tiene un doble enlace en el anillo?', misconception: 'count-all-pairs' }),
               num('m3-p2', '¿Cuántos electrones π tiene la piridina?', 6, 'e⁻', { concept: 'ar.heterociclos', label: 'electrones π', slide: 24, tol: 0, hint: '3 dobles enlaces; el par del N no cuenta.',
                 traps: [{ value: 8, note: 'El par del N está en el plano: no cuenta.', misconception: 'count-all-pairs' }], solution: ['3 dobles enlaces (2 C=C y 1 C=N) × 2 = 6 e⁻', 'Par del N en sp²: 0'], explain: '6 π.' }),
+              q('m3-p10', 'Guía 2021 (aromáticos, 7). La 2-piridona (anillo de 6 con un N–H y un C=O) ¿es aromática?', [{ text: 'Sí: una forma de resonancia con N⁺–H y O⁻ muestra 6 e⁻ π en el anillo (4 de dos C=C y 2 del par del N)', correct: true }, { text: 'No: el C=O deja un carbono sin p en el anillo', note: 'El carbono del C=O es sp² y tiene su p: el C=O se polariza y el anillo queda con sexteto.', misconception: 'skip-planarity' }, { text: 'Antiaromática: 8 e⁻ π si se cuentan los pares del O', note: 'Los pares del O están en el plano, fuera del anillo π.', misconception: 'count-all-pairs' }],
+                { source: 'guia2021', concept: 'ar.heterociclos', explain: 'El par del N entra al anillo y el C=O se polariza (forma dipolar): 6 e⁻ π, plano → aromática.', slide: 24, hint: 'Dibuja la forma de resonancia que mueve el par del N hacia el C=O.' }),
+              q('m3-p11', 'Guía 2021 (aromáticos, 9b). En la ciprofloxacina, ¿cuál N es el básico?', [{ text: 'El N–H del anillo de piperazina (sp³, par localizado)', correct: true }, { text: 'El N del anillo de quinolona unido al ciclopropilo', note: 'Su par está deslocalizado hacia el C=O y el anillo (como una amida): no queda disponible para un H⁺.', misconception: 'count-all-pairs' }, { text: 'Los dos por igual', note: 'Uno tiene el par localizado y el otro lo tiene deslocalizado.' }],
+                { source: 'guia2021', concept: 'ar.heterociclos', explain: 'Un N con el par fuera del sistema π (sp³) es básico; un N cuyo par se deslocaliza no lo es. Cotejar con la estructura dibujada en la guía.', slide: 49, hint: '¿A cuál N le "sirve" su par para el sistema π?' }),
               q('m3-p3', '¿Por qué el pirrol es una base muchísimo más débil que la piridina?', [{ text: 'Al protonar su N perdería la aromaticidad', correct: true }, { text: 'Porque su N es más electronegativo que el de la piridina', note: 'Es el mismo elemento; la diferencia es dónde está el par.' }, { text: 'Porque su N no tiene ningún par libre', note: 'Sí lo tiene, pero está comprometido en el anillo.' }],
                 { concept: 'ar.heterociclos', explain: 'El par del pirrol es parte de los 6 π.', slide: 49, hint: '¿Qué le pasa al anillo si el par se usa para el H⁺?' })
             ],

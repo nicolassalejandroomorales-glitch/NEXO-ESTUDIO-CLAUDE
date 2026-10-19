@@ -101,7 +101,8 @@
       rest: [{ label: 'Aromáticos (P1, P2 y P5)', points: 9, note: 'clase en preparación' }]
     },
     sources: {
-      [SRC]: { title: 'Clase de cátedra · Aminas', author: 'Dr. Javier Echeverría', detail: 'Química Orgánica II, USACH, 2025-2S', authority: 'Material oficial del curso' }
+      [SRC]: { title: 'Clase de cátedra · Aminas', author: 'Dr. Javier Echeverría', detail: 'Química Orgánica II, USACH, 2025-2S', authority: 'Material oficial del curso' },
+      guia2021: { title: 'Guía de ejercicios 2021: Aminas', author: 'Dr. Javier Echeverría', detail: 'Química Orgánica II, Química y Farmacia, USACH, 2021 (sin solucionario completo: las respuestas las razonó Claude y deben cotejarse)', authority: 'Guía del curso (año anterior)' }
     },
     misconceptions,
     glossary: [
@@ -336,6 +337,8 @@
     36: { title: 'Eliminación de Hofmann · Regioquímica', bullets: ['Las E2 suelen dar el alqueno más sustituido, pero en Hofmann el producto principal es el MENOS sustituido.', 'Argumento estérico: el grupo saliente es muy voluminoso; la conformación anticoplanar hacia el más sustituido tiene una interacción gauche.'] },
     37: { title: 'Eliminación de Hofmann · Control cinético', bullets: ['El estado de transición hacia el alqueno menos sustituido es de menor energía: se forma más rápido aunque no sea el más estable.'] },
     39: { title: 'Reacciones de iones aril diazonio', bullets: ['Muchos reactivos reemplazan el grupo diazo: permite introducir gran variedad de grupos en el anillo aromático.'] },
+    42: { title: 'Reacciones de heterociclos nitrogenados', bullets: ['Pirrol + Br₂ (0 °C): 2-bromopirrol, 90 %.', 'Piridina + Br₂ (300 °C): 3-bromopiridina, 30 %.', 'El intermediario del pirrol tiene tres formas de resonancia.'] },
+    50: { title: 'Resumen: diazonio y heterociclos', bullets: ['Diazonio: CuBr, CuCl, CuI, CuCN, HBF₄ (F), H₂O/calor (OH) y H₃PO₂ (H).', 'Pirrol: Br₂, 0 °C → 2-bromopirrol. Piridina: Br₂, 300 °C → 3-bromopiridina.'] },
     40: { title: 'Diazonio · Sandmeyer y Schiemann', bullets: ['Sandmeyer: CuCl, CuBr o CuCN reemplazan el –N₂⁺ por –Cl, –Br o –CN.', 'Schiemann: HBF₄ y calor dan Ar–F.', 'Otras: H₂O y calor dan fenol; KI da Ar–I.'] },
     44: { title: 'Espectroscopía IR de aminas', bullets: ['1° y 2° muestran señales N–H entre 3350 y 3500 cm⁻¹, menos intensas que las O–H.', '1°: dos picos (simétrico y asimétrico). 2°: uno. 3°: ninguno.', 'Las 3° se detectan tratándolas con HCl: el N–H resultante da señal entre 2200 y 3000 cm⁻¹.'] },
     45: { title: 'RMN ¹H de aminas', bullets: ['H unido al N: señal ancha entre 0,5 y 5,0 ppm.', 'H α al N: entre 2 y 3 ppm; el efecto disminuye con la distancia (β ~1,5; γ ~0,9 ppm).'] },
@@ -908,7 +911,7 @@
   },
   /* ── Misión 7 ── */
   {
-    id: 'm7', title: 'Reacciones de aminas', subtitle: 'Tres recetas: acilación, sales de diazonio y eliminación de Hofmann', minutes: 35, slides: '34–40', pep: 'preguntas 4 y 6',
+    id: 'm7', title: 'Reacciones de aminas', subtitle: 'Tres recetas: acilación, sales de diazonio y eliminación de Hofmann', minutes: 40, slides: '34–42, 50', pep: 'preguntas 4 y 6',
     stages: {
       hook: { title: 'El paracetamol se fabrica con una reacción de esta misión', scene: PARACETAMOL, smiles: 'CC(=O)Nc1ccc(O)cc1',
         sage: 'Aprendiz… antes de empezar, mira algo que seguro tienes en tu casa.',
@@ -1073,7 +1076,24 @@
             hint: 'Toca un enlace para hacerlo doble. ¿De qué carbono sacó el H la base: del CH₃ de la punta o del CH₂?' }
         ],
         recipe: { title: 'Poción de Hofmann', base: 'Amina con H en el carbono vecino', reagents: '1) CH₃I en exceso · 2) Ag₂O, H₂O', condition: 'Calor', result: 'Alqueno **menos** sustituido + N(CH₃)₃',
-          note: 'Al revés de Zaitsev, porque –N(CH₃)₃⁺ es muy voluminoso.' } }
+          note: 'Al revés de Zaitsev, porque –N(CH₃)₃⁺ es muy voluminoso.' } },
+      { id: 'r4', intro: 'Receta 4: **los heterociclos**. Pirrol y piridina tienen N, pero uno se halogena fácil y el otro casi no.',
+        explain: [
+          { id: 'b74', title: 'Pirrol y piridina frente a un electrófilo', slide: 42, body: '**Pirrol** (el par del N está dentro de los 6 π): anillo muy rico, reacciona con Br₂ a **0 °C** y sin catalizador, y entra en **C2** (2-bromopirrol, 90 %). **Piridina** (el par del N está fuera del anillo y el N, electronegativo, saca electrones): anillo pobre, se comporta como un benceno con un –NO₂. Con Br₂ necesita **300 °C** y da **3-bromopiridina** (solo 30 %).',
+            deeper: 'Por qué C2 en el pirrol: el complejo σ de C2 tiene tres formas de resonancia y en una el N aporta su par (diap. 42). Por qué C3 en la piridina: si el electrófilo entra en C2 o C4, una forma de resonancia pondría la carga + sobre el N, que no tiene cómo estabilizarla; en C3 la carga nunca cae sobre el N.' }
+        ],
+        practice: [
+          q('m7-h1', 'El pirrol reacciona con Br₂ a 0 °C. ¿Dónde entra el Br y por qué?', [{ text: 'En C2: el complejo σ tiene tres formas de resonancia, una con el par del N aportando', correct: true }, { text: 'En el N, que es el átomo con el par libre', note: 'El par del N es parte del sexteto aromático; el que reacciona es el anillo (SEA), no el N.' }, { text: 'En C3, porque queda más lejos del N', note: 'En C3 el complejo σ tiene solo dos formas de resonancia: es menos estable que el de C2.' }],
+            { concept: 'am.heterociclos', explain: 'El N dona su par al complejo σ cuando el ataque es en C2 (90 % de 2-bromopirrol en la diap. 42).', slide: 42, hint: '¿En cuál posición se reparte más la carga + del intermediario?' }),
+          order('m7-h2', 'Ordena de MENOS a MÁS reactivo frente a Br₂ (SEA):', [['py', 'Piridina'], ['bz', 'Benceno'], ['pr', 'Pirrol']], ['py', 'bz', 'pr'],
+            { concept: 'am.heterociclos', direction: 'De menos a más reactivo.', explain: 'La piridina se halogena a 300 °C y con 30 %; el pirrol a 0 °C y con 90 %. El benceno queda en medio (necesita FeBr₃).', slide: 42, hint: '¿Quién dona electrones al anillo y quién los saca?' }),
+          classify('m7-h4', '¿A cuál heterociclo corresponde cada dato?', [['pr', 'Pirrol'], ['pi', 'Piridina']], [['a', 'Br₂ a 0 °C, sin catalizador', 'pr'], ['b', 'Br₂ a 300 °C, 30 %', 'pi'], ['c', 'Entra en C2', 'pr'], ['d', 'Entra en C3', 'pi'], ['e', 'Se comporta como un benceno con un –NO₂', 'pi'], ['f', 'Su par del N está dentro de los 6 π', 'pr']],
+            { concept: 'am.heterociclos', explain: 'Pirrol: anillo rico (el N dona su par), reacciona fácil en C2. Piridina: anillo pobre (el N saca electrones), reacciona difícil en C3 (diap. 42).', slide: 42, hint: '¿Quién dona electrones al anillo y quién los saca?' }),
+          q('m7-h3', 'Guía 2021 (aminas, 8). La sulfonación de la piridina necesita condiciones muy fuertes y ocurre en…', [{ text: 'C3: el complejo σ nunca deja la carga + sobre el N', correct: true }, { text: 'C2 o C4', note: 'En C2 y C4 una forma de resonancia pondría la carga + sobre el N, que es electronegativo y no tiene par para donar.' }, { text: 'En el N, por el par libre', note: 'El N sí ataca al electrófilo (forma el ion piridinio), y eso desactiva aún más el anillo; la sustitución en el anillo es en C3.' }],
+            { source: 'guia2021', concept: 'am.heterociclos', explain: 'Igual que la bromación de la diap. 42: la piridina reacciona como un benceno con un –NO₂, en la posición "meta" (C3).', slide: 42, hint: 'Compárala con el nitrobenceno: ¿dónde queda la carga + en el complejo σ?' })
+        ],
+        recipe: { title: 'Poción de heterociclos', base: 'Pirrol o piridina', reagents: '**Pirrol**: Br₂, 0 °C · **Piridina**: Br₂, 300 °C', condition: 'SEA', result: '**2-Bromopirrol** (90 %) · **3-Bromopiridina** (30 %)',
+          note: 'Pirrol: anillo rico, entra en C2. Piridina: anillo pobre (como el nitrobenceno), entra en C3 y con mucho esfuerzo.' } }
     ]
   },
   /* ── Misión 8 ── */
