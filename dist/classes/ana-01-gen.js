@@ -199,7 +199,7 @@
         if (kind === 'Aleatorio') { xs = xs.sort((a, b) => a - b); xs[0] = Number((xv * 0.94).toFixed(2)); xs[4] = Number((xv * 1.06).toFixed(2)); xs = shuffle(rng, xs); }
         const right = `${kind}: ${kind === 'Sistemático' ? 'todas corridas hacia el mismo lado y muy juntas' : kind === 'Aleatorio' ? 'dispersas a ambos lados del valor verdadero' : 'un dato muy alejado del resto'}`;
         return choice(rng, `${level === 5 ? 'Estilo PEP: ' : ''}Un estándar de ${xv} ppm se mide 5 veces: ${xs.map(x => fix(x, 2)).join('; ')} ppm. ¿Qué tipo de error domina?`, right,
-          ['Sistemático: todas corridas hacia el mismo lado y muy juntas', 'Aleatorio: dispersas a ambos lados del valor verdadero', 'Grueso: un dato muy alejado del resto', 'Ninguno: los datos son exactos y precisos'].filter(t => t !== right).map(text => ({ text, note: 'Compara cada réplica con el valor verdadero y entre sí.', misconception: 'acc-prec' })),
+          ['Sistemático: todas corridas hacia el mismo lado y muy juntas', 'Aleatorio: dispersas a ambos lados del valor verdadero', 'Grueso: un dato muy alejado del resto', 'Los datos son exactos y precisos, sin error'].filter(t => t !== right).map(text => ({ text, note: 'Compara cada réplica con el valor verdadero y entre sí.', misconception: 'acc-prec' })),
           { concept: 'ana.errores', slide: 56, source: 'skoog', hint: '¿Están todas del mismo lado? ¿Muy dispersas? ¿Hay una muy lejos?', explain: right + '.' }); }
       const [text, kind] = pick(rng, ERR), simple = kind.split(' (')[0];
       if (level <= 2) return choice(rng, `"${text}". ¿Qué tipo de error es?`, kind, take(rng, [...new Set(ERR.map(e => e[1]))].filter(k => k !== kind), 3).map(t => ({ text: t, note: 'Sistemático: con causa, un solo lado. Aleatorio: al azar. Grueso: equivocación grande.', misconception: 'error-type' })),
@@ -240,11 +240,11 @@
         traps: [{ value: gap, note: 'Ese es el hueco: falta dividir por el rango (máx − mín).' }, { value: gap / (range - gap), note: 'El rango incluye al dato dudoso: usa máx − mín de TODOS los datos.' }, { value: 1 - q, note: 'Eso es 1 − Q.' }],
         solution: [order, qline], explain: `Q = ${dec(q, 3)}.` });
       if (level === 2) {
-        const yes = `Sí: ${verdict}`, no = `No: ${verdict}`;
+        const yes = `Sí: Q = ${dec(q, 3)} es mayor que Qtab = ${dec(qt, 3)}`, no = `No: Q = ${dec(q, 3)} es menor que Qtab = ${dec(qt, 3)}`;
         return choice(rng, `${what[0].toUpperCase()}${what.slice(1)} (${unit}): ${shown}. Con ${cf} % de confianza, ¿se descarta ${fix(sus, 2)}?`, reject ? yes : no,
           [{ text: reject ? `No: Q = ${dec(q, 3)} es menor que Qtab = ${dec(qt, 3)}` : `Sí: Q = ${dec(q, 3)} es mayor que Qtab = ${dec(qt, 3)}`, note: 'Si Q > Qtab se elimina; si Q < Qtab se conserva.', misconception: 'q-test' },
             { text: 'Sí: es el dato más alejado del promedio', note: 'No basta con que esté lejos: hay que comparar Q con el Q tabulado.', misconception: 'q-test' },
-            { text: 'No se puede decidir sin la desviación estándar', note: 'El test Q usa solo el hueco y el rango, no s.' }],
+            { text: 'No se puede decidir sin conocer la desviación estándar', note: 'El test Q usa solo el hueco y el rango, no s.' }],
           { concept: 'ana.dixon', slide: 86, hint: 'Calcula Q y compáralo con Qtab para n datos.', explain: `${order}. ${qline}. ${verdict}.` });
       }
       if (level <= 4) return number(`${what[0].toUpperCase()}${what.slice(1)} (${unit}): ${shown}. Aplica el test Q (${cf} %) al dato más alejado y calcula el promedio de los datos que quedan.`, mAcc, '', { concept: 'ana.dixon', slide: 86, label: 'x̄', tol: 0.002, hint: 'Primero Q y Qtab; si se elimina, promedia los demás.',
@@ -275,7 +275,7 @@
       const summary = labs.map(l => `${l.name}: promedio ${fix(l.m, 2)} ${unit}, s = ${fix(l.s, 2)} ${unit}`).join(' · ');
       const raw = labs.map(l => `${l.name}: ${l.xs.map(x => fix(x, 2)).join('; ')}`).join(' | ');
       const head = `Un material de referencia tiene ${dec(xv)} ${unit}. Tres laboratorios lo analizan ${n} veces.`;
-      const optionsFor = (askedRole) => labs.filter(l => l.role !== askedRole).map(l => ({ text: l.name, note: ROLE_NOTE[l.role], misconception: 'acc-prec' })).concat([{ text: 'Ninguno de los tres', note: 'Hay uno que cumple.' }]);
+      const optionsFor = (askedRole) => labs.filter(l => l.role !== askedRole).map(l => ({ text: l.name, note: ROLE_NOTE[l.role], misconception: 'acc-prec' }));
       const stats = l => `${l.name}: Er = ${dec(l.Er, 1)} %, CV = ${dec(l.cv, 1)} %`;
       if (level <= 2) {
         const asked = level === 1 ? 'ideal' : 'precisoNoExacto', target = byRole(asked);

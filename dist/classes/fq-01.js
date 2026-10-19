@@ -176,7 +176,7 @@
                 deeper: 'Mira la curva G vs ξ: parte bajando, llega a un mínimo y vuelve a subir. La pendiente cambia porque los potenciales químicos μᵢ dependen de la composición. Para un cambio pequeño se puede estimar ΔrG ≈ ΔG/Δξ (ejercicio de la guía: −2,41 kJ / 0,051 mol ≈ −47 kJ/mol).' }
             ],
             practice: [
-              q('m1-p3', 'Una reacción con ΔrG > 0 en este momento…', [{ text: 'Avanza en la dirección inversa', correct: true }, { text: 'No ocurre en ninguna dirección', note: 'Sí ocurre: la inversa es la espontánea.' }, { text: 'Está en equilibrio', note: 'Equilibrio es ΔrG = 0.' }],
+              q('m1-p3', 'Una reacción con ΔrG > 0 en este momento…', [{ text: 'Avanza en la dirección inversa', correct: true }, { text: 'La reacción queda detenida, sin avanzar', note: 'Sí ocurre: la inversa es la espontánea.' }, { text: 'Está en equilibrio en este momento', note: 'Equilibrio es ΔrG = 0.' }],
                 { concept: 'eq.drg', explain: 'ΔrG > 0: subir ξ aumenta G, así que lo espontáneo es bajar ξ (reacción inversa).', slide: 51, hint: 'G siempre baja en lo espontáneo.' }),
               num('m1-p4', 'Si una reacción avanza Δξ = 0,020 mol y G del sistema cambia −0,90 kJ, ¿cuánto vale ΔrG aproximadamente?', -45, 'kJ/mol',
                 { concept: 'eq.drg', label: 'ΔrG', slide: 51, hint: 'ΔrG ≈ ΔG/Δξ.', traps: [{ value: 45, note: 'G bajó: el signo es negativo.' }], solution: ['ΔrG ≈ −0,90 kJ / 0,020 mol', '= −45 kJ/mol'], explain: '−0,90/0,020 = −45 kJ/mol.' }),
@@ -224,7 +224,7 @@
                 deeper: 'Q se escribe igual que K (productos arriba, reactivos abajo, cada uno elevado a su coeficiente, con presiones relativas pᵢ/p° o concentraciones cᵢ/c°), pero con los valores de **ahora**. Compararlo con K te dice qué falta: Q chico = faltan productos.' }
             ],
             practice: [
-              q('m2-p1', 'N₂ + 3H₂ ⇌ 2NH₃ a 723 K tiene K = 4,47 × 10⁻⁵. Si en una mezcla Q = 1,0 × 10⁻³, ¿qué pasa?', [{ text: 'Se descompone NH₃ (va hacia reactivos)', correct: true }, { text: 'Se forma más NH₃', misconception: 'q-k-direction' }, { text: 'Está en equilibrio', note: 'Q ≠ K.' }],
+              q('m2-p1', 'N₂ + 3H₂ ⇌ 2NH₃ a 723 K tiene K = 4,47 × 10⁻⁵. Si en una mezcla Q = 1,0 × 10⁻³, ¿qué pasa?', [{ text: 'Se descompone NH₃, va hacia los reactivos', correct: true }, { text: 'Se forma más NH₃, va hacia los productos', misconception: 'q-k-direction' }, { text: 'Está en equilibrio, no hay cambio neto', note: 'Q ≠ K.' }],
                 { concept: 'eq.q-k', explain: 'Q = 1,0 × 10⁻³ > K = 4,47 × 10⁻⁵: hay más NH₃ del de equilibrio y retrocede.', slide: 56, hint: 'Compara: ¿Q es mayor o menor que K?' }),
               num('m2-p2', 'Para A(g) ⇌ 2B(g), p(A) = 0,50 bar y p(B) = 0,20 bar (p° = 1 bar). Calcula Q.', 0.08, '',
                 { concept: 'eq.q-k', label: 'Q', slide: 80, hint: 'Q = (p_B/p°)² / (p_A/p°).', traps: [{ value: 0.4, note: 'Falta elevar p(B) a su coeficiente 2.' }, { value: 12.5, note: 'Productos van arriba, reactivos abajo.' }], solution: ['Q = (0,20)² / 0,50', '= 0,040 / 0,50 = 0,080'], explain: 'Q = 0,20²/0,50 = 0,080.' }),
@@ -233,7 +233,7 @@
             ],
             rule: { title: 'Regla del sabio: Q contra K', concept: 'eq.q-k', steps: ['Escribe Q como K, pero con los valores de ahora', 'Q < K → avanza; Q > K → retrocede; Q = K → equilibrio', 'Si piden cuánto: ΔrG = RT ln(Q/K), T en kelvin'] } },
           { id: 'r2', intro: 'Parte 2: **ΔrG° = −RT ln K**.',
-            pretest: q('m2-pre2', 'Adivina antes: una reacción con ΔrG° = +10 kJ/mol a 298 K, ¿forma algo de producto?', [{ text: 'Sí: K ≈ 0,018, poco pero algo', correct: true }, { text: 'No, nada', misconception: 'dg-vs-dg0' }, { text: 'Sí, casi todo', note: 'ΔrG° > 0 → K < 1.' }],
+            pretest: q('m2-pre2', 'Adivina antes: una reacción con ΔrG° = +10 kJ/mol a 298 K, ¿forma algo de producto?', [{ text: 'Sí: K ≈ 0,018, poco producto pero algo', correct: true }, { text: 'No, nada: ΔrG° positivo prohíbe la reacción', misconception: 'dg-vs-dg0' }, { text: 'Sí, casi todo se convierte en producto', note: 'ΔrG° > 0 → K < 1.' }],
               { concept: 'eq.k-dg', explain: 'K = e^(−10000/(8,314 × 298)) ≈ 0,018: pequeña, no cero.', slide: 93 }),
             explain: [
               { id: 'm2b2', concept: 'eq.k-dg', title: 'De ΔrG° a K', slide: 93, body: 'En el equilibrio: **ΔrG° = −RT ln K**, o sea **K = e^(−ΔrG°/RT)**. ΔrG° < 0 → K > 1 (gana productos); ΔrG° > 0 → K < 1. ΔrG° se calcula con tablas: **ΔrG° = Σν ΔfG°(productos) − Σν ΔfG°(reactivos)** (los elementos en su forma estable tienen ΔfG° = 0).',
@@ -249,7 +249,7 @@
               classify('m2-p6', 'Clasifica cada reacción según su K a 298 K:', [['big', 'K > 1'], ['small', 'K < 1']],
                 [['a', 'ΔrG° = −20 kJ/mol', 'big'], ['b', 'ΔrG° = +15 kJ/mol', 'small'], ['c', 'ΔrG° = −0,5 kJ/mol', 'big'], ['d', 'ΔrG° = +3 kJ/mol', 'small']],
                 { concept: 'eq.k-dg', explain: 'ΔrG° negativo → K > 1; positivo → K < 1. El tamaño solo cambia cuánto.', slide: 93, hint: 'Mira solo el signo.' }),
-              q('m2-p7', 'Al calcular K desde ΔrG° = −308,9 kJ/mol a 298 K, alguien obtuvo ln K = 0,1246. ¿Qué error cometió?', [{ text: 'Dejó ΔrG° en kJ/mol en vez de J/mol', correct: true, }, { text: 'Usó la temperatura en kelvin', note: 'Eso está bien.' }, { text: 'Cambió el signo', note: 'El signo salió bien (positivo).', misconception: 'k-sign' }],
+              q('m2-p7', 'Al calcular K desde ΔrG° = −308,9 kJ/mol a 298 K, alguien obtuvo ln K = 0,1246. ¿Qué error cometió?', [{ text: 'Dejó ΔrG° en kJ/mol en vez de J/mol', correct: true, }, { text: 'Usó la temperatura en kelvin en vez de °C', note: 'Eso está bien.' }, { text: 'Cambió el signo de ΔrG° al calcular ln K', note: 'El signo salió bien (positivo).', misconception: 'k-sign' }],
                 { concept: 'eq.k-dg', explain: 'Con J/mol: ln K = 308 900 / (8,314 × 298) = 124,6, mil veces más.', slide: 93, hint: 'Compara 0,1246 con 124,6.' })
             ],
             rule: { title: 'Regla del sabio: de ΔrG° a K', concept: 'eq.k-dg', steps: ['ΔrG° = Σν ΔfG°(prod) − Σν ΔfG°(react), elementos = 0', 'Pasa a J/mol y T a kelvin', 'K = e^(−ΔrG°/RT): negativo → K > 1'] } }
@@ -285,7 +285,7 @@
         },
         parts: [
           { id: 'r1', intro: 'Parte 1: **Kp y Kc**.',
-            pretest: q('m3-pre1', 'Adivina antes: para CO + H₂O ⇌ CO₂ + H₂, ¿Kp y Kc son iguales?', [{ text: 'Sí, porque Δn = 0', correct: true }, { text: 'No, nunca son iguales', note: 'Cuando Δn = 0 son iguales.' }, { text: 'Depende de la presión', note: 'K no depende de la presión.' }],
+            pretest: q('m3-pre1', 'Adivina antes: para CO + H₂O ⇌ CO₂ + H₂, ¿Kp y Kc son iguales?', [{ text: 'Sí, porque Δn = 0', correct: true }, { text: 'No, Kp y Kc son distintas', note: 'Cuando Δn = 0 son iguales.' }, { text: 'Depende de la presión total del sistema', note: 'K no depende de la presión.' }],
               { concept: 'eq.kp-kc', explain: 'Δn = 2 − 2 = 0 → Kp = Kc (1,40 a 1000 K en la tabla).', slide: 56 }),
             explain: [
               { id: 'm3b1', concept: 'eq.kp-kc', title: 'Kp = Kc(RT)^Δn', slide: 56, body: 'Como pᵢ = cᵢRT para gases ideales: **Kp = Kc (RT)^Δn**, donde **Δn = moles de gas de productos − moles de gas de reactivos**. Si Δn = 0, Kp = Kc. Usa R = 0,08314 L·bar/(mol·K) para p en bar (o 0,08206 L·atm/(mol·K) para atm).',
@@ -329,7 +329,7 @@
           diagnostic: [
             q('m4-d1', 'Para una reacción exotérmica, si subes la temperatura, K…', [{ text: 'Disminuye', correct: true }, { text: 'Aumenta', misconception: 'vh-sign' }, { text: 'No cambia', note: 'K sí depende de T.' }],
               { concept: 'eq.vanthoff', explain: 'Van\'t Hoff: con ΔH° < 0, subir T baja K.', slide: 93 }),
-            q('m4-d2', 'Agregar un catalizador a una mezcla en equilibrio…', [{ text: 'No cambia la composición de equilibrio', correct: true }, { text: 'Aumenta K', misconception: 'catalyst-shift' }, { text: 'Desplaza hacia productos', misconception: 'catalyst-shift' }],
+            q('m4-d2', 'Agregar un catalizador a una mezcla en equilibrio…', [{ text: 'No cambia la composición del equilibrio', correct: true }, { text: 'Aumenta el valor de K', misconception: 'catalyst-shift' }, { text: 'Desplaza el equilibrio hacia los productos', misconception: 'catalyst-shift' }],
               { concept: 'eq.lechatelier', explain: 'El catalizador acelera ida y vuelta por igual.', slide: 51 })
           ],
           fundamentals: [
@@ -362,7 +362,7 @@
               num('m4-p1', 'Una reacción tiene K = 10 a 300 K y ΔH° = −50 kJ/mol. Calcula K a 350 K.', 0.567, '',
                 { concept: 'eq.vanthoff', label: 'K₂', slide: 93, tol: 0.03, hint: 'Exotérmica: K debe bajar.', traps: [{ value: 176.4, note: 'Signo cambiado: exotérmica + calentar = K baja.', misconception: 'vh-sign' }],
                   solution: ['ln(K₂/10) = −(−50 000 / 8,314)(1/350 − 1/300)', '= 6014 × (−4,76 × 10⁻⁴) = −2,86', 'K₂ = 10 × e^−2,86 ≈ 0,57'], explain: 'K₂ ≈ 0,57.' }),
-              q('m4-p2', 'N₂ + 3H₂ ⇌ 2NH₃: K = 6,0 × 10⁵ a 298 K y 4,5 × 10⁻⁵ a 723 K. ¿Qué dice esto de ΔH°?', [{ text: 'Es negativo (exotérmica)', correct: true }, { text: 'Es positivo', misconception: 'vh-sign' }, { text: 'Es cero', note: 'Si fuera cero, K no cambiaría con T.' }],
+              q('m4-p2', 'N₂ + 3H₂ ⇌ 2NH₃: K = 6,0 × 10⁵ a 298 K y 4,5 × 10⁻⁵ a 723 K. ¿Qué dice esto de ΔH°?', [{ text: 'Es negativo: la reacción es exotérmica', correct: true }, { text: 'Es positivo: la reacción es endotérmica', misconception: 'vh-sign' }, { text: 'Es cero: la reacción no libera ni absorbe calor', note: 'Si fuera cero, K no cambiaría con T.' }],
                 { concept: 'eq.vanthoff', explain: 'K baja al calentar → exotérmica.', slide: 56, hint: '¿K sube o baja al calentar?' }),
               spot('m4-fx1', 'Un aprendiz usó van\'t Hoff de 25 °C a 50 °C. ¿En qué paso se equivocó?', ['ln(K₂/K₁) = −(ΔH°/R)(1/T₂ − 1/T₁)', 'Reemplazo: 1/T₂ − 1/T₁ = 1/50 − 1/25', 'Con ΔH° en J/mol calculo K₂'], 1,
                 { question: '¿Cómo se corrige?', options: [{ text: 'T en kelvin: 1/323,15 − 1/298,15', correct: true }, { text: 'Cambiar el signo de ΔH°', note: 'El signo estaba bien; el error son los °C.', misconception: 'vh-sign' }] },
@@ -370,7 +370,7 @@
             ],
             rule: { title: 'Regla del sabio: van\'t Hoff', concept: 'eq.vanthoff', steps: ['T en kelvin; ΔH° en J/mol', 'ln(K₂/K₁) = −(ΔH°/R)(1/T₂ − 1/T₁)', 'Chequeo: endotérmica + calentar → K sube'] } },
           { id: 'r2', intro: 'Parte 2: **presión, gases inertes y catalizadores**.',
-            pretest: q('m4-pre2', 'Adivina antes: si comprimes N₂ + 3H₂ ⇌ 2NH₃ a T constante, ¿qué pasa con K?', [{ text: 'No cambia; cambia Q y se forma más NH₃', correct: true }, { text: 'K aumenta', note: 'K solo depende de T.' }, { text: 'Se forma menos NH₃', note: 'Comprimir favorece el lado con menos moles de gas.' }],
+            pretest: q('m4-pre2', 'Adivina antes: si comprimes N₂ + 3H₂ ⇌ 2NH₃ a T constante, ¿qué pasa con K?', [{ text: 'No cambia; cambia Q y se forma más NH₃', correct: true }, { text: 'K aumenta porque sube la presión', note: 'K solo depende de T.' }, { text: 'Se forma menos NH₃ porque hay más presión', note: 'Comprimir favorece el lado con menos moles de gas.' }],
               { concept: 'eq.lechatelier', explain: 'Comprimir cambia Q (no K): el sistema responde formando el lado con menos moles de gas.', slide: 80 }),
             explain: [
               { id: 'm4b2', concept: 'eq.lechatelier', title: 'Qué mueve el equilibrio y qué no', slide: 80, body: '**Presión** (a T fija): K no cambia, pero Q sí. Si aumentas P, se favorece el lado con **menos moles de gas** (Kx = Kp · P^−Δn). **Gas inerte a V constante**: no cambia las presiones parciales → no se mueve. **Catalizador**: no cambia K ni la composición, solo la rapidez. **Temperatura**: es lo único que cambia K.',
@@ -380,14 +380,14 @@
               classify('m4-p3', '¿Qué hace cada cambio sobre N₂(g) + 3H₂(g) ⇌ 2NH₃(g) (exotérmica)?', [['right', 'Más NH₃'], ['left', 'Menos NH₃'], ['none', 'No cambia el equilibrio']],
                 [['p', 'Aumentar la presión total', 'right'], ['t', 'Calentar', 'left'], ['cat', 'Agregar catalizador de Fe', 'none'], ['ar', 'Agregar Ar a volumen constante', 'none']],
                 { concept: 'eq.lechatelier', explain: 'Presión → lado con menos gas; calentar exotérmica → izquierda; catalizador e inerte a V constante → nada.', slide: 80, hint: 'Solo T cambia K.' }),
-              q('m4-p4', 'Para H₂(g) + I₂(g) ⇌ 2HI(g), duplicar la presión total…', [{ text: 'No desplaza el equilibrio (Δn = 0)', correct: true }, { text: 'Forma más HI', note: 'Hay 2 moles de gas a cada lado.' }, { text: 'Forma más H₂', note: 'Hay 2 moles de gas a cada lado.' }],
+              q('m4-p4', 'Para H₂(g) + I₂(g) ⇌ 2HI(g), duplicar la presión total…', [{ text: 'No desplaza el equilibrio (Δn = 0)', correct: true }, { text: 'Forma más HI, el producto', note: 'Hay 2 moles de gas a cada lado.' }, { text: 'Forma más H₂ e I₂, los reactivos', note: 'Hay 2 moles de gas a cada lado.' }],
                 { concept: 'eq.lechatelier', explain: 'Con Δn = 0, Kx = Kp: la presión no cambia la composición.', slide: 80, hint: 'Cuenta moles de gas a cada lado.' }),
               order('m4-p5', 'Ordena de MENOR a MAYOR fracción de NH₃ en el equilibrio (misma mezcla inicial):', [['a', '723 K y 1 bar'], ['b', '723 K y 200 bar'], ['c', '298 K y 200 bar']], ['a', 'b', 'c'],
                 { concept: 'eq.lechatelier', direction: 'De menor a mayor NH₃.', explain: 'Alta P y baja T (exotérmica) dan más NH₃.', slide: 56, hint: 'Presión alta ayuda; temperatura alta perjudica.' })
             ],
             rule: { title: 'Regla del sabio: las palancas del equilibrio', concept: 'eq.lechatelier', steps: ['Solo la temperatura cambia K', 'Presión: favorece el lado con menos moles de gas', 'Inerte a V constante y catalizador: no mueven el equilibrio'] } },
           { id: 'r3', intro: 'Parte 3: **fugacidad y actividad**.',
-            pretest: q('m4-pre3', 'Adivina antes: a presiones muy altas, ¿un gas "actúa" como si tuviera exactamente su presión?', [{ text: 'No: su efecto real (fugacidad) es distinto', correct: true }, { text: 'Sí, siempre', misconception: 'gamma-ignored' }, { text: 'Solo si es noble', note: 'Cualquier gas real se desvía a presión alta.' }],
+            pretest: q('m4-pre3', 'Adivina antes: a presiones muy altas, ¿un gas "actúa" como si tuviera exactamente su presión?', [{ text: 'No: su efecto real (fugacidad) es distinto', correct: true }, { text: 'Sí, a presiones altas y bajas', misconception: 'gamma-ignored' }, { text: 'Sí, pero depende de si es un gas noble', note: 'Cualquier gas real se desvía a presión alta.' }],
               { concept: 'eq.actividad', explain: 'Los gases reales se desvían: f = γp.', slide: 103 }),
             explain: [
               { id: 'm4b3', concept: 'eq.actividad', title: 'Fugacidad y actividad', slide: 103, body: 'Para gases reales: **fᵢ = γᵢ pᵢ** (fugacidad = presión "efectiva"). Para solutos no ideales: **aᵢ = γᵢ mᵢ/m°**. La constante verdadera usa actividades: **K = Kγ · Kp**, con Kγ escrito como K pero con los γ. A baja presión (o soluciones diluidas), γ ≈ 1 y K ≈ Kp.',
@@ -399,7 +399,7 @@
                   solution: ['Kγ = 0,80 / 1,25 = 0,64', 'K = Kγ·Kp = 0,64 × 2,0 = 1,28'], explain: 'K = 1,28.' }),
               match('m4-p7', 'Une cada símbolo con lo que significa:', [['f = γp', 'Fugacidad de un gas real'], ['a = γm/m°', 'Actividad de un soluto'], ['γ ≈ 1', 'Comportamiento casi ideal (baja P o muy diluido)']],
                 { concept: 'eq.actividad', explain: 'γ corrige lo ideal hacia lo real.', slide: 108, hint: 'γ es el "factor de corrección".' }),
-              q('m4-p8', '¿Cuándo es razonable aproximar K ≈ Kp?', [{ text: 'A presiones bajas, donde γ ≈ 1', correct: true }, { text: 'A presiones muy altas', note: 'Ahí γ se aleja de 1.' }, { text: 'Nunca', note: 'A baja presión la aproximación es buena.' }],
+              q('m4-p8', '¿Cuándo es razonable aproximar K ≈ Kp?', [{ text: 'A presiones bajas, donde γ ≈ 1', correct: true }, { text: 'A presiones muy altas, donde el gas se comprime', note: 'Ahí γ se aleja de 1.' }, { text: 'En ningún caso: K y Kp son magnitudes distintas', note: 'A baja presión la aproximación es buena.' }],
                 { concept: 'eq.actividad', explain: 'A baja presión el gas es casi ideal.', slide: 103, hint: '¿Cuándo un gas es casi ideal?' })
             ],
             rule: { title: 'Regla del sabio: actividad', concept: 'eq.actividad', steps: ['Gas real: f = γp; soluto: a = γm/m°', 'K = Kγ · Kp (Kγ con los γ elevados a sus coeficientes)', 'Si γ ≈ 1 (baja P, diluido), K ≈ Kp'] } }

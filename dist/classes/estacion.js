@@ -109,8 +109,8 @@
 
     /* Pregunta de opciones: un intento. `locked` = Demuestra (sin pista ni reintento). */
     function choice(item, { onDone, locked = false }) {
-      const box = document.createElement('div');
-      box.innerHTML = `<p class="st-q">${md(item.prompt)}</p><div class="st-opts">${item.options.map((o, i) => `<button class="st-opt" data-i="${i}">${md(o.text)}</button>`).join('')}</div><p class="st-fb" hidden></p>`;
+      const box = document.createElement('div'), order = item.options.map((_, i) => i).sort(() => Math.random() - .5); // en los datos la correcta va primero: se mezcla
+      box.innerHTML = `<p class="st-q">${md(item.prompt)}</p><div class="st-opts">${order.map(i => `<button class="st-opt" data-i="${i}">${md(item.options[i].text)}</button>`).join('')}</div><p class="st-fb" hidden></p>`;
       box.querySelectorAll('.st-opt').forEach((btn, k) => {
         btn.style.setProperty('--d', k * 70 + 'ms');
         btn.addEventListener('click', () => {

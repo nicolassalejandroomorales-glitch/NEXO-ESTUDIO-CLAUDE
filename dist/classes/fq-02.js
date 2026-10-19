@@ -136,7 +136,7 @@
           diagnostic: [
             q('m1-d1', 'Na₂SO₄ 0,10 m. ¿Cuánto vale la molalidad del Na⁺?', [{ text: '0,20 m', correct: true }, { text: '0,10 m', note: 'Esa es la molalidad de la sal: cada Na₂SO₄ da 2 Na⁺.', misconception: 'ion-nu' }, { text: '0,30 m', note: 'Eso mezcla los dos iones.' }],
               { concept: 'ion.electrolitos', explain: 'ν₊ = 2: m(Na⁺) = 2 × 0,10 = 0,20 m.', slide: 13 }),
-            q('m1-d2', '¿Qué significa γ± < 1 en una solución de electrolito?', [{ text: 'Los iones se estabilizan entre sí: su concentración efectiva es menor que la real', correct: true }, { text: 'La sal no se disolvió por completo', note: 'γ± no habla de disolución, sino de interacciones.' }, { text: 'Hay más iones de los que dice la fórmula', note: 'La estequiometría no cambia; cambia cómo "actúan".' }],
+            q('m1-d2', '¿Qué significa γ± < 1 en una solución de electrolito?', [{ text: 'Los iones se estabilizan entre sí: su concentración efectiva es menor', correct: true }, { text: 'La sal no se disolvió por completo en el agua', note: 'γ± no habla de disolución, sino de interacciones.' }, { text: 'Hay más iones de los que indica la fórmula de la sal', note: 'La estequiometría no cambia; cambia cómo "actúan".' }],
               { concept: 'ion.actividad', explain: 'a = γ·m: si γ < 1, el ion "actúa" menos de lo que hay.', slide: 19 })
           ],
           fundamentals: [
@@ -155,7 +155,7 @@
         },
         parts: [
           { id: 'r1', intro: 'Parte 1: **electrolitos y actividad**.',
-            pretest: q('m1-pre1', 'Adivina antes: ¿en cuál solución de NaCl está γ± más cerca de 1?', [{ text: 'En la de 0,001 m (más diluida)', correct: true }, { text: 'En la de 1 m (más concentrada)', note: 'Más iones, más interacción: γ± se aleja de 1.' }, { text: 'En las dos igual', note: 'γ± depende de la concentración.' }],
+            pretest: q('m1-pre1', 'Adivina antes: ¿en cuál solución de NaCl está γ± más cerca de 1?', [{ text: 'En la de 0,001 m, la más diluida', correct: true }, { text: 'En la de 1 m, la más concentrada', note: 'Más iones, más interacción: γ± se aleja de 1.' }, { text: 'En las dos por igual, γ± no depende de m', note: 'γ± depende de la concentración.' }],
               { concept: 'ion.actividad', explain: 'A dilución infinita γ± → 1.', slide: 19 }),
             explain: [
               { id: 'm1b1', concept: 'ion.electrolitos', title: 'Electrolitos fuertes, débiles y electroneutralidad', slide: 8, body: '**Electrolito fuerte**: se disocia casi por completo (sales, ácidos y bases fuertes) y la solución conduce bien. **Electrolito débil**: se disocia poco (ácidos y bases débiles, sales poco solubles) y conduce poco. En ambos, la solución es **neutra**: **ν₊z₊ + ν₋z₋ = 0** (NaCl: 1·(+1) + 1·(−1); Na₂SO₄: 2·(+1) + 1·(−2); BaSO₄: 1·(+2) + 1·(−2)).',
@@ -228,7 +228,7 @@
         },
         parts: [
           { id: 'r1', intro: 'Parte 1: **la ley límite de Debye–Hückel**.',
-            pretest: q('m2-pre1', 'Adivina antes: ¿por qué γ± < 1 en una solución de electrolito?', [{ text: 'Cada ion está rodeado por una nube de iones de carga contraria que lo estabiliza', correct: true }, { text: 'Los iones se repelen y se van a las paredes', note: 'No es repulsión: la nube de contraiones los estabiliza.' }, { text: 'El agua se evapora más rápido', note: 'No tiene relación.' }],
+            pretest: q('m2-pre1', 'Adivina antes: ¿por qué γ± < 1 en una solución de electrolito?', [{ text: 'Cada ion queda rodeado por una nube de carga contraria que lo estabiliza', correct: true }, { text: 'Los iones se repelen y terminan pegados a las paredes del vaso', note: 'No es repulsión: la nube de contraiones los estabiliza.' }, { text: 'El agua se evapora más rápido cuando hay iones disueltos', note: 'No tiene relación.' }],
               { concept: 'ion.debye', explain: 'μ_real < μ_ideal por la atmósfera iónica.', slide: 53 }),
             explain: [
               { id: 'm2b1', concept: 'ion.debye', title: 'La ley límite de Debye–Hückel', slide: 52, body: '**Atmósfera iónica**: cada ion atrae iones de carga contraria y esa nube lo estabiliza (μ_real < μ_ideal, γ± < 1). **Ley límite: log γ± = −A·|z₊z₋|·√I**, con A = 0,509 (mol/kg)^(−1/2) en agua a 25 °C y válida para **I < 0,01 m**. Más carga o más I → menor γ±.',
@@ -284,7 +284,7 @@
           diagnostic: [
             q('m3-d1', 'Los metales conducen la electricidad con…, las soluciones de electrolitos con…', [{ text: 'electrones; iones', correct: true }, { text: 'iones; electrones', note: 'Al revés.' }, { text: 'electrones; moléculas neutras', note: 'Las moléculas neutras no transportan carga.' }],
               { concept: 'ion.conductividad', explain: 'En las soluciones, los iones transportan masa y carga.', slide: 30 }),
-            q('m3-d2', 'Al diluir un electrolito débil, su conductividad molar Λm…', [{ text: 'Aumenta (α sube)', correct: true }, { text: 'Disminuye', note: 'Más agua, más disociación: α y Λm suben.' }, { text: 'No cambia', note: 'Λm depende de α en los débiles.' }],
+            q('m3-d2', 'Al diluir un electrolito débil, su conductividad molar Λm…', [{ text: 'Aumenta, porque α sube', correct: true }, { text: 'Disminuye, porque hay menos iones por volumen', note: 'Más agua, más disociación: α y Λm suben.' }, { text: 'No cambia, porque cada ion conduce igual', note: 'Λm depende de α en los débiles.' }],
               { concept: 'ion.conductividad', explain: 'Al diluir, α ↑ y Λm ↑ (diap. 39).', slide: 39 })
           ],
           fundamentals: [
@@ -303,7 +303,7 @@
         },
         parts: [
           { id: 'r1', intro: 'Parte 1: **de la resistencia a la conductividad molar**.',
-            pretest: q('m3-pre1', 'Adivina antes: ¿qué mide la constante de celda Kcel?', [{ text: 'La geometría de la celda: Kcel = l/A', correct: true }, { text: 'La concentración de la solución', note: 'Eso lo da c.' }, { text: 'La temperatura del baño', note: 'No tiene relación.' }],
+            pretest: q('m3-pre1', 'Adivina antes: ¿qué mide la constante de celda Kcel?', [{ text: 'La geometría de la celda: Kcel = l/A', correct: true }, { text: 'La concentración de la solución medida', note: 'Eso lo da c.' }, { text: 'La temperatura del baño donde se mide', note: 'No tiene relación.' }],
               { concept: 'ion.conductividad', explain: 'Kcel = l/A; se calibra con KCl 0,01 M.', slide: 32 }),
             explain: [
               { id: 'm3b1', concept: 'ion.conductividad', title: 'Conductividad κ y conductividad molar Λm', slide: 32, body: '**G = 1/R** (S). **κ = G·l/A = Kcel/R** (S/m o S/cm). **Λm = κ/c** (S m² mol⁻¹ o S cm² mol⁻¹): la conductividad por mol de electrolito. Cuidado con las unidades: 0,100 M = 100 mol/m³.',
@@ -323,7 +323,7 @@
             ],
             rule: { title: 'Regla del sabio: de R a Λm', concept: 'ion.conductividad', steps: ['κ = Kcel/R', 'Convierte c a mol/m³ (×1000 desde M) o mol/cm³ (÷1000)', 'Λm = κ/c con unidades coherentes'] } },
           { id: 'r2', intro: 'Parte 2: **Kohlrausch, Ostwald y transporte**.',
-            pretest: q('m3-pre2', 'Adivina antes: ¿se puede medir Λ° del ácido acético extrapolando a c → 0?', [{ text: 'No: en un débil la caída es brusca; se calcula con la ley de migración independiente', correct: true }, { text: 'Sí, igual que en el KCl', note: 'En los débiles la curva sube casi vertical al diluir.' }, { text: 'No existe el Λ° del ácido acético', note: 'Sí existe: 390,7 S cm²/mol.' }],
+            pretest: q('m3-pre2', 'Adivina antes: ¿se puede medir Λ° del ácido acético extrapolando a c → 0?', [{ text: 'No: en un débil la caída es brusca; se calcula con la ley de migración independiente', correct: true }, { text: 'Sí: se extrapola igual que en el KCl, con una recta hasta c → 0', note: 'En los débiles la curva sube casi vertical al diluir.' }, { text: 'No existe un Λ° para el ácido acético, porque casi no se disocia', note: 'Sí existe: 390,7 S cm²/mol.' }],
               { concept: 'ion.conductividad', explain: 'Λ°(HAc) = Λ°(HCl) + Λ°(NaAc) − Λ°(NaCl).', slide: 38 }),
             explain: [
               { id: 'm3b2', concept: 'ion.conductividad', title: 'Kohlrausch y Ostwald', slide: 38, body: '**Fuertes**: Λm = Λ°m − K√c (recta); extrapolar a c → 0 da Λ°m. **Migración independiente**: **Λ°m = ν₊λ°₊ + ν₋λ°₋**. Así, Λ°(HAc) = Λ°(HCl) + Λ°(NaAc) − Λ°(NaCl) = 426,2 + 91,0 − 126,5 = 390,7 S cm²/mol. **Ostwald** (débiles): **α = Λm/Λ°m** y **Ka = cα²/(1 − α)**.',

@@ -232,7 +232,7 @@
   const actividad = {
     id: 'actividad', title: 'Fugacidad y actividad', mission: 'm4', concepts: ['eq.actividad'],
     make(rng, level) {
-      if (level === 1) return choice(rng, pick(rng, ['¿Cuándo K ≈ Kp para una reacción entre gases?', '¿Cuándo se puede ignorar γ?']), 'A presiones bajas (γ ≈ 1)', [{ text: 'A presiones muy altas', note: 'Ahí los gases se alejan de lo ideal.', misconception: 'gamma-ignored' }, { text: 'Nunca', note: 'A baja presión es una buena aproximación.' }],
+      if (level === 1) return choice(rng, pick(rng, ['¿Cuándo K ≈ Kp para una reacción entre gases?', '¿Cuándo se puede ignorar γ?']), 'A presiones bajas (γ ≈ 1)', [{ text: 'A presiones muy altas', note: 'Ahí los gases se alejan de lo ideal.', misconception: 'gamma-ignored' }, { text: 'Con un catalizador presente', note: 'El catalizador no cambia K ni Kp: lo que importa es la presión.' }],
         { concept: 'eq.actividad', slide: 103, hint: 'Gas casi ideal.', explain: 'A baja presión γ ≈ 1 y K ≈ Kp.' });
       const kp = 10 ** between(rng, -3, 2, 1) * between(rng, 1, 9, 1), gA = between(rng, 0.7, 1.3, 0.01), gB = between(rng, 0.7, 1.3, 0.01);
       const twoB = level >= 3, kg = (twoB ? gB ** 2 : gB) / gA, k = kg * kp;

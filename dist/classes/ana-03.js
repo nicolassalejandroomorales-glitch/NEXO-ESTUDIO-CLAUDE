@@ -102,7 +102,7 @@
         },
         parts: [
           { id: 'r1', intro: 'Parte 1: **calcular el pH en cada zona**.',
-            pretest: q('m1-pre1', 'Adivina antes: a mitad de una titulación fuerte-fuerte, el pH…', [{ text: 'Ha subido muy poco', correct: true }, { text: 'Ya está cerca de 7', note: 'El salto se concentra cerca de la equivalencia.' }, { text: 'Bajó', note: 'Agregas base: sube.' }], { concept: 'ana.fuerte', explain: 'De 1,00 a 1,48.', slide: 24 }),
+            pretest: q('m1-pre1', 'Adivina antes: a mitad de una titulación fuerte-fuerte, el pH…', [{ text: 'Ha subido muy poco', correct: true }, { text: 'Ya está cerca de 7, en la zona neutra', note: 'El salto se concentra cerca de la equivalencia.' }, { text: 'Bajó, porque se agrega una base', note: 'Agregas base: sube.' }], { concept: 'ana.fuerte', explain: 'De 1,00 a 1,48.', slide: 24 }),
             explain: [
               { id: 'm1b1', concept: 'ana.fuerte', title: 'Ácido fuerte con base fuerte', slide: 24, body: 'Pregúntate **qué sobra**. **Inicio**: pH = −log C(ácido). **Antes de la equivalencia**: [H⁺] = (mmol ácido − mmol base) / **V total**. **Equivalencia**: solo sal neutra → **pH = 7**. **Después**: [OH⁻] = (mmol base − mmol ácido) / V total → pH = 14 − pOH.',
                 deeper: '50,00 mL HCl 0,1000 M con NaOH 0,1000 M: 0 mL → 1,00; 25 → 1,48; 49 → 3,00; 50 → 7,00; 51 → 11,00; 60 → 11,96. Fíjate: entre 49 y 51 mL (dos gotas grandes) el pH salta 8 unidades.' }
@@ -118,7 +118,7 @@
             ],
             rule: { title: 'Regla del sabio: curva fuerte-fuerte', concept: 'ana.fuerte', steps: ['Calcula mmol de ácido y de base', '¿Qué sobra? Divide por el volumen TOTAL', 'H⁺ → pH; nada → 7; OH⁻ → pOH → 14 − pOH'] } },
           { id: 'r2', intro: 'Parte 2: **elegir el indicador**.',
-            pretest: q('m1-pre2', 'Adivina antes: ¿cuándo cambia de color un indicador?', [{ text: 'En un intervalo de pH cercano a su pKa', correct: true }, { text: 'Siempre en pH 7', note: 'Cada indicador tiene su intervalo.' }, { text: 'Cuando se acaba el ácido, sin importar el pH', note: 'Responde al pH.' }], { concept: 'ana.indicador', explain: 'pKa(ind) ± 1.', slide: 17 }),
+            pretest: q('m1-pre2', 'Adivina antes: ¿cuándo cambia de color un indicador?', [{ text: 'En un intervalo de pH cercano a su pKa', correct: true }, { text: 'En pH 7, sea cual sea el indicador', note: 'Cada indicador tiene su intervalo.' }, { text: 'Cuando se acaba el ácido, sin importar el pH', note: 'Responde al pH.' }], { concept: 'ana.indicador', explain: 'pKa(ind) ± 1.', slide: 17 }),
             explain: [
               { id: 'm1b2', concept: 'ana.indicador', title: 'Indicadores', slide: 17, body: 'Un indicador es un ácido débil (HIn) cuyo color ácido y básico son distintos: vira en **pH ≈ pKa(HIn) ± 1**. Debe virar **dentro del salto** de la curva. Intervalos: **naranja de metilo 3,1–4,4**, **rojo de metilo 4,4–6,2**, **azul de bromotimol 6,0–7,6**, **fenolftaleína 8,2–10,0**.',
                 deeper: 'En fuerte-fuerte (0,1 M) el salto va de ~3 a ~11: casi todos sirven. Con ácido débil el salto empieza más arriba (~7) y termina ~11: fenolftaleína. Con base débil + ácido fuerte el salto es ácido (~3 a ~7): rojo de metilo.' }
@@ -126,7 +126,7 @@
             practice: [
               match('m1-p4', 'Une cada titulación con su mejor indicador:', [['Ácido acético + NaOH (equivalencia ≈ 8,7)', 'Fenolftaleína (8,2–10,0)'], ['NH₃ + HCl (equivalencia ≈ 5,3)', 'Rojo de metilo (4,4–6,2)'], ['HCl + NaOH (equivalencia 7)', 'Azul de bromotimol (6,0–7,6)']],
                 { concept: 'ana.indicador', explain: 'Que vire cerca de la equivalencia.', slide: 17, hint: 'Busca el intervalo que contiene el pH de equivalencia.', misconception: 'indicator-range' }),
-              q('m1-p5', 'Para titular ácido acético con NaOH, ¿por qué NO sirve el naranja de metilo (3,1–4,4)?', [{ text: 'Viraría mucho antes de la equivalencia (pH ≈ 8,7)', correct: true }, { text: 'Porque es muy caro', note: 'No es el punto.' }, { text: 'Porque reacciona con el acetato', note: 'El problema es su intervalo.' }],
+              q('m1-p5', 'Para titular ácido acético con NaOH, ¿por qué NO sirve el naranja de metilo (3,1–4,4)?', [{ text: 'Viraría mucho antes de la equivalencia (pH ≈ 8,7)', correct: true }, { text: 'Porque es demasiado caro para una titulación común', note: 'No es el punto.' }, { text: 'Porque reacciona con el acetato que se forma', note: 'El problema es su intervalo.' }],
                 { concept: 'ana.indicador', explain: 'Ese pH se alcanza en la zona tampón.', slide: 17, hint: 'Compara su intervalo con el pH de equivalencia.', misconception: 'indicator-range' }),
               spot('m1-fx1', 'Un aprendiz eligió indicador para NH₃ con HCl. ¿Dónde se equivocó?', ['En la equivalencia queda NH₄⁺ (ácido débil)', 'Entonces el pH de equivalencia es mayor que 7', 'Elijo fenolftaleína'], 1,
                 { question: '¿Cómo se corrige?', options: [{ text: 'El pH de equivalencia es menor que 7: rojo de metilo', correct: true }, { text: 'Es exactamente 7: cualquiera', note: 'NH₄⁺ es ácido.', misconception: 'eq-ph7' }] },
@@ -163,7 +163,7 @@
         },
         parts: [
           { id: 'r1', intro: 'Parte 1: **ácido débil con base fuerte**.',
-            pretest: q('m2-pre1', 'Adivina antes: el pH inicial de ácido acético 0,1 M es…', [{ text: 'Cerca de 2,9', correct: true }, { text: '1,0', note: 'Eso sería si se disociara entero (ácido fuerte).' }, { text: '7', note: 'Es un ácido.' }], { concept: 'ana.debil', explain: '√(Ka·C) = 1,32 × 10⁻³ → 2,88.', slide: 47 }),
+            pretest: q('m2-pre1', 'Adivina antes: el pH inicial de ácido acético 0,1 M es…', [{ text: 'Cerca de 2,9', correct: true }, { text: 'Cerca de 1,0, como un ácido fuerte', note: 'Eso sería si se disociara entero (ácido fuerte).' }, { text: 'Exactamente 7, como el agua', note: 'Es un ácido.' }], { concept: 'ana.debil', explain: '√(Ka·C) = 1,32 × 10⁻³ → 2,88.', slide: 47 }),
             explain: [
               { id: 'm2b1', concept: 'ana.debil', title: 'Ácido débil con base fuerte', slide: 42, body: 'Cuatro zonas: **Inicio**: [H⁺] ≈ √(Ka·C). **Tampón** (antes de la equivalencia): **pH = pKa + log(mmol A⁻/mmol HA)** (Henderson-Hasselbalch; los volúmenes se cancelan). **Media titulación**: **pH = pKa**. **Equivalencia**: solo A⁻ → [OH⁻] ≈ √(Kb·C), con **C = mmol/V total** y Kb = Kw/Ka → **pH > 7**. **Exceso**: manda el OH⁻ sobrante, como en fuerte-fuerte.',
                 deeper: 'CH₃COOH 50,00 mL 0,1000 M (pKa 4,757): 0 mL → 2,88; 10 → 4,15; 25 → 4,76; 40 → 5,36; 50 → 8,73. Fíjate que el salto es más corto que en fuerte-fuerte: por eso el indicador importa más.' }
@@ -179,7 +179,7 @@
             ],
             rule: { title: 'Regla del sabio: ácido débil', concept: 'ana.debil', steps: ['Inicio: [H⁺] = √(Ka·C)', 'Tampón: pH = pKa + log(A⁻/HA); a la mitad pH = pKa', 'Equivalencia: A⁻ con Kb = Kw/Ka y V total → pH > 7'] } },
           { id: 'r2', intro: 'Parte 2: **ácidos polipróticos**.',
-            pretest: q('m2-pre2', 'Adivina antes: ¿cuántos saltos puede mostrar la curva del H₃PO₄ con NaOH?', [{ text: 'Dos bien visibles (el tercero no se ve en agua)', correct: true }, { text: 'Uno', note: 'Los pKa están bien separados.' }, { text: 'Tres iguales', note: 'El tercer H⁺ es demasiado débil (pKa 12,35).' }], { concept: 'ana.poli', explain: 'pKa₃ muy alto.', slide: 59 }),
+            pretest: q('m2-pre2', 'Adivina antes: ¿cuántos saltos puede mostrar la curva del H₃PO₄ con NaOH?', [{ text: 'Dos bien visibles (el tercero no se ve en agua)', correct: true }, { text: 'Un salto, porque el ácido se neutraliza de una vez', note: 'Los pKa están bien separados.' }, { text: 'Tres iguales, uno por cada H⁺', note: 'El tercer H⁺ es demasiado débil (pKa 12,35).' }], { concept: 'ana.poli', explain: 'pKa₃ muy alto.', slide: 59 }),
             explain: [
               { id: 'm2b2', concept: 'ana.poli', title: 'Ácidos polipróticos', slide: 59, body: 'Un ácido **poliprótico** cede sus H⁺ **de a uno**, cada uno con su Ka. Si los pKa están separados (más de ~4 unidades), cada protón da un **salto** propio. En cada equivalencia queda un **anfolito** (H₂PO₄⁻, HPO₄²⁻) y **pH ≈ (pKaₙ + pKaₙ₊₁)/2**. Entre equivalencias hay zonas tampón con pH = pKa a la mitad de cada tramo.',
                 deeper: 'H₃PO₄ (pKa 2,15; 7,20; 12,35): primera equivalencia pH ≈ (2,15 + 7,20)/2 = 4,68 (rojo de metilo); segunda ≈ (7,20 + 12,35)/2 = 9,78 (fenolftaleína/timolftaleína). El segundo volumen de equivalencia es el **doble** del primero.' }

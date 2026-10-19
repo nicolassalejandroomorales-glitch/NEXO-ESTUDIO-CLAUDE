@@ -130,7 +130,7 @@
           hook: { title: 'Un Cl que multiplica por 10 un antialérgico', sage: 'La clorfeniramina (el antialérgico de la farmacia) es la feniramina con un Cl en para. Ese Cl se puso con una reacción que hoy aprendes: la SEA.',
             text: 'La sustitución electrofílica aromática es la forma más importante de poner grupos en un anillo de benceno: halógenos, NO₂ (y de ahí NH₂), SO₃H y cadenas de carbono. En la PEP te pedirán **qué reactivo** usar para cada grupo.' },
           diagnostic: [
-            q('m1-d1', '¿Qué electrófilo ataca al benceno en la nitración con HNO₃/H₂SO₄?', [{ text: 'NO₂⁺ (nitronio)', correct: true }, { text: 'NO₃⁻', misconception: 'nitronium' }, { text: 'H₂SO₄', note: 'El H₂SO₄ es el catalizador que forma el NO₂⁺.' }],
+            q('m1-d1', '¿Qué electrófilo ataca al benceno en la nitración con HNO₃/H₂SO₄?', [{ text: 'NO₂⁺ (nitronio)', correct: true }, { text: 'NO₃⁻ (nitrato)', misconception: 'nitronium' }, { text: 'H₂SO₄ (ácido sulfúrico)', note: 'El H₂SO₄ es el catalizador que forma el NO₂⁺.' }],
               { concept: 'sea.nitracion', explain: 'El H₂SO₄ protona al HNO₃, sale agua y queda NO₂⁺.', slide: 11 }),
             q('m1-d2', 'El complejo σ de la SEA es…', [{ text: 'Un carbocatión no aromático', correct: true }, { text: 'Un anillo aromático con carga', misconception: 'sigma-aromatic' }, { text: 'El producto final', note: 'Todavía falta perder el H⁺.' }],
               { concept: 'sea.mecanismo', explain: 'Un C queda sp³: se corta el anillo de orbitales p.', slide: 4 })
@@ -151,7 +151,7 @@
         },
         parts: [
           { id: 'r1', intro: 'Parte 1: **el mecanismo y la halogenación**.',
-            pretest: q('m1-pre1', 'Adivina antes: ¿cuál paso de la SEA es el lento?', [{ text: 'Formar el complejo σ (se pierde la aromaticidad)', correct: true }, { text: 'Perder el H⁺', note: 'Ese es rápido: devuelve la aromaticidad.' }, { text: 'Ambos igual de lentos', note: 'El primero cuesta mucho más.' }],
+            pretest: q('m1-pre1', 'Adivina antes: ¿cuál paso de la SEA es el lento?', [{ text: 'Formar el complejo σ, donde se pierde la aromaticidad', correct: true }, { text: 'Perder el H⁺ para regenerar el anillo', note: 'Ese es rápido: devuelve la aromaticidad.' }, { text: 'Ambos son igual de lentos', note: 'El primero cuesta mucho más.' }],
               { concept: 'sea.mecanismo', explain: 'Romper la aromaticidad es endotérmico: es el paso limitante.', slide: 4 }),
             explain: [
               { id: 'm1b1', concept: 'sea.mecanismo', title: 'Dos pasos: atacar y devolver el H⁺', slide: 4, body: '(1) Los π del anillo atacan al **electrófilo E⁺**: se forma el **complejo σ** (ion arenio), un carbocatión con la carga + repartida por resonancia en **tres C** (orto y para al C atacado). Ese C queda **sp³**: **no es aromático**, y este paso es el **lento**. (2) Una base saca el **H⁺** del C sp³ y el anillo **recupera la aromaticidad**: sustitución. **Halogenación**: Br₂/**FeBr₃** o Cl₂/**AlCl₃** (el ácido de Lewis polariza el halógeno y se regenera); yodo con **HNO₃** (oxidante).',
@@ -160,21 +160,21 @@
             practice: [
               order('m1-p1', 'Ordena los pasos de la bromación del benceno:', [['a', 'El FeBr₃ acepta un par del Br₂ y lo polariza'], ['b', 'Los π atacan al Br: se forma el complejo σ'], ['c', 'El FeBr₄⁻ saca el H⁺ del C sp³'], ['d', 'Bromobenceno + HBr; el FeBr₃ se regenera']], ['a', 'b', 'c', 'd'],
                 { concept: 'sea.halogenacion', direction: 'Del inicio al producto.', explain: 'Activar, atacar, devolver el H⁺.', slide: 6, hint: 'Primero hay que crear el electrófilo.' }),
-              q('m1-p2', '¿Por qué el complejo σ no es aromático?', [{ text: 'Porque un C del anillo queda sp³ y corta el circuito de orbitales p', correct: true }, { text: 'Porque tiene carga positiva', note: 'El catión tropilio tiene carga + y es aromático: el problema es el sp³.', misconception: 'sigma-aromatic' }, { text: 'Porque tiene 8 electrones π', note: 'Tiene 4 electrones π repartidos en 5 C.' }],
+              q('m1-p2', '¿Por qué el complejo σ no es aromático?', [{ text: 'Un C del anillo queda sp³ y corta el circuito de orbitales p', correct: true }, { text: 'Porque tiene carga positiva en el anillo', note: 'El catión tropilio tiene carga + y es aromático: el problema es el sp³.', misconception: 'sigma-aromatic' }, { text: 'Porque tiene 8 electrones π en el anillo', note: 'Tiene 4 electrones π repartidos en 5 C.' }],
                 { concept: 'sea.mecanismo', explain: 'El C atacado tiene 4 enlaces σ.', slide: 4, hint: '¿Qué hibridación tiene el C que recibió al electrófilo?' }),
               match('m1-p3', 'Une cada halogenación con sus reactivos:', [['Bromación', 'Br₂ / FeBr₃'], ['Cloración', 'Cl₂ / AlCl₃'], ['Yodación', 'I₂ / HNO₃ (oxidante)']],
                 { concept: 'sea.halogenacion', explain: 'El yodo necesita un oxidante que se consume, no un ácido de Lewis.', slide: 6, hint: 'El yodo es el raro.', misconception: 'no-lewis' })
             ],
             recipe: R('rc-halog') },
           { id: 'r2', intro: 'Parte 2: **nitración, sulfonación y el truco del NH₂**.',
-            pretest: q('m1-pre2', 'Adivina antes: ¿cómo se pone un NH₂ en un benceno?', [{ text: 'Nitrando y después reduciendo el NO₂', correct: true }, { text: 'Con NH₃ directo', note: 'El NH₃ no es electrófilo: no hace SEA.' }, { text: 'Con NH₄Cl y calor', note: 'Tampoco es un electrófilo.' }],
+            pretest: q('m1-pre2', 'Adivina antes: ¿cómo se pone un NH₂ en un benceno?', [{ text: 'Nitrando y después reduciendo el NO₂', correct: true }, { text: 'Con NH₃ directo, en presencia de un ácido', note: 'El NH₃ no es electrófilo: no hace SEA.' }, { text: 'Con NH₄Cl y calor, sin catalizador', note: 'Tampoco es un electrófilo.' }],
               { concept: 'sea.nitracion', explain: 'El N entra como NO₂⁺ y luego se reduce.', slide: 13 }),
             explain: [
               { id: 'm1b2', concept: 'sea.nitracion', title: 'Nitración y sulfonación', slide: 11, body: '**Nitración**: HNO₃/**H₂SO₄**. El H₂SO₄ protona el OH del HNO₃, sale H₂O y queda el **ion nitronio NO₂⁺** (el electrófilo). **Reducción**: Ar–NO₂ + Fe (o Sn, Zn)/HCl → Ar–NH₂ (con NaOH al final para liberar la amina). **Sulfonación**: **SO₃** en H₂SO₄ (fumante) → Ar–SO₃H; es **reversible** (H₂SO₄ diluido y calor la quita).',
                 deeper: 'La sulfonación reversible sirve como "grupo bloqueador": pones SO₃H en para, haces la reacción que quieres en orto y después lo quitas. La reducción del NO₂ conecta esta clase con Aminas (síntesis de anilina y de ahí diazonio).' }
             ],
             practice: [
-              q('m1-p4', '¿Qué papel tiene el H₂SO₄ en la nitración?', [{ text: 'Protona al HNO₃ para formar el NO₂⁺', correct: true }, { text: 'Aporta el grupo que entra', note: 'El que entra es NO₂, del HNO₃.' }, { text: 'Ninguno, solo es solvente', note: 'Sin él la nitración es muy lenta.', misconception: 'nitronium' }],
+              q('m1-p4', '¿Qué papel tiene el H₂SO₄ en la nitración?', [{ text: 'Protona al HNO₃ para formar el NO₂⁺', correct: true }, { text: 'Aporta el grupo que entra al anillo', note: 'El que entra es NO₂, del HNO₃.' }, { text: 'Es el solvente de la reacción', note: 'Sin él la nitración es muy lenta.', misconception: 'nitronium' }],
                 { concept: 'sea.nitracion', explain: 'Catalizador que genera el electrófilo.', slide: 11, hint: '¿Quién es el electrófilo?' }),
               classify('m1-p5', '¿Qué reactivo usarías para cada transformación del benceno?', [['nit', 'HNO₃ / H₂SO₄'], ['sul', 'SO₃ / H₂SO₄'], ['red', 'Fe / HCl']],
                 [['a', 'Benceno → nitrobenceno', 'nit'], ['b', 'Benceno → ácido bencenosulfónico', 'sul'], ['c', 'Nitrobenceno → anilina', 'red']],
@@ -196,7 +196,7 @@
           diagnostic: [
             q('m2-d1', 'El grupo –NO₂ en un benceno…', [{ text: 'Desactiva y orienta a meta', correct: true }, { text: 'Activa y orienta a orto/para', misconception: 'nitro-op' }, { text: 'Desactiva y orienta a orto/para', note: 'Eso hacen los halógenos.' }],
               { concept: 'sea.activadores', explain: 'N con carga + junto al anillo: desactivador meta.', slide: 26 }),
-            q('m2-d2', 'El clorobenceno, frente a la SEA…', [{ text: 'Reacciona más lento que el benceno, en orto/para', correct: true }, { text: 'Reacciona más rápido, en orto/para', misconception: 'halogen-meta' }, { text: 'Reacciona más lento, en meta', misconception: 'halogen-meta' }],
+            q('m2-d2', 'El clorobenceno, frente a la SEA…', [{ text: 'Reacciona más lento que el benceno, en orto/para', correct: true }, { text: 'Reacciona más rápido que el benceno, en orto/para', misconception: 'halogen-meta' }, { text: 'Reacciona más lento que el benceno, en meta', misconception: 'halogen-meta' }],
               { concept: 'sea.halogenos', explain: 'Halógenos: desactivan pero orientan a orto/para.', slide: 31 })
           ],
           fundamentals: [
@@ -205,9 +205,9 @@
           ],
           explain: [],
           transfer: [
-            q('m2-t1', 'Estilo PEP (P2): ¿dónde entra principalmente el Br al tratar **anisol** (C₆H₅–OCH₃) con Br₂?', [{ text: 'En orto y para, más rápido que en el benceno', correct: true }, { text: 'En meta, más lento', misconception: 'nitro-op' }, { text: 'En meta, más rápido', note: 'Los donadores por resonancia orientan a orto/para.' }],
+            q('m2-t1', 'Estilo PEP (P2): ¿dónde entra principalmente el Br al tratar **anisol** (C₆H₅–OCH₃) con Br₂?', [{ text: 'En orto y para, más rápido que en el benceno', correct: true }, { text: 'En meta, más lento que en el benceno', misconception: 'nitro-op' }, { text: 'En meta, más rápido que en el benceno', note: 'Los donadores por resonancia orientan a orto/para.' }],
               { concept: 'sea.activadores', explain: 'El –OCH₃ dona un par por resonancia: activador fuerte, orto/para (incluso sin catalizador).', slide: 21 }),
-            q('m2-t2', 'Estilo PEP (P2): en el **p-nitrotolueno**, ¿dónde entra un segundo grupo?', [{ text: 'Orto al metilo (que es meta al nitro): los dos coinciden', correct: true }, { text: 'Orto al nitro', note: 'El nitro orienta a meta; el metilo, a orto/para.', misconception: 'nitro-op' }, { text: 'No reacciona', note: 'El metilo mantiene el anillo reactivo.' }],
+            q('m2-t2', 'Estilo PEP (P2): en el **p-nitrotolueno**, ¿dónde entra un segundo grupo?', [{ text: 'Orto al metilo, que es meta al nitro: los dos coinciden', correct: true }, { text: 'Orto al nitro, que orienta a esa posición', note: 'El nitro orienta a meta; el metilo, a orto/para.', misconception: 'nitro-op' }, { text: 'No reacciona, porque el nitro desactiva todo el anillo', note: 'El metilo mantiene el anillo reactivo.' }],
               { concept: 'sea.multiples', explain: 'Las posiciones orto al CH₃ son meta al NO₂: se refuerzan.', slide: 35 }),
             write('m2-w1', 'Enséñale a tu compañero: ¿por qué el –CH₃ orienta a orto/para y el –NO₂ a meta?', 'Porque el complejo σ deja la carga + en orto y para respecto al C atacado. Si el electrófilo entra orto o para al CH₃, la carga cae sobre el C que lleva el metilo (carbocatión 3°, más estable): esas posiciones van más rápido. Con NO₂, entrar orto o para pondría la carga + junto al N cargado +, muy inestable; en meta eso se evita.',
               ['La carga + del complejo σ queda en orto y para del C atacado', 'CH₃ en orto/para: la carga cae en un C 3° (más estable)', 'NO₂ en orto/para: dos cargas + juntas; por eso va a meta'],
@@ -216,7 +216,7 @@
         },
         parts: [
           { id: 'r1', intro: 'Parte 1: **activadores y desactivadores**.',
-            pretest: q('m2-pre1', 'Adivina antes: ¿cuál reacciona más rápido en SEA?', [{ text: 'Anisol (C₆H₅–OCH₃)', correct: true }, { text: 'Benceno', note: 'El –OCH₃ dona electrones: acelera.' }, { text: 'Nitrobenceno', note: 'El –NO₂ frena muchísimo.' }],
+            pretest: q('m2-pre1', 'Adivina antes: ¿cuál reacciona más rápido en SEA?', [{ text: 'Anisol (C₆H₅–OCH₃)', correct: true }, { text: 'Benceno (C₆H₆)', note: 'El –OCH₃ dona electrones: acelera.' }, { text: 'Nitrobenceno (C₆H₅–NO₂)', note: 'El –NO₂ frena muchísimo.' }],
               { concept: 'sea.activadores', explain: 'Anisol ≈ 10 000 veces más rápido que el benceno.', slide: 21 }),
             explain: [
               { id: 'm2b1', concept: 'sea.activadores', title: 'Donan → orto/para; sacan → meta', slide: 34, body: '**Activadores orto/para**: fuertes **–NH₂, –NR₂, –OH, –OR** (donan un par por resonancia); moderados **–R** (alquilos, inductivo) y –NHCOR. **Desactivadores meta**: **–NO₂, –CN, –SO₃H, –CHO, –COR, –COOH, –COOR, –NR₃⁺**: el átomo unido al anillo tiene carga + o δ+. **Halógenos**: la excepción (parte 2).',
@@ -228,19 +228,19 @@
                 { concept: 'sea.activadores', explain: 'Par libre o alquilo junto al anillo: activa; C=O, NO₂, CN: desactiva y meta.', slide: 34, hint: '¿El átomo unido al anillo tiene par libre o tiene carga δ+?', misconception: 'nitro-op' }),
               order('m2-p2', 'Ordena de MÁS LENTO a MÁS RÁPIDO en una SEA:', [['a', 'Nitrobenceno'], ['b', 'Benceno'], ['c', 'Tolueno'], ['d', 'Anisol']], ['a', 'b', 'c', 'd'],
                 { concept: 'sea.activadores', direction: 'De más lento a más rápido.', explain: 'Nitro frena (÷100 000), metilo acelera (×25), metoxi acelera mucho (×10 000).', slide: 21, hint: 'Atractor < nada < alquilo < par libre.' }),
-              q('m2-p3', '¿Por qué la anilina se bromina sin catalizador hasta 2,4,6-tribromoanilina?', [{ text: 'El –NH₂ activa tanto que no hace falta el FeBr₃', correct: true }, { text: 'El –NH₂ es un ácido de Lewis', note: 'El –NH₂ dona; no acepta pares.' }, { text: 'El Br₂ es muy fuerte', note: 'Con benceno el mismo Br₂ no reacciona.' }],
+              q('m2-p3', '¿Por qué la anilina se bromina sin catalizador hasta 2,4,6-tribromoanilina?', [{ text: 'El –NH₂ activa tanto que no hace falta el FeBr₃', correct: true }, { text: 'El –NH₂ es un ácido de Lewis que activa al Br₂', note: 'El –NH₂ dona; no acepta pares.' }, { text: 'El Br₂ es muy fuerte y ataca cualquier anillo', note: 'Con benceno el mismo Br₂ no reacciona.' }],
                 { concept: 'sea.activadores', explain: 'Activador fuerte: las tres posiciones orto/para se brominan.', slide: 21, hint: 'Es un activador fuerte.' })
             ],
             rule: { title: 'Regla del sabio: leer un sustituyente', concept: 'sea.activadores', steps: ['¿Par libre (N, O) o alquilo junto al anillo? → activa, orto/para', '¿C=O, NO₂, CN, SO₃H, NR₃⁺? → desactiva, meta', '¿Halógeno? → desactiva pero orto/para'] } },
           { id: 'r2', intro: 'Parte 2: **halógenos y dos grupos a la vez**.',
-            pretest: q('m2-pre2', 'Adivina antes: en el p-metilanisol, ¿quién decide dónde entra el electrófilo?', [{ text: 'El –OCH₃ (activador más fuerte)', correct: true }, { text: 'El –CH₃', misconception: 'activator-loses' }, { text: 'Ninguno: sale 50 y 50', note: 'Manda el más fuerte.' }],
+            pretest: q('m2-pre2', 'Adivina antes: en el p-metilanisol, ¿quién decide dónde entra el electrófilo?', [{ text: 'El –OCH₃, el activador más fuerte', correct: true }, { text: 'El –CH₃, por estar en para', misconception: 'activator-loses' }, { text: 'Los dos por igual, y sale 50 y 50', note: 'Manda el más fuerte.' }],
               { concept: 'sea.multiples', explain: 'Fuertes (–OR) > moderados (–R).', slide: 35 }),
             explain: [
               { id: 'm2b2', concept: 'sea.halogenos', title: 'Halógenos y varios sustituyentes', slide: 31, body: '**Halógenos**: muy electronegativos → sacan densidad por el enlace σ (**desactivan**); pero tienen pares que donan al complejo σ cuando la carga cae sobre su C (**orto/para**). **Dos grupos**: si se refuerzan, fácil. Si se oponen, **manda el más fuerte**: (1) –OH, –OR, –NR₂ > (2) –R, –X > (3) todos los meta. La posición **entre** dos grupos está impedida.',
                 deeper: 'Ejemplo: en el m-xileno, las posiciones orto a un CH₃ y para al otro son las que reaccionan; la del medio (orto a ambos) casi no. En un anillo con –OCH₃ y –NO₂ enfrentados, el metoxi manda: el electrófilo entra orto al OCH₃.' }
             ],
             practice: [
-              q('m2-p4', '¿Por qué el Cl desactiva el anillo pero lo orienta a orto/para?', [{ text: 'Saca electrones por σ (inductivo) pero dona un par por resonancia al complejo σ', correct: true }, { text: 'Porque es grande', note: 'El tamaño no explica la orientación.' }, { text: 'Porque es un ácido de Lewis', note: 'El ácido de Lewis es el AlCl₃, no el Cl del anillo.' }],
+              q('m2-p4', '¿Por qué el Cl desactiva el anillo pero lo orienta a orto/para?', [{ text: 'Saca electrones por σ (inductivo) pero dona un par por resonancia', correct: true }, { text: 'Porque es grande y estorba la posición meta', note: 'El tamaño no explica la orientación.' }, { text: 'Porque es un ácido de Lewis que se une al anillo', note: 'El ácido de Lewis es el AlCl₃, no el Cl del anillo.' }],
                 { concept: 'sea.halogenos', explain: 'Dos efectos opuestos: el inductivo decide la velocidad; la resonancia, la posición.', slide: 31, hint: 'Piensa en dos efectos.', misconception: 'halogen-meta' }),
               classify('m2-p5', 'Clasifica cada caso según quién decide la posición:', [['first', 'Manda el primer grupo nombrado'], ['second', 'Manda el segundo grupo nombrado']],
                 [['a', '–OCH₃ frente a –NO₂', 'first'], ['b', '–CH₃ frente a –OH', 'second'], ['c', '–NH₂ frente a –COOH', 'first'], ['d', '–CN frente a –CH₃', 'second']],
@@ -258,7 +258,7 @@
           hook: { title: 'El orden lo es todo', sage: 'Quieres m-bromonitrobenceno. Si brominas primero y nitras después, te sale orto/para. Si nitras primero, el NO₂ manda a meta y aciertas. En síntesis aromática, el orden es la respuesta.',
             text: 'La pregunta P5 de la PEP suele ser "desde benceno, propone la síntesis de…". Tienes que elegir las reacciones y el orden según quién orienta a dónde, y evitar las trampas de Friedel-Crafts.' },
           diagnostic: [
-            q('m3-d1', '¿Qué sale principalmente de benceno + 1-cloropropano / AlCl₃?', [{ text: 'Isopropilbenceno (el carbocatión se reordena)', correct: true }, { text: 'Propilbenceno', misconception: 'fc-rearrange' }, { text: 'Nada', note: 'Sí reacciona.' }],
+            q('m3-d1', '¿Qué sale principalmente de benceno + 1-cloropropano / AlCl₃?', [{ text: 'Isopropilbenceno, porque el carbocatión se reordena', correct: true }, { text: 'Propilbenceno, sin reordenamientos', misconception: 'fc-rearrange' }, { text: 'Nada: el cloroalcano no reacciona con AlCl₃', note: 'Sí reacciona.' }],
               { concept: 'sea.friedel', explain: 'El carbocatión primario se reordena al secundario.', slide: 41 }),
             q('m3-d2', 'Para obtener **m**-bromonitrobenceno desde benceno, ¿qué haces primero?', [{ text: 'Nitrar', correct: true }, { text: 'Brominar', misconception: 'synthesis-order' }, { text: 'Da lo mismo', note: 'El primer grupo decide dónde entra el segundo.' }],
               { concept: 'sea.sintesis', explain: 'El NO₂ es meta-orientador: así el Br entra en meta.', slide: 45 })
@@ -283,7 +283,7 @@
         },
         parts: [
           { id: 'r1', intro: 'Parte 1: **Friedel-Crafts**.',
-            pretest: q('m3-pre1', 'Adivina antes: ¿por qué la acilación de Friedel-Crafts no da poliacilación?', [{ text: 'El C=O que entra desactiva el anillo', correct: true }, { text: 'Porque se usa poco reactivo', note: 'Aunque sobre reactivo, no se poliacila.' }, { text: 'Sí da poliacilación', note: 'Eso le pasa a la alquilación.' }],
+            pretest: q('m3-pre1', 'Adivina antes: ¿por qué la acilación de Friedel-Crafts no da poliacilación?', [{ text: 'El C=O que entra desactiva el anillo', correct: true }, { text: 'Porque se usa poco reactivo en la mezcla', note: 'Aunque sobre reactivo, no se poliacila.' }, { text: 'Sí da poliacilación, como en la alquilación', note: 'Eso le pasa a la alquilación.' }],
               { concept: 'sea.friedel', explain: 'La fenona formada está desactivada.', slide: 43 }),
             explain: [
               { id: 'm3b1', concept: 'sea.friedel', title: 'Alquilación y acilación', slide: 38, body: '**Alquilación**: R–Cl/AlCl₃ (o alqueno + HF, o alcohol + BF₃) → carbocatión → Ar–R. **Tres limitaciones**: (1) **falla con anillos desactivados** (nitro, SO₃H, fenonas); (2) el carbocatión **se reordena** (1-cloropropano → isopropilbenceno); (3) **polialquilación** (el alquilo activa el anillo). **Acilación**: R–COCl/AlCl₃ → **ion acilio** (no se reordena) → **fenona** Ar–CO–R; no se poliacila. **Clemmensen** (Zn(Hg)/HCl) reduce el C=O a CH₂.',
@@ -293,14 +293,14 @@
               classify('m3-p1', '¿Se puede hacer con alquilación de Friedel-Crafts directa?', [['yes', 'Sí, directa'], ['no', 'No: acilación + Clemmensen (o no funciona)']],
                 [['a', 't-butilbenceno', 'yes'], ['b', 'propilbenceno', 'no'], ['c', 'isopropilbenceno', 'yes'], ['d', 'butilbenceno', 'no'], ['e', 'etilbenceno', 'yes']],
                 { concept: 'sea.friedel', explain: 'Cadenas lineales de 3+ C se reordenan.', slide: 41, hint: '¿El carbocatión puede hacerse más estable moviendo un H?', misconception: 'fc-rearrange' }),
-              q('m3-p2', '¿Qué pasa al tratar nitrobenceno con CH₃COCl / AlCl₃?', [{ text: 'No reacciona: está fuertemente desactivado', correct: true }, { text: 'Da m-nitroacetofenona', misconception: 'fc-deactivated' }, { text: 'Da o- y p-nitroacetofenona', note: 'El NO₂ es meta, pero aquí ni siquiera reacciona.' }],
+              q('m3-p2', '¿Qué pasa al tratar nitrobenceno con CH₃COCl / AlCl₃?', [{ text: 'No reacciona: está fuertemente desactivado', correct: true }, { text: 'Da m-nitroacetofenona, por orientación meta', misconception: 'fc-deactivated' }, { text: 'Da o- y p-nitroacetofenona, por orientación orto/para', note: 'El NO₂ es meta, pero aquí ni siquiera reacciona.' }],
                 { concept: 'sea.friedel', explain: 'Friedel-Crafts falla con anillos fuertemente desactivados.', slide: 41, hint: 'Limitación 1.' }),
               match('m3-p3', 'Une cada limitación de la alquilación con su solución:', [['Reordenamiento del carbocatión', 'Acilación + Clemmensen'], ['Polialquilación', 'Usar exceso de benceno (o acilar)'], ['Anillo desactivado', 'Hacer Friedel-Crafts antes de poner el desactivador']],
                 { concept: 'sea.friedel', explain: 'Cada trampa tiene su salida.', slide: 41, hint: 'Piensa en el ion acilio.' })
             ],
             recipe: R('rc-fcacil') },
           { id: 'r2', intro: 'Parte 2: **planificar el orden**.',
-            pretest: q('m3-pre2', 'Adivina antes: para p-bromonitrobenceno desde benceno, ¿qué haces primero?', [{ text: 'Brominar (el Br orienta a para)', correct: true }, { text: 'Nitrar', misconception: 'synthesis-order' }, { text: 'Reducir', note: 'No hay nada que reducir al inicio.' }],
+            pretest: q('m3-pre2', 'Adivina antes: para p-bromonitrobenceno desde benceno, ¿qué haces primero?', [{ text: 'Brominar primero (el Br orienta a para)', correct: true }, { text: 'Nitrar primero, antes de colocar el Br', misconception: 'synthesis-order' }, { text: 'Reducir primero, antes de agregar nada', note: 'No hay nada que reducir al inicio.' }],
               { concept: 'sea.sintesis', explain: 'El Br es o/p; el NO₂ es meta.', slide: 45 }),
             explain: [
               { id: 'm3b2', concept: 'sea.sintesis', title: 'Planificar una síntesis', slide: 45, body: 'Para un **disustituido**: (1) mira la relación pedida (orto/para o meta); (2) pon **primero** el grupo que oriente a esa posición; (3) revisa las trampas: Friedel-Crafts **antes** de cualquier desactivador; cadenas lineales por **acilación + Clemmensen**; un **NH₂** se pone como **NO₂** y se reduce al final (y recuerda: NO₂ es meta, NH₂ es o/p).',
@@ -316,12 +316,12 @@
               spot('m3-fx1', 'Un aprendiz planificó la m-nitroacetofenona. ¿En qué paso se equivocó?', ['Benceno + HNO₃/H₂SO₄ → nitrobenceno', 'Nitrobenceno + CH₃COCl/AlCl₃ → m-nitroacetofenona', 'Producto final listo'], 1,
                 { question: '¿Cómo se corrige?', options: [{ text: 'Acilar primero (acetofenona) y después nitrar: el C=O orienta a meta', correct: true }, { text: 'Usar más AlCl₃', note: 'El problema es el anillo desactivado, no el catalizador.', misconception: 'fc-deactivated' }] },
                 { concept: 'sea.sintesis', slide: 41, stepNotes: { 0: 'Bien en sí, pero deja el anillo desactivado para lo que viene.', 2: 'No llega a formarse.' }, explain: 'Friedel-Crafts antes del desactivador; el acetilo también es meta.', hint: 'Limitación 1 de Friedel-Crafts.' }),
-              q('m3-p9', 'Para **p-nitrotolueno** desde benceno, ¿qué orden sirve?', [{ text: 'Metilar (CH₃Cl/AlCl₃) y después nitrar', correct: true }, { text: 'Nitrar y después metilar', note: 'Friedel-Crafts falla sobre el nitrobenceno.', misconception: 'fc-deactivated' }, { text: 'Da lo mismo', note: 'El orden decide la posición y si la reacción funciona.' }],
+              q('m3-p9', 'Para **p-nitrotolueno** desde benceno, ¿qué orden sirve?', [{ text: 'Metilar con CH₃Cl/AlCl₃ y después nitrar', correct: true }, { text: 'Nitrar y después metilar con CH₃Cl/AlCl₃', note: 'Friedel-Crafts falla sobre el nitrobenceno.', misconception: 'fc-deactivated' }, { text: 'Da lo mismo: el orden no cambia el producto', note: 'El orden decide la posición y si la reacción funciona.' }],
                 { concept: 'sea.sintesis', explain: 'El CH₃ es o/p y Friedel-Crafts va antes del NO₂.', slide: 45, hint: 'Dos razones apuntan al mismo orden.' })
             ],
             rule: { title: 'Regla del sabio: el orden de la síntesis', concept: 'sea.sintesis', steps: ['¿Orto/para o meta? Pon primero el grupo que oriente ahí', 'Friedel-Crafts antes de cualquier desactivador', 'NH₂ = NO₂ reducido al final; cadena lineal = acilación + Clemmensen'] } },
           { id: 'r3', intro: 'Parte 3: **sustitución nucleofílica aromática (SNA)**.',
-            pretest: q('m3-pre3', 'Adivina antes: ¿el clorobenceno reacciona con NaOH a temperatura ambiente?', [{ text: 'No: sin grupos atractores no hay SNA', correct: true }, { text: 'Sí, por SN2', note: 'El anillo bloquea el ataque por detrás.' }, { text: 'Sí, por SEA', note: 'El OH⁻ es nucleófilo, no electrófilo.' }],
+            pretest: q('m3-pre3', 'Adivina antes: ¿el clorobenceno reacciona con NaOH a temperatura ambiente?', [{ text: 'No: sin grupos atractores no hay SNA', correct: true }, { text: 'Sí, por una SN2 directa sobre el carbono', note: 'El anillo bloquea el ataque por detrás.' }, { text: 'Sí, por una SEA con el OH⁻ como electrófilo', note: 'El OH⁻ es nucleófilo, no electrófilo.' }],
               { concept: 'sea.sna', explain: 'La SNA necesita NO₂ en orto o para.', slide: 49 }),
             explain: [
               { id: 'm3b3', concept: 'sea.sna', title: 'Sustitución nucleofílica aromática', slide: 49, body: 'Un **nucleófilo fuerte** (OH⁻, RO⁻, NH₃) reemplaza a un **haluro** del anillo **solo si** hay grupos atractores fuertes (**NO₂**) en **orto o para** al haluro. El intermediario tiene carga **negativa** que el NO₂ estabiliza por resonancia. No es SN2: el anillo impide el ataque por detrás.',
@@ -330,7 +330,7 @@
             practice: [
               order('m3-p6', 'Ordena de MENOS a MÁS reactivo frente a NaOH (SNA):', [['a', 'Clorobenceno'], ['b', 'm-nitroclorobenceno'], ['c', 'p-nitroclorobenceno'], ['d', '2,4-dinitroclorobenceno']], ['a', 'b', 'c', 'd'],
                 { concept: 'sea.sna', direction: 'De menos a más reactivo.', explain: 'Más NO₂ en orto/para = más reactivo; en meta ayuda poco.', slide: 49, hint: 'Cuenta los NO₂ en orto/para.', misconception: 'sna-no-ewg' }),
-              q('m3-p7', '¿Por qué un NO₂ en para acelera la SNA y uno en meta casi no?', [{ text: 'En para, la carga − del intermediario llega hasta el NO₂ por resonancia', correct: true }, { text: 'Porque en meta el NO₂ estorba', note: 'No es por estorbo.' }, { text: 'Porque el NO₂ en para es nucleófilo', note: 'El NO₂ atrae electrones: estabiliza la carga −.' }],
+              q('m3-p7', '¿Por qué un NO₂ en para acelera la SNA y uno en meta casi no?', [{ text: 'En para, la carga − del intermediario llega hasta el NO₂ por resonancia', correct: true }, { text: 'Porque en meta el NO₂ estorba físicamente al nucleófilo', note: 'No es por estorbo.' }, { text: 'Porque el NO₂ en para actúa como nucleófilo', note: 'El NO₂ atrae electrones: estabiliza la carga −.' }],
                 { concept: 'sea.sna', explain: 'La carga negativa cae en orto/para del C atacado.', slide: 49, hint: '¿Dónde queda la carga negativa?' }),
               classify('m3-p8', '¿SEA o SNA?', [['sea', 'SEA (entra un electrófilo)'], ['sna', 'SNA (entra un nucleófilo)']],
                 [['a', 'Benceno + Br₂/FeBr₃', 'sea'], ['b', '2,4-dinitroclorobenceno + NaOH', 'sna'], ['c', 'Tolueno + HNO₃/H₂SO₄', 'sea'], ['d', 'p-nitrofluorobenceno + CH₃O⁻', 'sna']],

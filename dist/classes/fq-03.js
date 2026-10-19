@@ -144,7 +144,7 @@
         },
         parts: [
           { id: 'r1', intro: 'Parte 1: **potenciales estándar y espontaneidad**.',
-            pretest: q('m1-pre1', 'Adivina antes: Cu(s) en AgNO₃ (E°(Ag⁺/Ag) = +0,80 V; E°(Cu²⁺/Cu) = +0,34 V). ¿Ocurre reacción?', [{ text: 'Sí: el Cu se oxida y el Ag⁺ se reduce', correct: true }, { text: 'No: el cobre es más noble que la plata', note: 'La plata es la más "noble" (mayor E°red).' }, { text: 'Solo si se calienta', note: 'Es espontánea a temperatura ambiente.' }],
+            pretest: q('m1-pre1', 'Adivina antes: Cu(s) en AgNO₃ (E°(Ag⁺/Ag) = +0,80 V; E°(Cu²⁺/Cu) = +0,34 V). ¿Ocurre reacción?', [{ text: 'Sí: el Cu se oxida y el Ag⁺ se reduce', correct: true }, { text: 'No: el cobre es más noble que la plata', note: 'La plata es la más "noble" (mayor E°red).' }, { text: 'Sí, pero hay que calentar antes de mezclar', note: 'Es espontánea a temperatura ambiente.' }],
               { concept: 'ele.potenciales', explain: 'El de mayor E°red (Ag⁺) se reduce.', slide: 15 }),
             explain: [
               { id: 'm1b1', concept: 'ele.potenciales', title: 'Potenciales estándar y espontaneidad', slide: 7, body: '**E°red** mide la tendencia de una especie a **reducirse** (ser oxidante). La referencia es el **electrodo normal de hidrógeno (ENH)**: 2 H⁺ + 2 e⁻ ⇌ H₂, E° = 0,00 V. En una celda el de **mayor E°red es el cátodo** y el de menor, el **ánodo**: **E°cel = E°cátodo − E°ánodo**. Si E°cel > 0 la reacción es espontánea. **El potencial no se multiplica por los coeficientes.**',
@@ -163,14 +163,14 @@
             ],
             rule: { title: 'Regla del sabio: potenciales y espontaneidad', concept: 'ele.potenciales', steps: ['Escribe los E°red de las dos semiceldas', 'Mayor E°red → cátodo; menor → ánodo', 'E°cel = E°cátodo − E°ánodo (sin multiplicar por coeficientes)', 'E°cel > 0 → espontánea'] } },
           { id: 'r2', intro: 'Parte 2: **celdas galvánicas y diagrama de celda**.',
-            pretest: q('m1-pre2', 'Adivina antes: en una pila de Daniell (Zn/Cu), ¿hacia dónde van los electrones por el cable?', [{ text: 'Del Zn (ánodo) al Cu (cátodo)', correct: true }, { text: 'Del Cu al Zn', note: 'Los electrones salen del que se oxida (Zn).', misconception: 'ele-anodo' }, { text: 'Por el puente salino', note: 'Por el puente salino viajan iones, no electrones.' }],
+            pretest: q('m1-pre2', 'Adivina antes: en una pila de Daniell (Zn/Cu), ¿hacia dónde van los electrones por el cable?', [{ text: 'Del Zn (ánodo) al Cu (cátodo)', correct: true }, { text: 'Del Cu (cátodo) al Zn (ánodo)', note: 'Los electrones salen del que se oxida (Zn).', misconception: 'ele-anodo' }, { text: 'Por el puente salino, de una semicelda a otra', note: 'Por el puente salino viajan iones, no electrones.' }],
               { concept: 'ele.celdas', explain: 'Ánodo → cátodo por el circuito externo.', slide: 23 }),
             explain: [
               { id: 'm1b2', concept: 'ele.celdas', title: 'Celdas galvánicas y diagrama de celda', slide: 22, body: 'Una **celda galvánica** genera electricidad con una reacción redox espontánea. **Ánodo**: oxidación, polo **negativo**. **Cátodo**: reducción, polo **positivo**. Los **electrones** van del ánodo al cátodo por el cable; el **puente salino** cierra el circuito y mantiene la neutralidad. **FEM**: E = E_cátodo − E_ánodo. **Diagrama**: ánodo | solución ‖ solución | cátodo (‖ = puente salino).',
                 deeper: 'Pila de Daniell: Zn(s) | Zn²⁺(1 M) ‖ Cu²⁺(1 M) | Cu(s). Ánodo: Zn → Zn²⁺ + 2 e⁻ (−0,76 V). Cátodo: Cu²⁺ + 2 e⁻ → Cu (+0,34 V). E°cel = 0,34 − (−0,76) = 1,10 V.' }
             ],
             practice: [
-              q('m1-p5', 'En la celda Zn(s) | Zn²⁺(1 M) ‖ Cu²⁺(1 M) | Cu(s), el cátodo es…', [{ text: 'el electrodo de Cu (se reduce el Cu²⁺)', correct: true }, { text: 'el electrodo de Zn (se reduce el Zn²⁺)', note: 'El Zn se oxida: es el ánodo.', misconception: 'ele-anodo' }, { text: 'el puente salino', note: 'El puente no es un electrodo.' }],
+              q('m1-p5', 'En la celda Zn(s) | Zn²⁺(1 M) ‖ Cu²⁺(1 M) | Cu(s), el cátodo es…', [{ text: 'el electrodo de Cu, donde se reduce el Cu²⁺', correct: true }, { text: 'el electrodo de Zn, donde se reduce el Zn²⁺', note: 'El Zn se oxida: es el ánodo.', misconception: 'ele-anodo' }, { text: 'el puente salino, que cierra el circuito', note: 'El puente no es un electrodo.' }],
                 { concept: 'ele.celdas', explain: 'El diagrama pone el ánodo a la izquierda y el cátodo a la derecha.', slide: 25, hint: 'Mira qué lado del ‖ está el cátodo.' }),
               order('m1-p6', 'Ordena el recorrido en una pila de Daniell:', [['a', 'El Zn se oxida y libera electrones'], ['b', 'Los electrones viajan por el cable hacia el Cu'], ['c', 'En el Cu, el Cu²⁺ se reduce con esos electrones'], ['d', 'Los iones del puente salino compensan las cargas']], ['a', 'b', 'c', 'd'],
                 { concept: 'ele.celdas', direction: 'Primero lo primero.', explain: 'Oxidación → cable → reducción → neutralidad con el puente.', slide: 22, hint: 'Los electrones salen del ánodo.' }),
@@ -190,7 +190,7 @@
           hook: { title: 'La pila que se gasta', sage: 'Una pila nueva da 1,10 V; gastada, menos; agotada, 0 V. El potencial cambia porque cambian las concentraciones, y eso lo calcula Nernst.',
             text: 'Tres ideas conectan todo: ΔG = −nFE (energía), K = e^(nFE°/RT) (equilibrio) y Nernst (concentraciones). En la PEP las usarás con números.' },
           diagnostic: [
-            q('m2-d1', 'Si E > 0 en una celda, ΔrG de la reacción es…', [{ text: 'negativo (espontánea)', correct: true }, { text: 'positivo', note: 'ΔG = −nFE: el signo se invierte.' }, { text: 'cero', note: 'ΔG = 0 solo en el equilibrio (E = 0).' }],
+            q('m2-d1', 'Si E > 0 en una celda, ΔrG de la reacción es…', [{ text: 'negativo: la reacción es espontánea', correct: true }, { text: 'positivo: la reacción no es espontánea', note: 'ΔG = −nFE: el signo se invierte.' }, { text: 'cero: el sistema está en equilibrio', note: 'ΔG = 0 solo en el equilibrio (E = 0).' }],
               { concept: 'ele.dg', explain: 'ΔG = −nFE < 0.', slide: 28 }),
             q('m2-d2', 'Cuando una celda llega al equilibrio, su E vale…', [{ text: 'cero', correct: true }, { text: 'E°', note: 'E = E° solo si Q = 1.' }, { text: 'el máximo', note: 'En el equilibrio la pila está agotada.' }],
               { concept: 'ele.nernst', explain: 'En el equilibrio Q = K y E = 0.', slide: 31 })
@@ -231,7 +231,7 @@
             ],
             rule: { title: 'Regla del sabio: de E° a ΔG° y K', concept: 'ele.dg', steps: ['Balancea y cuenta n (electrones transferidos)', 'ΔG° = −nFE° (F = 96 500 C/mol)', 'ln K = nFE°/RT; a 25 °C log K = nE°/0,0592', 'E° > 0 → K > 1; E° < 0 → K < 1'] } },
           { id: 'r2', intro: 'Parte 2: **ecuación de Nernst y celdas de concentración**.',
-            pretest: q('m2-pre2', 'Adivina antes: una pila se va gastando. Su E…', [{ text: 'baja hasta llegar a cero', correct: true }, { text: 'se mantiene igual', note: 'Cambian las concentraciones: Q se acerca a K.' }, { text: 'sube con el tiempo', note: 'Al acercarse al equilibrio el voltaje cae.' }],
+            pretest: q('m2-pre2', 'Adivina antes: una pila se va gastando. Su E…', [{ text: 'baja hasta llegar a cero', correct: true }, { text: 'se mantiene igual mientras haya reactivos', note: 'Cambian las concentraciones: Q se acerca a K.' }, { text: 'sube con el tiempo a medida que reacciona', note: 'Al acercarse al equilibrio el voltaje cae.' }],
               { concept: 'ele.nernst', explain: 'Q → K y E → 0.', slide: 52 }),
             explain: [
               { id: 'm2b2', concept: 'ele.nernst', title: 'Ecuación de Nernst y celdas de concentración', slide: 30, body: '**E = E° − (RT/nF)·ln Q**; a 25 °C: **E = E° − (0,0257/n)·ln Q = E° − (0,0592/n)·log Q**. **Q = productos/reactivos** de la reacción escrita (sólidos puros no entran). En una **celda de concentración** los electrodos son iguales (E° = 0): **E = (0,0592/n)·log(c_concentrada/c_diluida)**.',
@@ -261,7 +261,7 @@
           diagnostic: [
             q('m3-d1', 'En MnO₄⁻ + 8 H⁺ + 5 e⁻ → Mn²⁺ + 4 H₂O, al bajar el pH el poder oxidante del MnO₄⁻…', [{ text: 'aumenta', correct: true }, { text: 'disminuye', note: 'El H⁺ es reactivo: más H⁺ sube E de reducción.' }, { text: 'no cambia', note: 'E depende de [H⁺]⁸.' }],
               { concept: 'ele.ph', explain: 'Más H⁺ → Q baja → E sube.', slide: 66 }),
-            q('m3-d2', 'En una celda electrolítica, la reacción…', [{ text: 'es forzada por una fuente externa (no espontánea)', correct: true }, { text: 'es espontánea y genera corriente', note: 'Eso es una celda galvánica.' }, { text: 'no necesita electrodos', note: 'Siempre hay ánodo y cátodo.' }],
+            q('m3-d2', 'En una celda electrolítica, la reacción…', [{ text: 'la fuerza una fuente externa (no es espontánea)', correct: true }, { text: 'es espontánea y genera corriente por sí sola', note: 'Eso es una celda galvánica.' }, { text: 'ocurre sin necesidad de electrodos', note: 'Siempre hay ánodo y cátodo.' }],
               { concept: 'ele.faraday', explain: 'Electrólisis = reacción forzada.', slide: 64 })
           ],
           fundamentals: [
@@ -298,12 +298,12 @@
                   solution: ['log Q = −2(0,65 − 0,38)/0,0591 = −9,14', 'log Q = 2 log 0,01 + 4 log[H⁺] − 2 log 0,1 − log 0,1 = −1 + 4 log[H⁺]', '4 log[H⁺] = −8,14 → pH = 2,03'], explain: 'pH = 2,03.' }),
               order('m3-p4b', 'Ordena los pasos para sacar el pH de una celda con H⁺:', [['a', 'Escribir la semirreacción y contar n'], ['b', 'Escribir Q con [H⁺] en el exponente'], ['c', 'Despejar log[H⁺] desde E = E° − (0,0592/n) log Q'], ['d', 'Calcular pH = −log[H⁺]']], ['a', 'b', 'c', 'd'],
                 { concept: 'ele.ph', direction: 'Primero lo primero.', explain: 'Reacción y n → Q → despeje → pH.', slide: 72, hint: 'El pH es lo último.' }),
-              q('m3-p4', 'En la celda Ce⁴⁺/MnO₂ en condiciones estándar (E°cel = +0,38 V), ¿cómo funciona?', [{ text: 'Como celda galvánica (reacción espontánea)', correct: true }, { text: 'Como celda electrolítica', note: 'E° > 0 significa que la reacción ocurre sola.' }, { text: 'No funciona', note: 'E° > 0: espontánea.' }],
+              q('m3-p4', 'En la celda Ce⁴⁺/MnO₂ en condiciones estándar (E°cel = +0,38 V), ¿cómo funciona?', [{ text: 'Como celda galvánica: la reacción es espontánea', correct: true }, { text: 'Como celda electrolítica: hay que forzarla', note: 'E° > 0 significa que la reacción ocurre sola.' }, { text: 'No funciona en esas condiciones', note: 'E° > 0: espontánea.' }],
                 { concept: 'ele.ph', explain: 'E° = 1,61 − 1,23 = +0,38 V > 0.', slide: 68, hint: 'Mira el signo de E°cel.' })
             ],
             rule: { title: 'Regla del sabio: pH y voltaje', concept: 'ele.ph', steps: ['Escribe la semirreacción con H⁺ y su n', 'Pendiente del pH = (coef. H⁺ · 0,0591)/n', 'Electrodo de vidrio: pH = (E₀ − E)/0,0591', 'Si Q tiene [H⁺], despéjalo con log Q = −n(E − E°)/0,0591'] } },
           { id: 'r2', intro: 'Parte 2: **electrólisis y leyes de Faraday**.',
-            pretest: q('m3-pre2', 'Adivina antes: en una celda electrolítica, la reacción global…', [{ text: 'no es espontánea: la fuerza una fuente externa', correct: true }, { text: 'es espontánea', note: 'Eso es una galvánica.' }, { text: 'no tiene oxidación', note: 'Siempre hay oxidación en el ánodo y reducción en el cátodo.' }],
+            pretest: q('m3-pre2', 'Adivina antes: en una celda electrolítica, la reacción global…', [{ text: 'no es espontánea: la fuerza una fuente externa', correct: true }, { text: 'es espontánea y ocurre sola', note: 'Eso es una galvánica.' }, { text: 'no tiene oxidación, apenas reducción', note: 'Siempre hay oxidación en el ánodo y reducción en el cátodo.' }],
               { concept: 'ele.faraday', explain: 'Electrólisis = reacción forzada.', slide: 64 }),
             explain: [
               { id: 'm3b2', concept: 'ele.faraday', title: 'Celdas electrolíticas y leyes de Faraday', slide: 64, body: 'En una **celda electrolítica** una fuente externa fuerza una reacción no espontánea (E < 0). **Faraday**: la masa depositada es proporcional a la carga: **m = M·I·t/(z·F)** con **Q = I·t**, **F = 96 485 C/mol de e⁻** y z = electrones por ion (Cu²⁺: 2). Con la misma carga, las masas son proporcionales a los equivalentes (M/z).',
