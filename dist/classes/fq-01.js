@@ -1,4 +1,4 @@
-/* Fisicoquímica II · PEP 1 · Equilibrio químico (miércoles 21 de octubre).
+/* Fisicoquímica II · PEP 1 · Equilibrio químico (miércoles 28 de octubre; movida desde el 21).
    Fuentes: clases 1–3 "Equilibrio Químico" (Dr. Eduardo Pino, USACH 2S2026), Guía 1 "Reacciones químicas y equilibrio químico",
    ejercicios de la clase 1 (Dr. Daniel Zúñiga-Núñez) y Atkins, "Química Física", temas 6A–6B (en el Drive del curso).
    Las diapositivas son en su mayoría imágenes: "slide" apunta a la clase o la guía de donde sale cada idea (ver slides abajo).
@@ -25,8 +25,8 @@
     demuestra: {
       m1: { gen: ['avance', 'drg'], pep: 'P1', seconds: 180 },
       m2: { gen: ['qk', 'kdg'], pep: 'P2', seconds: 180 },
-      m3: { gen: ['kpkc', 'hetero'], pep: 'P3', seconds: 180 },
-      m4: { gen: ['lechatelier', 'vanthoff', 'actividad'], pep: 'P4', seconds: 180 }
+      m3: { gen: ['kpkc', 'hetero', 'eqmoles'], pep: 'P3', seconds: 180 },
+      m4: { gen: ['lechatelier', 'vanthoff', 'actividad', 'gibbsvh'], pep: 'P4', seconds: 180 }
     },
     status: 'borrador',
     sources: {
@@ -115,7 +115,7 @@
     ],
     slideImages: {},
     slides: {
-      2: { title: 'Clase 1 · Introducción y programación (Pino)', bullets: ['PEP 1: miércoles 21 de octubre · equilibrio químico, iónico y electroquímico', 'Reacciones: termodinámica y cinética', 'Condiciones: temperatura, presión, solvente, pH, fuerza iónica'] },
+      2: { title: 'Clase 1 · Introducción y programación (Pino)', bullets: ['PEP 1: miércoles 21 de octubre en la diapositiva, movida al 28 (correo del Dr. Pino, 19 oct) · equilibrio químico, iónico y electroquímico', 'Reacciones: termodinámica y cinética', 'Condiciones: temperatura, presión, solvente, pH, fuerza iónica'] },
       51: { title: 'Clase 2 · Grado de avance y energía de Gibbs de reacción', bullets: ['dnA = −dξ, dnB = +dξ', 'ΔrG = (∂G/∂ξ)p,T; en el equilibrio μA = μB', 'ΔrG < 0: directa espontánea; ΔrG > 0: inversa espontánea; ΔrG = 0: equilibrio', 'Ejercicios: 2A → B (ξ = 0,30 mol; Δξ = 0,051 mol)'] },
       80: { title: 'Clase 2 · Gases ideales: Q y K', bullets: ['μᵢ = μᵢ° + RT ln(pᵢ/p°)', 'ΔrG = ΔrG° + RT ln Q', 'En el equilibrio: ΔrG° = −RT ln Kp', 'K no depende de las concentraciones iniciales (a T fija)'] },
       56: { title: 'Clase 2 · Tabla de Kp y Kc', bullets: ['N₂ + 3H₂ ⇌ 2NH₃: Kp = 6,03 × 10⁵ a 298 K y 4,47 × 10⁻⁵ a 723 K', 'CO + H₂O ⇌ CO₂ + H₂ a 1000 K: Kp = Kc = 1,40 (Δn = 0)', 'CH₄ + H₂O ⇌ CO + 3H₂ a 1000 K: Kp = 35,5; Kc = 5,25 × 10⁻³'] },
