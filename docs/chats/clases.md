@@ -73,3 +73,15 @@ Hecho también: panel «Camino al 7», mini clase y clase a profundidad. Tarea: 
 - Hecho: `docs/org-pep1-motor/MAPA.md` (qué cayó en la PEP 1 2025 por pregunta, cobertura por diapositiva, guías 2021, errores). PPT de Aromáticos I y II convertidos (org-04: 50 diap., org-05: 62) y org-05 reasignada a la numeración real del PDF. Rótulos de puntos corregidos (SEA = P1 y P2, Hückel = P5). org-01 suma la receta 4 (pirrol y piridina, diap. 42 y 50, que no estaba cubierta). org-05 suma 5 ítems de P1 y 3 rutas tipo P2 (PEP 2025 y guía 2021) y 2 de SNA de piridina; org-04 suma 2 de la guía (2-piridona y ciprofloxacina). 43/43 pruebas.
 - Las tres clases siguen en `borrador`: faltan que Niquito resuelva la PEP 2025 en el aula, revise la química de lo nuevo (respuestas de la guía 2021 sin solucionario) y confirme si heterociclos y N-óxidos/nitrosación caen en 2026. Lista en `MAPA.md` §6.
 - Prompt de continuación: «Chat Clases, Orgánica. Lee CLAUDE.md, la skill nexo-clase y docs/org-pep1-motor/MAPA.md. Parte por §6: dime qué ejercicios nuevos te parecieron raros o difíciles tras probarlos; ajusta, y si apruebas pasa org-01/04/05 a `lista`.»
+
+## FQ II · PEP 1 con el motor (19 oct 2026)
+- **PEP 1 de FQ II: miércoles 28 de octubre** (correo del Dr. Pino, 19 oct). Control 1: lunes 26. `dist/semester-2026.js` ya dice 28 oct (con sus pruebas).
+- Hecho: `docs/fq-pep1-motor/MAPA.md` (qué cae, prioridad, errores del material, bibliografía), `SIMULACRO.md` (100 min, 5 problemas, pauta), generadores `eqmoles` y `gibbsvh` (fq-01) y `mezcla` (fq-02), actividad escrita `m2-w2`. fq-01/02/03 siguen en `borrador`.
+- Falta: Guías 2 y 3 de 2026 (adjuntos de M. Zapata; Gmail no los baja), confirmar duración y p° con la cátedra, simulacro mezclado dentro de la app, aprobación de Niquito por clase.
+
+## Prompt de continuación (FQ II PEP 1)
+```
+Chat: Clases FQ II (PEP 1 el miércoles 28 oct). Lee CLAUDE.md, la skill nexo-clase y docs/fq-pep1-motor/SPEC.md, MAPA.md y SIMULACRO.md.
+Hecho: mapa de qué cae, generadores eqmoles/gibbsvh/mezcla, simulacro en documento.
+Tarea: lee las Guías 2 y 3 de 2026 que Niquito deje en la carpeta del chat, ajusta los generadores de fq-02 y fq-03 a lo que piden, y construye el simulacro mezclado dentro de la app. Después, revisión con Niquito clase por clase para sacarlas de borrador. Sonnet 5.5.
+```

@@ -7,7 +7,7 @@
     knowledge:'learn',reviews:'learn',rescue:'learn',practice:'learn',
     games:'games',profile:'profile',mascot:'profile',stats:'profile',settings:'profile',
     hub:'planner',planner:'planner',timer:'planner',shop:'profile'};
-  let settings={sound:false,sfxVolume:.4,music:false,musicVolume:.15,ambient:false,ambientVolume:.12};
+  let settings={sound:false,sfxVolume:.4,music:true,musicVolume:.8,ambient:false,ambientVolume:.12};
   let room='home',gesture=false,hidden=typeof document!=='undefined'&&document.hidden;
   let sfx=null,ambient=null,music=null,loading=null,generation=0;
   /* Efectos largos en archivo (más ricos que el sprite): apertura del grimorio y cambio de página. */
@@ -97,7 +97,7 @@
     const bounded=(value,fallback)=>Math.max(0,Math.min(1,Number.isFinite(Number(value))?Number(value):fallback));
     settings={sound:Boolean(next.sound),sfxVolume:bounded(next.sfxVolume??next.volume,.4),
       ambient:Boolean(next.ambient),ambientVolume:bounded(next.ambientVolume,.12),
-      music:Boolean(next.music),musicVolume:bounded(next.musicVolume,.15)};
+      music:Boolean(next.music),musicVolume:bounded(next.musicVolume,.8)};
     if(sfx)sfx.volume(settings.sound?settings.sfxVolume:0);
     Object.entries(fileHowls).forEach(([name,howl])=>howl.volume(settings.sound?settings.sfxVolume*fileVolume[name]:0));
     reconcile();

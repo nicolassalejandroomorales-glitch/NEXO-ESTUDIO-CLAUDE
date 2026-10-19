@@ -142,7 +142,7 @@
       tutorial: { status: 'pending', rewarded: false, sections: {}, news: 0 },
       boosts: { streakShields: 0, protectedDates: [] },
       settings: { background: 'studio', sound: false, volume: 0.4, sfxVolume: 0.4,
-        music: false, musicVolume: 0.15, ambient: false, ambientVolume: 0.12,
+        music: true, musicVolume: 0.8, ambient: false, ambientVolume: 0.12,
         motion: true, focusMode: false, analytics: false, dailyGoalMinutes: 120,
         graphicsQuality:'auto',particles:'low',ambientMotion:'normal',mascotMotion:'full' },
       claimedChallenges: [],
@@ -168,9 +168,9 @@
     next.settings = { ...base.settings, ...next.settings };
     next.settings.volume = clamp(Number(next.settings.volume ?? 0.4), 0, 1);
     next.settings.sfxVolume=clamp(Number(raw.settings?.sfxVolume??raw.settings?.volume??.4),0,1);
-    next.settings.music=Boolean(raw.settings?.music);
+    next.settings.music=Boolean(raw.settings?.music??true);
     next.settings.ambient=Boolean(raw.settings?.ambient);
-    next.settings.musicVolume=clamp(Number(raw.settings?.musicVolume??.15),0,1);
+    next.settings.musicVolume=clamp(Number(raw.settings?.musicVolume??.8),0,1);
     next.settings.ambientVolume=clamp(Number(raw.settings?.ambientVolume??.12),0,1);
     next.settings.dailyGoalMinutes=clamp(Number(next.settings.dailyGoalMinutes)||120,15,600);
     for(const [key,values,fallback] of [
@@ -784,7 +784,15 @@
   const pixelText = (text, options) => window.NexoPixelText.render(text, options);
   // Tamaño del reloj a gusto: 1 mini · 2 normal · 3 grande · 4 enorme (píxeles enteros, ver update01.css), se recuerda en este dispositivo (no viaja con la cuenta).
   const CLOCK_SCALES = [1, 2, 3, 4];
-  const clockScale = () => { try { const v = Number(localStorage.getItem('nexo.clockSize')); return CLOCK_SCALES.includes(v) ? v : 2; } catch (_) { return 1; } };
+  const clockScale = () => { try { const v = Number(localStorage.getItem('nexo.clockSize')); return CLOCK_SCALES.includes(v) ? v : innerWidth < 700 ? 1 : 2; } catch (_) { return 1; } };
+  // En el celular el reloj tapa la escena: un botón lo oculta y se recuerda en este dispositivo.
+  const clockHidden = () => { try { return localStorage.getItem('nexo.clockHidden') === '1'; } catch (_) { return false; } };
+  function toggleClock() {
+    const hide = !clockHidden();
+    try { localStorage.setItem('nexo.clockHidden', hide ? '1' : '0'); } catch (_) { /* vale solo hasta recargar */ }
+    document.querySelector('.home-clock')?.toggleAttribute('hidden', hide);
+    document.querySelector('.hc-show')?.toggleAttribute('hidden', !hide);
+  }
   function resizeClock(step) {
     const next = CLOCK_SCALES[Math.max(0, Math.min(CLOCK_SCALES.length - 1, CLOCK_SCALES.indexOf(clockScale()) + step))];
     try { localStorage.setItem('nexo.clockSize', String(next)); } catch (_) { /* sin almacenamiento: vale solo hasta recargar */ }
@@ -796,12 +804,12 @@
     const days = nextEvaluation ? daysBetween(todayKey(), nextEvaluation.event.date) : null;
     const countdown = days === null ? 'Sin pruebas a la vista' : `${nextEvaluation.event.title} · ${days <= 0 ? 'hoy' : days === 1 ? 'mañana' : `${days} días`}`;
     const pt = (text, shadow = false) => pixelText(text, { shadow });
-    return `<aside class="home-clock ${running ? 'is-running' : ''}" data-cs="${clockScale()}" aria-label="Reloj de estudio">
+    return `<button class="hc-show pu-btn" data-clock-toggle aria-label="Mostrar reloj" ${clockHidden() ? '' : 'hidden'}>${pt('Reloj')}</button><aside class="home-clock ${running ? 'is-running' : ''}" data-cs="${clockScale()}" aria-label="Reloj de estudio" ${clockHidden() ? 'hidden' : ''}>
       <i class="hc-gear" aria-hidden="true"></i><i class="hc-orb" aria-hidden="true"></i><i class="hc-leaf hc-leaf-l" aria-hidden="true"></i><i class="hc-leaf hc-leaf-r" aria-hidden="true"></i><i class="hc-pendulum" aria-hidden="true"></i><i class="hc-flask" aria-hidden="true"></i>
       <div class="hc-now"><div class="hc-hour" data-hc-time role="text"></div><div class="hc-greet" data-hc-moment></div></div>
       <div class="hc-timer"><div class="hc-label">${pt(`${running ? 'Estudiando' : paused ? 'En pausa' : 'Cronómetro'} · ${subjectFor(timer.subject).short}`)}</div><div class="hc-digits" id="homeTimer" role="timer">${pixelDigits(formatClock(timerElapsedMs()))}</div></div>
       <div class="hc-controls">${running ? `<button class="hc-btn pu-btn" data-action="timer-pause" aria-label="Pausar">${pt('Pausar')}</button>` : `<button class="hc-btn hc-primary pu-btn" data-action="timer-start" aria-label="${paused ? 'Seguir' : 'Estudiar'}">${pt(paused ? 'Seguir' : 'Estudiar')}</button>`}${timerElapsedMs() >= 1000 ? `<button class="hc-btn pu-btn" data-action="timer-finish" aria-label="Terminar">${pt('Terminar')}</button>` : ''}</div>
-      <div class="hc-meta"><span class="hc-plate">${pt(`Hoy · ${studiedMinutes} min`)}</span><span class="hc-plate hc-plate-exam">${pt(countdown)}</span><span class="hc-size" role="group" aria-label="Tamaño del reloj"><button class="pu-btn" data-clock-size="-1" aria-label="Achicar reloj" ${clockScale() === CLOCK_SCALES[0] ? 'disabled' : ''}>${pt('-')}</button><button class="pu-btn" data-clock-size="1" aria-label="Agrandar reloj" ${clockScale() === CLOCK_SCALES[CLOCK_SCALES.length - 1] ? 'disabled' : ''}>${pt('+')}</button></span></div>
+      <div class="hc-meta"><span class="hc-plate">${pt(`Hoy · ${studiedMinutes} min`)}</span><span class="hc-plate hc-plate-exam">${pt(countdown)}</span><button class="hc-hide pu-btn" data-clock-toggle aria-label="Ocultar reloj">${pt('Ocultar')}</button><span class="hc-size" role="group" aria-label="Tamaño del reloj"><button class="pu-btn" data-clock-size="-1" aria-label="Achicar reloj" ${clockScale() === CLOCK_SCALES[0] ? 'disabled' : ''}>${pt('-')}</button><button class="pu-btn" data-clock-size="1" aria-label="Agrandar reloj" ${clockScale() === CLOCK_SCALES[CLOCK_SCALES.length - 1] ? 'disabled' : ''}>${pt('+')}</button></span></div>
     </aside>`;
   }
   // Chispas de latón, cristal y hoja al terminar una sesión: viven en el body porque el Inicio se vuelve a pintar al guardar.
@@ -868,7 +876,7 @@
   function renderSubjects() {
     if (window.NexoAprender) return window.NexoAprender.render(app, aprenderContext());
     app.innerHTML = '<section class="page"><div class="app-loader" role="status"><span></span><p>Bajando al sótano…</p></div></section>';
-    Promise.all([window.NexoLoader.style('./aprender/sotano.css?v=45255e3e'), window.NexoLoader.style('./aprender/sotano-luz.css'), Promise.all([window.NexoLoader.script('./aprender/estado.js?v=59f4873c'), window.NexoLoader.script('./aprender/sotano-musica.js?v=23d5d401')]).then(() => window.NexoLoader.script('./aprender/sotano-luz.js')).then(() => window.NexoLoader.script('./aprender/sotano.js?v=a0f5fe2e'))])
+    Promise.all([window.NexoLoader.style('./aprender/sotano.css?v=8f764ac1'), window.NexoLoader.style('./aprender/sotano-luz.css'), Promise.all([window.NexoLoader.script('./aprender/estado.js?v=59f4873c'), window.NexoLoader.script('./aprender/sotano-musica.js?v=23d5d401')]).then(() => window.NexoLoader.script('./aprender/sotano-luz.js')).then(() => window.NexoLoader.script('./aprender/sotano-fx.js')).then(() => window.NexoLoader.script('./aprender/sotano.js?v=0247cb3b'))])
       .then(() => { if (['learn', 'subjects'].includes(parseRoute()[0])) renderRoute(false); })
       .catch(() => { app.innerHTML = '<section class="page"><div class="panel error-boundary"><h1>No se pudo abrir el sótano</h1><p>Revisa tu conexión y vuelve a intentarlo.</p><button class="primary-btn" data-route="learn">Reintentar</button></div></section>'; });
   }
@@ -1081,8 +1089,8 @@
         window.NexoLoader.script(`./classes/${file}?v=20`),
         // Motor de evidencia y repaso espaciado (FSRS); si no cargan, la clase funciona igual sin agendar repasos.
         window.NexoLoader.script('./classes/evidence.js?v=cbcbf1b1'), window.NexoLoader.script('./classes/molecule.js?v=b3b2e5aa'), window.NexoLoader.script('./classes/editor.js?v=df0be94e'), window.NexoLoader.script('./academic/class-bridge.js?v=2c147b02').catch(() => null), window.NexoLoader.script('./academic/reviews.js?v=0273ea6c').catch(() => null)])
-        .then(() => Promise.all([window.NexoLoader.script(`./classes/slides/${id}.js?v=cca0afe2`).catch(() => null), // diapositivas reales, si ya se convirtieron
-          window.NexoLoader.script(`./classes/${id}-gen.js?v=3f5a3333`).catch(() => null)])) // generadores de ejercicios (etapa 8), si la clase los tiene
+        .then(() => Promise.all([window.NexoLoader.script(`./classes/slides/${id}.js?v=4e68eb0a`).catch(() => null), // diapositivas reales, si ya se convirtieron
+          window.NexoLoader.script(`./classes/${id}-gen.js?v=f4dd51aa`).catch(() => null)])) // generadores de ejercicios (etapa 8), si la clase los tiene
         .then(() => true);
     });
     promise.catch(() => classroomLoads.delete(id));
@@ -1841,6 +1849,7 @@
     }
     if (button.dataset.profileDeleteGrade) return removeGrade(button.dataset.profileDeleteGrade, ui.profileSubject);
     if (button.dataset.deleteAbsence) return removeWithUndo(state.absences, button.dataset.deleteAbsence, 'Inasistencia');
+    if (button.dataset.clockToggle !== undefined) return toggleClock();
     if (button.dataset.clockSize) return resizeClock(Number(button.dataset.clockSize));
     if (button.dataset.action === 'timer-start') return timerStart();
     if (button.dataset.action === 'timer-pause') return timerPause();

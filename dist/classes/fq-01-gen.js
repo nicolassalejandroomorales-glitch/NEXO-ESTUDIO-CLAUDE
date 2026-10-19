@@ -242,6 +242,67 @@
     }
   };
 
+  /* ════════ Equilibrio desde los moles (formato Control 1 2S2023, P1, y Guía 1 ej. 8) ════════ */
+  const GASES = [ // reacciones genéricas en fase gas, como en las pruebas: letras A, B, C, D
+    { eq: 'A + B ⇌ C + 2D', nu: { A: -1, B: -1, C: 1, D: 2 } }, { eq: '2A + B ⇌ 3C + 2D', nu: { A: -2, B: -1, C: 3, D: 2 } }, { eq: 'A + 2B ⇌ 2C', nu: { A: -1, B: -2, C: 2 } },
+    { eq: '2A ⇌ B + C', nu: { A: -2, B: 1, C: 1 } }, { eq: 'A ⇌ 2B', nu: { A: -1, B: 2 } }, { eq: 'A + B ⇌ 2C', nu: { A: -1, B: -1, C: 2 } }
+  ];
+  const eqmoles = {
+    id: 'eqmoles', title: 'Equilibrio desde los moles', mission: 'm3', concepts: ['eq.avance', 'eq.kp-kc'],
+    make(rng, level, want) {
+      const r = pick(rng, level <= 2 ? GASES.slice(0, 3) : GASES), sp = Object.keys(r.nu), prods = sp.filter(k => r.nu[k] > 0);
+      const n0 = {}; sp.forEach(k => { n0[k] = r.nu[k] < 0 ? between(rng, 1, 3, 0.5) : (rng() < 0.4 ? between(rng, 0.5, 1.5, 0.5) : 0); });
+      const xiMax = Math.min(...sp.filter(k => r.nu[k] < 0).map(k => n0[k] / -r.nu[k]));
+      const xi = Math.max(0.1, Math.round(xiMax * between(rng, 0.25, 0.6, 0.05) * 20) / 20);
+      const n = {}; sp.forEach(k => { n[k] = n0[k] + r.nu[k] * xi; });
+      const given = pick(rng, prods), tot = sp.reduce((a, k) => a + n[k], 0), P = level >= 4 ? between(rng, 1, 5, 0.5) : 1;
+      const x = {}; sp.forEach(k => { x[k] = n[k] / tot; });
+      const Kp = sp.reduce((a, k) => a * (x[k] * P) ** r.nu[k], 1), dn = sp.reduce((a, k) => a + r.nu[k], 0);
+      const init = sp.filter(k => n0[k] > 0).map(k => `${dec(n0[k], 1)} mol de ${k}`).join(', ');
+      const head = `${level === 5 ? 'Estilo PEP: ' : ''}En la reacción en fase gas ${r.eq} se mezclan ${init} y, alcanzado el equilibrio a 25 °C y ${dec(P, 1)} bar, la mezcla contiene ${dec(n[given], 2)} mol de ${given}.`;
+      const lines = [`ξ = (n − n₀)/ν = (${dec(n[given], 2)} − ${dec(n0[given], 1)}) / ${r.nu[given]} = ${dec(xi, 3)} mol`, `En equilibrio: ${sp.map(k => `n(${k}) = ${dec(n[k], 2)}`).join(' · ')}; n total = ${dec(tot, 2)} mol`];
+      const concept = want || (level <= 3 ? 'eq.avance' : 'eq.kp-kc'), base = { slide: 202, hint: 'Primero ξ con la especie que te dan; con ξ salen los moles de todas.' };
+      if (concept === 'eq.avance') {
+        const t = pick(rng, sp.filter(k => k !== given)), wantX = level >= 4 && rng() < 0.5;
+        return wantX ? number(`${head} Calcula la fracción molar de ${t} en el equilibrio.`, x[t], '', { ...base, concept, label: `x(${t})`, tol: 0.02, traps: [{ value: n[t], note: 'Eso son moles: falta dividir por el total.' }, { value: n[t] / sp.reduce((a, k) => a + n0[k], 0), note: 'Dividiste por los moles iniciales: si Δn ≠ 0 el total cambia.' }],
+          solution: [...lines, `x(${t}) = ${dec(n[t], 2)} / ${dec(tot, 2)} = ${dec(x[t], 4)}`], explain: `x(${t}) = ${dec(x[t], 4)}.` })
+          : number(`${head} ¿Cuántos moles de ${t} hay en el equilibrio?`, n[t], 'mol', { ...base, concept, label: `n(${t})`, tol: 0.015, traps: [{ value: n0[t] + Math.sign(r.nu[t]) * xi, note: 'Falta multiplicar ξ por el coeficiente.', misconception: 'avance-coef' }, { value: n0[t] - r.nu[t] * xi, note: 'Signo cambiado: los reactivos se gastan.' }],
+            solution: [lines[0], `n(${t}) = ${dec(n0[t], 1)} + (${dec(r.nu[t], 0)})(${dec(xi, 3)}) = ${dec(n[t], 3)} mol`], explain: `n(${t}) = ${dec(n[t], 3)} mol.` });
+      }
+      const dg = -R * 298.15 * Math.log(Kp) / 1000, kn = sp.reduce((a, k) => a * n[k] ** r.nu[k], 1), kx = sp.reduce((a, k) => a * x[k] ** r.nu[k], 1);
+      const sup = { 2: '²', 3: '³' }, term = k => `p(${k})${Math.abs(r.nu[k]) > 1 ? sup[Math.abs(r.nu[k])] : ''}`;
+      const num = sp.filter(k => r.nu[k] > 0).map(term).join('·'), den = sp.filter(k => r.nu[k] < 0).map(term).join('·');
+      const kpLines = [...lines, `pᵢ = xᵢ·P = (nᵢ/n total)·${dec(P, 1)} bar; p° = 1 bar`, `Kp = ${num} / ${den.includes('·') ? `(${den})` : den} = ${sci(Kp)}`];
+      const traps = [{ value: kn, note: 'Usaste moles en vez de presiones parciales.', misconception: 'k-moles' }, ...(P !== 1 && dn !== 0 ? [{ value: kx, note: 'Olvidaste multiplicar por la presión total: pᵢ = xᵢP.' }] : []), { value: 1 / Kp, note: 'Invertiste productos y reactivos.' }];
+      if (level === 5 && rng() < 0.5) return number(`${head} Calcula ΔrG° de la reacción a 25 °C.`, dg, 'kJ/mol', { ...base, concept, label: 'ΔrG°', tol: 0.02, hint: 'Kp con pᵢ = xᵢP; luego ΔrG° = −RT ln K.', traps: [{ value: -dg, note: 'Signo cambiado.', misconception: 'k-sign' }, { value: dg * 1000, note: 'Está en J/mol.', misconception: 'kj-j' }],
+        solution: [...kpLines, `ΔrG° = −8,314 × 298,15 × ln(${sci(Kp)}) = ${dec(dg, 2)} kJ/mol`], explain: `ΔrG° = ${dec(dg, 2)} kJ/mol.` });
+      return number(`${head} Calcula la constante de equilibrio Kp.`, Kp, '', { ...base, concept, label: 'Kp', tol: 0.03, traps, solution: kpLines, explain: `Kp = ${sci(Kp)}.` });
+    }
+  };
+
+  /* ════════ De las tablas a K y a K(T) (formato Control 1 2S2023, P2, y Guía 1 ej. 2 y 6) ════════ */
+  const r1 = x => Math.round(x * 10) / 10;
+  const TABLAS = [ // ΔrH° y ΔrG° a 298,15 K en kJ/mol, de tablas estándar (p. ej. Atkins); en la prueba la cátedra entrega sus propios datos
+    { eq: 'N₂(g) + O₂(g) → 2NO(g)', dH: r1(2 * 90.25), dG: r1(2 * 86.55), T: [1773.15, 1273.15] }, { eq: 'N₂O₄(g) → 2NO₂(g)', dH: r1(2 * 33.18 - 9.16), dG: r1(2 * 51.31 - 97.89), T: [323.15, 373.15, 423.15] },
+    { eq: '2SO₂(g) + O₂(g) → 2SO₃(g)', dH: r1(2 * -395.72 - 2 * -296.83), dG: r1(2 * -371.06 - 2 * -300.19), T: [600, 700, 800] }, { eq: 'CO(g) + H₂O(g) → CO₂(g) + H₂(g)', dH: r1(-393.51 - (-110.53 - 241.83)), dG: r1(-394.36 - (-137.17 - 228.57)), T: [500, 700, 900] },
+    { eq: 'N₂(g) + 3H₂(g) → 2NH₃(g)', dH: r1(2 * -45.94), dG: r1(2 * -16.45), T: [400, 500, 600, 700] },
+    { eq: '2NO(g) + O₂(g) → 2NO₂(g)', dH: r1(2 * 33.18 - 2 * 90.25), dG: r1(2 * 51.31 - 2 * 86.55), T: [350, 400, 450, 500] }, { eq: 'PCl₅(g) → PCl₃(g) + Cl₂(g)', dH: r1(-287.0 + 374.9), dG: r1(-267.8 + 305.0), T: [450, 500, 550, 600] },
+    { eq: 'CaCO₃(s) → CaO(s) + CO₂(g)', dH: r1(-635.09 - 393.51 + 1206.92), dG: r1(-603.3 - 394.36 + 1128.8), T: [900, 1000, 1100, 1200] }, { eq: 'H₂(g) + I₂(g) → 2HI(g)', dH: r1(2 * 26.48 - 62.42), dG: r1(2 * 1.70 - 19.33), T: [400, 500, 600, 700] },
+    { eq: 'CH₄(g) + H₂O(g) → CO(g) + 3H₂(g)', dH: r1(-110.53 + 74.81 + 241.83), dG: r1(-137.17 + 50.72 + 228.57), T: [800, 900, 1000, 1100] }
+  ];
+  const gibbsvh = {
+    id: 'gibbsvh', title: 'De ΔG° y ΔH° a K(T)', mission: 'm4', concepts: ['eq.vanthoff'],
+    make(rng, level) {
+      const t = pick(rng, TABLAS), K1 = Math.exp(-t.dG * 1000 / (R * 298.15)), kAt = T => K1 * Math.exp(-(t.dH * 1000 / R) * (1 / T - 1 / 298.15));
+      const okT = t.T.filter(T => kAt(T) > 1e-8 && kAt(T) < 1e8), T2 = okT.length ? pick(rng, okT) : Math.max(...t.T), K2 = kAt(T2); // K < 1e-10 el reproductor lo daría por bueno con cualquier valor
+      const celsius = level >= 4, t2s = celsius ? `${dec(T2 - 273.15, 0)} °C` : `${dec(T2, 0)} K`;
+      const prompt = `${level === 5 ? 'Estilo PEP: ' : ''}Para ${t.eq}, a 25 °C: ΔrH° = ${dec(t.dH, 1)} kJ/mol y ΔrG° = ${dec(t.dG, 1)} kJ/mol. Suponiendo ΔrH° constante, calcula K a ${t2s}.`;
+      return number(prompt, K2, '', { concept: 'eq.vanthoff', slide: 201, label: 'K', tol: 0.04, hint: 'K a 25 °C con ΔrG° = −RT ln K; luego van\'t Hoff con T en kelvin.',
+        traps: [{ value: K1, note: 'Esa es K a 25 °C: falta llevarla a la otra temperatura.' }, { value: K1 * Math.exp((t.dH * 1000 / R) * (1 / T2 - 1 / 298.15)), note: 'Signo del exponente cambiado.', misconception: 'vh-sign' }, ...(celsius ? [{ value: K1 * Math.exp(-(t.dH * 1000 / R) * (1 / (T2 - 273.15) - 1 / 25)), note: 'Usaste °C en van\'t Hoff: va en kelvin.', misconception: 'celsius' }] : []), { value: Math.exp(-t.dG * 1000 / (R * T2)), note: 'Usaste ΔrG° de 25 °C a la otra temperatura: ΔrG° cambia con T.' }],
+        solution: [`ln K₁ = −(${dec(t.dG * 1000, 0)}) / (8,314 × 298,15) = ${dec(-t.dG * 1000 / (R * 298.15), 3)} → K₁ = ${sci(K1)}`, `ln(K₂/K₁) = −(${dec(t.dH * 1000, 0)}/8,314)(1/${dec(T2, 2)} − 1/298,15) = ${dec(Math.log(K2 / K1), 3)}`, `K₂ = ${sci(K2)}`], explain: `K₂ = ${sci(K2)}.` });
+    }
+  };
+
   /* ════════ Bases ════════ */
   const termo = {
     id: 'termo', title: 'ΔG = ΔH − TΔS', mission: null, concepts: ['base.termo'],
@@ -287,7 +348,7 @@
     }
   };
 
-  const generators = [avance, drg, qk, kdg, kpkc, hetero, lechatelier, vanthoff, actividad, termo, gases, logs];
+  const generators = [avance, drg, qk, kdg, kpkc, hetero, lechatelier, vanthoff, actividad, eqmoles, gibbsvh, termo, gases, logs];
 
   /* Laboratorio "¿qué pasa si…?": una mezcla en equilibrio y perturbaciones (la "sustancia" es el estado del sistema). */
   const S = (id, name, formula) => ({ id, name, formula });

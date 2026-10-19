@@ -211,7 +211,24 @@
     }
   };
 
-  const generators = [iones, actividad, fuerza, debye, solub, acidez, conduc, log10, molal, ohm];
+  /* ════════ Mezcla de dos sales (formato Control 1 2S2023, P3, y Guía 2 ej. 6 y 8) ════════ */
+  const MEZCLA = [...SIMPLE, { f: 'K₂CrO₄', vp: 2, zp: 1, vm: 1, zm: 2, ip: 'K⁺', im: 'CrO₄²⁻' }, { f: 'K₄Fe(CN)₆', vp: 4, zp: 1, vm: 1, zm: 4, ip: 'K⁺', im: 'Fe(CN)₆⁴⁻' }];
+  const mezcla = {
+    id: 'mezcla', title: 'Una sal dentro de una mezcla', mission: 'm2', concepts: ['ion.fuerza', 'ion.debye'],
+    make(rng, level, want) {
+      const s1 = pick(rng, MEZCLA.filter(x => x.zp * x.zm <= 4)), s2 = pick(rng, MEZCLA.filter(x => x.f !== s1.f)), m1 = between(rng, 0.001, 0.005, 0.0005), m2 = between(rng, 0.0005, 0.003, 0.0005);
+      const I1 = Iof(s1, m1), I2 = Iof(s2, m2), It = I1 + I2, g1 = gpm(s1, I1), gt = gpm(s1, It), concept = want || (level <= 3 ? 'ion.fuerza' : 'ion.debye');
+      const head = `${level === 5 ? 'Estilo PEP: ' : ''}Se tiene una solución de ${s1.f} ${dec(m1, 4)} m a 25 °C.`;
+      const lines = [`I(${s1.f}) = ½(${dec(s1.vp * m1, 5)}·${s1.zp}² + ${dec(s1.vm * m1, 5)}·${s1.zm}²) = ${dec(I1, 5)} mol/kg`, `I(${s2.f}) = ½(${dec(s2.vp * m2, 5)}·${s2.zp}² + ${dec(s2.vm * m2, 5)}·${s2.zm}²) = ${dec(I2, 5)} mol/kg`, `I de la mezcla = ${dec(I1, 5)} + ${dec(I2, 5)} = ${dec(It, 5)} mol/kg`];
+      if (concept === 'ion.fuerza') return number(`${head} Si se agrega ${s2.f} ${dec(m2, 4)} m, calcula la fuerza iónica de la mezcla.`, It, 'mol/kg', { concept, slide: 22, label: 'I', tol: 0.01, hint: 'Cada sal aporta su ½Σmz²; las aportaciones se suman.',
+        traps: [{ value: I1, note: 'Falta el aporte de la segunda sal.' }, { value: I2, note: 'Falta el aporte de la primera sal.' }, { value: 0.5 * (m1 + m2), note: 'Usaste molalidades de sal, no de iones con su carga al cuadrado.', misconception: 'ion-nu' }], solution: lines, explain: `I = ${dec(It, 5)} mol/kg.` });
+      return number(`${head} Si se agrega ${s2.f} ${dec(m2, 4)} m, calcula γ± del ${s1.f} en la mezcla (ley límite, A = 0,509).`, gt, '', { concept, slide: 52, label: 'γ±', tol: 0.012, hint: 'γ± depende de la I TOTAL de la solución, no solo de la sal que miras.',
+        traps: [{ value: g1, note: 'Usaste la I de la sal sola: el ion de la otra sal también "frena" a los tuyos.', misconception: 'ion-total' }, { value: 10 ** (-A * Math.sqrt(It)), note: `Usaste |z₊z₋| = 1: para ${s1.f} vale ${s1.zp * s1.zm}.`, misconception: 'log-dir' }],
+        solution: [...lines, `log γ±(${s1.f}) = −0,509 · ${s1.zp * s1.zm} · √${dec(It, 5)} = ${dec(-A * s1.zp * s1.zm * Math.sqrt(It), 4)}`, `γ± = ${dec(gt, 4)} (sola sería ${dec(g1, 4)})`], explain: `γ± = ${dec(gt, 4)}.` });
+    }
+  };
+
+  const generators = [iones, actividad, fuerza, debye, solub, acidez, mezcla, conduc, log10, molal, ohm];
 
   /* Laboratorio libre: una solución real que hay que dejar "limpia" para aplicar la ley límite (I < 0,01 m). */
   const substances = [

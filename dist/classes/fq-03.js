@@ -1,4 +1,4 @@
-/* Fisicoquímica II · PEP 1 · Celdas galvánicas y ecuación de Nernst (miércoles 21 de octubre).
+/* Fisicoquímica II · PEP 1 · Celdas galvánicas y ecuación de Nernst (miércoles 28 de octubre; movida desde el 21).
    Fuente: clase 5 parte II (equilibrio electroquímico) y clase 6 «Equilibrio químico y electrolitos», Dr. Eduardo Pino, USACH 2S 2026.
    Las 101 diapositivas reales están en slides/fq-03.js (Clase 5 II desde la diap. 48 y Clase 6 completa).
    Los ejercicios de «Aplicaciones de FEM» (diap. 83–93: γ± de HCl y pH con electrodo de H₂) traen datos incoherentes (salen γ± ≈ 27 y pH negativo): no se usan. Se usa el de electrodo de vidrio (diap. 91). */

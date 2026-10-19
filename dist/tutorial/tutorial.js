@@ -27,6 +27,8 @@
     'globe-knowledge': ['Globo dorado', 'El mapa de conocimiento: qué dominas y qué no.'],
     'desk-continue': ['Escritorio', 'Continuar estudiando justo donde lo dejaste.']
   };
+  // Objetos que de verdad se dibujan en el refugio (el contador y el botón Seguir usan esta lista, no un número fijo).
+  const objetosVisibles = () => ((window.NexoHomeScene && window.NexoHomeScene.getProfile && window.NexoHomeScene.getProfile().hotspots) || []).map(h => h.id).filter(id => OBJETOS[id]);
   const BANNED_PARTS = ['mierda', 'conchetumare', 'weon', 'hueon', 'huevon', 'culiao', 'maricon', 'chucha', 'pendejo', 'cabron', 'carajo', 'follar', 'nazi', 'hitler', 'fuck', 'shit', 'bitch', 'cunt', 'nigg', 'porn', 'sexo', 'vagina'];
   const BANNED_EXACT = ['ano', 'tonto', 'tonta', 'idiota', 'imbecil', 'estupido', 'estupida', 'gay', 'puta', 'puto', 'pico', 'pene', 'marica', 'coger', 'concha', 'culia', 'zorra', 'verga'];
   const plain = v => v.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[0@]/g, m => (m === '@' ? 'a' : 'o')).replace(/1/g, 'i').replace(/3/g, 'e').replace(/4/g, 'a').replace(/5/g, 's').replace(/[^a-z]/g, '');
@@ -43,20 +45,20 @@
 
   // Pasos del tramo 1 (guion 1–10). text puede ser función del estado s.
   const STEPS = [
-    { id: 'g1', pose: 'dormido', text: '~Zzz… ¿quién roza mis páginas?' },
-    { id: 'g1b', pose: 'sorprendido', text: 'Una mano viva. Hacía siglos que ningún estudiante me abría.' },
-    { id: 'g2', pose: 'feliz', text: 'Soy el *Grimorio*. Guardo lo que se aprende. Tú haces el trabajo… yo me llevo el crédito. Es un buen trato.' },
-    { id: 'g3', pose: 'pensativo', text: 'Nadie cruza esta torre solo. Mira lo que dormía en la repisa…' },
-    { id: 'huevos', pose: 'guino', text: 'Elige uno. Es para *siempre*, así que nada de arrepentirse.', scene: 'huevos', needs: 'kind', next: 'Elegir este huevo' },
-    { id: 'seguro', pose: 'nocreo', text: 'Una pregunta antes de sellar el pacto: ¿*seguro*? Los huevos no aceptan devoluciones.', scene: 'uno', next: 'Sí, es este', back: 'Mejor otro' },
+    { id: 'g1', pose: 'dormido', text: '~Zzz… ¿quién me está manoseando las hojas? Tengo siglos, ¡respeto po!' },
+    { id: 'g1b', pose: 'sorprendido', text: 'Una mano viva. Hace siglos que ningún estudiante me abría… se asustaban con el pucho de polvo.' },
+    { id: 'g2', pose: 'feliz', text: 'Soy el *Grimorio*. Guardo lo que se aprende. Tú haces la pega… yo me llevo el crédito. Buen trato, ¿cachai?' },
+    { id: 'g3', pose: 'pensativo', text: 'Nadie cruza esta torre solo, no seai fome. Mira lo que dormía en la repisa…' },
+    { id: 'huevos', pose: 'guino', text: 'Elige uno. Es para *siempre*, así que nada de arrepentirse después del carrete.', scene: 'huevos', needs: 'kind', next: 'Elegir este huevo' },
+    { id: 'seguro', pose: 'nocreo', text: 'Una pregunta antes de sellar el pacto: ¿*seguro*? Los huevos no aceptan devoluciones, aquí no hay boleta.', scene: 'uno', next: 'Sí, es este', back: 'Mejor otro' },
     { id: 'nace', scene: 'nace', noBack: true, auto: true },
     { id: 'nombre', pose: 'feliz', text: 'Ahora el *nombre*. Será la voz que te aliente… y la que celebre tu 7. Elígelo con cuidado.', scene: 'nombre', needs: 'draft', next: 'Ponerle ese nombre', noBack: true },
     { id: 'graba', pose: 'importante', text: s => `${s.draft.trim()}… Queda grabado en tinta que no se borra. Última confirmación.`, scene: 'mascota', next: 'Confirmar' },
     { id: 'hola', who: 'M', text: s => INFO[s.kind].hola(s.name), scene: 'mascota', noBack: true },
     { id: 'ref1', who: 'M', text: 'Este es el refugio: tu base. Cambia con la hora del día y el clima, y siempre vuelves aquí.', scene: 'refugio', noBack: true },
-    { id: 'ref2', who: 'M', text: 'Toca los objetos. Cada uno hace algo distinto.', scene: 'refugio', objetos: true, needs: 'seen', next: 'Ya los toqué todos' },
-    { id: 'vest', who: 'M', text: 'Aquí me vistes y compras cosas con monedas. Sí, tengo opiniones sobre mi sombrero.', scene: 'refugio' },
-    { id: 'rec-inicio', pose: 'senalar', text: 'Basta de maquetas. Ven, te enseño tu torre *de verdad*.', scene: 'mascota', next: 'Vamos', recorrido: 'inicio' },
+    { id: 'ref2', who: 'M', text: 'Toca los objetos, todos. Cada uno hace algo distinto y no te muerden… creo.', scene: 'refugio', objetos: true, needs: 'seen', next: 'Ya los toqué todos' },
+    { id: 'vest', who: 'M', text: 'Aquí me vistes y compras cosas con monedas. Y sí, tengo opiniones sobre mi sombrero, ojo.', scene: 'refugio' },
+    { id: 'rec-inicio', pose: 'senalar', text: 'Basta de maquetas, ya po. Ven, te enseño tu torre *de verdad*.', scene: 'mascota', next: 'Vamos', recorrido: 'inicio' },
     { id: 'dato1', pose: 'pensativo', text: 'Dato: volver cada día, aunque sea poco, pesa más que una sola noche heroica. El *espaciado* funciona.', scene: 'mascota' },
     { id: 'rec-aprender', pose: 'senalar', text: 'Ahora *bajemos*: el sótano de los cristales, donde se estudia de verdad. Sígueme.', scene: 'mascota', next: 'Vamos', recorrido: 'aprender' },
     { id: 'evid', pose: 'dedo', text: 'Releer da *sensación* de dominio. Acertar sin ayuda da dominio *de verdad*. Por eso te pido responder antes de mostrarte nada.', scene: 'panel',
@@ -71,7 +73,7 @@
       panel: '<div class="tut-vs"><div><h4>Mirar la respuesta</h4><p>Se siente bien.<br>Enseña poco.</p></div><div class="win"><h4>Recordarla jugando</h4><p>Cuesta un poco.<br>Se queda.</p></div></div>' },
     { id: 'rec-organizacion', pose: 'senalar', text: 'Ahora tu *estudio de planos*: fechas, plan del día, notas y labs.', scene: 'mascota', next: 'Vamos', recorrido: 'organizacion' },
     { id: 'rec-perfil', pose: 'importante', text: 'Por último, tu *perfil*. Sígueme.', scene: 'mascota', next: 'Vamos', recorrido: 'perfil' },
-    { id: 'premio', who: 'M', text: '¡Terminamos! Esto es para ti. Gasta con cabeza.', scene: 'premio', noBack: true },
+    { id: 'premio', who: 'M', text: '¡Terminamos, crack! Esto es para ti. Gasta con cabeza, no todo en sombreros.', scene: 'premio', noBack: true },
     { id: 'fin', pose: 'feliz', text: 'Fue un honor. Si me necesitas, estoy en Ajustes… y no, no me pagan.', scene: 'mascota', noBack: true }
   ];
 
@@ -118,6 +120,15 @@
       const s = document.createElement('script'); s.src = new URL('./grimorio-vivo.js?v=3', HERE).href; s.onload = () => ok(window.NexoGrimorioVivo); s.onerror = fail; document.head.append(s);
     });
     return vivoLoading;
+  }
+
+  let umbralLoading = null;
+  function ensureUmbral() {
+    if (window.NexoUmbral) return Promise.resolve(window.NexoUmbral);
+    umbralLoading = umbralLoading || new Promise((ok, fail) => {
+      const s = document.createElement('script'); s.src = new URL('./umbral.js?v=1', HERE).href; s.onload = () => ok(window.NexoUmbral); s.onerror = fail; document.head.append(s);
+    });
+    return umbralLoading;
   }
 
   let recLoading = null;
@@ -382,7 +393,7 @@
       const stage = el('div', 'tut-stage'); stage.style.backgroundImage = `url(${new URL(prof.backgroundAsset, document.baseURI).href})`;
       const objetos = !!steps[s.i].objetos, pc = el('div', 'tut-stage-pet'), p = petCanvas(s.kind, 'feliz');
       const anc = prof.mascotAnchors.rest.point; pc.style.left = anc[0] * 100 + '%'; pc.style.top = anc[1] * 100 + '%'; pc.append(p.c); stage.append(pc);
-      const counter = el('div', 'tut-count'); const upd = () => { counter.textContent = `${s.seen.length}/${Object.keys(OBJETOS).length} objetos · toca los que brillan ✦ (puedes seguir cuando quieras)`; };
+      const counter = el('div', 'tut-count'); const upd = () => { counter.textContent = `${s.seen.length}/${objetosVisibles().length} objetos · toca todos los que brillan ✦`; };
       prof.hotspots.forEach(h => {
         const info = OBJETOS[h.id]; if (!info) return;
         let [x, y, w, hh] = h.bounds || [0, 0, 1, 1];
@@ -433,10 +444,11 @@
     function textOf(step) { return typeof step.text === 'function' ? step.text(s) : step.text; }
     function refresh() {
       const step = steps[s.i];
-      const needOk = !step.needs || (step.needs === 'kind' ? !!s.kind : step.needs === 'seen' ? true : !nameError(s.draft));
+      const needOk = !step.needs || (step.needs === 'kind' ? !!s.kind : step.needs === 'seen' ? objetosVisibles().every(id => s.seen.includes(id)) : !nameError(s.draft));
       nextBtn.disabled = busy || !needOk;
       nextBtn.textContent = step.next || (s.i === steps.length - 1 ? (mode === 'test' ? 'Reiniciar prueba' : 'Terminar') : 'Siguiente');
-      if (step.needs === 'seen') { const left = Object.keys(OBJETOS).length - s.seen.length; nextBtn.textContent = left ? `Seguir (faltan ${left})` : 'Listo, seguir'; }
+      if (step.needs === 'seen') { const left = objetosVisibles().filter(id => !s.seen.includes(id)).length; nextBtn.textContent = left ? `Seguir (faltan ${left})` : 'Listo, seguir'; }
+      $('.tut-skip').hidden = mode !== 'replay' && !s.name;   // la mascota es obligatoria: sin ella no hay salida
       backBtn.disabled = busy || s.i === 0 || !!step.noBack;
       backBtn.textContent = step.back || 'Atrás';
       barEl.firstElementChild.style.width = Math.round(s.i / (steps.length - 1) * 100) + '%';
@@ -477,7 +489,8 @@
     muteBtn.addEventListener('click', () => { try { localStorage.setItem(MUTE, muted() ? '0' : '1'); } catch (_) {} paintMute(); if (!muted()) beep(300, true); });
     paintMute();
     $('.tut-skip').addEventListener('click', () => { clearAll(); if (mode === 'first') api.skip(); if (opts.exit) opts.exit(); else location.hash = '#/home'; });
-    show(s.i);
+    const empezar = () => show(s.i);
+    if (s.i === 0 && mode !== 'replay') ensureUmbral().then(U => U.play(root, empezar)).catch(empezar); else empezar();
   }
 
   window.NexoTutorial = { render };
