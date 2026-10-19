@@ -65,7 +65,6 @@
       panel: '<div class="tut-time"><span>Día 1</span><i></i><span>Día 3</span><i class="l"></i><span>Día 8</span><i class="xl"></i><span>Día 21</span></div><small class="tut-cite">Cepeda et al., 2006: repartir el repaso en el tiempo mejora el recuerdo a largo plazo frente a hacerlo todo junto.</small>' },
     { id: 'error', pose: 'pensativo', text: 'Equivocarte no es el fin. Es *información*: la ruta se ajusta a lo que fallaste.', scene: 'panel',
       panel: '<div class="tut-path"><b>Fallo</b><i></i><b>Pista</b><i></i><b>Ruta ajustada</b></div>' },
-    { id: 'rec-juegos', pose: 'abrir', text: 'Y ahora la sala de *juegos*. Ven.', scene: 'mascota', next: 'Vamos', recorrido: 'juegos' },
     { id: 'monedas', pose: 'feliz', text: 'Aquí ganas *monedas*… y las gastas en la tienda del refugio.', scene: 'panel',
       panel: '<div class="tut-path"><b>Juegas</b><i></i><b>Ganas monedas</b><i></i><b>Tienda</b></div>' },
     { id: 'dato2', pose: 'guino', text: 'Dato: jugar no es perder el tiempo. Te obliga a recordar sin mirar, que es justo lo que *funciona*.', scene: 'panel',
@@ -86,7 +85,7 @@
 
   function ensureCss() {
     if (cssLoaded) return; cssLoaded = true;
-    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = new URL('./tutorial.css?v=15', HERE).href; document.head.append(l);
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = new URL('./tutorial.css?v=16', HERE).href; document.head.append(l);
   }
   function ensurePixel() {
     if (window.PixelMascotas) return Promise.resolve(window.PixelMascotas);
@@ -127,7 +126,7 @@
   function ensureRecorrido() {
     if (window.NexoRecorrido) return Promise.resolve(window.NexoRecorrido);
     recLoading = recLoading || new Promise((ok, fail) => {
-      const s = document.createElement('script'); s.src = new URL('./recorrido.js?v=16', HERE).href; s.onload = () => ok(window.NexoRecorrido); s.onerror = fail; document.head.append(s);
+      const s = document.createElement('script'); s.src = new URL('./recorrido.js?v=17', HERE).href; s.onload = () => ok(window.NexoRecorrido); s.onerror = fail; document.head.append(s);
     });
     return recLoading;
   }

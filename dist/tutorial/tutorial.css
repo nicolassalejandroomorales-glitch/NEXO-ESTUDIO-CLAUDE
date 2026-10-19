@@ -82,7 +82,7 @@
 .tut-text .nl { animation: tutLetra .3s ease-out; }
 @keyframes tutLetra { 0% { color: #d9791c; text-shadow: 0 0 8px #ffc850, 0 0 2px #fff0a8; } 100% { color: inherit; text-shadow: 0 0 0 transparent; } }
 .tut-text { margin: 0; font-size: clamp(1rem, 1.5vw + .5rem, 1.35rem); line-height: 1.45; min-height: 3em; }
-.tut-tag { position: absolute; top: calc(var(--s) * -9px); left: calc(var(--s) * 4px); box-sizing: border-box; min-width: calc(var(--s) * 28px); padding: calc(var(--s) * 2px) calc(var(--s) * 3px); font-weight: 800; font-size: .9rem; text-align: center; color: #3a2414;
+.tut-tag { position: absolute; z-index: 3; top: calc(var(--s) * -10px); left: calc(var(--s) * 4px); box-sizing: border-box; min-width: calc(var(--s) * 28px); padding: calc(var(--s) * 2px) calc(var(--s) * 3px); font-weight: 800; font-size: .9rem; text-align: center; color: #3a2414;
   border-style: solid; border-width: calc(var(--s) * 2px); border-image: url("../assets/tutorial/marco-nombre.png") 6 fill / calc(var(--s) * 2px) stretch; image-rendering: pixelated; }
 .tut-arrow { position: absolute; right: calc(var(--s) * 5px); bottom: calc(var(--s) * 4px); width: calc(var(--s) * 10px); height: calc(var(--s) * 8px); opacity: 0; background: url("../assets/tutorial/flecha-siguiente.png") 0 0 / calc(var(--s) * 20px) calc(var(--s) * 8px) no-repeat; image-rendering: pixelated; }
 .tut-box.done .tut-arrow { opacity: 1; animation: tutArrow .8s steps(1) infinite; }

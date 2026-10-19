@@ -24,13 +24,6 @@
         { sel: '.sotano-stage', pose: 'dedo', texto: 'Sobre las piedras dibujo tu estado *real*: frascos y cristales según lo que has demostrado, no según lo que has releído.' }
       ]
     },
-    juegos: {
-      ruta: 'games',
-      pasos: [
-        { sel: '.torre-scene', pose: 'abrir', texto: 'La *sala de juegos*: tres máquinas arcade y un portal. Jugar te obliga a recordar sin mirar, y eso es justo lo que funciona.' },
-        { sel: '.games-grid', pose: 'guino', texto: '*Memory Lab*, *Error Hunter* y *Blitz* aún duermen, igual que el portal del *juego nuevo*. Cuando despierten, aquí te aviso.' }
-      ]
-    },
     organizacion: {
       ruta: 'planner',
       pasos: [
