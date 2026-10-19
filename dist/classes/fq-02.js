@@ -1,4 +1,4 @@
-/* Fisicoquímica II · PEP 1 · Electrolitos, actividad y fuerza iónica (miércoles 21 de octubre).
+/* Fisicoquímica II · PEP 1 · Electrolitos, actividad y fuerza iónica (miércoles 28 de octubre; movida desde el 21).
    Fuente: clase 5 «Equilibrio químico y electrolitos» (partes I y II), Dr. Eduardo Pino, USACH 2S 2026.
    Las 104 diapositivas reales están en slides/fq-02.js (de la Clase 5 I completa y la Clase 5 II hasta la constante de acidez).
    Números recalculados en Python (docs/chats/clases.md). El ejemplo de la diapositiva 22 trae un error de cálculo del propio ppt: ver el bloque m1b4. */
@@ -23,7 +23,7 @@
        `gen` = generador(es) de fq-02-gen.js (nivel 5); `pep` = pregunta de `goal.questions` que asegura. */
     demuestra: {
       m1: { gen: ['iones', 'actividad', 'fuerza'], pep: 'P1', seconds: 180 },
-      m2: { gen: ['debye', 'solub', 'acidez'], pep: 'P2', seconds: 180 },
+      m2: { gen: ['debye', 'solub', 'acidez', 'mezcla'], pep: 'P2', seconds: 180 },
       m3: { gen: 'conduc', pep: 'P3', seconds: 180 }
     },
     status: 'borrador',
@@ -230,7 +230,10 @@
                 solution: ['I = ½(0,004·1² + 0,002·2²) = 0,006 m', 'log γ± = −0,509 · 2 · √0,006 = −0,0789', 'γ± = 10^(−0,0789) = 0,834'], explain: 'γ± = 0,834.' }),
             write('m2-w1', 'Enséñale a tu compañero: ¿por qué sube la solubilidad del AgCl al agregar KNO₃, si no tienen ningún ion en común?', 'KNO₃ no comparte iones con el AgCl, pero sube la fuerza iónica. Con más I, γ± baja; como K°ps = γ±²·Kps es constante, el Kps aparente (producto de concentraciones) debe subir y se disuelve más AgCl. Es el efecto salino primario o salting-in.',
               ['No hay ion común: el efecto viene de la fuerza iónica', 'Mayor I → menor γ±', 'K°ps = γ±²·Kps es constante → Kps aparente sube → mayor solubilidad'],
-              { concept: 'ion.kps', explain: 'Más iones alrededor estabilizan a Ag⁺ y Cl⁻ disueltos.', slide: 85, teach: true, keywords: [{ label: 'fuerza iónica', any: ['fuerza i', 'iónica', ' I '] }, { label: 'γ± baja', any: ['γ', 'actividad', 'coeficiente'] }, { label: 'sube la solubilidad', any: ['aument', 'sube', 'más solub', 'mayor solub'] }] })
+              { concept: 'ion.kps', explain: 'Más iones alrededor estabilizan a Ag⁺ y Cl⁻ disueltos.', slide: 85, teach: true, keywords: [{ label: 'fuerza iónica', any: ['fuerza i', 'iónica', ' I '] }, { label: 'γ± baja', any: ['γ', 'actividad', 'coeficiente'] }, { label: 'sube la solubilidad', any: ['aument', 'sube', 'más solub', 'mayor solub'] }] }),
+            write('m2-w2', 'Estilo PEP (pregunta de la PEP 1 2S2023): enuncia los postulados de la teoría de Debye–Hückel.', 'Se elige un ion cualquiera como ion central. El solvente es un medio dieléctrico continuo y las interacciones ion–solvente no dependen de la concentración del electrolito. Los demás iones forman una distribución continua con la constante dieléctrica del solvente. Alrededor del ion central hay un exceso de carga de signo contrario (la atmósfera iónica), y solo se consideran las interacciones coulómbicas ion–ion.',
+              ['Se elige un ion central de referencia', 'El agua es un medio dieléctrico continuo; ion–solvente independiente de la concentración', 'Los otros iones son una distribución continua con la constante dieléctrica del solvente', 'Exceso de carga de signo contrario alrededor del ion central (atmósfera iónica)'],
+              { concept: 'ion.debye', explain: 'Son las cuatro ideas con que se calcula el potencial de la atmósfera iónica.', slide: 52, keywords: [{ label: 'ion central', any: ['ion central', 'ión central', 'ion de referencia', 'ión de referencia', 'ion arbitrario'] }, { label: 'dieléctrico continuo', any: ['dieléctric', 'continuo'] }, { label: 'carga opuesta alrededor', any: ['exceso de carga', 'signo contrario', 'carga opuesta', 'atmósfera', 'atmosfera', 'nube'] }, { label: 'solo coulomb', any: ['coulomb', 'electrostát', 'electrostat'] }] })
           ]
         },
         parts: [

@@ -68,3 +68,15 @@ Chat: Clases v2 (aula nueva). Lee CLAUDE.md, la skill nexo-clase, docs/clases-v2
 Hecho: aula.js en estilo estación para todas las misiones, prueba final PEP por misión, mezcla de alternativas.
 Hecho también: panel «Camino al 7», mini clase y clase a profundidad. Tarea: glosario, formulario, recetario y bestiario dentro del aula nueva; `demuestra` para FQ II 02 y 03 cuando estén en master. Regla: nunca el aspecto de la pantalla vieja; contraste y animaciones revisados antes de entregar. 1440 y 390. Sonnet 5.5.
 ```
+
+## FQ II · PEP 1 con el motor (19 oct 2026)
+- **PEP 1 de FQ II: miércoles 28 de octubre** (correo del Dr. Pino, 19 oct). Control 1: lunes 26. `dist/semester-2026.js` y el Inicio todavía muestran 21 oct: lo mueve el chat de Organización (arreglar también `calendario-test` y `organizacion-test`).
+- Hecho: `docs/fq-pep1-motor/MAPA.md` (qué cae, prioridad, errores del material, bibliografía), `SIMULACRO.md` (100 min, 5 problemas, pauta), generadores `eqmoles` y `gibbsvh` (fq-01) y `mezcla` (fq-02), actividad escrita `m2-w2`. fq-01/02/03 siguen en `borrador`.
+- Falta: Guías 2 y 3 de 2026 (adjuntos de M. Zapata; Gmail no los baja), confirmar duración y p° con la cátedra, simulacro mezclado dentro de la app, aprobación de Niquito por clase.
+
+## Prompt de continuación (FQ II PEP 1)
+```
+Chat: Clases FQ II (PEP 1 el miércoles 28 oct). Lee CLAUDE.md, la skill nexo-clase y docs/fq-pep1-motor/SPEC.md, MAPA.md y SIMULACRO.md.
+Hecho: mapa de qué cae, generadores eqmoles/gibbsvh/mezcla, simulacro en documento.
+Tarea: lee las Guías 2 y 3 de 2026 que Niquito deje en la carpeta del chat, ajusta los generadores de fq-02 y fq-03 a lo que piden, y construye el simulacro mezclado dentro de la app. Después, revisión con Niquito clase por clase para sacarlas de borrador. Sonnet 5.5.
+```
