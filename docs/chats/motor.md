@@ -3,7 +3,7 @@
 - estado: piloto en Aminas; clases y juegos ya alimentan evidencia y rangos
 - fase: desarrollo
 - prioridad: 2
-- spec: docs/motor-rangos/SPEC.md
+- spec: docs/motor-verde/SPEC.md
 
 ## Hecho
 - Conceptos, evidencia, estados de conocimiento y FSRS en `dist/academic/*`. Piloto org-01 / Aminas.
@@ -11,10 +11,11 @@
 - Ejercicios con regla de calidad (`docs/calidad-ejercicios/SPEC.md`).
 - 18 oct: puente clase → motor (`class-bridge.js`). Las 11 clases y los juegos escriben evidencia.
 - 19 oct: las clases ya pueden dar rangos (`docs/motor-rangos/SPEC.md`): minutos por concepto en el aula y la estación, `class_item` verificada, familias por habilidad, la escrita correcta cuenta como justificada y la carta del perfil usa todos los conceptos.
+- 19 oct: hoja verde rehecha (`docs/motor-verde/SPEC.md`): 2 ejercicios distintos de escalón 4 o más sin ayuda; `auditGreen` y prueba con tope por clase.
 
 ## Falta
 - Corrección real de respuestas abiertas: la escrita sigue siendo autorúbrica. Auditoría 19 oct: mostrar la respuesta modelo antes de marcar y exigir palabras clave.
-- Regla de la "hoja verde" (`classes/evidence.js`): solo escribir y calcular cuentan como producir, así que hay conceptos que nunca llegan a verde (8/22 en org-01, 6/11 en org-05). Dibujar sin ayuda debería contar.
+- Clases: 86 conceptos aún no pueden llegar a hoja verde (30 son `base.*` sin ejercicios). Hay que agregarles ejercicios de calcular o dibujar y bajar el tope en `tools/class-evidence-test.cjs`.
 - Decidir si `study_bank` (motor de estudio piloto) también cuenta como verificado.
 
 ## Ideas
@@ -25,7 +26,7 @@
 ## Prompt de inicio
 ```
 Chat: Motor académico (Opus). Lee CLAUDE.md, la skill nexo-motor y docs/chats/motor.md.
-Parte desde "Falta" y pregúntame qué decisión de diseño toca primero.
+Parte desde "Falta". Siguiente decisión de diseño: la corrección de escritas (autorúbrica vs corrección real). Pregúntame con selección múltiple.
 ```
 
 ## Prompt de continuación

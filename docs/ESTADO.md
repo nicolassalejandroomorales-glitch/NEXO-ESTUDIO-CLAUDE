@@ -98,3 +98,4 @@ Historial de lo hecho por tema. Lo lee Claude solo cuando necesita contexto de o
 - 19 oct 2026 · Clases v2: aula nueva (`aula.js`) dentro del estilo de la estación para todas las misiones, y prueba final PEP por misión (`cls.demuestra`); Basicidad conserva su estación. SPEC: docs/clases-v2/SPEC.md.
 - 19 oct 2026 · Sótano: escena final al volver de una misión, campanilla y grietas de errores en cada alcoba (`dist/aprender/sotano-luz.js`). SPEC: docs/clases-v2/SPEC.md.
 - 19 oct 2026 · Motor: las clases y los juegos ya pueden dar rangos. Cuentan los minutos del aula y la estación, lo corregido por la app es verificado, hay familias por habilidad y la carta del perfil usa todos los conceptos. SPEC: docs/motor-rangos/SPEC.md.
+- 19 oct 2026 · Motor: la hoja verde ahora exige 2 ejercicios distintos de escalón 4 o más sin ayuda (dibujar cuenta). Hay un auditor que lista los 86 conceptos sin salida a verde. SPEC: docs/motor-verde/SPEC.md.
