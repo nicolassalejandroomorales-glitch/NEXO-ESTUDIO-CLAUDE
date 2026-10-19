@@ -8,7 +8,7 @@
 
   /* Escalones, siempre de fácil a difícil. */
   const STEPS = {
-    1: 'Ver', 2: 'Reconocer', 3: 'Completar', 4: 'Producir con ayuda', 5: 'Producir solo', 6: 'Mezclado y en el tiempo'
+    1: 'Ver', 2: 'Reconocer', 3: 'Completar', 4: 'Producir (dibujar)', 5: 'Producir solo', 6: 'Mezclado y en el tiempo'
   };
   // Escalón por defecto según la actividad: elegir es reconocer; ordenar, clasificar, unir y tocar es completar;
   // dibujar una molécula o flechas a partir de una base es producir con ayuda; escribir la respuesta es producir. Una actividad puede declarar su propio "step".
@@ -49,7 +49,11 @@
     return store;
   }
 
-  const independent = r => r.correct && !r.hint && !r.retry && r.step >= 5 && r.kind !== 'fragil';
+  /* Producir solo: escalón 4 o más (dibujar, escribir, calcular), sin pista, sin reintento y sin acierto frágil.
+     Para la hoja verde hacen falta SOLO_NEEDED ejercicios distintos: un acierto suelto puede ser suerte (docs/motor-verde/SPEC.md). */
+  const SOLO_MIN_STEP = 4, SOLO_NEEDED = 2;
+  const solo = r => r.correct && !r.hint && !r.retry && r.step >= SOLO_MIN_STEP && r.kind !== 'fragil';
+  const hasGreen = recs => new Set(recs.filter(solo).map(r => r.itemId)).size >= SOLO_NEEDED;
 
   /* Guarda una respuesta. "delayed" marca un acierto sin ayuda 24 h o más después del primero: eso es retener. */
   function record(state, classId, entry) {
@@ -64,7 +68,7 @@
       transfer: Boolean(entry.transfer), confidence: entry.confidence ?? null, why: entry.why || null, kind,
       at: at.toISOString()
     };
-    const firstSolo = store.records.find(r => r.conceptId === rec.conceptId && independent(r));
+    const firstSolo = store.records.find(r => r.conceptId === rec.conceptId && solo(r));
     rec.delayed = Boolean(firstSolo) && at - new Date(firstSolo.at) >= DAY_MS;
     store.records.push(rec);
     return rec;
@@ -76,9 +80,11 @@
     let key = 'semilla';
     if (recs.length) key = 'brote';
     if (recs.some(r => r.correct && !r.retry && r.step >= 4)) key = 'clara';
-    if (recs.some(independent)) key = 'verde';
-    if (recs.some(r => independent(r) && r.transfer)) key = 'intensa';
-    if (recs.some(r => independent(r) && r.delayed)) key = 'flor';
+    if (hasGreen(recs)) {
+      key = 'verde';
+      if (recs.some(r => solo(r) && r.transfer)) key = 'intensa';
+      if (recs.some(r => solo(r) && r.delayed)) key = 'flor';
+    }
     let overlay = null;
     const due = store?.reviews?.[conceptId]?.dueAt;
     if (LEAVES[key].rank >= 3 && due && new Date(due) <= now) overlay = 'seca';
@@ -95,6 +101,28 @@
 
   function leaves(cls, store, now = new Date()) {
     return Object.fromEntries((cls.concepts || []).map(c => [c.id, leaf(store, c.id, now)]));
+  }
+
+  /* Auditor: ¿puede cada concepto llegar a hoja verde? Cuenta los ejercicios de escalón 4 o más.
+     Una misión con prueba "Demuestra" (generadores) aporta ejercicios nuevos cada vez: cuenta como suficiente para el concepto de la misión. */
+  function auditGreen(classes) {
+    const out = [];
+    for (const cls of Object.values(classes || {})) {
+      const ids = {};
+      (cls.concepts || []).forEach(c => { ids[c.id] = new Set(); });
+      const walk = (o, mission, seen = new Set()) => {
+        if (!o || typeof o !== 'object' || seen.has(o)) return;
+        seen.add(o);
+        if (typeof o.type === 'string' && DEFAULT_STEP[o.type] && o.id && stepOf(o) >= SOLO_MIN_STEP) (ids[conceptOf(o, mission)] ||= new Set()).add(o.id);
+        for (const k in o) walk(o[k], mission, seen);
+      };
+      (cls.missions || []).forEach(m => {
+        walk(m, m.id);
+        if (cls.demuestra?.[m.id]) { const s = ids[m.id] ||= new Set(); for (let i = 0; i < SOLO_NEEDED; i++) s.add(`gen${i}`); }
+      });
+      for (const [concept, set] of Object.entries(ids)) if (set.size < SOLO_NEEDED) out.push({ classId: cls.id, subject: cls.subject, concept, exercises: set.size });
+    }
+    return out;
   }
 
   /* Calibración: cuando dices X % de seguridad, ¿cuánto aciertas? */
@@ -118,5 +146,5 @@
   const due = (store, now = new Date()) => Object.values(store?.reviews || {})
     .filter(r => r?.dueAt && new Date(r.dueAt) <= now).map(r => r.targetId);
 
-  window.NexoClassEvidence = { STEPS, LEAVES, WHY, stepOf, confidenceKind, storeFor, record, leaf, leaves, conceptOf, calibration, schedule, due };
+  window.NexoClassEvidence = { STEPS, LEAVES, WHY, stepOf, confidenceKind, storeFor, record, leaf, leaves, conceptOf, calibration, auditGreen, schedule, due };
 })();
