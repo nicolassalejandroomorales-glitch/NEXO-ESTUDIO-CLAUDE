@@ -1,40 +1,46 @@
 # Tutorial (Grimorio guía)
 - modelo: Sonnet 5.5 · medio
-- estado: conectado a la app; Niquito pidió rehacer su aspecto y animación (crítica del 15 oct)
+- fase: desarrollo
+- estado: todo conectado y publicado (Artifact v39); esperando que Niquito revise la animación del Grimorio por capas
 - prioridad: 2
 - spec: docs/tutorial/SPEC.md
 
 ## Hecho
-- Diseño cerrado (SPEC, GUION de 29 pasos, FRASES) y arte pixel: Grimorio (15 poses × 3 bocas), huevos con nacimiento, marcos.
-- Guion completo programado y conectado: cuenta nueva lo ve sola, guarda mascota y nombre reales, premio de 150 ⚛ una vez, Ajustes › Tutoriales, filtro de nombres.
-- Avisos del Grimorio (primera vez por sección y novedades con versión) y revisión en móvil (390).
-- Objetos del refugio resaltados, voz por letra con botón de silencio.
+- Diseño cerrado (SPEC, GUION, FRASES) y arte pixel: huevos con nacimiento, marcos y Grimorio.
+- Guion programado y conectado: cuenta nueva lo ve sola, guarda mascota y nombre reales, premio de 150 ⚛ una vez, Ajustes › Tutoriales, filtro de nombres.
+- Avisos del Grimorio (primera vez por sección y novedades con versión).
+- Inicio mágico (fondo con runas, aura, nube), huevos vivos por especie, nacimiento con estallido, dab y voz por especie.
+- Voz del Grimorio (blip grave por letra) y textos con personalidad.
+- Recorrido por la app real (`dist/tutorial/recorrido.js`): Inicio, Aprender (Sótano de los Cristales), Organización y Perfil, con voz por letra, «hazlo tú» (tocar *Avanzar* en el Sótano) y globo bien ubicado en móvil. **Sin Juegos** (Niquito, 18 oct: se bugea) **y sin el paso «Configurar»** (no tenía sentido).
+- Animación del Grimorio (18 oct): aura por emoción, humo, brasas, gestos por emoción y pergamino que se desenrolla.
+- Grimorio por capas (18 oct, 9 capas en `dist/tutorial/grimorio-vivo.js`): fondo, manos, páginas, tapa, cara (parpadea), barba (ondea con inercia), boca, extras. Hojas nuevas `grimorio-*.png`; las viejas se borraron. Lo usan tutorial, recorrido, avisos y entrada.
 
 ## Falta
-- (18 oct) Huevos vivos, estallido, dab y voz por especie ya están (`dist/tutorial/huevos.js`), esperando aprobación de Niquito y revisión en 390.
-- Leer `docs/tutorial/FEEDBACK-15OCT.md` (crítica de Niquito, por sección) y conversar con él el orden antes de programar.
-- Animación fluida del Grimorio, el libro, el altar con velas y la nube de diálogo (hoy parecen PNG).
-- (18 oct) Voz (blip grave por letra) y texto con personalidad hechos y aprobados. Falta confirmar el «salto hacia arriba» de la pantalla (no se reproduce en pasos 1–4 en escritorio; probar en 390 y en pasos con panel).
-- (18 oct) Salto de pantalla revisado en 390: era el botón Siguiente moviéndose (nube que crecía al escribir); arreglado reservando el alto del texto. 
-- (18 oct) Recorrido modular hecho: motor `recorrido.js` + las 5 secciones (Inicio, Aprender, Juegos, Organización, Perfil). Esperan aprobación de Niquito. Falta revisión con captura en 390, voz por letra y «hazlo tú».
+- Que Niquito revise y apruebe: Grimorio por capas, aura/humo/pergamino, recorrido y «hazlo tú» (todo sin aprobar aún).
+- Ajustar la intensidad de los movimientos según lo que él vea (barba, manos, tapa, páginas).
+- (Opcional) Cuadros extra para 3 o 4 poses clave: hablar, sorpresa, enojo, aparecer.
+- Revisar el Grimorio por capas con captura en 390 (solo se probó por texto y en escritorio).
+- Volver a poner el recorrido de Juegos cuando la sala de juegos esté lista.
+- En 390 el documento mide 389 px de ancho: se sale ~14 px (lienzo `.tut-egg-fx` de los huevos y/o la app). Revisar en el tema de los huevos.
 - Premio con nube (necesita permiso explícito, hoy no se toca Supabase).
 - Revisar que 150 ⚛ siga bien si cambian los precios de la tienda.
 
 ## Ideas
 - Mini tutoriales por sección que se activan la primera vez que entras.
 - El Grimorio recuerda tus preferencias y sugiere la primera sesión.
+- Más pasos «hazlo tú» (usar un `sel` cuyo toque no cambie de pantalla; ver SPEC).
 
 ## Prompt de inicio
 ```
-Chat: Tutorial (solo conversar primero). Lee CLAUDE.md, la skill nexo-tutorial, docs/tutorial/SPEC.md y docs/tutorial/FEEDBACK-15OCT.md.
-Contexto: el tutorial funciona, pero quiero rehacer su aspecto y animación; mi crítica está en FEEDBACK-15OCT.md, ordenada por sección.
-Tarea: dime en una línea qué entendiste y hazme máximo 3 preguntas de selección múltiple para decidir por qué sección empezamos y cómo se debe ver la animación. No escribas código ni dibujes hasta que yo diga "hazlo".
+Chat: Tutorial (solo conversar primero). Lee CLAUDE.md, la skill nexo-tutorial, docs/tutorial/SPEC.md y docs/chats/tutorial.md.
+Contexto: el tutorial está completo y publicado; falta mi revisión de la animación del Grimorio por capas.
+Tarea: dime en una línea qué entendiste y hazme máximo 3 preguntas de selección múltiple sobre qué quiero ajustar. No escribas código ni dibujes hasta que yo diga "hazlo".
 Al terminar, usa nexo-cierre y actualiza docs/chats/tutorial.md.
 ```
 
 ## Prompt de continuación
 ```
-Chat: Tutorial. Lee CLAUDE.md, la skill nexo-tutorial, docs/tutorial/SPEC.md (sección "Recorrido por la app real") y docs/chats/tutorial.md.
-El recorrido por la app real ya tiene sus 5 secciones (Inicio, Aprender, Juegos, Organización, Perfil) en dist/tutorial/recorrido.js y el salto del botón Siguiente está arreglado.
-Parte desde "Falta": revisa las 5 secciones en móvil 390 con una sola captura, y pregúntame con selección múltiple si sumamos voz por letra al globo del recorrido y los 3–4 momentos "hazlo tú".
+Chat: Tutorial. Lee CLAUDE.md, la skill nexo-tutorial, docs/tutorial/SPEC.md (secciones "Animación fluida del Grimorio" y "Recorrido por la app real") y docs/chats/tutorial.md.
+El Grimorio por capas (9 capas, dist/tutorial/grimorio-vivo.js), la magia y el pergamino están publicados en el Artifact (v39). El recorrido ya no tiene Juegos ni el paso Configurar.
+Parte desde "Falta": primero parte de dónde está master (trabaja en un worktree limpio de origin/master, mi carpeta principal queda atrás) y pregúntame con selección múltiple qué ajustar de lo que vi (barba, manos, tapa, páginas, aura, pergamino).
 ```
