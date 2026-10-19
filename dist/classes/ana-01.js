@@ -20,6 +20,12 @@
     subject: 'analitica',
     title: 'El análisis químico y sus errores',
     evaluation: 'PEP 1',
+    /* Prueba final de cada misión (estación en modo «solo Demuestra»): formato PEP, un intento, reloj opcional.
+       `gen` = generador(es) de ana-01-gen.js (nivel 5); `pep` = pregunta de `goal.questions` que asegura. */
+    demuestra: {
+      m1: { gen: ['conceptos', 'etapas', 'humedad', 'interferentes'], pep: 'P1', seconds: 150 },
+      m2: { gen: ['calibracion', 'exactitud', 'precision', 'errores'], pep: 'P2', seconds: 180 }
+    },
     status: 'borrador',
     sources: {
       [SRC]: { title: 'Conceptos generales y Etapas del Análisis Químico', author: 'Dra. Carmen Pizarro', detail: 'Química Analítica, Química y Farmacia, USACH, 2S 2026', authority: 'Material oficial del curso' },

@@ -18,6 +18,12 @@
     subject: 'analitica',
     title: 'Volumetría: de la bureta a la muestra',
     evaluation: 'PEP 1',
+    /* Prueba final de cada misión (estación en modo «solo Demuestra»): formato PEP, un intento, reloj opcional.
+       `gen` = generador(es) de ana-02-gen.js (nivel 5); `pep` = pregunta de `goal.questions` que asegura. */
+    demuestra: {
+      m1: { gen: ['piezas', 'patron'], pep: 'P3', seconds: 180 },
+      m2: { gen: ['titular', 'volumen', 'alicuota'], pep: 'P4', seconds: 180 }
+    },
     status: 'borrador',
     sources: {
       [SRC]: { title: 'Fundamentos de Química Analítica, cap. 13 (titulaciones)', author: 'Skoog, West, Holler y Crouch', detail: 'Bibliografía oficial del curso (sin diapositivas de cátedra todavía)', authority: 'Libro de texto' },

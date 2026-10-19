@@ -17,6 +17,12 @@
     subject: 'fisio',
     title: 'Motricidad y sistema nervioso vegetativo',
     evaluation: 'PEP 1',
+    /* Prueba final de cada misión (estación en modo «solo Demuestra»): formato PEP, un intento, reloj opcional.
+       `gen` = generador(es) de fis-01-gen.js (nivel 5); `pep` = pregunta de `goal.questions` que asegura. */
+    demuestra: {
+      m1: { gen: ['localizar', 'mecanismo', 'tratamiento'], pep: 'P1' },
+      m2: { gen: ['sna', 'toxindrome'], pep: 'P2' }
+    },
     status: 'borrador',
     sources: {
       [SRC]: { title: 'Fisiopatología (cap. sistema neuromuscular y sistema nervioso vegetativo)', author: 'Silbernagl y Lang', detail: 'Bibliografía básica del programa 2026-2 (clases del Dr. Cárdenas aún no están en el Drive)', authority: 'Libro de texto' },

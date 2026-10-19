@@ -18,6 +18,12 @@
     subject: 'analitica',
     title: 'Curvas de titulación ácido-base',
     evaluation: 'PEP 1',
+    /* Prueba final de cada misión (estación en modo «solo Demuestra»): formato PEP, un intento, reloj opcional.
+       `gen` = generador(es) de ana-03-gen.js (nivel 5); `pep` = pregunta de `goal.questions` que asegura. */
+    demuestra: {
+      m1: { gen: ['fuerte', 'zonas', 'indicador'], pep: 'P5', seconds: 180 },
+      m2: { gen: ['debil', 'pka-curva', 'poli'], pep: 'P6', seconds: 180 }
+    },
     status: 'borrador',
     sources: {
       [SRC]: { title: 'Fundamentos de Química Analítica, cap. 14–15 (titulaciones ácido-base)', author: 'Skoog, West, Holler y Crouch', detail: 'Bibliografía oficial del curso (sin diapositivas de cátedra todavía)', authority: 'Libro de texto' },

@@ -18,6 +18,12 @@
     subject: 'fisio',
     title: 'Digestivo: barrera, secreción, motilidad e hígado',
     evaluation: 'PEP 1',
+    /* Prueba final de cada misión (estación en modo «solo Demuestra»): formato PEP, un intento, reloj opcional.
+       `gen` = generador(es) de fis-09-gen.js (nivel 5); `pep` = pregunta de `goal.questions` que asegura. */
+    demuestra: {
+      m1: { gen: ['esofago', 'ulcera', 'farmacos'], pep: 'P7' },
+      m2: { gen: ['brecha', 'diarrea', 'ictericia', 'cirrosis'], pep: 'P8' }
+    },
     status: 'borrador',
     sources: {
       [SRC]: { title: 'Fisiopatología (cap. esófago, estómago, intestino, páncreas e hígado)', author: 'Silbernagl y Lang', detail: 'Bibliografía básica del programa 2026-2 (clases del Dr. Cárdenas aún no están en el Drive)', authority: 'Libro de texto' }

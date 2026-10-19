@@ -513,5 +513,6 @@
   };
 
   window.NexoClassroom = { nextExam, willowOf, parseNum, sessionFor, beatDone, recordOf, workOf, logEvidence, withConfidence, beats, isCorrect, itemsOf, blocksOf, diagnosisPlan, findItem, roundPick, simBuild, simScore, goalOf, PATHS,
-    genItem, genFor, trainLevels, levelOf, startLevel, newRun, bestiary, LEVELS };
+    genItem, genFor, trainLevels, levelOf, startLevel, newRun, bestiary, LEVELS,
+    mcOf, mcKeyOf, trapOf, numOk, allItems, missionById, MIN_WRITE };
 })();

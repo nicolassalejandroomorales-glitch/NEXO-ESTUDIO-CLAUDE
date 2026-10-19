@@ -20,6 +20,14 @@
     subject: 'fisico',
     title: 'Equilibrio químico',
     evaluation: 'PEP 1',
+    /* Prueba final de cada misión (estación en modo «solo Demuestra»): formato PEP, un intento, reloj opcional.
+       `gen` = generador(es) de fq-01-gen.js (nivel 5); `pep` = pregunta de `goal.questions` que asegura. */
+    demuestra: {
+      m1: { gen: ['avance', 'drg'], pep: 'P1', seconds: 180 },
+      m2: { gen: ['qk', 'kdg'], pep: 'P2', seconds: 180 },
+      m3: { gen: ['kpkc', 'hetero'], pep: 'P3', seconds: 180 },
+      m4: { gen: ['lechatelier', 'vanthoff', 'actividad'], pep: 'P4', seconds: 180 }
+    },
     status: 'borrador',
     sources: {
       [SRC]: { title: 'Equilibrio Químico · clases 1–3, Guía 1 y ejercicios de la clase 1', author: 'Dr. Eduardo Pino · Dr. Daniel Zúñiga-Núñez',

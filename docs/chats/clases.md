@@ -47,3 +47,14 @@ Falta por conversar (sin código): sonido de la sala (propuesta: Web Audio sinte
 Primero dime en una línea qué entendiste y hazme máximo 3 preguntas de selección múltiple. Luego: plan de construcción en pasos chicos en el SPEC (Opus), y recién ahí implementar con Sonnet 5.5. Primer corte sugerido: Cámara de Aminas navegable en la app + abrir el frasco de Basicidad (m4) con la estación existente. Probar en 1440 y 390.
 Al terminar, usa nexo-cierre y actualiza docs/chats/clases.md.
 ```
+
+## Aula nueva y prueba final (19 oct 2026)
+- Hecho: `dist/classes/aula.js` (+ `aula.css`) es la pantalla de cada misión, en el estilo de la estación; `demuestra` por misión con la prueba final en formato PEP. Detalle en `docs/clases-v2/SPEC.md` («El aula nueva y la prueba final»).
+- Lo de Cámara propia (escena final, sonido, grietas) quedó en la rama `clases-camara` como referencia: la Cámara real es la del Sótano; hay que llevar esas ideas allí.
+
+## Prompt de continuación (aula nueva)
+```
+Chat: Clases v2 (aula nueva). Lee CLAUDE.md, la skill nexo-clase, docs/clases-v2/SPEC.md («El aula nueva y la prueba final») y docs/chats/clases.md.
+Hecho: aula.js en estilo estación para todas las misiones, prueba final PEP por misión, mezcla de alternativas.
+Tarea: panel «Camino al 7» y mini clase / a profundidad dentro del aula nueva; llevar al Sótano la escena final al volver de una misión, el sonido y las grietas de errores (ver rama clases-camara); `demuestra` para FQ II 02 y 03 cuando estén en master. Regla: nunca el aspecto de la pantalla vieja; contraste y animaciones revisados antes de entregar. 1440 y 390. Sonnet 5.5.
+```

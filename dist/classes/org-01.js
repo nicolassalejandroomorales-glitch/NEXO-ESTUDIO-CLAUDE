@@ -75,6 +75,17 @@
     title: 'Aminas',
     evaluation: 'PEP 1',
     stations: ['m4'],
+    /* Prueba final de cada misión (estación en modo «solo Demuestra»): formato PEP, un intento, reloj opcional.
+       `gen` = generador(es) de org-01-gen.js (nivel 5); `pep` = pregunta de `goal.questions` que asegura. */
+    demuestra: {
+      m1: { gen: ['estructura', 'clasificar'] },
+      m2: { gen: ['nombrar', 'nombrarAril'] },
+      m3: { gen: ['sales', 'propiedades'], seconds: 120 },
+      m5: { gen: 'basicidad', pep: 'P3' },
+      m6: { gen: 'sintesis', pep: 'P4', seconds: 150 },
+      m7: { gen: 'reacciones', pep: 'P6', seconds: 150 },
+      m8: { gen: 'espectro' }
+    },
     status: 'borrador',
     /* Meta de la clase: los puntos de la prueba que esta clase te prepara a asegurar (pauta PEP 1 2025,
        dist/assets/exams/13_org2_pep1_2025_aminas_aromaticos.jpg). Un punto cuenta cuando aciertas sin ayuda

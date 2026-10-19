@@ -19,6 +19,12 @@
     subject: 'fisio',
     title: 'Lesión cerebral aguda: isquemia, edema y PIC',
     evaluation: 'PEP 1',
+    /* Prueba final de cada misión (estación en modo «solo Demuestra»): formato PEP, un intento, reloj opcional.
+       `gen` = generador(es) de fis-02-gen.js (nivel 5); `pep` = pregunta de `goal.questions` que asegura. */
+    demuestra: {
+      m1: { gen: ['cascada', 'penumbra'], pep: 'P3' },
+      m2: { gen: ['edema', 'ppc', 'signos'], pep: 'P4', seconds: 120 }
+    },
     status: 'borrador',
     sources: {
       [SRC]: { title: 'Fisiopatología (cap. sistema nervioso: isquemia, edema cerebral y presión intracraneal)', author: 'Silbernagl y Lang', detail: 'Bibliografía básica del programa 2026-2 (clases del Dr. Cárdenas aún no están en el Drive)', authority: 'Libro de texto' }

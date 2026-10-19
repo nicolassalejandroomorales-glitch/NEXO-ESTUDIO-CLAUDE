@@ -19,6 +19,13 @@
     subject: 'organica',
     title: 'Aromaticidad',
     evaluation: 'PEP 1',
+    /* Prueba final de cada misión (estación en modo «solo Demuestra»): formato PEP, un intento, reloj opcional.
+       `gen` = generador(es) de org-04-gen.js (nivel 5); `pep` = pregunta de `goal.questions` que asegura. */
+    demuestra: {
+      m1: { gen: 'benceno' },
+      m2: { gen: 'huckel', pep: 'P1' },
+      m3: { gen: ['hetero', 'nombres', 'espectro'], pep: 'P1' }
+    },
     status: 'borrador',
     sources: {
       [SRC]: { title: 'Compuestos Aromáticos I', author: 'Dr. Javier Echeverría', detail: 'Química Orgánica II, Química y Farmacia, USACH, 2025-2S', authority: 'Material oficial del curso' }

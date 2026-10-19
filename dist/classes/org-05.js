@@ -29,6 +29,13 @@
     subject: 'organica',
     title: 'Sustitución electrofílica aromática',
     evaluation: 'PEP 1',
+    /* Prueba final de cada misión (estación en modo «solo Demuestra»): formato PEP, un intento, reloj opcional.
+       `gen` = generador(es) de org-05-gen.js (nivel 5); `pep` = pregunta de `goal.questions` que asegura. */
+    demuestra: {
+      m1: { gen: 'reactivos', pep: 'P5', seconds: 120 },
+      m2: { gen: ['orientar', 'multiples'], pep: 'P2', seconds: 150 },
+      m3: { gen: ['friedel', 'sintesis', 'sna'], pep: 'P5', seconds: 150 }
+    },
     status: 'borrador',
     sources: {
       [SRC]: { title: 'Compuestos Aromáticos II (SEA)', author: 'Dr. Javier Echeverría', detail: 'Química Orgánica II, Química y Farmacia, USACH, 2025-2S', authority: 'Material oficial del curso' }

@@ -19,6 +19,12 @@
     subject: 'fisio',
     title: 'Respiratorio: ventilación e intercambio gaseoso',
     evaluation: 'PEP 1',
+    /* Prueba final de cada misión (estación en modo «solo Demuestra»): formato PEP, un intento, reloj opcional.
+       `gen` = generador(es) de fis-06-gen.js (nivel 5); `pep` = pregunta de `goal.questions` que asegura. */
+    demuestra: {
+      m1: { gen: ['espiro', 'causas', 'asma-epoc'], pep: 'P5' },
+      m2: { gen: ['aa', 'hipox-mec', 'insuf'], pep: 'P6', seconds: 120 }
+    },
     status: 'borrador',
     sources: {
       [SRC]: { title: 'Fisiopatología (cap. respiración)', author: 'Silbernagl y Lang', detail: 'Bibliografía básica del programa 2026-2 (clases del Dr. Cárdenas aún no están en el Drive)', authority: 'Libro de texto' },

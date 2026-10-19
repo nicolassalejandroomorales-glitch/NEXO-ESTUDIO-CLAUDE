@@ -20,6 +20,17 @@ La Cámara de cada ramo (`tools/aprender-pasillo/build_camara.py`: cripta circul
 - **El cristal-pantalla cambia de "modo" en cada paso** (aprobado 18 oct): **Adivina** = tranquilo, la mascota apuesta contigo y fallar sale gratis; **Clase** = el apunte se dibuja solo (mecanismos, flechas, estructuras) con la mascota explicando corto; **Práctica** = banco de trabajo (arrastrar tarjetas, armar receta, pistas y reintento); **Demuestra** = sobrio como hoja de prueba (un intento, reloj opcional, mascota en silencio, y al final cuánto aseguraste de tu PEP).
 - Pendiente de diseño: ~~cómo se ve~~ (ya)  el cristal-pantalla en cada paso (Adivina/Clase/Práctica/Demuestra), sonido y música de la sala.
 
+## El aula nueva y la prueba final (19 oct 2026)
+Hecho sobre la base nueva de `master` (sin la torre vieja):
+- **`dist/classes/aula.js` + `aula.css`**: la pantalla de cada misión, escrita desde cero en el estilo de la estación (cristal oscuro, serif, globo crema con la mascota real, backdrop de la Cámara del ramo desenfocado; **sin barra de pasos**). La lógica sigue siendo `player.js` (`NexoClassroom`: pasos, corrección, evidencia/FSRS); `player.js` solo ganó exports (`mcOf`, `trapOf`, `numOk`, `allItems`, `missionById`, `MIN_WRITE`).
+- Momentos: narración, caso de farmacia, reto, lección (diapositiva, filas, mecanismo con pasos, regla y receta guardadas), ejemplo resuelto, oferta de saltar, desvío por base, práctica, encargo final, rescate y cierre (conteo, camino al 7, hojas de la misión).
+- Actividades: alternativas (mezcladas con semilla por pregunta; `choice` guarda el índice del dato), número, ordenar, clasificar, unir, predice-observa-explica, receta, encontrar el error, escribir con pauta, tocar la parte, dibujar y flechas (editor de moléculas sobre hoja blanca, a propósito). Barra de confianza, pista de la mascota (cuenta «con pista»), «Explícame más simple», diapositiva ampliada.
+- Entrada: `#/lesson/<clase>` (el Sótano ya la abre con `openLesson(id, misión)`); Basicidad (org-01 m4) usa su estación completa. Al salir de una misión terminada llega su **prueba final** (`cls.demuestra[misión]`, estación en modo `only: 'demuestra'`).
+- **Prueba final**: formato PEP, un intento, reloj opcional, «Tu PEP 1 · punto asegurado o aún no» y repaso en 1 o 3 días; evidencia `transfer` con el concepto del propio ítem. `demuestra` está en org-01/04/05, ana-01/02/03, fq-01 y fis-01/02/06/09 (las de FQ II 02 y 03 y los generadores `dixon`/`comparar` de ana-01 están en commits locales aún no subidos: se suman cuando lleguen). Prueba: `tools/demuestra-test.cjs`.
+- Revisado en el navegador (1440 y 375) con una auditoría de contraste (WCAG 4,5:1) sobre narración, caso, reto, práctica (alternativas, clasificar, unir, ordenar, encontrar el error, escribir), regla, encargo final, rescate y cierre: sin fallas.
+- **No está aquí:** la Cámara propia que se había armado en la rama `clases-camara` (escena final, sonido, grietas, frascos y cristales por clase). La Cámara real es la del Sótano (`dist/aprender/`); esas ideas se llevan allí (escena final al volver de una misión, sonido, grietas de errores) en otro paso.
+- Pendiente: panel «Camino al 7», mini clase y clase a profundidad, entrenar/ronda/simulacro dentro del aula nueva; revisar spot/poe/receta a ojo en celular; pasar `demuestra` a FQ II 02 y 03 cuando estén en `master`.
+
 ## Qué
 Una **estación** = 4 pasos jugados en la mesa de la alcoba del Sótano: Adivina → Clase → Práctica → Demuestra.
 
