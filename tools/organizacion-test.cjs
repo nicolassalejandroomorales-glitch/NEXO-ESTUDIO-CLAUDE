@@ -10,9 +10,9 @@ const events = S.events.map(e => ({ ...e, status: 'planned', priority: 3 }));
 const today = '2026-10-14';
 const ranked = NexoPriority.rank(events, { today });
 
-// Semana crítica: 19–27 oct = 4 evaluaciones (SPEC, criterio de aceptación).
+// Semana crítica: 19–27 oct = 3 evaluaciones (eran 4: la PEP 1 de FQ II se movió del 21 al 28).
 const crit = T.critical(events, today);
-assert.strictEqual(crit.label, '19–27 oct: 4 evaluaciones');
+assert.strictEqual(crit.label, '19–27 oct: 3 evaluaciones');
 assert.ok(crit.active, 'empieza en 5 días: se muestra');
 assert.strictEqual(T.critical(events, '2026-12-30'), null, 'sin semana crítica al final');
 
@@ -31,7 +31,7 @@ assert.ok(plan.length >= 1 && plan.length <= 3);
 assert.ok(plan[0].flash && plan[0].minutes === 10 && plan[0].event.id === 'official-org-c1');
 assert.ok(plan.reduce((s, b) => s + b.minutes, 0) <= 120);
 assert.ok(plan.every(b => b.text && b.why && b.reason && b.minutes >= 10), 'cada bloque: qué, cuánto y por qué');
-assert.ok(plan.some(b => b.event.id === 'official-fq-pep1'), 'la PEP 1 FQ (7 días) entra antes que otro lab');
+assert.ok(!plan.some(b => b.event.id === 'official-fq-pep1'), 'la PEP 1 FQ (14 días, movida al 28) no desplaza lo de esta semana');
 // Tiempo chico → menos bloques; 0 minutos no rompe.
 assert.ok(T.plan({ ranked, today, minutes: 30, critical: crit }).length <= 2);
 // "Hoy no" (saltar) saca la evaluación del plan, sin culpa.

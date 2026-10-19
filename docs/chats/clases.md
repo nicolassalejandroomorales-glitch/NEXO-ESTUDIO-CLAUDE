@@ -70,7 +70,7 @@ Hecho también: panel «Camino al 7», mini clase y clase a profundidad. Tarea: 
 ```
 
 ## FQ II · PEP 1 con el motor (19 oct 2026)
-- **PEP 1 de FQ II: miércoles 28 de octubre** (correo del Dr. Pino, 19 oct). Control 1: lunes 26. `dist/semester-2026.js` y el Inicio todavía muestran 21 oct: lo mueve el chat de Organización (arreglar también `calendario-test` y `organizacion-test`).
+- **PEP 1 de FQ II: miércoles 28 de octubre** (correo del Dr. Pino, 19 oct). Control 1: lunes 26. `dist/semester-2026.js` ya dice 28 oct (con sus pruebas).
 - Hecho: `docs/fq-pep1-motor/MAPA.md` (qué cae, prioridad, errores del material, bibliografía), `SIMULACRO.md` (100 min, 5 problemas, pauta), generadores `eqmoles` y `gibbsvh` (fq-01) y `mezcla` (fq-02), actividad escrita `m2-w2`. fq-01/02/03 siguen en `borrador`.
 - Falta: Guías 2 y 3 de 2026 (adjuntos de M. Zapata; Gmail no los baja), confirmar duración y p° con la cátedra, simulacro mezclado dentro de la app, aprobación de Niquito por clase.
 

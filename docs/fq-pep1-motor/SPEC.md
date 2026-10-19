@@ -23,7 +23,7 @@ Que las 3 clases de FQ II (fq-01 equilibrio, fq-02 electrolitos, fq-03 electroqu
 3. `node tools/run-tests.cjs` pasa; 1440 y 390 revisados.
 
 ## Pendiente
-- **Mover la PEP 1 al 28 de oct en `dist/semester-2026.js`** (líneas del evento `official-fq-pep1` y la nota `official-fq-pep1` de las notas) y ajustar `tools/calendario-test.cjs` y `tools/organizacion-test.cjs` (la «semana crítica 19–27 oct» pasa de 4 a 3 evaluaciones). Es del chat de Organización.
+- ~~Mover la PEP 1 al 28 de oct en `semester-2026.js`~~ hecho (con `calendario-test` y `organizacion-test`).
 - Guías 2 y 3 de 2026: el conector de Gmail no baja adjuntos; Niquito las pasa (foto/PDF).
 - Confirmar con Pino/Zúñiga: duración de la PEP, qué p° usan (1 bar o 1 atm), si entra la Debye–Hückel ampliada y si Faraday/conductividad caen en la PEP 1.
 - Preguntar por el dato de la Guía 2 #11 (Kps BaCl₂ = 176,94) y el signo en el Control 1 2023 P2.
