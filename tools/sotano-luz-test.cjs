@@ -6,7 +6,8 @@ const { NexoClassEvidence: E, NexoSotanoLuz: L } = context.window;
 
 const cls = { id: 'c', missions: [{ id: 'm1' }, { id: 'm2' }], concepts: [{ id: 'base.x', root: true }, { id: 'a', mission: 'm1', title: 'A' }, { id: 'b', mission: 'm2', title: 'B' }] };
 const day = n => new Date(Date.UTC(2026, 9, n, 10)).toISOString();
-const state = {}, rec = (concept, correct, at, extra = {}) => E.record(state, 'c', { itemId: 'i' + at + concept, conceptId: concept, step: 5, correct, at, ...extra });
+let attempt = 0;
+const state = {}, rec = (concept, correct, at, extra = {}) => E.record(state, 'c', { itemId: `i${attempt++}`, conceptId: concept, step: 5, correct, at, ...extra });
 const def = { classes: ['c'] }, env = () => ({ classes: { c: cls }, NX: null, E, state });
 
 assert.equal(L.cracks(def, env()).length, 0, 'sin errores no hay grietas');

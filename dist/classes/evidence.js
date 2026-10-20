@@ -46,6 +46,7 @@
     const store = state.classEvidence[classId] ||= {};
     if (!Array.isArray(store.records)) store.records = [];
     if (!store.reviews || typeof store.reviews !== 'object') store.reviews = {};
+    if (!store.delivery || typeof store.delivery !== 'object') store.delivery = {};
     return store;
   }
 
@@ -59,9 +60,12 @@
   function record(state, classId, entry) {
     const store = storeFor(state, classId);
     const at = new Date(entry.at || Date.now());
+    const id = entry.id || `${classId}:${entry.itemId}:${entry.retry ? 'r' : 'a'}:${at.getTime()}`;
+    const existing = store.records.find(r => r.id === id);
+    if (existing) return existing;
     const kind = entry.retry ? null : confidenceKind(entry.confidence, entry.correct);
     const rec = {
-      id: `${entry.itemId}:${entry.retry ? 'r' : 'a'}:${at.getTime()}`,
+      id,
       itemId: entry.itemId, conceptId: entry.conceptId, missionId: entry.missionId || null, misconception: entry.misconception || null,
       stage: entry.stage || null, step: Number(entry.step) || 2,
       correct: Boolean(entry.correct), hint: Boolean(entry.hint), retry: Boolean(entry.retry),
@@ -70,8 +74,58 @@
     };
     const firstSolo = store.records.find(r => r.conceptId === rec.conceptId && solo(r));
     rec.delayed = Boolean(firstSolo) && at - new Date(firstSolo.at) >= DAY_MS;
+    if (entry.academicItem) rec.academicItem = entry.academicItem;
     store.records.push(rec);
     return rec;
+  }
+
+  // La evidencia se guarda antes de cargar el motor. La entrega puede repetirse sin repetir el intento.
+  const deliveries = new WeakMap();
+  function submit(api, cls, item, entry) {
+    const academicItem = { id: item.id, type: item.type || 'choice', concept: entry.conceptId,
+      source: item.source || null, slide: item.slide ?? null,
+      ...(item.gen ? { gen: { id: item.gen.id, level: item.gen.level } } : {}) };
+    const rec = record(api.getState(), cls.id, { ...entry, academicItem });
+    api.saveState();
+    api.flushState?.();
+    reconcile(api, cls).catch(() => { /* La entrega pendiente se recupera al reabrir la clase. */ });
+    return rec;
+  }
+
+  function reconcile(api, cls) {
+    const state = api.getState();
+    const boundApi = { ...api, getState: () => state,
+      saveState: () => { if (api.getState() === state) api.saveState(); } };
+    const run = async () => {
+      const store = storeFor(state, cls.id);
+      const records = store.records.filter(r => r.academicItem).slice().sort((a, b) => new Date(a.at) - new Date(b.at));
+      for (const rec of records) {
+        if (api.getState() !== state) return; // una importación cambió el estado durante la carga
+        const status = store.delivery[rec.id] ||= {};
+        if (status.review && status.academic) continue;
+        if (!status.review) {
+          try {
+            const prior = store.reviews[rec.conceptId];
+            status.review = rec.retry || new Date(prior?.updatedAt) > new Date(rec.at) || Boolean(await schedule(state, cls.id, rec, { now: new Date(rec.at) }));
+          } catch (_) { /* El registro sobrevive a FSRS no disponible. */ }
+        }
+        if (!status.academic) {
+          try {
+            const attempt = await window.NexoAcademicBridge?.record(boundApi, cls, rec.academicItem, rec);
+            status.academic = Boolean(attempt) && attempt.conceptIds.every(conceptId =>
+              state.academicIntelligence?.reviewSchedules?.some(r => r.id === `concept:${conceptId}` &&
+                (r.lastAttemptId === attempt.id || new Date(r.updatedAt) > new Date(attempt.attemptedAt))));
+          }
+          catch (_) { /* El puente conserva su idempotencia; se reintenta con el mismo id. */ }
+        }
+        if (api.getState() !== state) return;
+        api.saveState();
+        api.flushState?.();
+      }
+    };
+    const pending = (deliveries.get(state) || Promise.resolve()).catch(() => {}).then(run);
+    deliveries.set(state, pending);
+    return pending.finally(() => { if (deliveries.get(state) === pending) deliveries.delete(state); });
   }
 
   /* La hoja de un concepto según toda su evidencia. */
@@ -146,5 +200,5 @@
   const due = (store, now = new Date()) => Object.values(store?.reviews || {})
     .filter(r => r?.dueAt && new Date(r.dueAt) <= now).map(r => r.targetId);
 
-  window.NexoClassEvidence = { STEPS, LEAVES, WHY, stepOf, confidenceKind, storeFor, record, leaf, leaves, conceptOf, calibration, auditGreen, schedule, due };
+  window.NexoClassEvidence = { STEPS, LEAVES, WHY, stepOf, confidenceKind, storeFor, record, submit, reconcile, leaf, leaves, conceptOf, calibration, auditGreen, schedule, due };
 })();

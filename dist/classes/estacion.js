@@ -77,7 +77,11 @@
     const demo = { gen: 'basicidad', pep: 'P3', ends: ['menos básica', 'más básica'], prompt: 'Ordene de menor a mayor la basicidad de los siguientes compuestos orgánicos.', seconds: EXAM_SECONDS, ...(opts.demuestra || {}) };
     const only = opts.only === 'demuestra';
     const pool = [].concat(demo.gen).map(id => (opts.gen || window.NexoClassGen[cls.id]).generators.find(g => g.id === id)).filter(Boolean);
-    const gen = { make: (rng, level) => pickOne(pool).make(rng, level) };   // una misión puede tener varios generadores
+    const gen = { make: (rng, level) => {
+      const g = pickOne(pool), id = `gen:${g.id}:${level}:${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`;
+      return window.NexoClassroom?.genItem(cls, id) || { source: opts.gen?.source || window.NexoClassGen[cls.id]?.source,
+        ...g.make(rng, level), id, gen: { id: g.id, level } };
+    } };   // variante reproducible, con su generador y fuente, igual que el aula
     const P = window.PixelMascotas, petInfo = opts.pet || {};
     const pet = petInfo.name && petInfo.name !== 'Nexo' ? petInfo.name : (P?.list.find(([k]) => k === petInfo.kind)?.[1] || 'Matraz');
     let step = 0, raf = 0, destroyed = false, passedAdivina = false, resetMood = 0;
@@ -254,8 +258,10 @@
         const clock = document.createElement('div'); clock.className = 'st-clock'; clock.innerHTML = '<i></i><span></span>'; clock.hidden = !timed;
         const out = document.createElement('div'); let timer = 0, closed = false;
         const onDone = (ok, why) => {
+          if (closed) return;
           closed = true; clearInterval(timer);
           const result = { station: `${cls.id}:${mission.id}`, itemId: item.id || `${[].concat(demo.gen)[0]}-demuestra`, conceptId: item.concept || null, type: item.type || 'choice', question: demo.pep || null, correct: ok, assisted: false, timed, timeout: why === 'timeout', adivinaOk: passedAdivina,
+            source: item.source || null, slide: item.slide ?? null, gen: item.gen || null,
             reviewAt: Date.now() + (ok ? 3 : 1) * 86400000, at: Date.now() };
           opts.onResult?.(result);
           const rows = (cls.goal?.questions || []).map(x => x.id === demo.pep

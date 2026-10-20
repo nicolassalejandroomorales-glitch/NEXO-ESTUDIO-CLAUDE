@@ -953,7 +953,7 @@
   let mascotAcademicSubscribed=false;
   function loadAcademicFoundation() {
     if(!academicFoundation)academicFoundation=['model','graph','diagnosis','knowledge','ranks','classifiers','sources','reviews','structured','engine','pending','library','inspector','explorer','rescue']
-      .reduce((promise,name)=>promise.then(()=>window.NexoLoader.script(`./academic/${name}.js?v=b5d166cf`)),Promise.resolve())
+      .reduce((promise,name)=>promise.then(()=>window.NexoLoader.script(`./academic/${name}.js?v=5b82300d`)),Promise.resolve())
       .then(()=>{if(!mascotAcademicSubscribed){window.NexoAcademicEngine.subscribe(event=>
         window.NexoMascotController.react(event,app));mascotAcademicSubscribed=true;}})
       .catch(error=>{academicFoundation=null;throw error;});
@@ -992,12 +992,13 @@
     const leave = () => { document.body.classList.remove('in-classroom'); host.remove(); if (lessonReturnHash) location.hash = lessonReturnHash; else routeTo('learn'); };
     const onResult = result => {
       const E = window.NexoClassEvidence; if (!E) return;
-      const rec = E.record(state, id, { itemId: result.itemId, conceptId: result.conceptId || 'am.orden', missionId: result.station?.split(':')[1] || mission, stage: 'transfer', step: 5, correct: result.correct, hint: false, retry: false, transfer: true, at: result.at });
-      saveState({ backup: false });
-      E.schedule(state, id, rec).then(() => saveState({ backup: false })).catch(() => {});
-      window.NexoAcademicBridge?.record(api, cls, { id: result.itemId, type: result.type, concept: rec.conceptId }, rec).catch(() => {});
+      const conceptId = result.conceptId || 'am.orden';
+      E.submit(api, cls, { id: result.itemId, type: result.type, concept: conceptId, source: result.source, slide: result.slide, gen: result.gen },
+        { itemId: result.itemId, conceptId, missionId: result.station?.split(':')[1] || mission, stage: 'transfer', step: 5,
+          correct: result.correct, hint: Boolean(result.assisted), retry: false, transfer: true, at: result.at });
     };
-    const api = { getState: () => state, saveState: () => saveState({ backup: false }), track: (...args) => cloud.track(...args) };
+    const api = { getState: () => state, saveState: () => saveState({ backup: false }), flushState: () => storage.flush(), track: (...args) => cloud.track(...args) };
+    window.NexoClassEvidence?.reconcile(api, cls).catch(() => { /* el aula sigue disponible; la evidencia local queda pendiente */ });
     // Minutos activos por concepto para los rangos (docs/motor-rangos/SPEC.md); el cambio de ruta lo detiene.
     const ACTIVITY = { diagnostic: 'assessment', pretest: 'lesson', train: 'practice', practice: 'practice', placement: 'practice', challenge: 'practice', review: 'review', simulacro: 'assessment', transfer: 'assessment', rescue: 'rescue', detour: 'rescue', fix: 'rescue' };
     const studyTime = (concept, activity) => concept && window.NexoActiveStudy?.begin(window.NexoAcademicBridge?.conceptOf(cls, concept), activity);
@@ -1084,13 +1085,13 @@
     const promise = Promise.resolve(window.NexoClassCatalog || window.NexoLoader.script('./classes/catalog.js?v=6e3ef878')).then(() => {
       const file = window.NexoClassCatalog?.[id];
       if (!file) return false;
-      return Promise.all([window.NexoLoader.script('./classes/player.js?v=7eadcfe3'),
+      return Promise.all([window.NexoLoader.script('./classes/player.js?v=0a3a5b08'),
         window.NexoLoader.script('./classes/willow-tower.js?v=09c21b87').catch(() => null), // Torre del Sauce (etapa 10); sin ella, quedan las hojas en lista
         window.NexoLoader.script(`./classes/${file}?v=20`),
         // Motor de evidencia y repaso espaciado (FSRS); si no cargan, la clase funciona igual sin agendar repasos.
-        window.NexoLoader.script('./classes/evidence.js?v=cbcbf1b1'), window.NexoLoader.script('./classes/molecule.js?v=b3b2e5aa'), window.NexoLoader.script('./classes/editor.js?v=df0be94e'), window.NexoLoader.script('./academic/class-bridge.js?v=2c147b02').catch(() => null), window.NexoLoader.script('./academic/reviews.js?v=0273ea6c').catch(() => null)])
+        window.NexoLoader.script('./classes/evidence.js?v=5f7162cc'), window.NexoLoader.script('./classes/molecule.js?v=b3b2e5aa'), window.NexoLoader.script('./classes/editor.js?v=df0be94e'), window.NexoLoader.script('./academic/class-bridge.js?v=2c147b02').catch(() => null), window.NexoLoader.script('./academic/reviews.js?v=0273ea6c').catch(() => null)])
         .then(() => Promise.all([window.NexoLoader.script(`./classes/slides/${id}.js?v=4e68eb0a`).catch(() => null), // diapositivas reales, si ya se convirtieron
-          window.NexoLoader.script(`./classes/${id}-gen.js?v=f4dd51aa`).catch(() => null)])) // generadores de ejercicios (etapa 8), si la clase los tiene
+          window.NexoLoader.script(`./classes/${id}-gen.js?v=a442d032`).catch(() => null)])) // generadores de ejercicios (etapa 8), si la clase los tiene
         .then(() => true);
     });
     promise.catch(() => classroomLoads.delete(id));

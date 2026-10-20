@@ -2,6 +2,8 @@
 
 Historial de lo hecho por tema. Lo lee Claude solo cuando necesita contexto de otro tema; el cierre de cada chat agrega aquí una línea con fecha (skill nexo-cierre).
 
+- **20 oct 2026 · Motor académico / Fase I**: aula y Demuestra guardan evidencia local antes de entregar al motor/FSRS y recuperan pendientes al reabrir, sin duplicados; generados con variante/fuente/diapositiva. 44/44 pruebas rápidas y navegador 1440/390 en dos ramos. Entrega separada para revisión; ver `docs/fase-i-motor/SPEC.md`.
+
 ## Al 3–5 oct 2026
 
 - Base: UPDATE 01.2 (Sites v23) + Checkpoint 1. En Git desde el commit `f728d1e`.

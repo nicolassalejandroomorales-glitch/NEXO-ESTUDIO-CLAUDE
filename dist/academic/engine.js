@@ -33,6 +33,7 @@
     const reviewId=`concept:${conceptId}`;
     const index=academic.reviewSchedules.findIndex(item=>item.id===reviewId);
     if(academic.reviewSchedules[index]?.lastAttemptId===attempt.id)return;
+    if(new Date(academic.reviewSchedules[index]?.updatedAt)>now)return;
     const scheduled=await window.NexoAcademicReviews.schedule(academic.reviewSchedules[index],
       conceptId,'concept',attempt,{now});
     if(index<0)academic.reviewSchedules.push(scheduled);else academic.reviewSchedules[index]=scheduled;

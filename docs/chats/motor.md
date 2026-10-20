@@ -3,9 +3,10 @@
 - estado: piloto en Aminas; clases y juegos ya alimentan evidencia y rangos
 - fase: desarrollo
 - prioridad: 2
-- spec: docs/motor-verde/SPEC.md
+- spec: docs/fase-i-motor/SPEC.md
 
 ## Hecho
+- 20 oct, Fase I: registro local recuperable del aula y Demuestra; respuesta guardada antes de cargar motor/FSRS, reenvío idempotente, fuente y variante conservadas. Reconciliación al reabrir y protección al importar otro estado. Pruebas rápidas 44/44; navegador 1440/390 en Orgánica y Analítica. Ver `docs/fase-i-motor/SPEC.md`.
 - Conceptos, evidencia, estados de conocimiento y FSRS en `dist/academic/*`. Piloto org-01 / Aminas.
 - Etapas 4 a 10 (diagnóstico, intuitivo, grimorio, prueba, entrenar, replicar, arte) con su SPEC.
 - Ejercicios con regla de calidad (`docs/calidad-ejercicios/SPEC.md`).
@@ -31,9 +32,11 @@ Parte desde "Falta". Siguiente decisión de diseño: la corrección de escritas 
 
 ## Prompt de continuación
 ```
-Chat: Motor académico (Opus para diseñar, Sonnet para implementar). Lee CLAUDE.md, la skill nexo-motor, docs/chats/motor.md y docs/motor-rangos/SPEC.md.
-Ya está hecho: las clases y los juegos dan rangos (minutos, verificadas, familias por habilidad, carta del perfil).
-Sigue con el punto 2 de la auditoría del 19 oct: la regla de la "hoja verde" en dist/classes/evidence.js
-(hoy solo escribir y calcular cuentan como "producir solo", y hay conceptos que nunca llegan a verde).
-Hazme máximo 3 preguntas de selección múltiple y escribe docs/motor-verde/SPEC.md antes de programar.
+Continúa NEXO desde la rama/PR de Fase I del motor académico. Lee CLAUDE.md, la skill nexo-motor,
+docs/chats/motor.md y docs/fase-i-motor/SPEC.md. El aula y Demuestra ya guardan una evidencia local
+única y recuperable antes de entregar al motor/FSRS. Respeta estos registros y sus datos previos.
+Comprueba primero qué se integró en master: el diseño sigue en otro chat. Siguiente entrega a definir:
+corrección objetiva y semántica honesta de autorúbrica/progreso, o retomar una prueba sin terminar.
+No cambies arte ni Grimorio ni mascota, no agregues avatar jugable ni servicios obligatorios de pago.
+Mantén entregas pequeñas; no generes Biblia definitiva ni skill NEXO Arquitecto.
 ```

@@ -499,12 +499,9 @@
     const E = EV();
     if (!E || b.stage === 'pretest') return; // adivinar antes de la lección no es evidencia
     const missionId = b.m?.id || cls.missions.find(m => allItems(cls, m.id).some(x => x.item === item))?.id;
-    const state = api.getState();
-    const ev = E.record(state, id, { itemId: item.id, conceptId: E.conceptOf(item, missionId), missionId, stage: b.stage || 'rescue',
+    return E.submit(api, cls, item, { itemId: item.id, conceptId: E.conceptOf(item, missionId), missionId, stage: b.stage || 'rescue',
       step: E.stepOf(item), correct: rec.correct, hint: Boolean(rec.hint), retry, transfer: b.stage === 'transfer' || b.stage === 'simulacro',
       confidence: retry ? null : rec.confidence ?? null, why: retry ? null : rec.why || null, misconception: mcKeyOf(item, rec), at: rec.at });
-    E.schedule(state, id, ev).then(() => api.saveState()).catch(() => { /* sin repaso programado: la evidencia queda igual */ });
-    window.NexoAcademicBridge?.record(api, cls, item, ev).catch(() => { /* el motor académico es un espejo: la clase sigue sin él */ });
   }
   const withConfidence = (s, item, rec) => {
     const confidence = s.conf[item.id] ?? null;
