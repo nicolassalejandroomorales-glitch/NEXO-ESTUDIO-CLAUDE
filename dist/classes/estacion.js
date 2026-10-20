@@ -7,7 +7,7 @@
 (() => {
   'use strict';
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const md = v => esc(v).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+  const md = v => esc(v).replace(/(?<![\d.,])(-?\d+)\.(\d{1,2})(?![\d.,])/g, '$1,$2').replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
   const title = text => `<h2 class="st-h">${esc(text)}</h2>`;
   const pickOne = list => list[Math.random() * list.length | 0];
   const fmt = n => String(n).replace('.', ',');
@@ -116,15 +116,16 @@
 
   function mount(host, opts) {
     const cls = opts.cls, mission = cls.missions.find(m => m.id === opts.mission);
-    const misc = cls.misconceptions || {}, diag = mission.stages.diagnostic;
+    const misc = cls.misconceptions || {}, diag = mission.study?.checks || mission.stages.diagnostic;
     const demo = { gen: 'basicidad', pep: 'P3', ends: ['menos básica', 'más básica'], prompt: 'Ordene de menor a mayor la basicidad de los siguientes compuestos orgánicos.', seconds: EXAM_SECONDS, ...(opts.demuestra || {}) };
     const only = opts.only === 'demuestra';
     const progress = progressFor(opts), saved = progress.state;
     const pool = [].concat(demo.gen).map(id => (opts.gen || window.NexoClassGen[cls.id]).generators.find(g => g.id === id)).filter(Boolean);
     const gen = { make: (rng, level) => {
-      const g = pickOne(pool), id = `gen:${g.id}:${level}:${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`;
+      const g = pickOne(pool), profile = !only && mission.study?.generatorProfile;
+      const id = `gen:${g.id}:${level}:${Date.now().toString(36)}${Math.random().toString(36).slice(2)}${profile ? ':' + profile : ''}`;
       return window.NexoClassroom?.genItem(cls, id) || { source: opts.gen?.source || window.NexoClassGen[cls.id]?.source,
-        ...g.make(rng, level), id, gen: { id: g.id, level } };
+        ...g.make(rng, level, profile || undefined), id, gen: { id: g.id, level } };
     } };   // variante reproducible, con su generador y fuente, igual que el aula
     const P = window.PixelMascotas, petInfo = opts.pet || {};
     const pet = petInfo.name && petInfo.name !== 'Nexo' ? petInfo.name : (P?.list.find(([k]) => k === petInfo.kind)?.[1] || 'Matraz');
@@ -159,12 +160,13 @@
     const setSteps = () => { stepsEl.innerHTML = STEPS.map((s, i) => `<li class="${i === step ? 'on' : i < step ? 'done' : ''}">${i + 1} · ${s}</li>`).join(''); };
 
     /* Pregunta de opciones: un intento. `locked` = Demuestra (sin pista ni reintento). */
-    function choice(item, { onDone, locked = false, work = {}, expired = () => false }) {
+    function choice(item, { onDone, locked = false, work = {}, expired = () => false, allowUnknown = false }) {
       const box = document.createElement('div');
       const order = work.order ||= item.options.map((_, i) => i).sort(() => Math.random() - .5);
       progress.save();
       box.innerHTML = `<p class="st-q">${md(item.prompt)}</p><div class="st-opts">${order.map(i => `<button class="st-opt" data-i="${i}">${md(item.options[i].text)}</button>`).join('')}</div><p class="st-fb" hidden></p>`;
       const feedback = restoring => {
+        box.querySelector('.st-unknown')?.remove();
         box.querySelectorAll('.st-opt').forEach(b => { b.disabled = true; if (item.options[+b.dataset.i].correct) b.classList.add('ok');
           if (+b.dataset.i === work.choice && !work.correct) b.classList.add('bad'); });
         const option = item.options[work.choice];
@@ -187,6 +189,13 @@
           box._finish(Boolean(item.options[work.choice].correct));
         });
       });
+      if (allowUnknown && !work.done) {
+        const unknown = document.createElement('button'); unknown.className = 'st-next st-unknown'; unknown.textContent = 'No lo sé todavía';
+        unknown.addEventListener('click', () => {
+          work.assisted = true; unknown.remove(); box._finish(false, 'unknown');
+        });
+        box.append(unknown);
+      }
       if (work.done) feedback(true);
       return box;
     }
@@ -225,30 +234,80 @@
     const reveal = el => { el.hidden = false; if (!reduced()) el.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 380, easing: 'cubic-bezier(.2,.8,.2,1)' }); };
 
     function stepAdivina() {
-      react('Apuesta sin miedo: aquí equivocarse sale gratis.');
-      body.innerHTML = title('ADIVINA');
+      react('Esto es opcional y no da dominio. Si falta una base, empieza por la explicación.');
+      body.innerHTML = `${title('ANTES DE EMPEZAR')}<p class="st-fb">Primero puedes aprender desde cero. El reto inicial es opcional y no cuenta como dominio.</p>`;
       const next = nextBtn('A la clase →', () => go(1));
       body.append(choice(ADIVINA, { work: progress.task('adivina'), onDone: ok => { saved.adivinaOk = ok; progress.save(); reveal(next); } }), next);
+      const learn = document.createElement('button'); learn.className = 'st-next'; learn.textContent = 'No lo sé todavía: aprender desde cero';
+      learn.addEventListener('click', () => { saved.adivinaSkipped = true; saved.studyIndex = 0; progress.save(); go(1); });
+      body.prepend(learn);
     }
 
     function stepClase() {
-      react('Mira cómo la amina se queda con el H⁺… ¡qué egoísta!', 't');
-      body.innerHTML = `${title('CLASE')}
-        <div class="st-react" aria-label="La trietilamina captura un H⁺ con su par libre y queda como ion trietilamonio">
-          <div class="st-mol"><span class="st-ring"></span><span class="st-n">Et₃N<i class="st-pair"></i></span><span class="st-prod">Et₃NH⁺</span></div>
-          <span class="st-hp">H⁺</span></div>
-        <p class="st-cap" style="--d:.3s">pKa alto = **agarra el H⁺ fuerte**.</p>
-        <p class="st-cap" style="--d:.9s">El equilibrio gana el ácido **más débil**.</p>`;
-      body.querySelectorAll('.st-cap').forEach(p => { p.innerHTML = md(p.textContent); });
+      const pages = mission.study?.pages || [];
+      const index = Math.max(0, Math.min(Number(saved.studyIndex) || 0, pages.length));
+      if (index < pages.length) { studyPage(pages, index); return; }
+      react('Ahora comprueba lo explicado. Esto sigue siendo práctica, sin acreditar dominio.', 't');
+      body.innerHTML = title('COMPRUEBA LA IDEA');
+      const reread = document.createElement('button'); reread.className = 'st-next'; reread.textContent = 'Volver a la explicación';
+      reread.addEventListener('click', () => { saved.studyIndex = 0; progress.save(); go(1); }); body.append(reread);
       const next = nextBtn('Al juego →', () => go(2));
-      let i = Math.max(0, Math.min(Number(saved.classIndex) || 0, diag.length));
+      const indexKey = mission.study ? 'studyChecksIndex' : 'classIndex';
+      let i = Math.max(0, Math.min(Number(saved[indexKey]) || 0, diag.length));
       const ask = () => {
         if (i >= diag.length) { reveal(next); return; }
         const item = diag[i++], holder = document.createElement('div');
-        holder.append(choice(item, { work: progress.task('class:' + item.id), onDone: () => { const b = document.createElement('button'); b.className = 'st-next'; b.textContent = 'Siguiente'; b.addEventListener('click', () => { saved.classIndex = i; progress.save(); holder.remove(); ask(); }); holder.append(b); reveal(b); } }));
+        holder.append(choice(item, { work: progress.task('class:' + item.id), allowUnknown: Boolean(mission.study), onDone: () => { const b = document.createElement('button'); b.className = 'st-next'; b.textContent = 'Siguiente'; b.addEventListener('click', () => { saved[indexKey] = i; progress.save(); holder.remove(); ask(); }); holder.append(b); reveal(b); } }));
         body.insertBefore(holder, next); reveal(holder);
       };
       body.append(next); later(() => { if (step === 1) ask(); }, reduced() ? 0 : 1100);
+    }
+
+    function studyPage(pages, index) {
+      const page = pages[index], source = mission.study.sources[page.source];
+      react('Una idea a la vez. Puedes volver, pedir la explicación y continuar sin adivinar.', 't');
+      body.innerHTML = `<p class="st-fb">Explicación ${index + 1} de ${pages.length} · apoyo formativo</p>${title(page.title)}
+        <p class="st-q">${md(page.body)}</p>
+        ${page.equation ? `<div class="st-equation" aria-label="Reacción">${page.equation.map(part => `<span>${esc(part)}</span>`).join('')}</div>` : ''}
+        ${page.example ? `<p class="st-fb">${md(page.example)}</p>` : ''}`;
+      if (page.structures) {
+        const figures = document.createElement('div'); figures.className = 'st-study-structures';
+        figures.innerHTML = page.structures.map(f => `<figure><figcaption>${esc(f.label)}</figcaption><div></div></figure>`).join(''); body.append(figures);
+        loadRDKit().then(R => {
+          if (destroyed || !figures.isConnected) return;
+          page.structures.forEach((f, i) => { figures.children[i].lastElementChild.innerHTML = structure(R, f.smiles); });
+        }).catch(() => {}); // Los nombres y la explicación siguen disponibles sin el dibujo.
+      }
+      const controls = document.createElement('div'); controls.className = 'st-ctl';
+      const back = document.createElement('button'); back.className = 'st-next'; back.textContent = '← Paso anterior'; back.disabled = index === 0;
+      back.addEventListener('click', () => { saved.studyIndex = index - 1; progress.save(); go(1); });
+      const next = document.createElement('button'); next.className = 'st-next'; next.textContent = index === pages.length - 1 ? 'Comprobar lo aprendido →' : 'Continuar →';
+      next.addEventListener('click', () => { saved.studyIndex = index + 1; progress.save(); go(1); });
+      if (page.check) {
+        next.hidden = true;
+        const work = progress.task('study:' + page.check.id), review = document.createElement('p'); review.className = 'st-fb'; review.hidden = true;
+        const guess = document.createElement('button'); guess.className = 'st-next'; guess.textContent = 'Acerté adivinando: repasar por qué'; guess.hidden = true;
+        guess.addEventListener('click', () => {
+          work.guessed = true; work.assisted = true; progress.save(); review.hidden = false;
+          review.textContent = 'Queda registrado como respuesta con ayuda; no demuestra dominio. Relee el ejemplo y el porqué antes de continuar.';
+          guess.hidden = true;
+        });
+        body.append(choice(page.check, { work, allowUnknown: true, onDone: ok => {
+          next.hidden = false; guess.hidden = !ok || Boolean(work.guessed);
+          if (!ok || work.guessed) { review.hidden = false; review.textContent = 'Vuelve al ejemplo de arriba: el porqué está explicado en la corrección. Puedes usar Paso anterior para reconstruir la base.'; }
+        } }), review, guess);
+      }
+      controls.append(back, next); body.append(controls);
+      if (source) {
+        const p = document.createElement('p'), link = document.createElement('a'); p.className = 'st-fb'; link.href = source.url;
+        link.target = '_blank'; link.rel = 'noopener noreferrer'; link.textContent = source.label; p.append(link); body.append(p);
+      }
+      const scroller = host.closest('.cv-content') || body.closest('.st-panel'); if (scroller) scroller.scrollTop = 0;
+    }
+
+    function reviewButton() {
+      const button = document.createElement('button'); button.className = 'st-next'; button.textContent = 'Volver a la explicación';
+      button.addEventListener('click', () => { saved.studyIndex = 0; progress.save(); go(1); }); return button;
     }
 
     /* Ordenar por basicidad (formato de la pregunta 3 de la PEP): se toca de menos a más básica. `retry` = práctica: se puede reintentar. */
@@ -290,7 +349,7 @@
         const ok = JSON.stringify(picked) === JSON.stringify(item.answer);
         if (ok || !retry) { finish(ok); return; }
         slots.forEach(s => s.classList.add('bad')); fb.hidden = false; fb.innerHTML = md(item.hint || demo.hint || 'Mayor pKa del ion amonio = más básica.');
-        react('Casi. Mira los pKa: el más alto agarra el H⁺ más fuerte.', 'w');
+        react(mission.study ? 'Revisa dónde está el par libre y qué cambia al protonar cada N.' : 'Casi. Mira los pKa: el más alto agarra el H⁺ más fuerte.', 'w');
         later(() => { slots.forEach(s => s.classList.remove('bad')); picked = []; work.picked = []; progress.save(); refresh(); }, 900);
       });
       box._finish = finish; refresh();
@@ -307,10 +366,18 @@
     }
 
     function stepPractica() {
-      react('Primero con los pKa a la vista. Cuando salga, lo hacemos como en la prueba.', 't');
+      react('Ahora sin tabla: justifica con el par libre, la conjugación y los grupos unidos al anillo.', 't');
       body.innerHTML = title('PRÁCTICA');
-      const next = nextBtn('Ir a la prueba →', () => go(3)), work = progress.task('practice', () => gen.make(Math.random, 2)), item = work.item;
+      const next = nextBtn('Ir a la prueba →', () => go(3)), work = progress.task('practice', () => gen.make(Math.random, mission.study ? 3 : 2)), item = work.item;
       body.append(orderTask(item, { retry: true, work, onDone: ok => { if (ok) { react(pickOne(CHEER), 'h'); reveal(next); } } }), next);
+      if (mission.study) {
+        const another = document.createElement('button'); another.className = 'st-next'; another.textContent = 'Probar otro caso sin tabla';
+        another.addEventListener('click', () => {
+          (saved.practiceHistory ||= []).push(JSON.parse(JSON.stringify(work)));
+          delete saved.tasks.practice; progress.save(); go(2);
+        });
+        body.append(another, reviewButton());
+      }
     }
 
     function stepDemuestra() {
@@ -321,8 +388,11 @@
         <label class="st-clockopt"><input type="checkbox" ${saved.timed === false ? '' : 'checked'}> Con reloj (${seconds} s, como en la prueba)</label>
         <p class="st-fb">Si usas reloj, sigue corriendo aunque cierres la clase.</p><button class="st-next st-start">Empezar</button></div>`;
       const timedOption = body.querySelector('.st-clockopt input');
+      const reread = !only && mission.study && !saved.exam ? reviewButton() : null;
+      if (reread) body.append(reread);
       timedOption.addEventListener('change', () => { saved.timed = timedOption.checked; progress.save(); });
       function openExam() {
+        reread?.remove();
         const exam = progress.start(() => {
           const made = gen.make(Math.random, 5);
           const prompt = [].concat(demo.gen)[0] === 'basicidad' && made.type === 'order' ? demo.prompt : String(made.prompt).replace(/^Estilo PEP( \(pregunta \d\))?: ?/i, '').replace(/^./, c => c.toUpperCase());
@@ -346,6 +416,7 @@
             <button class="st-next st-done">Guardar y salir</button><button class="st-next st-again">Probar otra variante</button></div>`;
           out.querySelector('.st-done').addEventListener('click', () => opts.onExit?.());
           out.querySelector('.st-again').addEventListener('click', () => { progress.nextExam(); go(3); });
+          if (!only && mission.study) out.append(reviewButton());
           reveal(out.firstElementChild);
           react(passed ? '¡Resuelto sin pistas!' : (result.timeout ? 'Se acabó el tiempo. Puedes practicar otra variante.' : 'Esta no pasó. Revisa la explicación y prueba otra variante.'), passed ? 's' : 'w');
         };

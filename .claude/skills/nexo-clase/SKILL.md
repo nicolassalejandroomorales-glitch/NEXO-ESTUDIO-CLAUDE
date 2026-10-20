@@ -25,3 +25,5 @@ description: Crear o editar una clase de Nexo (contenido y lógica; la pantalla 
 Las clases pertenecen al Sótano; `dist/classes/vivas.js` desacopla controlador y presentación Estudio. `aula.js` y `estacion.js` siguen como componentes de contenido, sin una sala independiente. Contrato, pruebas y límites: `docs/clases-vivas/SPEC.md`, `tools/clases-vivas-test.cjs`, `tools/clases-vivas-e2e.cjs`. Inmersivo pendiente.
 
 Continuidad de estaciones: `NexoStation.progressFor` usa `classSessions[].stationProgress`; las variantes/resultados y el vencimiento del reloj se conservan al reabrir. Pruebas: `tools/station-progress-test.cjs` y `tools/station-progress-e2e.cjs`. Ver segunda entrega en el SPEC de Clases Vivas.
+
+Basicidad guiada: `mission.study.pages/checks` contiene apoyo y comprobaciones formativas; `studyChecksIndex` conserva posición sin reescribir el diagnóstico anterior. Perfil `piloto-basicidad`: práctica/reto sin tabla, familias enseñadas y variantes reproducibles; ayuda/«adiviné» no acredita dominio. Ver `docs/basicidad-guiada/SPEC.md` y `tools/basicidad-guided-e2e.cjs`.

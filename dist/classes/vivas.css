@@ -62,8 +62,5 @@
   .cv-study .st-h{font-size:19px;margin:0 0 4px}
   .cv-study .au-q,.cv-study .st-q{font-size:16px;line-height:1.4}
   .cv-study .st-opt{font-size:15px;padding:7px 9px}
-  .cv-study .st-react{height:56px}
-  .cv-study .st-mol{font-size:26px}
-  .cv-study .st-cap{font-size:15px;line-height:1.4}
 }
 @media(max-width:340px){.cv-study .st-steps li:not(.on){display:none}}

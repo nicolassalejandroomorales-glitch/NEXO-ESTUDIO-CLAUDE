@@ -26,20 +26,6 @@
 @keyframes st-pop{40%{transform:scale(1.04)}}
 @keyframes st-shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 .st-fb{margin:6px 0;font-size:16px;line-height:1.35;color:#e6d6b2;font-style:italic}
-.st-cap{margin:4px 0;font-size:19px;opacity:0;animation:st-rise .6s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:var(--d)}
-/* La reacción: el H⁺ vuela en arco, el par libre brilla y el ion aparece con un anillo de energía. */
-.st-react{position:relative;height:96px;display:flex;align-items:center;justify-content:center}
-.st-mol{position:relative;display:grid;place-items:center;font-size:34px;font-weight:700;letter-spacing:.02em}
-.st-n,.st-prod{grid-area:1/1;white-space:nowrap}
-.st-n{animation:st-n 5s ease-in-out infinite}.st-prod{color:#9ce8f0;opacity:0;animation:st-prod 5s ease-in-out infinite}
-.st-pair{position:absolute;right:-12px;top:2px;width:12px;height:12px;border-radius:50%;background:radial-gradient(#fff,#9ce8f0 45%,transparent 70%);animation:st-pair 5s ease-in-out infinite}
-.st-hp{position:absolute;left:50%;top:50%;font-size:28px;color:#ffd860;text-shadow:0 0 12px #e0b030,0 0 24px #e0b030;animation:st-fly 5s cubic-bezier(.4,0,.3,1) infinite;opacity:0}
-.st-ring{position:absolute;inset:-14px -30px;border:2px solid #9ce8f0;border-radius:50%;opacity:0;animation:st-ring 5s ease-out infinite}
-@keyframes st-fly{0%{transform:translate(120px,-70px) scale(.6);opacity:0}8%{opacity:1}40%{transform:translate(70px,-30px) scale(1)}58%{transform:translate(48px,-8px) scale(1)}62%{transform:translate(46px,-6px) scale(1.7);opacity:0}100%{opacity:0}}
-@keyframes st-n{0%,58%{opacity:1;transform:scale(1)}64%{opacity:0;transform:scale(.8)}96%{opacity:0}100%{opacity:1}}
-@keyframes st-prod{0%,60%{opacity:0;transform:scale(.7)}66%{opacity:1;transform:scale(1.15);text-shadow:0 0 20px #9ce8f0}74%,92%{opacity:1;transform:scale(1);text-shadow:0 0 10px #5cc4dc}98%,100%{opacity:0}}
-@keyframes st-pair{0%,40%{box-shadow:0 0 6px #9ce8f0;transform:scale(1)}52%{transform:scale(1.6);box-shadow:0 0 18px #fff}60%,100%{opacity:0}}
-@keyframes st-ring{0%,58%{opacity:0;transform:scale(.5)}62%{opacity:.9}85%,100%{opacity:0;transform:scale(1.5)}}
 /* Ordenar como en la PEP: casillas de menos a más básica y tarjetas con letra a), b), c)… */
 .st-slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:4px 0 10px}
 .st-slot{position:relative;min-height:62px;padding:16px 8px 8px;background:rgba(10,20,30,.5);border:1px dashed rgba(156,232,240,.45);border-radius:8px;color:#f3e8cf;font:inherit;font-size:16px;text-align:center;cursor:pointer;transition:all .25s}
@@ -59,6 +45,10 @@
 .st-slot span{display:flex;flex-direction:column;align-items:center;gap:2px}
 .is-exam .st-name{display:none}
 .st-ctl{margin-top:8px}.st-next:disabled{opacity:.4;cursor:default}
+.st-equation{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0;font-size:18px;line-height:1.5;overflow-wrap:anywhere}
+.st-study-structures{display:flex;flex-wrap:wrap;gap:12px}.st-study-structures figure{margin:0;flex:1 1 160px;min-width:0}
+.st-study-structures figcaption{font-size:15px;line-height:1.4}.st-study-structures svg{max-width:100%;height:auto;background:#fff;border-radius:6px}
+.st-body>.st-ctl{display:flex;flex-wrap:wrap;gap:8px}.st-body a{color:#9ce8f0}.st-body .st-q,.st-body .st-fb{overflow-wrap:anywhere}
 .st-exam{padding:10px 0}.st-clockopt{display:flex;gap:8px;align-items:center;margin:8px 0;font-size:16px}
 .st-clock{position:relative;height:24px;margin:4px 0 8px;border:1px solid #9a8068;border-radius:99px;overflow:hidden;background:rgba(10,20,30,.6)}
 .st-clock i{position:absolute;inset:0;transform-origin:left;background:linear-gradient(90deg,#3098b8,#9ce8f0);transition:transform .25s linear}

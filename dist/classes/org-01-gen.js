@@ -273,12 +273,16 @@
   const basicidad = {
     id: 'basicidad', title: 'Ordenar por basicidad', mission: 'm5', concepts: ['am.orden', 'am.resonancia', 'am.heterociclos'],
     make(rng, level, want = 'am.orden') {
+      const pilot = want === 'piloto-basicidad';
+      if (pilot) want = 'am.orden';
       // Resonancia: anilinas, amida y pirrol frente a una referencia. Heterociclos: N sp³, sp² y del pirrol.
       const POOL = { 'am.resonancia': ['Acetamida (amida)', 'Pirrol', 'p-Nitroanilina', 'p-Cloroanilina', 'Anilina', 'p-Toluidina (p-metilanilina)', 'Amoníaco', 'Ciclohexilamina', 'Bencilamina'],
         'am.heterociclos': ['Pirrol', 'Piridina', 'Imidazol', 'Piperidina', 'Pirrolidina', 'Anilina', 'Amoníaco', 'Morfolina'] }[want];
-      const pool = POOL ? PKA.filter(x => POOL.includes(x.n)) : PKA;
+      const taught = ['p-Nitroanilina', 'Anilina', 'p-Toluidina (p-metilanilina)', 'Piridina', 'Amoníaco', 'Bencilamina', 'Etilamina'];
+      const omit = pilot && level > 2 ? (rng() < .5 ? 'Bencilamina' : 'Etilamina') : null;
+      const pool = pilot ? PKA.filter(x => taught.includes(x.n) && x.n !== omit) : POOL ? PKA.filter(x => POOL.includes(x.n)) : PKA;
       const slide = { 'am.resonancia': 23, 'am.heterociclos': 26 }[want] || 28;
-      const base = { concept: want, slide, hint: 'Mayor pKa del ion amonio = más básica. Sin números: resonancia, hibridación y grupos que donan o atraen.' };
+      const base = { concept: want, slide, hint: pilot ? 'Localiza el par del N y revisa conjugación directa, grupos que retiran electrones y orbital. No basta con contar carbonos.' : 'Mayor pKa del ion amonio = más básica. Sin números: resonancia, hibridación y grupos que donan o atraen.' };
       const list = s => s.map(x => `${x.n} (${pkTxt(x)})`).join(' < ');
       if (level === 1) {
         const three = spaced(rng, 3, 1.0, false, pool), most = rng() < 0.6, tgt = most ? three[2] : three[0];

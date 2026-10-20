@@ -12,15 +12,16 @@
 - Basicidad conserva fases, respuestas, variantes, borradores y reloj; resultado recuperable e idempotente. Pruebas finales de otras misiones también conservan su intento pendiente.
 
 - Feedback visual corregido: el panel real de 250×268 usa encabezado compacto, contenido desplazable y compañero desplegable; comprobado en cuatro tamaños y con la continuidad de Basicidad.
+- Feedback académico incorporado: 12 pasos de explicación con ejemplos, cadenas explícitas, práctica sin tabla y preguntas con distractores causales. Ayuda/adivinación formativa sin dominio; relectura y otra práctica conservando el historial. Detalle en `docs/basicidad-guiada/SPEC.md`.
 
 ## Falta
 - Modo Inmersivo: montar el mismo controlador en la futura cámara (constelaciones, atril, prácticas y materiales).
-- Que el usuario estudie Basicidad durante 10–15 minutos en PC/celular y revise explicaciones, corrección y fuentes para recoger problemas reales de aprendizaje y uso.
+- Segunda prueba del usuario: revisar si los fundamentos explican el porqué y si los retos nuevos sin tabla tienen dificultad adecuada; el primer feedback ya se implementó.
 - Revisión de contenido académico y prueba en celular físico; no dar por integradas nube ni publicación.
 
 ## Prompt de continuación
 ```
-Continúa Clases Vivas. Lee CLAUDE.md, docs/clases-vivas/SPEC.md y las skills nexo-clase y nexo-motor. Las clases pertenecen a la cámara de la asignatura en el Sótano; no crees un Aula independiente. Usa NexoLivingClasses.create para compartir contenido, sesión y evidencia con Modo Estudio. El guardado de la fase interna de Basicidad ya está implementado y probado: no reinicies esa tarea. Antes de construir Inmersivo, realiza una sesión real de estudio con el usuario en Basicidad y recoge problemas de explicación, corrección o uso; corrige solo los que se observen. El usuario ya autorizó la integración en master de NEXO-ESTUDIO-CLAUDE el 20 oct 2026; parte desde su master actualizado. La publicación del Artifact sigue pendiente. Preserva módulos, IDs e historial. No construyas Sótano 3D ni cambies cloud. Presupuesto $0, sin IA obligatoria.
+Continúa Clases Vivas en GitHub NEXO Claude. Lee CLAUDE.md, docs/clases-vivas/SPEC.md, docs/basicidad-guiada/SPEC.md y la skill nexo-clase. Ya se implementó el feedback real: explicación desde cero y criterios antes del reto, cadenas explícitas y práctica sin pKa visible. Prueba con el usuario si la dificultad y el porqué ahora sirven; no vuelvas a pedir la primera prueba como si no hubiera ocurrido. Conserva variantes, historial y reloj; no acredites dominio por ayudas o autorreporte. Modo Inmersivo, revisión del PPT y publicación del Artifact siguen pendientes. Parte desde master actualizado y verifica la ubicación de la última entrega. No construyas Sótano 3D ni cambies cloud. Presupuesto $0, sin IA obligatoria.
 ```
 
 ## Integración autorizada · 20 oct 2026

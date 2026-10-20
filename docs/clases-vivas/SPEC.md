@@ -41,6 +41,9 @@ Implementado: controlador reutilizable `NexoLivingClasses.create({cls, api, miss
 ## Futuro
 Presentación Inmersiva dentro de la cámara del ramo: mural de constelaciones, atril, mesa de prácticas y materiales. Consumirá los mismos IDs y controlador; el escenario no será dueño de la evidencia. No se implementan aún 3D, nuevos contenidos ni validación académica de los borradores existentes.
 
+## Feedback académico del piloto · 20 octubre 2026
+El usuario probó Basicidad: faltaban fundamentos y criterios; abreviar cadenas dificultaba leerlas y mostrar el pKa revelaba el orden. Implementado un recorrido explicativo con apoyo bibliográfico, comprobaciones causales, práctica/reto sin tabla y relectura sin perder intentos. Ver `docs/basicidad-guiada/SPEC.md` para alcance, fuentes y comprobaciones; no confundir con un cotejo del PPT ni con aprobación pedagógica final del usuario.
+
 ## Segunda entrega: continuidad de Basicidad
 Autorizada el 20 oct 2026. Completar el piloto antes de ampliar el escenario.
 

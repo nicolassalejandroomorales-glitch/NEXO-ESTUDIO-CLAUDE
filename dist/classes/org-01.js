@@ -576,6 +576,91 @@
   /* ── Misión 4 (etapa 6: modelo de la clase viva) ── */
   {
     id: 'm4', title: 'Basicidad I: medirla con el pKa', subtitle: 'Cómo se compara la basicidad usando el pKa del ion amonio y hacia dónde va un equilibrio ácido–base', minutes: 25, slides: '17–20', pep: 'base de la pregunta 3',
+    study: {
+      generatorProfile: 'piloto-basicidad',
+      checks: [
+        { id: 'guided-two-n', prompt: 'Añades una cantidad pequeña de ácido a CH₃–C(=O)–NH–CH₂–CH₂–N(CH₃)–CH₃. ¿Qué N se protona preferentemente y por qué?', options: [
+          { text: 'El N de la derecha: su par no está conjugado con C=O; protonar el N de la izquierda perdería estabilización por resonancia', correct: true },
+          { text: 'El N de la derecha: toda amina terciaria es más básica que cualquier N con H', note: 'El sitio es correcto, pero la regla es falsa. Aquí decide que el otro N es de una amida, no simplemente cuántos grupos alquilo tiene.' },
+          { text: 'El N de la izquierda: su H hace más accesible la llegada de otro H⁺', note: 'Un H unido al N no aporta el par que forma el nuevo enlace; el N amídico deslocaliza su par hacia C=O.' },
+          { text: 'Ambos N por igual: están en la misma molécula y el ácido actúa sobre toda ella', note: 'Los dos N tienen entornos electrónicos distintos. La protonación preferente depende de cada sitio.' }
+        ], explain: 'El N derecho es una amina; el izquierdo es amídico porque está unido directamente al carbono del C=O. El CH₂ entre grupos interrumpe la conjugación hacia el N derecho.' },
+        { id: 'guided-limits', prompt: 'En agua, ¿puedes ordenar CH₃–NH₂, CH₃–NH–CH₃ y CH₃–N(CH₃)–CH₃ únicamente contando grupos metilo?', options: [
+          { text: 'No de forma fiable con esa única regla: la donación electrónica compite con la solvatación de la base y su ácido conjugado', correct: true },
+          { text: 'Sí: tres metilos > dos > uno, porque cada metilo dona y sus efectos siempre se suman igual', note: 'La donación favorece aceptar H⁺, pero no determina por sí sola el balance en agua.' },
+          { text: 'Sí: uno > dos > tres, porque el impedimento estérico siempre domina a la donación', note: 'Tampoco hay una regla universal de impedimento que determine todas las comparaciones.' },
+          { text: 'Son igualmente básicas: los tres N son sp³ y sus pares libres equivalentes', note: 'Compartir hibridación no iguala el entorno electrónico ni la estabilización por el disolvente.' }
+        ], explain: 'La estructura permite reconocer tendencias grandes; un orden fino entre estas alquilaminas exige datos del mismo disolvente y condiciones. No inventes una jerarquía universal 1°/2°/3°.' }
+      ],
+      sources: {
+        base: { label: 'Apoyo · McMurry/OpenStax 24.3: basicidad de aminas', url: 'https://openstax.org/books/organic-chemistry/pages/24-3-basicity-of-amines' },
+        equilibrium: { label: 'Apoyo · McMurry/OpenStax 2.9: equilibrio ácido–base', url: 'https://openstax.org/books/organic-chemistry/pages/2-9-predicting-acid-base-reactions-from-pka-values' },
+        structure: { label: 'Apoyo · McMurry/OpenStax 24.4: estructura y basicidad', url: 'https://openstax.org/books/organic-chemistry/pages/24-4-basicity-of-arylamines' }
+      },
+      pages: [
+        { id: 'notation', title: 'Primero, leer la cadena', source: 'base',
+          body: 'CH₃–CH₂–NH₂ es **etilamina**: dos carbonos unidos a un N con dos H. CH₃–CH₂–NH–CH₂–CH₃ es **dietilamina**: el N une dos cadenas y conserva un H.',
+          example: 'Escribiremos los carbonos explícitos, sin abreviar el grupo CH₃–CH₂– como «Et».' },
+        { id: 'pair', title: '¿Qué hace una base?', source: 'base',
+          body: 'Una base **acepta H⁺**. El N de la etilamina utiliza su par libre de electrones para formar el nuevo enlace N–H.',
+          equation: ['CH₃–CH₂–NH₂', '+ H⁺ ⇌', 'CH₃–CH₂–NH₃⁺'],
+          example: 'Antes: tres enlaces y un par libre en N; después: cuatro enlaces y carga +1, sin perder carbonos.',
+          check: { id: 'study-pair', prompt: 'Al protonar CH₃–CH₂–NH₂, ¿qué cambia?', options: [
+            { text: 'El N usa su par libre para unirse a un H⁺ y queda positivo', correct: true },
+            { text: 'El N pierde uno de sus H y queda negativo', note: 'Eso sería quitar H⁺; aquí estamos agregándolo.' },
+            { text: 'Se rompe un enlace entre los carbonos', note: 'La cadena se conserva: el cambio ocurre en el N.' }
+          ], explain: 'El par ya estaba en el N; ahora forma el enlace con H⁺. El producto es CH₃–CH₂–NH₃⁺.' } },
+        { id: 'conjugates', title: 'La base y su ácido conjugado', source: 'equilibrium',
+          body: 'CH₃–CH₂–NH₂ y CH₃–CH₂–NH₃⁺ forman un **par conjugado**: difieren en un H⁺. La primera acepta ese H⁺; la segunda puede devolverlo.',
+          example: 'Ácido entrega H⁺ → base conjugada. Base acepta H⁺ → ácido conjugado.' },
+        { id: 'equilibrium', title: 'Equilibrio no significa mitad y mitad', source: 'equilibrium',
+          body: 'La doble flecha indica que la transferencia puede ocurrir en ambos sentidos. En equilibrio las velocidades se igualan; las cantidades de ambos lados pueden ser muy distintas.',
+          equation: ['CH₃–NH₂ + H₂O', '⇌', 'CH₃–NH₃⁺ + OH⁻'],
+          example: 'Aquí el agua entrega H⁺ y la metilamina lo acepta; parte de cada especie sigue presente.',
+          check: { id: 'study-equilibrium', prompt: 'Si una reacción alcanzó el equilibrio, ¿qué puedes concluir?', options: [
+            { text: 'Las velocidades de ida y vuelta son iguales', correct: true },
+            { text: 'Hay exactamente la misma cantidad de reactivos y productos', note: 'Igual velocidad no exige iguales cantidades.' },
+            { text: 'Todas las moléculas dejaron de reaccionar', note: 'Las transferencias continúan en ambos sentidos.' }
+          ], explain: 'El equilibrio es dinámico: las cantidades se mantienen porque cada sentido compensa al otro.' } },
+        { id: 'pka', title: '¿De quién es ese pKa?', source: 'base',
+          body: 'El pKa mide la acidez de una especie: **menor pKa, mayor tendencia a entregar H⁺**. Para comparar aminas usamos el pKa de sus ácidos conjugados, no el de la amina neutra.',
+          example: 'Si CH₃–NH₃⁺ entrega poco su H⁺, la base CH₃–NH₂ lo retiene relativamente bien: mayor pKa del conjugado → base más fuerte en el mismo medio.' },
+        { id: 'worked-pka', title: 'Ejemplo resuelto: separar las parejas', source: 'base',
+          body: 'Comparamos CH₃–NH₂ con anilina (NH₂ unido directamente a un anillo bencénico). Sus ácidos conjugados tienen pKa aproximados de **10,6** y **4,6**, respectivamente.',
+          example: '1. Identifico cada ácido conjugado. 2. Comparo 10,6 > 4,6. 3. Concluyo: CH₃–NH₂ es la base más fuerte; falta explicar por qué su estructura lo permite.' },
+        { id: 'worked-equilibrium', title: 'Ejemplo resuelto: seguir el H⁺', source: 'equilibrium',
+          body: 'CH₃–COOH entrega H⁺ a CH₃–NH₂. Comparamos los ácidos de ambos lados: CH₃–COOH (pKa ≈ 4,8) y CH₃–NH₃⁺ (pKa ≈ 10,6).',
+          equation: ['CH₃–COOH + CH₃–NH₂', '⇌', 'CH₃–COO⁻ + CH₃–NH₃⁺'],
+          example: 'Se favorece el lado derecho, que contiene el ácido más débil. K ≈ 10^(10,6 − 4,8); K no es directamente el cociente «moléculas protonadas/neutras»: también importan las concentraciones.',
+          check: { id: 'study-transfer', prompt: 'Si el ácido de partida tiene pKa 12 y el ácido producto pKa 8, ¿qué lado se favorece?', options: [
+            { text: 'Los reactivos: allí está el ácido más débil', correct: true },
+            { text: 'Los productos: una amina siempre captura todo el H⁺', note: 'Aceptar H⁺ es reversible; aquí el ácido producto sería más fuerte.' },
+            { text: 'Ninguno: la doble flecha obliga a un reparto 50/50', note: 'La doble flecha expresa reversibilidad, no igualdad de cantidades.' }
+          ], explain: '12 > 8: el ácido más débil está a la izquierda. K = 10^(8 − 12) = 10⁻⁴ < 1.' } },
+        { id: 'resonance', title: 'Sin pKa: ¿dónde está el par libre?', source: 'structure',
+          body: 'En CH₃–CH₂–NH₂ el par está localizado en el N. En anilina puede deslocalizarse hacia el anillo; protonar ese N elimina parte de esa estabilización.',
+          example: 'Por eso anilina es menos básica que etilamina: no es «tener anillo», sino cómo está conectado al N.',
+          structures: [{ label: 'Anilina: N unido directamente al anillo', smiles: 'Nc1ccccc1' }, { label: 'Bencilamina: anillo–CH₂–NH₂', smiles: 'NCc1ccccc1' }],
+          check: { id: 'study-resonance', prompt: 'Insertas CH₂ entre el anillo y NH₂. ¿Qué cambia respecto de anilina?', options: [
+            { text: 'Se interrumpe la conjugación directa del par del N con el anillo', correct: true },
+            { text: 'El par queda más deslocalizado por tener un carbono adicional', note: 'Ese CH₂ saturado interrumpe la conjugación directa.' },
+            { text: 'El N pierde su par libre', note: 'La amina neutra conserva su par; cambia su interacción con el anillo.' }
+          ], explain: 'El CH₂ separador impide la conjugación directa: bencilamina es más básica que anilina. Un anillo cercano no basta para predecir lo contrario.' } },
+        { id: 'substituents', title: 'Grupos que donan o atraen', source: 'structure',
+          body: 'En anilinas comparables, un CH₃ en para puede aumentar la basicidad; un NO₂ en para la reduce al retirar densidad electrónica. El efecto depende del grupo y de su posición.',
+          example: 'Menor → mayor: para-nitroanilina < anilina < para-metilanilina. «Para» significa que el sustituyente está enfrente del NH₂ en el anillo.' },
+        { id: 'amide', title: 'Importa qué átomo está unido al N', source: 'base',
+          body: 'En CH₃–C(=O)–NH–CH₃, el N está unido directamente al carbonilo: es una amida y deslocaliza su par hacia C=O. En CH₃–C(=O)–CH₂–NH–CH₃, el CH₂ separa al N del carbonilo: esa conjugación directa se interrumpe.',
+          example: 'El N amídico es mucho menos básico que el de la amina. «Hay C=O cerca» no basta: recorre los enlaces hasta el N.',
+          structures: [{ label: 'Amida: C=O unido directamente a N', smiles: 'CNC(C)=O' }, { label: 'Amina: un CH₂ separa N y C=O', smiles: 'CNCC(C)=O' }] },
+        { id: 'orbital', title: 'El orbital y el medio también importan', source: 'base',
+          body: 'En piridina el par del N no integra el sistema aromático, pero ocupa un orbital sp² y está más retenido que en una alquilamina sp³. En agua, la solvatación también modifica la basicidad.',
+          example: 'NH₃ no tiene grupos alquilo donadores; CH₃–CH₂–NH₂ sí. Entre aminas primarias, secundarias y terciarias parecidas, pide datos: «más carbonos» no es una regla universal.' },
+        { id: 'worked-structure', title: 'Ejemplo resuelto: razonar sin números', source: 'structure',
+          body: 'Compara anilina, para-nitroanilina y CH₃–CH₂–NH₂. Primero separa los N conjugados con el anillo del N con par localizado; después compara el efecto del NO₂.',
+          example: 'Menor → mayor: para-nitroanilina < anilina < CH₃–CH₂–NH₂. Justificación: NO₂ retira densidad; anilina deslocaliza el par; etilamina conserva un par más disponible.' }
+      ]
+    },
     stages: {
       hook: { title: 'El anestésico del dentista se vende como sal', scene: LIDOCAINE, smiles: 'CCN(CC)CC(=O)Nc1c(C)cccc1C',
         sage: 'Aprendiz… la última vez que te pusieron anestesia, te inyectaron esta molécula.',
@@ -640,7 +725,7 @@
             hint: 'Compara el pH con el pKa del ion amonio: ¿cuál es mayor?' },
           { id: 'm4-fx1', type: 'spot', source: SRC, concept: 'am.equilibrio', slide: 17,
             prompt: 'Un aprendiz analizó trietilamina + ácido acético. Revisa su hoja: ¿en qué paso se equivocó?',
-            steps: ['Identifica los ácidos: CH₃COOH (pKa 4,76) y Et₃NH⁺ (pKa 10,76)', 'Compara: 4,76 es menor que 10,76', 'Concluye: gana el lado del ácido más fuerte, la izquierda', 'Dice que la amina queda casi toda neutra'], wrong: 2,
+            steps: ['Identifica los ácidos: CH₃COOH (pKa 4,76) y CH₃–CH₂–NH⁺(CH₂–CH₃)–CH₂–CH₃ (pKa 10,76)', 'Compara: 4,76 es menor que 10,76', 'Concluye: gana el lado del ácido más fuerte, la izquierda', 'Dice que la amina queda casi toda neutra'], wrong: 2,
             stepNotes: { 0: 'Bien: esos son los dos ácidos en juego.', 1: 'Bien comparado.', 3: 'Esa conclusión viene del error anterior.' },
             fix: { question: '¿Qué debió concluir?', options: [{ text: 'Gana el lado del ácido más débil (pKa mayor): la derecha', correct: true }, { text: 'Gana el lado con más moléculas', note: 'No se cuentan moléculas: se comparan los pKa.' }, { text: 'Quedan mitad y mitad', note: '6 unidades de pKa son un millón a uno.' }] },
             explain: 'El equilibrio favorece al ácido más débil, el ion trietilamonio (10,76): la amina queda casi toda protonada.', hint: '¿El equilibrio favorece al ácido fuerte o al débil?' },

@@ -21,7 +21,13 @@ function stamp(rel) {
   const file = path.join(dist, rel);
   const before = fs.readFileSync(file, 'utf8');
   let changed = 0;
-  const after = before.replace(/\.\/([\w./${}-]+?\.(?:js|css))\?v=[\w.-]+/g, (match, target) => {
+  // El catálogo ya incluye la extensión en ${file}; también debe invalidarse al editar una clase.
+  const withClasses = before.replace(/\.\/classes\/\$\{file\}\?v=[\w.-]+/g, match => {
+    const next = './classes/${file}?v=' + folderHash('classes', '.js');
+    if (next !== match) changed++;
+    return next;
+  });
+  const after = withClasses.replace(/\.\/([\w./${}-]+?\.(?:js|css))\?v=[\w.-]+/g, (match, target) => {
     let v;
     if (target.includes('${')) {
       const dir = path.dirname(target);

@@ -2,6 +2,8 @@
 
 Historial de lo hecho por tema. Lo lee Claude solo cuando necesita contexto de otro tema; el cierre de cada chat agrega aquí una línea con fecha (skill nexo-cierre).
 
+- **20 oct 2026 · Basicidad guiada**: feedback real incorporado: explicación gradual, cadenas explícitas, práctica sin tabla y comprobaciones causales; ayuda/adivinación sin dominio y relectura sin perder progreso. Ver `docs/basicidad-guiada/SPEC.md`. Revisión del usuario/PPT y publicación pendientes.
+
 ## 20 oct 2026 — Tutorial P0
 - Corrección de repetición automática, registro durable antes de abrir, repetición explícita sin efectos académicos y base independiente de cinemáticas. 48/48 pruebas y 14 escenarios en Edge OK. Integración en master autorizada, conservando las mejoras recientes de motor y Clases Vivas. Solo repositorio NEXO-ESTUDIO-CLAUDE; estado y límites en `docs/tutorial-persistencia/SPEC.md`. Artifact pendiente de publicación.
 - **20 oct 2026 · Confiabilidad del motor / segunda entrega local**: cuatro regresiones reproducidas antes de corregir; variantes con ID propio, autorúbrica sin dominio verificado, cola FSRS y reconstrucción histórica del catálogo. Sin modificar progreso personal ni publicar. Ver `docs/confiabilidad-motor/SPEC.md`; pendiente auditoría de la entrega.

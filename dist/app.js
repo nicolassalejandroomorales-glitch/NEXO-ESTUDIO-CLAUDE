@@ -1012,9 +1012,9 @@
     };
     if (!window.NexoLivingClasses || !window.NexoAula || !window.NexoStation) {
       app.innerHTML = '<section class="page"><p role="status">Abriendo Clase Viva…</p></section>';
-      Promise.all([window.NexoLoader.style('./classes/estacion.css?v=d5650d83'), window.NexoLoader.style('./classes/aula.css?v=6b282336'),
-        window.NexoLoader.style('./classes/vivas.css?v=ac53ba70'), window.NexoLoader.script('./mascot/pixelmascotas.js')])
-        .then(() => window.NexoLoader.script('./classes/estacion.js?v=eb967602'))
+      Promise.all([window.NexoLoader.style('./classes/estacion.css?v=eb92ae4b'), window.NexoLoader.style('./classes/aula.css?v=6b282336'),
+        window.NexoLoader.style('./classes/vivas.css?v=648a9939'), window.NexoLoader.script('./mascot/pixelmascotas.js')])
+        .then(() => window.NexoLoader.script('./classes/estacion.js?v=a0cc3949'))
         .then(() => window.NexoLoader.script('./classes/aula.js?v=e1d39f08'))
         .then(() => window.NexoLoader.script('./classes/vivas.js?v=c11c5550'))
         .then(() => { if (parseRoute().join('/') === requested) renderRoute(false); }).catch(failed);
@@ -1108,11 +1108,11 @@
       if (!file) return false;
       return Promise.all([window.NexoLoader.script('./classes/player.js?v=5bf92291'),
         window.NexoLoader.script('./classes/willow-tower.js?v=09c21b87').catch(() => null), // Torre del Sauce (etapa 10); sin ella, quedan las hojas en lista
-        window.NexoLoader.script(`./classes/${file}?v=20`),
+        window.NexoLoader.script(`./classes/${file}?v=361269f1`),
         // Motor de evidencia y repaso espaciado (FSRS); si no cargan, la clase funciona igual sin agendar repasos.
         window.NexoLoader.script('./classes/evidence.js?v=4c110524'), window.NexoLoader.script('./classes/molecule.js?v=b3b2e5aa'), window.NexoLoader.script('./classes/editor.js?v=df0be94e'), window.NexoLoader.script('./academic/class-bridge.js?v=e05158a5').catch(() => null), window.NexoLoader.script('./academic/reviews.js?v=0273ea6c').catch(() => null)])
         .then(() => Promise.all([window.NexoLoader.script(`./classes/slides/${id}.js?v=4e68eb0a`).catch(() => null), // diapositivas reales, si ya se convirtieron
-          window.NexoLoader.script(`./classes/${id}-gen.js?v=a442d032`).catch(() => null)])) // generadores de ejercicios (etapa 8), si la clase los tiene
+          window.NexoLoader.script(`./classes/${id}-gen.js?v=62a3041d`).catch(() => null)])) // generadores de ejercicios (etapa 8), si la clase los tiene
         .then(() => true);
     });
     promise.catch(() => classroomLoads.delete(id));

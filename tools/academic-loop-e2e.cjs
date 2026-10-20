@@ -107,7 +107,8 @@ async function answer(page, id, right) {
       });
       await page.locator('.st-opt[data-i="0"]').click();
       await page.getByRole('button', { name: 'A la clase →', exact: true }).click();
-      const diag = await page.evaluate(() => window.NexoClasses['org-01'].missions.find(m => m.id === 'm4').stages.diagnostic.map(it => it.options.findIndex(o => o.correct)));
+      await require('./helpers/study-journey.cjs')(page);
+      const diag = await page.evaluate(() => window.NexoClasses['org-01'].missions.find(m => m.id === 'm4').study.checks.map(it => it.options.findIndex(o => o.correct)));
       for (const choice of diag) {
         await page.locator(`.st-opt[data-i="${choice}"]`).click();
         await page.getByRole('button', { name: 'Siguiente', exact: true }).click();

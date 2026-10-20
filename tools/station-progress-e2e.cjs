@@ -42,14 +42,15 @@ async function records(page, count) {
       assert.ok(await page.locator('.st-opt[data-i="0"]').isDisabled());
       assert.equal((await progress(page)).adivinaOk, true);
       await page.getByRole('button', { name: 'A la clase →', exact: true }).click();
-      const diag = await page.evaluate(() => window.NexoClasses['org-01'].missions.find(m => m.id === 'm4').stages.diagnostic.map(it => ({ id: it.id, answer: it.options.findIndex(o => o.correct) })));
+      await require('./helpers/study-journey.cjs')(page);
+      const diag = await page.evaluate(() => window.NexoClasses['org-01'].missions.find(m => m.id === 'm4').study.checks.map(it => ({ id: it.id, answer: it.options.findIndex(o => o.correct) })));
       await page.locator(`.st-opt[data-i="${diag[0].answer}"]`).click(); await reload(page);
       assert.ok(await page.locator(`.st-opt[data-i="${diag[0].answer}"]`).isDisabled());
-      assert.equal((await progress(page)).classIndex, 0);
+      assert.equal((await progress(page)).studyChecksIndex || 0, 0);
       for (let i = 0; i < diag.length; i++) {
         if (i) await page.locator(`.st-opt[data-i="${diag[i].answer}"]`).click();
         await page.getByRole('button', { name: 'Siguiente', exact: true }).click();
-        if (i + 1 < diag.length) { await reload(page); assert.equal((await progress(page)).classIndex, i + 1); }
+        if (i + 1 < diag.length) { await reload(page); assert.equal((await progress(page)).studyChecksIndex, i + 1); }
       }
       await page.getByRole('button', { name: 'Al juego →', exact: true }).click();
       const practice = (await progress(page)).tasks.practice.item;
