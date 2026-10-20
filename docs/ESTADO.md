@@ -108,3 +108,5 @@ Historial de lo hecho por tema. Lo lee Claude solo cuando necesita contexto de o
 - 19 oct 2026 · Pulido para el lanzamiento (rehecho; el commit original se perdió): intro del umbral, diálogos chilenos, contador 7 obligatorio, Grimorio con rebote, reloj móvil ocultable, música alta por defecto y Sótano inmersivo con capa viva. SPEC: docs/pulido/SPEC.md.
 
 - 20 oct 2026 · Clases Vivas: módulo reutilizable del Sótano con Modo Estudio, enlaces directos y apertura desde cámara al mismo historial; motor local recuperable y pruebas PC/celular. Inmersivo futuro. SPEC: `docs/clases-vivas/SPEC.md`.
+
+- 20 oct 2026 · Clases Vivas, continuidad de Basicidad: fases, variantes, respuestas pendientes y reloj recuperables; resultados idempotentes y pruebas finales pendientes de otras misiones reabiertas. 47/47 pruebas rápidas y navegador 1440/390 OK. Rama de revisión; falta prueba de estudio real. SPEC: `docs/clases-vivas/SPEC.md`.

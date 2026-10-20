@@ -48,7 +48,7 @@
     host.querySelector('[data-cv-exit]').addEventListener('click', leave);
     const station = extra => {
       view?.destroy();
-      view = window.NexoStation.mount(content, { cls, mission, pet: opts.pet, onExit: leave,
+      view = window.NexoStation.mount(content, { cls, mission, api, pet: opts.pet, onExit: leave,
         onResult: controller.submitResult, ...extra });
     };
     if (cls.stations?.includes(mission)) {
@@ -57,6 +57,8 @@
       const concept = cls.concepts?.find(c => c.mission === mission && !c.root)?.id || mission;
       controller.studyTime(concept, 'practice');
       station({});
+    } else if (controller.session.stationProgress?.[`${mission}:final`]?.exam?.status === 'running' && cls.demuestra?.[mission]) {
+      station({ only: 'demuestra', demuestra: cls.demuestra[mission] });
     } else {
       view = window.NexoAula.mount(content, { cls, mission, api, pet: opts.pet,
         onBeat(beat) {

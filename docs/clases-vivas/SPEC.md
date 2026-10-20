@@ -34,9 +34,37 @@ Implementado: controlador reutilizable `NexoLivingClasses.create({cls, api, miss
 ## Límites comprobados
 - Se verificaron tamaños de pantalla mediante navegador automatizado, no un teléfono físico ni una auditoría integral de accesibilidad.
 - El Sótano existente exige horizontal en celular. Estudio funciona en vertical; la prueba rota solo al usar la cámara previa. No se rediseñó esa escena.
-- La estación especial de Basicidad conserva su funcionamiento anterior: persiste resultados/evidencia, pero su fase interna y una prueba aún sin enviar no se restauran. La restauración exacta comprobada corresponde al reproductor amplio; ampliar el contrato interno de la estación queda pendiente.
+- La primera entrega no restauraba la fase interna ni la respuesta pendiente de la estación Basicidad. Ese límite queda resuelto por la segunda entrega documentada abajo; la revisión de aprendizaje y química por el usuario sigue pendiente.
 - Se conserva el contenido existente y sus etiquetas de borrador. Estas pruebas verifican software, no la química ni la cobertura de todas las asignaturas.
 - Sin cambios ni comprobación de nube, sincronización remota o migraciones. Sin publicación del Artifact de Claude.
 
 ## Futuro
 Presentación Inmersiva dentro de la cámara del ramo: mural de constelaciones, atril, mesa de prácticas y materiales. Consumirá los mismos IDs y controlador; el escenario no será dueño de la evidencia. No se implementan aún 3D, nuevos contenidos ni validación académica de los borradores existentes.
+
+## Segunda entrega: continuidad de Basicidad
+Autorizada el 20 oct 2026. Completar el piloto antes de ampliar el escenario.
+
+### Decisiones e implementación prevista
+- Guardar en `classSessions[clase].stationProgress[misión:full|final]`: fase, pretest, pregunta actual de Clase, respuestas y orden de alternativas, variante de Práctica y prueba final, borradores y corrección mostrada. Sin nuevo almacén, nube o dependencias.
+- Mantener la variante generada completa con su ID, fuente y diapositiva. Reabrir no sortea otro ejercicio ni permite modificar una respuesta ya corregida.
+- Reloj con vencimiento absoluto persistido: sigue corriendo al salir. Una prueba sin reloj conserva su borrador sin límite. Comprobar el vencimiento también al enviar, no solo en un intervalo de pantalla.
+- Guardar el resultado antes de enviarlo al contrato de evidencia. Al reabrir, reenviar el mismo resultado con el mismo ID/fecha; la conciliación existente evita duplicados. Una nueva variante exige una acción explícita.
+- Reutilizar el mismo contrato en estaciones finales de otras misiones. No alterar química, diseño, reglas del Motor Académico ni el contenido existente.
+
+### Aceptación
+1. Cerrar, recargar y volver conserva cada fase y la pregunta de Clase, con feedback ya mostrado.
+2. Práctica conserva variante y selección parcial; Demuestra conserva variante, borrador y reloj. Sin repetir intentos por restaurar la corrección.
+3. Cerrar con reloj y volver antes/después del vencimiento conserva el plazo o registra un único fallo por tiempo. Sin reloj no caduca.
+4. Resultados y pendientes sobreviven a indisponibilidad temporal del motor. Conservar otros ramos, notas, eventos y registros previos.
+5. Pruebas de contrato y recorrido de navegador en 1440/390 px, incluidos selección parcial, corrección, recarga y nueva variante explícita. Sin red externa obligatoria.
+
+### Estado
+Implementado. La misma sesión conserva las cuatro fases, la pregunta de Clase, respuestas y correcciones vistas, orden de alternativas, variantes con fuente/diapositiva, selección parcial y borradores numéricos. Reloj absoluto, nueva variante explícita y resultado durable antes de entregar al Motor Académico. Pruebas finales iniciadas de otras misiones se reabren directamente cuando están pendientes.
+
+Verificación ejecutada:
+- `station-progress-test.cjs`: 4/4 contratos de persistencia, plazo, resultado estable, nueva variante y separación por misión/modo.
+- `station-progress-e2e.cjs`: Basicidad completa en 1440/390 px: pretest, pregunta actual y corrección, práctica parcial/completa, salida/reentrada, reloj vigente/vencido, resultado sin duplicados, prueba sin reloj, nueva variante y motor no disponible/recuperado. Compatibilidad de borrador numérico y alternativas con datos de prueba separados. Prueba final pendiente de otra misión reabierta desde su enlace.
+- Regresión `academic-loop-e2e.cjs`: OK en 1440/390 px, incluyendo evidencia, fuentes, autorúbricas e historial.
+- 47/47 pruebas rápidas OK; las mismas cinco exclusiones preexistentes. Capturas revisadas en ambos tamaños.
+
+Límites: no es una prueba en teléfono físico, auditoría de toda la química ni una prueba de sincronización cloud. Se conserva el diseño y contenido. Faltan la sesión de estudio real del usuario y el Modo Inmersivo. La continuación permanece en la rama de revisión, sin integrar master ni publicar el Artifact.
