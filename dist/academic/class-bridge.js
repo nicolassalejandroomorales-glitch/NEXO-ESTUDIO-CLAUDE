@@ -47,12 +47,11 @@
     ready.add(cls.id);
   }
 
-  /* Un ejercicio de la clase como ejercicio del motor. Los generados comparten uno por generador y nivel. */
-  function ensureItem(model, cls, item, concept, transfer) {
-    const key = item.gen ? `gen:${item.gen.id}:${item.gen.level}` : item.id;
-    const id = `${cls.id}:${key}${transfer ? '#t' : ''}`;
+  /* La variante conserva su semilla; la familia agrupa la habilidad. reference solo reconstruye IDs históricos. */
+  function ensureItem(model, cls, item, concept, transfer, reference = null) {
+    const id = reference?.exerciseId || `${cls.id}:${item.id}${transfer ? '#t' : ''}`;
     if (model.byId(model.exercises, id)) return id;
-    const conceptId = conceptOf(cls, concept);
+    const conceptId = reference?.conceptIds?.[0] || conceptOf(cls, concept);
     if (!model.byId(model.concepts, conceptId)) {
       const mission = cls.missions?.find(m => m.id === concept);
       model.extend({ concepts: [{ id: conceptId, courseId: cls.subject || model.course.id, lessonIds: [cls.id], version: 1, title: mission?.title || conceptId,
@@ -60,7 +59,7 @@
     }
     const sources = sourcesOf(cls, item.source, item.slide);
     const type = item.type || 'choice', selfGraded = type === 'write', skill = SKILL[type] || 'identify';
-    const familyId = `class.${cls.id}.${conceptId}.${skill}`;
+    const familyId = reference?.familyId || `class.${cls.id}.${conceptId}.${skill}`;
     model.extend({
       sources,
       families: [{ id: familyId, conceptIds: [conceptId], skillIds: [skill], difficulty: 2, generatorType: 'curated', version: 1,
@@ -68,7 +67,7 @@
       conceptSources: sources.map(s => ({ conceptId, sourceId: s.id })),
       exercises: [{ id, lessonId: cls.id, familyId, conceptIds: [conceptId], skillIds: [skill],
         difficulty: Number(item.gen?.level) || 2, expectedResponseType: RESPONSE[type] || 'structured_fields',
-        validator: selfGraded ? 'self_rubric' : 'class_item', version: 1, active: true, misconceptionIds: [],
+        validator: reference?.validator || (selfGraded ? 'self_rubric' : 'class_item'), version: reference?.contentVersion || 1, active: true, misconceptionIds: [],
         examStyle: Boolean(transfer), transfer: Boolean(transfer), sourceIds: sources.map(s => s.id) }]
     });
     return id;
@@ -96,9 +95,56 @@
   function ensureFromEvidence(state) {
     const engine = window.NexoAcademicEngine;
     if (!engine) return;
-    const ids = new Set((state?.academicIntelligence?.evidence || []).map(e => String(e.exerciseId || '').split(':')[0]));
-    for (const id of ids) if (window.NexoClasses?.[id]?.concepts) ensureClass(engine.model, window.NexoClasses[id]);
+    const attempts = state?.academicIntelligence?.attempts || [], issues = [];
+    const ids = new Set([...Object.keys(state?.classEvidence || {}), ...attempts.map(a => String(a.exerciseId || '').split(':')[0]),
+      ...(state?.academicIntelligence?.evidence || []).map(e => String(e.exerciseId || '').split(':')[0])]);
+    for (const id of ids) {
+      const cls = window.NexoClasses?.[id];
+      if (!cls?.concepts) continue;
+      ensureClass(engine.model, cls);
+      const records = state?.classEvidence?.[id]?.records || [];
+      const byAttempt = new Map(records.map(rec => [rec.id, rec]));
+      for (const rec of records) if (rec.academicItem)
+        ensureItem(engine.model, cls, rec.academicItem, rec.conceptId, rec.transfer);
+      for (const attempt of attempts.filter(a => a.exerciseId?.startsWith(`${id}:`))) {
+        const rec = byAttempt.get(attempt.id);
+        if (rec?.conceptId && conceptOf(cls, rec.conceptId) !== attempt.conceptIds[0]) {
+          issues.push({ attemptId: attempt.id, reason: 'historical_concept_mismatch' });
+          continue;
+        }
+        if (engine.model.byId(engine.model.exercises, attempt.exerciseId)) continue;
+        const localId = attempt.exerciseId.slice(id.length + 1).replace(/#t$/, '');
+        const item = rec?.academicItem || window.NexoClassroom?.findItem(cls, rec?.itemId || localId);
+        const concept = rec?.conceptId || item?.concept;
+        if (!item || !concept) { issues.push({ attemptId: attempt.id, reason: 'missing_item_metadata' }); continue; }
+        if (conceptOf(cls, concept) !== attempt.conceptIds[0]) {
+          issues.push({ attemptId: attempt.id, reason: 'historical_concept_mismatch' });
+          continue; // no inventar procedencia para una atribución antigua inconsistente
+        }
+        ensureItem(engine.model, cls, item, concept, attempt.transfer, attempt);
+      }
+    }
+    return issues;
   }
 
-  window.NexoAcademicBridge = { record, ensureClass, ensureItem, ensureFromEvidence, conceptOf, aliases: ALIAS };
+  /* Proyección conservadora: nunca reescribe intentos/evidencias de versiones anteriores. */
+  function evidenceFor(state) {
+    const records = new Map(Object.entries(state?.classEvidence || {})
+      .flatMap(([classId, store]) => (store.records || []).map(rec => [rec.id, { classId, rec }])));
+    return (state?.academicIntelligence?.evidence || []).map(evidence => {
+      if (evidence.source !== 'class_item') return evidence;
+      const saved = records.get(evidence.attemptId), classId = saved?.classId || String(evidence.exerciseId || '').split(':')[0];
+      const cls = window.NexoClasses?.[classId], rec = saved?.rec;
+      if (rec?.conceptId && conceptOf({ id: classId }, rec.conceptId) !== evidence.conceptId)
+        return { ...evidence, validationStatus: 'unverified', provenanceIssue: 'historical_concept_mismatch' };
+      const localId = String(evidence.exerciseId || '').slice(classId.length + 1).replace(/#t$/, '');
+      const item = rec?.academicItem || (cls && window.NexoClassroom?.findItem(cls, rec?.itemId || localId));
+      if (item?.type === 'write') return { ...evidence, validationStatus: 'self_reported', source: 'self_rubric' };
+      if (!item && /^gen:[^:]+:[1-5]$/.test(localId))
+        return { ...evidence, validationStatus: 'unverified', provenanceIssue: 'missing_item_metadata' };
+      return evidence;
+    });
+  }
+
+  window.NexoAcademicBridge = { record, ensureClass, ensureItem, ensureFromEvidence, evidenceFor, conceptOf, aliases: ALIAS };
 })();

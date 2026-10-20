@@ -44,34 +44,103 @@
   function storeFor(state, classId) {
     if (!state.classEvidence || typeof state.classEvidence !== 'object') state.classEvidence = {};
     const store = state.classEvidence[classId] ||= {};
+    store.classId = classId;
     if (!Array.isArray(store.records)) store.records = [];
     if (!store.reviews || typeof store.reviews !== 'object') store.reviews = {};
+    if (!store.delivery || typeof store.delivery !== 'object') store.delivery = {};
     return store;
   }
 
   /* Producir solo: escalón 4 o más (dibujar, escribir, calcular), sin pista, sin reintento y sin acierto frágil.
      Para la hoja verde hacen falta SOLO_NEEDED ejercicios distintos: un acierto suelto puede ser suerte (docs/motor-verde/SPEC.md). */
   const SOLO_MIN_STEP = 4, SOLO_NEEDED = 2;
-  const solo = r => r.correct && !r.hint && !r.retry && r.step >= SOLO_MIN_STEP && r.kind !== 'fragil';
-  const hasGreen = recs => new Set(recs.filter(solo).map(r => r.itemId)).size >= SOLO_NEEDED;
+  const objective = (r, classId) => {
+    if (r.validationStatus === 'self_reported' || r.academicItem?.type === 'write') return false;
+    if (r.validationStatus === 'verified') return true;
+    const cls = window.NexoClasses?.[classId], item = r.academicItem || (cls && window.NexoClassroom?.findItem(cls, r.itemId));
+    return Boolean(item) && item.type !== 'write';
+  };
+  const solo = (r, classId) => objective(r, classId) && r.correct && !r.hint && !r.retry && r.step >= SOLO_MIN_STEP && r.kind !== 'fragil';
+  const hasGreen = (recs, classId) => new Set(recs.filter(r => solo(r, classId)).map(r => r.itemId)).size >= SOLO_NEEDED;
 
   /* Guarda una respuesta. "delayed" marca un acierto sin ayuda 24 h o más después del primero: eso es retener. */
   function record(state, classId, entry) {
     const store = storeFor(state, classId);
     const at = new Date(entry.at || Date.now());
+    const id = entry.id || `${classId}:${entry.itemId}:${entry.retry ? 'r' : 'a'}:${at.getTime()}`;
+    const existing = store.records.find(r => r.id === id);
+    if (existing) return existing;
     const kind = entry.retry ? null : confidenceKind(entry.confidence, entry.correct);
     const rec = {
-      id: `${entry.itemId}:${entry.retry ? 'r' : 'a'}:${at.getTime()}`,
+      id,
       itemId: entry.itemId, conceptId: entry.conceptId, missionId: entry.missionId || null, misconception: entry.misconception || null,
       stage: entry.stage || null, step: Number(entry.step) || 2,
       correct: Boolean(entry.correct), hint: Boolean(entry.hint), retry: Boolean(entry.retry),
       transfer: Boolean(entry.transfer), confidence: entry.confidence ?? null, why: entry.why || null, kind,
       at: at.toISOString()
     };
-    const firstSolo = store.records.find(r => r.conceptId === rec.conceptId && solo(r));
+    if (entry.academicItem) rec.academicItem = entry.academicItem;
+    if (entry.validationStatus) rec.validationStatus = entry.validationStatus;
+    const firstSolo = store.records.filter(r => r.conceptId === rec.conceptId && solo(r, classId))
+      .sort((a, b) => new Date(a.at) - new Date(b.at))[0];
     rec.delayed = Boolean(firstSolo) && at - new Date(firstSolo.at) >= DAY_MS;
     store.records.push(rec);
     return rec;
+  }
+
+  // La evidencia se guarda antes de cargar el motor. La entrega puede repetirse sin repetir el intento.
+  const deliveries = new WeakMap();
+  function submit(api, cls, item, entry) {
+    const academicItem = { id: item.id, type: item.type || 'choice', concept: entry.conceptId,
+      source: item.source || null, slide: item.slide ?? null,
+      ...(item.gen ? { gen: { id: item.gen.id, level: item.gen.level } } : {}) };
+    const rec = record(api.getState(), cls.id, { ...entry, academicItem,
+      validationStatus: academicItem.type === 'write' ? 'self_reported' : 'verified' });
+    api.saveState();
+    api.flushState?.();
+    reconcile(api, cls).catch(() => { /* La entrega pendiente se recupera al reabrir la clase. */ });
+    return rec;
+  }
+
+  function reconcile(api, cls) {
+    const state = api.getState();
+    const boundApi = { ...api, getState: () => state,
+      saveState: () => { if (api.getState() === state) api.saveState(); } };
+    const run = async () => {
+      const store = storeFor(state, cls.id);
+      const records = store.records.filter(r => r.academicItem).slice().sort((a, b) => new Date(a.at) - new Date(b.at));
+      try {
+        await window.NexoAcademicLoad?.();
+        if (api.getState() !== state) return;
+        window.NexoAcademicBridge?.ensureFromEvidence(state);
+      } catch (_) { /* la evidencia local sigue disponible sin catálogo académico */ }
+      for (const rec of records) {
+        if (api.getState() !== state) return; // una importación cambió el estado durante la carga
+        const status = store.delivery[rec.id] ||= {};
+        if (status.review && status.academic) continue;
+        if (!status.review) {
+          try {
+            const prior = store.reviews[rec.conceptId];
+            status.review = rec.retry || new Date(prior?.updatedAt) > new Date(rec.at) || Boolean(await schedule(state, cls.id, rec, { now: new Date(rec.at) }));
+          } catch (_) { /* El registro sobrevive a FSRS no disponible. */ }
+        }
+        if (!status.academic) {
+          try {
+            const attempt = await window.NexoAcademicBridge?.record(boundApi, cls, rec.academicItem, rec);
+            status.academic = Boolean(attempt) && attempt.conceptIds.every(conceptId =>
+              state.academicIntelligence?.reviewSchedules?.some(r => r.id === `concept:${conceptId}` &&
+                (r.lastAttemptId === attempt.id || new Date(r.updatedAt) > new Date(attempt.attemptedAt))));
+          }
+          catch (_) { /* El puente conserva su idempotencia; se reintenta con el mismo id. */ }
+        }
+        if (api.getState() !== state) return;
+        api.saveState();
+        api.flushState?.();
+      }
+    };
+    const pending = (deliveries.get(state) || Promise.resolve()).catch(() => {}).then(run);
+    deliveries.set(state, pending);
+    return pending.finally(() => { if (deliveries.get(state) === pending) deliveries.delete(state); });
   }
 
   /* La hoja de un concepto según toda su evidencia. */
@@ -79,11 +148,11 @@
     const recs = (store?.records || []).filter(r => r.conceptId === conceptId);
     let key = 'semilla';
     if (recs.length) key = 'brote';
-    if (recs.some(r => r.correct && !r.retry && r.step >= 4)) key = 'clara';
-    if (hasGreen(recs)) {
+    if (recs.some(r => objective(r, store?.classId) && r.correct && !r.retry && r.step >= 4)) key = 'clara';
+    if (hasGreen(recs, store?.classId)) {
       key = 'verde';
-      if (recs.some(r => solo(r) && r.transfer)) key = 'intensa';
-      if (recs.some(r => solo(r) && r.delayed)) key = 'flor';
+      if (recs.some(r => solo(r, store?.classId) && r.transfer)) key = 'intensa';
+      if (key === 'intensa' && recs.some(r => solo(r, store?.classId) && r.delayed)) key = 'flor';
     }
     let overlay = null;
     const due = store?.reviews?.[conceptId]?.dueAt;
@@ -93,7 +162,11 @@
       if (lastRight?.kind === 'fragil') overlay = 'amarilla';
     }
     const shown = overlay || key;
-    return { key, overlay, shown, label: LEAVES[shown].label, knowledge: KNOWLEDGE[key], count: recs.length };
+    const verified = recs.some(r => objective(r, store?.classId));
+    const selfReportedCount = recs.filter(r => r.validationStatus === 'self_reported' || r.academicItem?.type === 'write').length;
+    return { key, overlay, shown,
+      label: !verified && recs.length ? selfReportedCount ? 'Brote · autoevaluado' : 'Brote · sin verificación' : LEAVES[shown].label,
+      knowledge: verified ? KNOWLEDGE[key] : 'unseen', selfReportedCount, count: recs.length };
   }
 
   /* Concepto de una actividad: el suyo, o el de su misión si no declara uno. */
@@ -113,7 +186,7 @@
       const walk = (o, mission, seen = new Set()) => {
         if (!o || typeof o !== 'object' || seen.has(o)) return;
         seen.add(o);
-        if (typeof o.type === 'string' && DEFAULT_STEP[o.type] && o.id && stepOf(o) >= SOLO_MIN_STEP) (ids[conceptOf(o, mission)] ||= new Set()).add(o.id);
+        if (typeof o.type === 'string' && DEFAULT_STEP[o.type] && o.type !== 'write' && o.id && stepOf(o) >= SOLO_MIN_STEP) (ids[conceptOf(o, mission)] ||= new Set()).add(o.id);
         for (const k in o) walk(o[k], mission, seen);
       };
       (cls.missions || []).forEach(m => {
@@ -146,5 +219,5 @@
   const due = (store, now = new Date()) => Object.values(store?.reviews || {})
     .filter(r => r?.dueAt && new Date(r.dueAt) <= now).map(r => r.targetId);
 
-  window.NexoClassEvidence = { STEPS, LEAVES, WHY, stepOf, confidenceKind, storeFor, record, leaf, leaves, conceptOf, calibration, auditGreen, schedule, due };
+  window.NexoClassEvidence = { STEPS, LEAVES, WHY, stepOf, confidenceKind, storeFor, record, submit, reconcile, leaf, leaves, conceptOf, calibration, auditGreen, schedule, due };
 })();

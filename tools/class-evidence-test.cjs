@@ -16,7 +16,7 @@ assert.equal(E.confidenceKind(70, true), 'medio'); assert.equal(E.confidenceKind
 const day = (n, h = 10) => new Date(Date.UTC(2026, 9, n, h)).toISOString();
 const st = {};
 let n = 0;
-const add = e => E.record(st, 'c', { conceptId: 'x', itemId: `i${n++}`, ...e });
+const add = e => E.record(st, 'c', { conceptId: 'x', itemId: `i${n++}`, validationStatus: 'verified', ...e });
 const leaf = (now = new Date(day(30))) => E.leaf(E.storeFor(st, 'c'), 'x', now);
 
 assert.equal(leaf().key, 'semilla', 'sin evidencia es semilla');
@@ -45,7 +45,7 @@ assert.equal(E.storeFor(st, 'c').records.at(-1).kind, null, 'el reintento del re
 // Escalón 4 sin pista cuenta; con pista, no. Elegir y ordenar nunca dan verde.
 const st2 = {};
 const l2 = k => E.leaf(E.storeFor(st2, 'c'), k, new Date(day(30))).key;
-const rec2 = e => E.record(st2, 'c', { step: 4, correct: true, confidence: 90, at: day(1), ...e });
+const rec2 = e => E.record(st2, 'c', { step: 4, correct: true, confidence: 90, at: day(1), validationStatus: 'verified', ...e });
 rec2({ conceptId: 'a', itemId: 'a1' }); rec2({ conceptId: 'a', itemId: 'a2', hint: true });
 assert.equal(l2('a'), 'clara', 'con pista no suma');
 rec2({ conceptId: 'a', itemId: 'a3' }); assert.equal(l2('a'), 'verde', 'dibujar dos veces sin pista es verde');
@@ -67,7 +67,8 @@ const ctx = vm.createContext({ window: {}, document: {}, localStorage: { getItem
 fs.readdirSync(dir).filter(f => /^(ana|fis|fq|org)-\d+(-gen)?\.js$/.test(f)).sort().forEach(f => vm.runInContext(fs.readFileSync(path.join(dir, f), 'utf8'), ctx));
 const stuck = E.auditGreen(ctx.NexoClasses);
 const byClass = {}; stuck.forEach(s => { byClass[s.classId] = (byClass[s.classId] || 0) + 1; });
-const MAX_STUCK = { 'ana-01': 9, 'ana-02': 3, 'ana-03': 4, 'fis-01': 7, 'fis-02': 5, 'fis-06': 4, 'fis-09': 5, 'fq-01': 4, 'fq-02': 5, 'fq-03': 4, 'org-01': 18, 'org-04': 7, 'org-05': 11 };
+// Dos conceptos adicionales dependían solo de autorúbricas. Se documenta el déficit objetivo, no se omite la prueba.
+const MAX_STUCK = { 'ana-01': 9, 'ana-02': 3, 'ana-03': 4, 'fis-01': 7, 'fis-02': 5, 'fis-06': 4, 'fis-09': 5, 'fq-01': 4, 'fq-02': 5, 'fq-03': 4, 'org-01': 19, 'org-04': 8, 'org-05': 11 };
 for (const [id, count] of Object.entries(byClass)) assert.ok(count <= (MAX_STUCK[id] ?? 0), `${id}: ${count} conceptos no pueden llegar a hoja verde (máx. ${MAX_STUCK[id] ?? 0}): ${stuck.filter(s => s.classId === id).map(s => s.concept).join(', ')}`);
 console.log(`Conceptos sin salida a hoja verde (pendiente de clases): ${stuck.length}`, byClass);
 

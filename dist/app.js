@@ -612,6 +612,7 @@
     window.NexoAnimation?.prepare(app);
     if (document.body.classList.contains('in-classroom')) window.NexoAmbientTime?.stopPreview?.(); // la ventana de la torre puede haber cambiado la hora
     document.body.classList.remove('in-classroom');
+    livingClassView?.destroy(); livingClassView = null;
     document.getElementById('auHost')?.remove(); document.querySelectorAll('.au-piece').forEach(node => node.remove());
     clearInterval(timerTicker);
     window.NexoWorkbench?.cleanup();
@@ -644,7 +645,7 @@
         if (window.NexoEntrada) go(); else { const sc = document.createElement('script'); sc.src = 'cuentas/entrada.js?v=5'; sc.onload = go; document.head.append(sc); }
       },
       learn: () => route[1] === 'course'
-        ? (route[3] === 'lesson' ? (LESSONS[route[4]]?.subject===route[2] ? renderLesson(route[4]) : renderSubjects())
+        ? (route[3] === 'lesson' ? (LESSONS[route[4]]?.subject===route[2] ? renderLesson(route[4], route[5]) : renderSubjects())
           : route[3] === 'concept' ? renderAcademicExplorer('knowledge',route[4])
             : route[3] === 'evaluation' ? renderPreparationMap(route[2],route[4],route[5])
               : renderEvaluations(route[2]))
@@ -656,7 +657,7 @@
       hub: () => window.NexoEstudio && ['calendar','grades'].includes(route[1]) ? routeTo('planner', window.NexoEstudio.legacy[route[1]]) : renderHub(route[1] || 'timer'),
       profile: () => window.NexoEstudio && ['grades','absences'].includes(route[1]) ? routeTo('planner','notas') : renderProfile(({avatar:'mascot',collection:'mascot',progress:'stats'})[route[1]]||route[1]),
       subject: () => renderSubject(route[1]),
-      lesson: () => renderLesson(route[1]),
+      lesson: () => renderLesson(route[1], route[2]),
       practice: () => renderPractice(route[1] || 'exercises', route[2]),
       planner: () => window.NexoEstudio ? window.NexoEstudio.render(app, route[1], orgBridge()) : renderPlanner(route[1] || 'calendar'),
       timer: renderHome,
@@ -887,7 +888,7 @@
 
   function lessonQuickRow(id) {
     const lesson = LESSONS[id], subject = lessonSubject(id);
-    return `<button class="compact-row" data-open-lesson="${id}"><span class="subject-dot" style="--course:${subject.color}">${subject.short}</span><div><b>${esc(lesson.title)}</b><small>${esc(lesson.central)}</small></div><i>${window.NexoClassCatalog?.[id] ? 'Entrar al aula →' : 'Próximamente'}</i></button>`;
+    return `<button class="compact-row" data-open-lesson="${id}"><span class="subject-dot" style="--course:${subject.color}">${subject.short}</span><div><b>${esc(lesson.title)}</b><small>${esc(lesson.central)}</small></div><i>${window.NexoClassCatalog?.[id] ? 'Abrir clase →' : 'Próximamente'}</i></button>`;
   }
   function eventRow(event) {
     const subject = subjectFor(event.subject), diff = daysBetween(todayKey(), event.date);
@@ -907,14 +908,7 @@
   function aprenderContext() {
     return { getState: () => state, subjects: SUBJECTS, lessonTitle: id => LESSONS[id]?.title || id,
       loadClass: id => loadClassroom(id),
-      openLesson: (id, mission) => {
-        if (mission) { // abrir la clase directo en esa misión (como el botón "Misión" del aula)
-          const session = (state.classSessions ||= {})[id] ||= {};
-          session.path = 'misiones'; session.mission = mission; session.beat = (session.far?.[mission] || 0) > 1 ? session.far[mission] : 1; session.panel = null;
-          saveState({ backup: false });
-        }
-        openLesson(id);
-      } };
+      openLesson: (id, mission) => openLesson(id, mission) };
   }
   function renderSubjects() {
     if (window.NexoAprender) return window.NexoAprender.render(app, aprenderContext());
@@ -956,7 +950,7 @@
       const label=status==='dominado'?'Autoverificación registrada':recorded?'Comprensión registrada':'Por preparar';
       return `<li class="preparation-stop" style="--map-x:${points[index].x}%"><button class="preparation-node ${recorded?'recorded':''}" data-grimoire-course="${subject.id}" data-grimoire-evaluation="${esc(evaluation.id)}" data-grimoire-node="${id}" ${selected===id?'aria-current="step"':''}><span class="map-node-seal" aria-hidden="true">${recorded?'✓':index+1}</span><span class="map-node-label"><b>${esc(lesson.title)}</b><small>${label}</small></span></button></li>`;
     }).join('');
-    const detail=selected?`<section class="preparation-detail" aria-labelledby="preparationDetailTitle"><p class="eyebrow">ETAPA ${ids.indexOf(selected)+1}</p><h2 id="preparationDetailTitle">${esc(LESSONS[selected].title)}</h2><p>${esc(LESSONS[selected].central||'Consulta el material disponible para este tema.')}</p>${window.NexoClassCatalog?.[selected]?`<button class="primary-btn" data-open-lesson="${selected}">Entrar al aula →</button>`:'<p class="legacy-note"><b>Disponible próximamente.</b> Estamos rehaciendo esta clase desde cero.</p>'}</section>`:'<p class="grimoire-margin-note">Sigue el sendero.<br>Selecciona un tema para ver su material y registro.</p>';
+    const detail=selected?`<section class="preparation-detail" aria-labelledby="preparationDetailTitle"><p class="eyebrow">ETAPA ${ids.indexOf(selected)+1}</p><h2 id="preparationDetailTitle">${esc(LESSONS[selected].title)}</h2><p>${esc(LESSONS[selected].central||'Consulta el material disponible para este tema.')}</p>${window.NexoClassCatalog?.[selected]?`<button class="primary-btn" data-open-lesson="${selected}">Abrir clase →</button>`:'<p class="legacy-note"><b>Disponible próximamente.</b> Estamos rehaciendo esta clase desde cero.</p>'}</section>`:'<p class="grimoire-margin-note">Sigue el sendero.<br>Selecciona un tema para ver su material y registro.</p>';
     const map=ids.length?`<div class="preparation-map" style="--map-height:${height}px"><svg class="preparation-path" viewBox="0 0 100 ${height}" preserveAspectRatio="none" aria-hidden="true"><path d="${path}" /></svg><span class="map-compass" aria-hidden="true">✥<small>N</small></span><ol class="preparation-stops">${nodes}</ol><span class="map-destination" aria-hidden="true">✦</span></div><p class="map-legend">✓ Con registro de comprensión · números: orden sugerido</p>`:`<section class="preparation-empty"><span aria-hidden="true">✥</span><h2>Temario por vincular</h2><p>Esta evaluación está en tu calendario, pero todavía no tiene un recorrido asociado. Consulta su temario en Bitácora.</p><button class="ink-link" data-route="planner" data-route-sub="calendar">Abrir Bitácora →</button></section>`;
     app.innerHTML=grimoireShell(subject,evaluation.name,ids.length?'Un sendero de temas para orientar tu preparación.':'El mapa estará disponible cuando se vincule su temario.',`<button class="ink-link" data-grimoire-route="learn/course/${subject.id}">← Cambiar evaluación</button>${evaluationDates(evaluation)}${map}`,`<div class="map-record"><strong>${registered} / ${ids.length}</strong><span>temas con registro de comprensión</span><p>Registro histórico; no certifica dominio de la evaluación.</p></div>${detail}`,'III · MAPA');
     if(selected) {
@@ -982,21 +976,21 @@
 
   function lessonNode(id, index, routeMode, pepLabel = '') {
     const lesson = LESSONS[id], unlocked = isUnlocked(lesson.subject, id), status = masteryStatus(id), confidence = confidenceFor(id);
-    return `<button class="lesson-node ${status} ${unlocked ? '' : 'locked'}" data-open-lesson="${id}" ${unlocked ? '' : 'disabled'}><span class="node-index">${status === 'dominado' ? '✓' : unlocked ? index + 1 : '⌁'}</span><span class="node-copy">${pepLabel?`<span class="home-lesson-pep">${esc(pepLabel)}</span>`:''}<b>${esc(lesson.title)}</b><small>${ORGANIC[id] && status === 'dominado' ? '<span class="status-chip dominado">Autoverificado</span>' : statusChip(status)} · ${lesson.duration || 35} min</small><em class="source-badge ${confidence.level}" title="${esc(confidence.detail)}">${confidence.label}</em></span><i>${window.NexoClassCatalog?.[id] ? 'Entrar al aula →' : 'Próximamente'}</i></button>`;
+    return `<button class="lesson-node ${status} ${unlocked ? '' : 'locked'}" data-open-lesson="${id}" ${unlocked ? '' : 'disabled'}><span class="node-index">${status === 'dominado' ? '✓' : unlocked ? index + 1 : '⌁'}</span><span class="node-copy">${pepLabel?`<span class="home-lesson-pep">${esc(pepLabel)}</span>`:''}<b>${esc(lesson.title)}</b><small>${ORGANIC[id] && status === 'dominado' ? '<span class="status-chip dominado">Autoverificado</span>' : statusChip(status)} · ${lesson.duration || 35} min</small><em class="source-badge ${confidence.level}" title="${esc(confidence.detail)}">${confidence.label}</em></span><i>${window.NexoClassCatalog?.[id] ? 'Abrir clase →' : 'Próximamente'}</i></button>`;
   }
 
-  let lessonReturnHash = '';
-  function openLesson(id) {
+  let lessonReturnHash = '', livingClassView = null;
+  function openLesson(id, mission) {
     if (!LESSONS[id]) return;
     if (!location.hash.includes('/lesson/')) lessonReturnHash = location.hash; // al salir del aula se vuelve al mismo mapa
-    routeTo('lesson', id);
+    routeTo('lesson', id, ...(mission ? [mission] : []));
   }
 
   let academicFoundation=null;
   let mascotAcademicSubscribed=false;
   function loadAcademicFoundation() {
     if(!academicFoundation)academicFoundation=['model','graph','diagnosis','knowledge','ranks','classifiers','sources','reviews','structured','engine','pending','library','inspector','explorer','rescue']
-      .reduce((promise,name)=>promise.then(()=>window.NexoLoader.script(`./academic/${name}.js?v=b5d166cf`)),Promise.resolve())
+      .reduce((promise,name)=>promise.then(()=>window.NexoLoader.script(`./academic/${name}.js?v=06c32167`)),Promise.resolve())
       .then(()=>{if(!mascotAcademicSubscribed){window.NexoAcademicEngine.subscribe(event=>
         window.NexoMascotController.react(event,app));mascotAcademicSubscribed=true;}})
       .catch(error=>{academicFoundation=null;throw error;});
@@ -1010,57 +1004,35 @@
     loadAcademicFoundation().then(()=>{const route=parseRoute();if(route[0]==='library'||route.join('/')==='learn/library')renderRoute(false);})
       .catch(()=>{app.innerHTML='<section class="page"><h1>Biblioteca no disponible</h1><button data-route="library">Reintentar</button></section>';});
   }
-  /* La clase se juega en el aula nueva (dist/classes/aula.js, docs/clases-v2/SPEC.md): una misión a la vez con la mascota.
-     Basicidad (org-01 m4) usa su estación completa; al salir de una misión terminada llega su prueba final en formato PEP (`cls.demuestra`).
-     Los resultados de la estación entran a la evidencia de la clase igual que las respuestas del aula. */
-  function playLesson(id, cls, subject) {
-    const session = (state.classSessions ||= {})[id] ||= {};
-    const answered = m => (window.NexoClassroom?.itemsOf(m) || []).filter(x => session.answers?.[x.item.id]).length / Math.max(1, (window.NexoClassroom?.itemsOf(m) || []).length);
-    const mission = (session.path === 'misiones' && cls.missions.some(m => m.id === session.mission) ? session.mission : null) || (cls.missions.find(m => answered(m) < 1) || cls.missions[0]).id;
-    const failed = () => { app.innerHTML = '<section class="page"><div class="panel error-boundary"><h1>No se pudo abrir la clase</h1><button class="primary-btn" data-route="learn">Volver al sótano</button></div></section>'; };
-    const ready = window.NexoAula && window.NexoStation;
-    if (!ready) {
-      app.innerHTML = '<section class="page"><div class="app-loader" role="status"><span></span><p>Abriendo la clase…</p></div></section>';
-      Promise.all([window.NexoLoader.style('./classes/estacion.css'), window.NexoLoader.style('./classes/aula.css'), window.NexoLoader.script('./mascot/pixelmascotas.js')])
-        .then(() => window.NexoLoader.script('./classes/estacion.js')).then(() => window.NexoLoader.script('./classes/aula.js'))
-        .then(() => { if (parseRoute()[0] === 'lesson' || parseRoute()[0] === 'learn') renderRoute(false); }).catch(failed);
+  // Adaptador de navegación. El módulo de Clases Vivas no conoce el escenario ni el router.
+  function playLesson(id, cls, subject, mission) {
+    const requested = parseRoute().join('/');
+    const failed = () => {
+      if (parseRoute().join('/') === requested) app.innerHTML = '<section class="page"><h1>No se pudo abrir la clase</h1><button data-route="learn">Volver al Sótano</button></section>';
+    };
+    if (!window.NexoLivingClasses || !window.NexoAula || !window.NexoStation) {
+      app.innerHTML = '<section class="page"><p role="status">Abriendo Clase Viva…</p></section>';
+      Promise.all([window.NexoLoader.style('./classes/estacion.css?v=d5650d83'), window.NexoLoader.style('./classes/aula.css?v=6b282336'),
+        window.NexoLoader.style('./classes/vivas.css?v=ac53ba70'), window.NexoLoader.script('./mascot/pixelmascotas.js')])
+        .then(() => window.NexoLoader.script('./classes/estacion.js?v=eb967602'))
+        .then(() => window.NexoLoader.script('./classes/aula.js?v=e1d39f08'))
+        .then(() => window.NexoLoader.script('./classes/vivas.js?v=c11c5550'))
+        .then(() => { if (parseRoute().join('/') === requested) renderRoute(false); }).catch(failed);
       return;
     }
-    // La clase va encima de todo (menú incluido): cuelga del body y se retira al cambiar de ruta (ver renderRoute).
+    if (mission && !cls.missions.some(m => m.id === mission)) {
+      app.innerHTML = '<section class="page"><h1>Misión no disponible</h1><button data-route="lesson" data-route-sub="' + esc(id) + '">Abrir la clase</button></section>';
+      return;
+    }
     app.innerHTML = '<section class="page au-page" aria-hidden="true"></section>';
     document.body.classList.add('in-classroom');
-    document.getElementById('auHost')?.remove();
     const host = document.createElement('div'); host.id = 'auHost'; host.className = 'au-host'; document.body.append(host);
-    host.style.setProperty('--au-bg', `url('${new URL(`./aprender/img/i-cam-${subject.id}.webp`, document.baseURI).href}')`);   // la Cámara del ramo, desenfocada, de fondo
-    const leave = () => { document.body.classList.remove('in-classroom'); host.remove(); if (lessonReturnHash) location.hash = lessonReturnHash; else routeTo('learn'); };
-    const onResult = result => {
-      const E = window.NexoClassEvidence; if (!E) return;
-      const rec = E.record(state, id, { itemId: result.itemId, conceptId: result.conceptId || 'am.orden', missionId: result.station?.split(':')[1] || mission, stage: 'transfer', step: 5, correct: result.correct, hint: false, retry: false, transfer: true, at: result.at });
-      saveState({ backup: false });
-      E.schedule(state, id, rec).then(() => saveState({ backup: false })).catch(() => {});
-      window.NexoAcademicBridge?.record(api, cls, { id: result.itemId, type: result.type, concept: rec.conceptId }, rec).catch(() => {});
-    };
-    const api = { getState: () => state, saveState: () => saveState({ backup: false }), track: (...args) => cloud.track(...args) };
-    // Minutos activos por concepto para los rangos (docs/motor-rangos/SPEC.md); el cambio de ruta lo detiene.
-    const ACTIVITY = { diagnostic: 'assessment', pretest: 'lesson', train: 'practice', practice: 'practice', placement: 'practice', challenge: 'practice', review: 'review', simulacro: 'assessment', transfer: 'assessment', rescue: 'rescue', detour: 'rescue', fix: 'rescue' };
-    const studyTime = (concept, activity) => concept && window.NexoActiveStudy?.begin(window.NexoAcademicBridge?.conceptOf(cls, concept), activity);
-    if (cls.stations?.includes(mission)) {
-      studyTime('am.orden', 'practice'); // mismo concepto que usa onResult para la estación de Basicidad
-      window.NexoStation.mount(host, { cls, mission, pet: state.mascot, onExit: leave, onResult }); return;
-    }
-    let finished = false, piece = false;
-    window.NexoAula.mount(host, { cls, mission, api, pet: state.mascot,
-      onBeat: b => {
-        if (b.kind === 'close') finished = true; if (b.kind === 'say' && b.intro) { finished = false; piece = false; }
-        if (b.kind === 'question' || b.kind === 'rescue') studyTime(b.item?.concept || b.m?.id, ACTIVITY[b.stage] || 'rescue');
-        else if (b.kind === 'lesson' || b.kind === 'step') studyTime(b.block?.concept || b.m?.id, 'lesson');
-      },
-      onExit: s => {
-        const cfg = cls.demuestra?.[s.mission || mission];
-        if (!(finished && cfg && !piece)) return leave();
-        piece = true;
-        const overlay = document.createElement('div'); overlay.className = 'au-piece'; document.body.append(overlay);
-        window.NexoStation.mount(overlay, { cls, mission: s.mission || mission, pet: state.mascot, only: 'demuestra', demuestra: cfg, onExit: () => { overlay.remove(); leave(); }, onResult });
+    const api = { getState: () => state, saveState: () => saveState({ backup: false }), flushState: () => storage.flush(), track: (...args) => cloud.track(...args) };
+    livingClassView = window.NexoLivingClasses.mount(host, { cls, subject, mission, api, mode: 'study', pet: state.mascot,
+      onExit() {
+        livingClassView?.destroy(); livingClassView = null; host.remove(); document.body.classList.remove('in-classroom');
+        const target = lessonReturnHash; lessonReturnHash = '';
+        if (target) location.hash = target; else routeTo('learn', 'course', subject.id);
       } });
   }
   function renderAcademicRescue(conceptId) {
@@ -1091,7 +1063,14 @@
       .catch(()=>{app.innerHTML='<section class="page"><h1>Duelo no disponible</h1><button data-route="duelo">Reintentar</button></section>';});
   }
   function renderAcademicExplorer(view,conceptId) {
+    if(!rankCatalogCurrent()) {
+      const requested = parseRoute().join('/');
+      app.innerHTML='<section class="page"><p role="status">Recuperando tu registro académico…</p></section>';
+      loadRankCatalog().then(()=>{if(parseRoute().join('/')===requested)renderRoute(false);});
+      return;
+    }
     if(window.NexoAcademicExplorer) {
+      window.NexoAcademicBridge?.ensureFromEvidence(state);
       if(view==='inspector')return window.NexoAcademicInspector.render(app);
       return window.NexoAcademicExplorer[view==='reviews'?'renderReviews':'renderMap'](app,{
         getState:()=>state,getReservations:()=>cloud.reservations,
@@ -1127,11 +1106,11 @@
     const promise = Promise.resolve(window.NexoClassCatalog || window.NexoLoader.script('./classes/catalog.js?v=6e3ef878')).then(() => {
       const file = window.NexoClassCatalog?.[id];
       if (!file) return false;
-      return Promise.all([window.NexoLoader.script('./classes/player.js?v=7eadcfe3'),
+      return Promise.all([window.NexoLoader.script('./classes/player.js?v=5bf92291'),
         window.NexoLoader.script('./classes/willow-tower.js?v=09c21b87').catch(() => null), // Torre del Sauce (etapa 10); sin ella, quedan las hojas en lista
         window.NexoLoader.script(`./classes/${file}?v=20`),
         // Motor de evidencia y repaso espaciado (FSRS); si no cargan, la clase funciona igual sin agendar repasos.
-        window.NexoLoader.script('./classes/evidence.js?v=cbcbf1b1'), window.NexoLoader.script('./classes/molecule.js?v=b3b2e5aa'), window.NexoLoader.script('./classes/editor.js?v=df0be94e'), window.NexoLoader.script('./academic/class-bridge.js?v=2c147b02').catch(() => null), window.NexoLoader.script('./academic/reviews.js?v=0273ea6c').catch(() => null)])
+        window.NexoLoader.script('./classes/evidence.js?v=4c110524'), window.NexoLoader.script('./classes/molecule.js?v=b3b2e5aa'), window.NexoLoader.script('./classes/editor.js?v=df0be94e'), window.NexoLoader.script('./academic/class-bridge.js?v=e05158a5').catch(() => null), window.NexoLoader.script('./academic/reviews.js?v=0273ea6c').catch(() => null)])
         .then(() => Promise.all([window.NexoLoader.script(`./classes/slides/${id}.js?v=4e68eb0a`).catch(() => null), // diapositivas reales, si ya se convirtieron
           window.NexoLoader.script(`./classes/${id}-gen.js?v=a442d032`).catch(() => null)])) // generadores de ejercicios (etapa 8), si la clase los tiene
         .then(() => true);
@@ -1141,19 +1120,23 @@
     return promise;
   }
 
-  function renderLesson(id) {
+  function renderLesson(id, mission) {
     const source = LESSONS[id];
     if (!source) return routeTo('subjects');
     const subject = subjectFor(source.subject);
     if (!classroomLoads.has(id)) {
-      app.innerHTML = '<section class="page"><div class="app-loader" role="status"><span></span><p>Abriendo el aula…</p></div></section>';
-      const onLessonRoute = () => { const route = parseRoute(); return route.join('/') === `lesson/${id}` ||
+      app.innerHTML = '<section class="page"><div class="app-loader" role="status"><span></span><p>Abriendo la clase…</p></div></section>';
+      const onLessonRoute = () => { const route = parseRoute(); return (route[0] === 'lesson' && route[1] === id) ||
         (route[0] === 'learn' && route[1] === 'course' && route[3] === 'lesson' && route[4] === id); };
       loadClassroom(id).then(() => { if (onLessonRoute()) renderRoute(false); })
         .catch(() => { if (onLessonRoute()) app.innerHTML = '<section class="page"><div class="panel error-boundary"><h1>No se pudo abrir el aula</h1><p>Revisa tu conexión y vuelve a intentarlo.</p><button class="primary-btn" data-route="home">Volver al refugio</button></div></section>'; });
       return;
     }
-    playLesson(id, window.NexoClasses[id], subject);
+    if (!window.NexoClasses?.[id]) {
+      app.innerHTML = '<section class="page"><h1>Clase en preparación</h1><p>Su contenido todavía no está disponible.</p><button data-route="learn">Volver al Sótano</button></section>';
+      return;
+    }
+    playLesson(id, window.NexoClasses[id], subject, mission);
   }
 
   /* La torre de cada ramo (etapa 10): un lugar propio donde el sauce crece con lo que demuestras. */
@@ -1357,19 +1340,25 @@
     };
   }
   /* El rango de la carta usa todos los conceptos: carga el motor y las clases con evidencia (al recargar solo está el piloto). */
-  let rankCatalog = null;
+  let rankCatalog = null, rankCatalogState = null, rankCatalogClasses = '';
+  const savedClassIds = () => [...new Set([...Object.keys(state.classEvidence || {}),
+    ...(state.academicIntelligence?.attempts || []), ...(state.academicIntelligence?.evidence || [])]
+    .map(item => typeof item === 'string' ? item : String(item.exerciseId || '').split(':')[0]))].filter(Boolean).sort();
+  const rankCatalogCurrent = () => rankCatalog && rankCatalogState === state && rankCatalogClasses === savedClassIds().join('|');
   function loadRankCatalog() {
-    if (!rankCatalog) rankCatalog = loadAcademicFoundation()
-      .then(() => Promise.all([...new Set((state.academicIntelligence?.evidence || []).map(e => String(e.exerciseId || '').split(':')[0]))]
-        .map(id => loadClassroom(id).catch(() => false))))
+    if (!rankCatalogCurrent()) {
+      const ids = savedClassIds(); rankCatalogState = state; rankCatalogClasses = ids.join('|');
+      rankCatalog = loadAcademicFoundation()
+      .then(() => Promise.all(ids.map(id => loadClassroom(id).catch(() => false))))
       .then(() => window.NexoAcademicBridge?.ensureFromEvidence(state))
       .catch(() => { /* sin motor, la carta queda con el rango que alcance a calcular */ });
+    }
     return rankCatalog;
   }
   function renderProfile(tab = '') {
     const active = ['mascot', 'grades', 'absences', 'stats', 'settings'].includes(tab) ? tab : '';
     if (!active) {
-      if (!rankCatalog) loadRankCatalog().then(() => { if (parseRoute().join('/') === 'profile') renderRoute(false); });
+      if (!rankCatalogCurrent()) loadRankCatalog().then(() => { if (parseRoute().join('/') === 'profile') renderRoute(false); });
       petBind(); return window.NexoCarta.render(app, profileCardData());
     }
     if (active === 'stats') renderStats();

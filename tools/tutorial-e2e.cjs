@@ -29,7 +29,7 @@ let browser; const passed=[], errors=[];
     return ctx;
   };
   const saved=page=>page.evaluate(()=>JSON.parse(localStorage.getItem('nexo-study-beta')));
-  const noTutorial=async page=>{await page.waitForFunction(()=>document.querySelector('#app')?.dataset.renderedRoute && !location.hash.startsWith('#/tutorial'));assert.equal(await page.locator('.tut').count(),0);};
+  const noTutorial=async page=>{await page.waitForFunction(()=>document.querySelector('#app')?.dataset.renderedRoute === location.hash.replace(/^#\/?/,'') && !location.hash.startsWith('#/tutorial') && !document.querySelector('.tut'));assert.equal(await page.locator('.tut').count(),0);};
   const endTutorial=async page=>{
     // Recorrer controles reales, incluidos huevos, nombre, escenas y recorrido por módulos.
     for(let i=0;i<160;i++) {

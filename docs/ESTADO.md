@@ -3,7 +3,10 @@
 Historial de lo hecho por tema. Lo lee Claude solo cuando necesita contexto de otro tema; el cierre de cada chat agrega aquí una línea con fecha (skill nexo-cierre).
 
 ## 20 oct 2026 — Tutorial P0
-- Corrección de repetición automática, registro durable antes de abrir, repetición explícita sin efectos académicos y base independiente de cinemáticas. 44/44 pruebas y 14 escenarios en Edge OK. Solo repositorio NEXO-ESTUDIO-CLAUDE; estado y límites en `docs/tutorial-persistencia/SPEC.md`. Artifact pendiente de publicación.
+- Corrección de repetición automática, registro durable antes de abrir, repetición explícita sin efectos académicos y base independiente de cinemáticas. 48/48 pruebas y 14 escenarios en Edge OK. Integración en master autorizada, conservando las mejoras recientes de motor y Clases Vivas. Solo repositorio NEXO-ESTUDIO-CLAUDE; estado y límites en `docs/tutorial-persistencia/SPEC.md`. Artifact pendiente de publicación.
+- **20 oct 2026 · Confiabilidad del motor / segunda entrega local**: cuatro regresiones reproducidas antes de corregir; variantes con ID propio, autorúbrica sin dominio verificado, cola FSRS y reconstrucción histórica del catálogo. Sin modificar progreso personal ni publicar. Ver `docs/confiabilidad-motor/SPEC.md`; pendiente auditoría de la entrega.
+
+- **20 oct 2026 · Motor académico / Fase I**: aula y Demuestra guardan evidencia local antes de entregar al motor/FSRS y recuperan pendientes al reabrir, sin duplicados; generados con variante/fuente/diapositiva. 44/44 pruebas rápidas y navegador 1440/390 en dos ramos. Entrega separada para revisión; ver `docs/fase-i-motor/SPEC.md`.
 
 ## Al 3–5 oct 2026
 
@@ -105,3 +108,11 @@ Historial de lo hecho por tema. Lo lee Claude solo cuando necesita contexto de o
 - 19 oct 2026 · Clases Orgánica II PEP 1: mapa de la PEP 2025 y cobertura por diapositiva (`docs/org-pep1-motor/MAPA.md`), diapositivas reales en org-04 y org-05, receta de heterociclos en org-01 y ejercicios en formato PEP y de guías 2021. Siguen en borrador.
 - 19 oct 2026 · FQ II (PEP 1 movida al 28 de oct): mapa de qué cae desde pruebas pasadas, generadores en formato de prueba (`eqmoles`, `gibbsvh`, `mezcla`), actividad de postulados de Debye–Hückel y simulacro completo con pauta (100 min). Clases en borrador. SPEC: docs/fq-pep1-motor/SPEC.md.
 - 19 oct 2026 · Pulido para el lanzamiento (rehecho; el commit original se perdió): intro del umbral, diálogos chilenos, contador 7 obligatorio, Grimorio con rebote, reloj móvil ocultable, música alta por defecto y Sótano inmersivo con capa viva. SPEC: docs/pulido/SPEC.md.
+
+- 20 oct 2026 · Clases Vivas: módulo reutilizable del Sótano con Modo Estudio, enlaces directos y apertura desde cámara al mismo historial; motor local recuperable y pruebas PC/celular. Inmersivo futuro. SPEC: `docs/clases-vivas/SPEC.md`.
+
+- 20 oct 2026 · Clases Vivas, continuidad de Basicidad: fases, variantes, respuestas pendientes y reloj recuperables; resultados idempotentes y pruebas finales pendientes de otras misiones reabiertas. 47/47 pruebas rápidas y navegador 1440/390 OK. Rama de revisión; falta prueba de estudio real. SPEC: `docs/clases-vivas/SPEC.md`.
+
+- 20 oct 2026 · Clases Vivas: adaptación al panel real de 250×268, encabezado 159→58 px, compañero desplegable y tamaños de texto/tarjetas ajustados. Verificados cuatro tamaños y continuidad. SPEC: `docs/clases-vivas/SPEC.md`.
+
+- 20 oct 2026 · Usuario autoriza integrar Clases Vivas, continuidad de Basicidad y adaptación de pantalla en master de NEXO-ESTUDIO-CLAUDE. Base remota 5503511, avance directo sin divergencia; Artifact pendiente. SPEC: `docs/clases-vivas/SPEC.md`.

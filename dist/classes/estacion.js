@@ -37,6 +37,49 @@
     explain: 'Se protona el N de la amina terciaria. El de la amida casi no es básico (misión 5).'
   };
 
+  // El recorrido vive junto al resto de la clase; ningún dato depende de la cámara.
+  function progressFor({ cls, mission, api, only, now = Date.now }) {
+    const lesson = api ? window.NexoClassroom.sessionFor(api, cls.id) : {};
+    const key = `${mission}:${only === 'demuestra' ? 'final' : 'full'}`;
+    const store = lesson.stationProgress ||= {};
+    const state = store[key] ||= { version: 1, step: only === 'demuestra' ? 3 : 0, classIndex: 0, adivinaOk: false, tasks: {} };
+    if (state.version !== 1) throw new Error('Versión de estación no compatible.');
+    const save = () => { api?.saveState(); api?.flushState?.(); };
+    const task = (id, make) => {
+      if (!state.tasks[id]) { state.tasks[id] = { ...(make ? { item: JSON.parse(JSON.stringify(make())) } : {}) }; save(); }
+      return state.tasks[id];
+    };
+    const expired = () => Boolean(state.exam?.timed && now() >= state.exam.deadlineAt);
+    function start(make, timed, seconds) {
+      if (!state.exam) {
+        const startedAt = now();
+        state.exam = { item: JSON.parse(JSON.stringify(make())), timed, startedAt,
+          deadlineAt: timed ? startedAt + seconds * 1000 : null, task: {}, status: 'running' };
+        save();
+      }
+      return state.exam;
+    }
+    function finish(correct, why, question) {
+      const exam = state.exam;
+      if (!exam) throw new Error('La prueba no está iniciada.');
+      if (!exam.result) {
+        const timeout = why === 'timeout' || expired(), at = now(), item = exam.item;
+        exam.status = 'completed';
+        exam.result = { station: `${cls.id}:${mission}`, itemId: item.id, conceptId: item.concept || null,
+          type: item.type || 'choice', question: question || null, correct: Boolean(correct) && !timeout,
+          assisted: false, timed: exam.timed, timeout, adivinaOk: state.adivinaOk,
+          source: item.source || null, slide: item.slide ?? null, gen: item.gen || null,
+          reviewAt: at + (correct && !timeout ? 3 : 1) * 86400000, at };
+        Object.assign(exam.task, { done: true, correct: exam.result.correct, why: timeout ? 'timeout' : why || null });
+        save();
+      }
+      return exam.result;
+    }
+    return { state, save, task, start, finish, expired,
+      remaining: () => state.exam?.timed ? Math.max(0, (state.exam.deadlineAt - now()) / 1000) : null,
+      nextExam() { delete state.exam; save(); } };
+  }
+
   /* Chispas: partículas que salen de un punto y se apagan (animación del navegador, sin cuadros que saltan). */
   function burst(layer, root, target, { color = '#ffd860', n = 12, spread = 46 } = {}) {
     if (reduced() || !layer.isConnected) return;
@@ -76,19 +119,27 @@
     const misc = cls.misconceptions || {}, diag = mission.stages.diagnostic;
     const demo = { gen: 'basicidad', pep: 'P3', ends: ['menos básica', 'más básica'], prompt: 'Ordene de menor a mayor la basicidad de los siguientes compuestos orgánicos.', seconds: EXAM_SECONDS, ...(opts.demuestra || {}) };
     const only = opts.only === 'demuestra';
+    const progress = progressFor(opts), saved = progress.state;
     const pool = [].concat(demo.gen).map(id => (opts.gen || window.NexoClassGen[cls.id]).generators.find(g => g.id === id)).filter(Boolean);
-    const gen = { make: (rng, level) => pickOne(pool).make(rng, level) };   // una misión puede tener varios generadores
+    const gen = { make: (rng, level) => {
+      const g = pickOne(pool), id = `gen:${g.id}:${level}:${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`;
+      return window.NexoClassroom?.genItem(cls, id) || { source: opts.gen?.source || window.NexoClassGen[cls.id]?.source,
+        ...g.make(rng, level), id, gen: { id: g.id, level } };
+    } };   // variante reproducible, con su generador y fuente, igual que el aula
     const P = window.PixelMascotas, petInfo = opts.pet || {};
     const pet = petInfo.name && petInfo.name !== 'Nexo' ? petInfo.name : (P?.list.find(([k]) => k === petInfo.kind)?.[1] || 'Matraz');
-    let step = 0, raf = 0, destroyed = false, passedAdivina = false, resetMood = 0;
+    let step = 0, raf = 0, destroyed = false, resetMood = 0;
+    const stageTimers = new Set();
+    const later = (fn, delay) => { const id = setTimeout(() => { stageTimers.delete(id); if (!destroyed && root.isConnected) fn(); }, delay); stageTimers.add(id); };
+    const clearStageTimers = () => { stageTimers.forEach(clearTimeout); stageTimers.clear(); };
     const mood = { expr: 'neutral', arm: 'rest', hopUntil: 0, hopFrom: 0, look: 0 };
 
     host.innerHTML = `<section class="st">      <canvas class="st-pet" width="40" height="44" aria-hidden="true"></canvas><div class="st-bubble" role="status"></div>
       <div class="st-panel"><ol class="st-steps"></ol><div class="st-body"></div></div><div class="st-fx"></div>${opts.onExit ? '<button class="st-exit" aria-label="Salir de la estación">← Salir</button>' : ''}</section>`;
     const root = host.firstElementChild, bubble = root.querySelector('.st-bubble');
+    const onEsc = e => { if (e.key === 'Escape') opts.onExit?.(); };
     if (opts.onExit) {
       root.querySelector('.st-exit').addEventListener('click', opts.onExit);
-      const onEsc = e => { if (!root.isConnected) document.removeEventListener('keydown', onEsc); else if (e.key === 'Escape') opts.onExit(); };
       document.addEventListener('keydown', onEsc);
     }
     const stepsEl = root.querySelector('.st-steps'), body = root.querySelector('.st-body'), fx = root.querySelector('.st-fx');
@@ -108,50 +159,66 @@
     const setSteps = () => { stepsEl.innerHTML = STEPS.map((s, i) => `<li class="${i === step ? 'on' : i < step ? 'done' : ''}">${i + 1} · ${s}</li>`).join(''); };
 
     /* Pregunta de opciones: un intento. `locked` = Demuestra (sin pista ni reintento). */
-    function choice(item, { onDone, locked = false }) {
-      const box = document.createElement('div'), order = item.options.map((_, i) => i).sort(() => Math.random() - .5); // en los datos la correcta va primero: se mezcla
+    function choice(item, { onDone, locked = false, work = {}, expired = () => false }) {
+      const box = document.createElement('div');
+      const order = work.order ||= item.options.map((_, i) => i).sort(() => Math.random() - .5);
+      progress.save();
       box.innerHTML = `<p class="st-q">${md(item.prompt)}</p><div class="st-opts">${order.map(i => `<button class="st-opt" data-i="${i}">${md(item.options[i].text)}</button>`).join('')}</div><p class="st-fb" hidden></p>`;
+      const feedback = restoring => {
+        box.querySelectorAll('.st-opt').forEach(b => { b.disabled = true; if (item.options[+b.dataset.i].correct) b.classList.add('ok');
+          if (+b.dataset.i === work.choice && !work.correct) b.classList.add('bad'); });
+        const option = item.options[work.choice];
+        const why = work.correct ? item.explain : (misc[option?.misconception]?.why || option?.note || item.explain);
+        const fb = box.querySelector('.st-fb'); fb.hidden = false; fb.innerHTML = md(why);
+        if (!restoring && work.correct) burst(fx, root, box.querySelector('.st-opt.ok'), { n: 14 });
+        if (!restoring) react(work.correct ? (locked ? '¡Demostrado! Sin pistas y bien.' : pickOne(CHEER)) : (locked ? 'Esta no pasó. Vuelve con otra variante.' : why), work.correct ? 'h' : 'w');
+        onDone(work.correct, work.why);
+      };
+      box._finish = (ok, why) => {
+        if (work.done) return;
+        Object.assign(work, { done: true, correct: Boolean(ok), why: why || null }); progress.save(); feedback(false);
+      };
       box.querySelectorAll('.st-opt').forEach((btn, k) => {
         btn.style.setProperty('--d', k * 70 + 'ms');
         btn.addEventListener('click', () => {
-          const o = item.options[+btn.dataset.i];
-          box.querySelectorAll('.st-opt').forEach(b => { b.disabled = true; if (item.options[+b.dataset.i].correct) b.classList.add('ok'); });
-          if (!o.correct) btn.classList.add('bad');
-          const why = o.correct ? item.explain : (misc[o.misconception]?.why || o.note || item.explain);
-          const fb = box.querySelector('.st-fb'); fb.hidden = false; fb.innerHTML = md(why);
-          if (o.correct) burst(fx, root, box.querySelector('.st-opt.ok'), { n: 14 });
-          react(o.correct ? (locked ? '¡Demostrado! Sin pistas y bien.' : pickOne(CHEER)) : (locked ? 'Esta no pasó. Mañana vuelve con otra variante.' : why), o.correct ? 'h' : 'w');
-          onDone(!!o.correct);
+          if (work.done) return;
+          if (expired()) return box._finish(false, 'timeout');
+          work.choice = +btn.dataset.i;
+          box._finish(Boolean(item.options[work.choice].correct));
         });
       });
-      box._finish = (ok, why) => {   // se acabó el tiempo: se muestra la correcta y se cierra
-        box.querySelectorAll('.st-opt').forEach(b => { b.disabled = true; if (item.options[+b.dataset.i].correct) b.classList.add('ok'); });
-        const fb = box.querySelector('.st-fb'); fb.hidden = false; fb.innerHTML = md(item.explain); onDone(ok, why);
-      };
+      if (work.done) feedback(true);
       return box;
     }
 
     /* Respuesta numérica (un intento): acepta coma o punto; la corrección es la del aula. */
-    function numberTask(item, { onDone }) {
+    function numberTask(item, { onDone, work = {}, expired = () => false }) {
       const box = document.createElement('div'), CR = window.NexoClassroom;
       box.innerHTML = `<p class="st-q">${md(item.prompt)}</p><div class="st-ctl"><input class="st-num" inputmode="decimal" autocomplete="off" aria-label="Tu respuesta"> <span class="st-unit">${esc(item.unit || '')}</span>
         <button class="st-next" data-check disabled>Comprobar</button></div><p class="st-fb" hidden></p>`;
       const input = box.querySelector('.st-num'), check = box.querySelector('[data-check]'), fb = box.querySelector('.st-fb');
       const parse = raw => (CR?.parseNum ? CR.parseNum(raw) : Number(String(raw).replace(',', '.')));
-      let over = false;
-      input.addEventListener('input', () => { check.disabled = over || !Number.isFinite(parse(input.value)); });
+      input.value = work.raw || '';
+      check.disabled = Boolean(work.done) || !input.value.trim() || !Number.isFinite(parse(input.value));
+      input.addEventListener('input', () => { work.raw = input.value; progress.save(); check.disabled = Boolean(work.done) || !input.value.trim() || !Number.isFinite(parse(input.value)); });
       input.addEventListener('keydown', e => { if (e.key === 'Enter' && !check.disabled) check.click(); });
-      const finish = (ok, why) => {
-        over = true; input.disabled = true; check.disabled = true; fb.hidden = false;
+      const feedback = restoring => {
+        input.disabled = true; check.disabled = true; fb.hidden = false;
         fb.innerHTML = `${md(item.explain || '')}${(item.solution || []).length ? `<ol>${item.solution.map(t => `<li>${md(t)}</li>`).join('')}</ol>` : ''}`;
-        if (ok) burst(fx, root, input, { n: 16 });
-        onDone(ok, why);
+        if (!restoring && work.correct) burst(fx, root, input, { n: 16 });
+        onDone(work.correct, work.why);
+      };
+      const finish = (ok, why) => {
+        if (work.done) return;
+        Object.assign(work, { done: true, correct: Boolean(ok), why: why || null }); progress.save(); feedback(false);
       };
       check.addEventListener('click', () => {
+        if (expired()) return finish(false, 'timeout');
         const num = parse(input.value);
         finish(CR?.isCorrect ? CR.isCorrect(item, { raw: input.value, num, unit: item.unit || '' }) : Math.abs(num - item.answer) <= Math.abs(item.answer) * (item.tol ?? .02));
       });
       box._finish = finish;
+      if (work.done) feedback(true);
       return box;
     }
     const nextBtn = (label, go) => { const b = document.createElement('button'); b.className = 'st-next'; b.textContent = label; b.hidden = true; b.addEventListener('click', go); return b; };
@@ -161,7 +228,7 @@
       react('Apuesta sin miedo: aquí equivocarse sale gratis.');
       body.innerHTML = title('ADIVINA');
       const next = nextBtn('A la clase →', () => go(1));
-      body.append(choice(ADIVINA, { onDone: ok => { passedAdivina = ok; reveal(next); } }), next);
+      body.append(choice(ADIVINA, { work: progress.task('adivina'), onDone: ok => { saved.adivinaOk = ok; progress.save(); reveal(next); } }), next);
     }
 
     function stepClase() {
@@ -174,18 +241,18 @@
         <p class="st-cap" style="--d:.9s">El equilibrio gana el ácido **más débil**.</p>`;
       body.querySelectorAll('.st-cap').forEach(p => { p.innerHTML = md(p.textContent); });
       const next = nextBtn('Al juego →', () => go(2));
-      let i = 0;
+      let i = Math.max(0, Math.min(Number(saved.classIndex) || 0, diag.length));
       const ask = () => {
         if (i >= diag.length) { reveal(next); return; }
         const item = diag[i++], holder = document.createElement('div');
-        holder.append(choice(item, { onDone: () => { const b = document.createElement('button'); b.className = 'st-next'; b.textContent = 'Siguiente'; b.addEventListener('click', () => { holder.remove(); ask(); }); holder.append(b); reveal(b); } }));
+        holder.append(choice(item, { work: progress.task('class:' + item.id), onDone: () => { const b = document.createElement('button'); b.className = 'st-next'; b.textContent = 'Siguiente'; b.addEventListener('click', () => { saved.classIndex = i; progress.save(); holder.remove(); ask(); }); holder.append(b); reveal(b); } }));
         body.insertBefore(holder, next); reveal(holder);
       };
-      body.append(next); setTimeout(() => { if (step === 1) ask(); }, reduced() ? 0 : 1100);
+      body.append(next); later(() => { if (step === 1) ask(); }, reduced() ? 0 : 1100);
     }
 
     /* Ordenar por basicidad (formato de la pregunta 3 de la PEP): se toca de menos a más básica. `retry` = práctica: se puede reintentar. */
-    function orderTask(item, { retry = false, onDone }) {
+    function orderTask(item, { retry = false, onDone, work = {}, expired = () => false }) {
       const box = document.createElement('div'), n = item.cards.length, L = 'abcdef';
       // los extremos salen de la dirección del ítem («De más lento a más rápido»); en Basicidad se dicen «menos/más básica»
       const dir = /^(?:de|del)\s+(.+?)\s+(?:a|al)\s+(.+?)\.?$/i.exec(item.direction || ''), ends = [].concat(demo.gen)[0] === 'basicidad' ? demo.ends : dir ? [dir[1], dir[2]] : ['primero', 'último'];
@@ -197,34 +264,41 @@
       /* Con estructuras (como la PEP) el examen muestra solo el dibujo y la letra; la práctica agrega el nombre. Sin RDKit, queda el nombre. */
       const drawn = {};
       const label = id => { const i = item.cards.findIndex(c => c.id === id); return `<b>${L[i]})</b> ${drawn[id] ? `<span class="st-thumb">${drawn[id]}</span>` : ''}${drawn[id] && !retry ? '' : md(item.cards[i].text)}`; };
-      let picked = [], over = false;
+      let picked = (work.picked || []).filter((id, i, all) => item.cards.some(c => c.id === id) && all.indexOf(id) === i), over = false;
       const refresh = () => {
         slots.forEach((s, i) => { s.querySelector('span').innerHTML = picked[i] ? label(picked[i]) : ''; s.classList.toggle('full', !!picked[i]); });
         cards.forEach(c => { c.disabled = over || picked.includes(c.dataset.id); });
         check.disabled = over || picked.length !== n;
       };
-      cards.forEach(c => c.addEventListener('click', () => { if (picked.length < n) { picked.push(c.dataset.id); refresh(); } }));
-      slots.forEach((s, i) => s.addEventListener('click', () => { if (!over && picked[i]) { picked = picked.slice(0, i); refresh(); } }));
+      cards.forEach(c => c.addEventListener('click', () => { if (!over && picked.length < n) { if (expired()) return finish(false, 'timeout'); picked.push(c.dataset.id); work.picked = picked.slice(); progress.save(); refresh(); } }));
+      slots.forEach((s, i) => s.addEventListener('click', () => { if (!over && picked[i]) { if (expired()) return finish(false, 'timeout'); picked = picked.slice(0, i); work.picked = picked.slice(); progress.save(); refresh(); } }));
       const showAnswer = () => {
         picked = item.answer.slice(); refresh();
         slots.forEach((s, i) => { if (!reduced()) s.animate([{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }], { duration: 420, delay: i * 140, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'backwards' }); s.classList.add('ok'); });
       };
-      const finish = (ok, why) => {
+      const feedback = restoring => {
         over = true; refresh(); fb.hidden = false; fb.innerHTML = md(item.explain);
-        if (ok) { slots.forEach(s => s.classList.add('ok')); burst(fx, root, slots[n - 1], { n: 18 }); } else showAnswer();
-        onDone(ok, why);
+        if (work.correct) { slots.forEach(s => s.classList.add('ok')); if (!restoring) burst(fx, root, slots[n - 1], { n: 18 }); } else showAnswer();
+        onDone(work.correct, work.why);
+      };
+      const finish = (ok, why) => {
+        if (work.done) return;
+        Object.assign(work, { done: true, correct: Boolean(ok), why: why || null }); progress.save(); feedback(false);
       };
       check.addEventListener('click', () => {
+        if (expired()) return finish(false, 'timeout');
         const ok = JSON.stringify(picked) === JSON.stringify(item.answer);
         if (ok || !retry) { finish(ok); return; }
         slots.forEach(s => s.classList.add('bad')); fb.hidden = false; fb.innerHTML = md(item.hint || demo.hint || 'Mayor pKa del ion amonio = más básica.');
         react('Casi. Mira los pKa: el más alto agarra el H⁺ más fuerte.', 'w');
-        setTimeout(() => { slots.forEach(s => s.classList.remove('bad')); picked = []; refresh(); }, 900);
+        later(() => { slots.forEach(s => s.classList.remove('bad')); picked = []; work.picked = []; progress.save(); refresh(); }, 900);
       });
       box._finish = finish; refresh();
+      if (work.done) feedback(true);
       if (item.cards.every(c => c.smiles)) {
         const wait = document.createElement('p'); wait.className = 'st-tip'; wait.textContent = 'Dibujando las estructuras…'; box.querySelector('.st-cards').before(wait);
         loadRDKit().then(R => {
+          if (destroyed || !box.isConnected) return;
           item.cards.forEach((c, i) => { drawn[c.id] = structure(R, c.smiles); cards[i].insertAdjacentHTML('afterbegin', `<span class="st-struct">${drawn[c.id]}</span>`); });
           box.classList.add('has-struct', retry ? 'is-practice' : 'is-exam'); refresh();
         }).catch(() => {}).finally(() => wait.remove());
@@ -235,8 +309,8 @@
     function stepPractica() {
       react('Primero con los pKa a la vista. Cuando salga, lo hacemos como en la prueba.', 't');
       body.innerHTML = title('PRÁCTICA');
-      const next = nextBtn('Ir a la prueba →', () => go(3)), item = gen.make(Math.random, 2);
-      body.append(orderTask(item, { retry: true, onDone: ok => { if (ok) { react(pickOne(CHEER), 'h'); reveal(next); } } }), next);
+      const next = nextBtn('Ir a la prueba →', () => go(3)), work = progress.task('practice', () => gen.make(Math.random, 2)), item = work.item;
+      body.append(orderTask(item, { retry: true, work, onDone: ok => { if (ok) { react(pickOne(CHEER), 'h'); reveal(next); } } }), next);
     }
 
     function stepDemuestra() {
@@ -244,54 +318,62 @@
       react(only ? 'Última prueba de la misión: un solo intento y sin pistas. Tú puedes.' : 'Como en la PEP: sin tabla y un solo intento. Respira… tú puedes.', 't');
       const head = q ? `<b>Pregunta ${esc(q.id.slice(1))}</b> · <b>${fmt(q.points)} ${q.points === 1 ? 'punto' : 'puntos'}</b><br>${esc(q.label)}` : '<b>Prueba final de la misión</b> · un intento';
       body.innerHTML = `${title('DEMUESTRA')}<div class="st-exam"><p class="st-q">${head}</p>
-        <label class="st-clockopt"><input type="checkbox" checked> Con reloj (${seconds} s, como en la prueba)</label><button class="st-next st-start">Empezar</button></div>`;
-      body.querySelector('.st-start').addEventListener('click', () => {
-        const timed = body.querySelector('.st-clockopt input').checked, t0 = performance.now();
-        const made = gen.make(Math.random, 5);
-        const prompt = [].concat(demo.gen)[0] === 'basicidad' && made.type === 'order' ? demo.prompt : String(made.prompt).replace(/^Estilo PEP( \(pregunta \d\))?: ?/i, '').replace(/^./, c => c.toUpperCase());
-        const item = { ...made, prompt };
+        <label class="st-clockopt"><input type="checkbox" ${saved.timed === false ? '' : 'checked'}> Con reloj (${seconds} s, como en la prueba)</label>
+        <p class="st-fb">Si usas reloj, sigue corriendo aunque cierres la clase.</p><button class="st-next st-start">Empezar</button></div>`;
+      const timedOption = body.querySelector('.st-clockopt input');
+      timedOption.addEventListener('change', () => { saved.timed = timedOption.checked; progress.save(); });
+      function openExam() {
+        const exam = progress.start(() => {
+          const made = gen.make(Math.random, 5);
+          const prompt = [].concat(demo.gen)[0] === 'basicidad' && made.type === 'order' ? demo.prompt : String(made.prompt).replace(/^Estilo PEP( \(pregunta \d\))?: ?/i, '').replace(/^./, c => c.toUpperCase());
+          return { ...made, prompt };
+        }, timedOption.checked, seconds);
+        const item = exam.item;
         body.querySelector('.st-exam').remove();
-        const clock = document.createElement('div'); clock.className = 'st-clock'; clock.innerHTML = '<i></i><span></span>'; clock.hidden = !timed;
+        const clock = document.createElement('div'); clock.className = 'st-clock'; clock.innerHTML = '<i></i><span></span>'; clock.hidden = !exam.timed;
         const out = document.createElement('div'); let timer = 0, closed = false;
         const onDone = (ok, why) => {
+          if (closed || destroyed) return;
           closed = true; clearInterval(timer);
-          const result = { station: `${cls.id}:${mission.id}`, itemId: item.id || `${[].concat(demo.gen)[0]}-demuestra`, conceptId: item.concept || null, type: item.type || 'choice', question: demo.pep || null, correct: ok, assisted: false, timed, timeout: why === 'timeout', adivinaOk: passedAdivina,
-            reviewAt: Date.now() + (ok ? 3 : 1) * 86400000, at: Date.now() };
+          const result = progress.finish(ok, why, demo.pep);
           opts.onResult?.(result);
+          const passed = result.correct;
           const rows = (cls.goal?.questions || []).map(x => x.id === demo.pep
-            ? `<li class="${ok ? 'ok' : 'no'}">${ok ? '✦' : '✘'} <b>${x.id}</b> · ${esc(x.label)} (${x.points} pt) — ${ok ? 'asegurado' : why === 'timeout' ? 'se acabó el tiempo' : 'aún no'}</li>`
+            ? `<li class="${passed ? 'ok' : 'no'}">${passed ? '✦' : '✘'} <b>${x.id}</b> · ${esc(x.label)} (${x.points} pt) — ${passed ? 'asegurado' : result.timeout ? 'se acabó el tiempo' : 'aún no'}</li>`
             : `<li>○ <b>${x.id}</b> · ${esc(x.label)} (${x.points} pt) — en otra misión</li>`).join('');
-          const repaso = ok ? 'Te la vuelvo a pedir en 3 días con otro caso.' : 'Te la vuelvo a pedir mañana con otro caso.';
-          out.innerHTML = `<div class="st-pep"><h3>${q ? `Tu PEP 1 · ${esc(cls.title)}` : 'Prueba final'}</h3>${q ? `<ul>${rows}</ul>` : `<p>${ok ? '✦ Demostrado sin pistas.' : '✘ Aún no.'}</p>`}<p>${repaso}</p>
-            ${only ? '<button class="st-next st-done">Volver a la Cámara →</button>' : ''}</div>`;
-          out.querySelector('.st-done')?.addEventListener('click', () => opts.onExit?.());
+          out.innerHTML = `<div class="st-pep"><h3>${q ? `Tu PEP 1 · ${esc(cls.title)}` : 'Prueba final'}</h3>${q ? `<ul>${rows}</ul>` : `<p>${passed ? '✦ Demostrado sin pistas.' : '✘ Aún no.'}</p>`}
+            <p>Resultado guardado. El repaso se programa con tu evidencia.</p>
+            <button class="st-next st-done">Guardar y salir</button><button class="st-next st-again">Probar otra variante</button></div>`;
+          out.querySelector('.st-done').addEventListener('click', () => opts.onExit?.());
+          out.querySelector('.st-again').addEventListener('click', () => { progress.nextExam(); go(3); });
           reveal(out.firstElementChild);
-          react(ok ? '¡Punto demostrado! Sin pistas y a tiempo.' : (why === 'timeout' ? 'Se acabó el tiempo. Mañana lo repetimos.' : 'Esta no pasó. Mañana vuelve con otra variante.'), ok ? 's' : 'w');
-          if (ok) burst(fx, root, out, { n: 26, spread: 90 });
+          react(passed ? '¡Resuelto sin pistas!' : (result.timeout ? 'Se acabó el tiempo. Puedes practicar otra variante.' : 'Esta no pasó. Revisa la explicación y prueba otra variante.'), passed ? 's' : 'w');
         };
-        const task = item.type === 'order' ? orderTask(item, { onDone }) : item.type === 'number' ? numberTask(item, { onDone }) : choice(item, { locked: true, onDone });
+        const args = { onDone, work: exam.task, expired: progress.expired };
+        const task = item.type === 'order' ? orderTask(item, args) : item.type === 'number' ? numberTask(item, args) : choice(item, { ...args, locked: true });
         body.append(clock, task, out);
-        if (timed) {
-          const bar = clock.firstChild, txt = clock.lastChild;
-          timer = setInterval(() => {
-            if (closed || destroyed || step !== 3 || !root.isConnected) { clearInterval(timer); return; }
-            const left = Math.max(0, seconds - (performance.now() - t0) / 1000);
-            bar.style.transform = `scaleX(${left / seconds})`; txt.textContent = Math.ceil(left) + ' s'; clock.classList.toggle('low', left < 15);
-            if (left <= 0) task._finish(false, 'timeout');
-          }, 200);
-          body._cleanup = () => clearInterval(timer);
-        }
-      });
+        const tick = () => {
+          if (closed || destroyed || step !== 3 || !root.isConnected) { clearInterval(timer); return; }
+          const left = progress.remaining();
+          clock.firstChild.style.transform = `scaleX(${left / seconds})`; clock.lastChild.textContent = Math.ceil(left) + ' s'; clock.classList.toggle('low', left < 15);
+          if (left <= 0) task._finish(false, 'timeout');
+        };
+        if (exam.timed && !closed) { tick(); if (!closed) timer = setInterval(tick, 200); }
+        body._cleanup = () => clearInterval(timer);
+      }
+      body.querySelector('.st-start').addEventListener('click', openExam);
+      if (saved.exam) openExam();
     }
 
     function go(n) {
-      cancelAnimationFrame(raf); body._cleanup?.(); body._cleanup = null;
-      step = n; setSteps(); [stepAdivina, stepClase, stepPractica, stepDemuestra][n]();
+      clearStageTimers(); cancelAnimationFrame(raf); body._cleanup?.(); body._cleanup = null;
+      step = n; saved.step = n; progress.save(); setSteps(); [stepAdivina, stepClase, stepPractica, stepDemuestra][n]();
       if (!reduced()) body.animate([{ opacity: 0, transform: 'translateY(12px)', filter: 'blur(4px)' }, { opacity: 1, transform: 'none', filter: 'blur(0)' }], { duration: 480, easing: 'cubic-bezier(.2,.8,.2,1)' });
     }
-    function destroy() { destroyed = true; cancelAnimationFrame(raf); clearTimeout(resetMood); stopPet(); body._cleanup?.(); host.innerHTML = ''; }
-    if (only) { root.classList.add('is-only'); go(3); } else go(0);
+    function destroy() { clearStageTimers(); progress.save(); document.removeEventListener('keydown', onEsc); destroyed = true; cancelAnimationFrame(raf); clearTimeout(resetMood); stopPet(); body._cleanup?.(); host.innerHTML = ''; }
+    if (only) root.classList.add('is-only');
+    go(only ? 3 : Math.max(0, Math.min(3, Number(saved.step) || 0)));
     return { destroy, go };
   }
-  window.NexoStation = Object.freeze({ mount, startPet });
+  window.NexoStation = Object.freeze({ mount, startPet, progressFor });
 })();

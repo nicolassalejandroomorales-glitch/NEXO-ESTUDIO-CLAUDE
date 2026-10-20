@@ -17,8 +17,11 @@ Probar usuario nuevo, complete/salte/interrumpa, recargas, reapertura del navega
 ## Pendiente
 Verificar OAuth y sincronización con una cuenta real entre PC/teléfono, y publicar el Artifact en una tarea autorizada. No modificar otros repositorios. Las cinemáticas narrativas quedan preparadas con contrato y pruebas; su contenido/archivo visual se añadirá cuando exista guion.
 
+## Integración autorizada (20 octubre 2026)
+El usuario autorizó explícitamente integrar la corrección `33d367a` en `master`. Se conservan los seis commits posteriores de motor académico y Clases Vivas hasta `a782a0b`; los conflictos se limitaron a index y tablero generados, regenerados desde las fuentes combinadas. La integración pasó 48/48 pruebas generales y los 14 escenarios de navegador. La prueba espera el final de las transiciones para comprobar la pantalla estable.
+
 ## Resultado de verificación (20 octubre 2026)
-- `node tools/run-tests.cjs`: **44/44 OK**, con cinco exclusiones preexistentes del ejecutor (no se modificaron).
+- `node tools/run-tests.cjs`: **48/48 OK**, con cinco exclusiones preexistentes del ejecutor (no se modificaron).
 - `node tools/tutorial-persistence-test.cjs`: OK. Registro previo, cierre/recarga, estados terminales, progreso antiguo, objetos de fábrica, datos parciales, aislamiento de identidades, fallo de almacenamiento, roundtrip por el documento meta y cinemáticas independientes.
 - `node tools/tutorial-e2e.cjs`: **14 escenarios OK**, Edge real en 1440 y 390. Nuevo, interrupción, tres recargas, pestaña, navegación Refugio/Sótano/clase/organización/perfil, repetición y salida, URL sin permiso, salto móvil antes de mascota y repetición inmediata, finalización completa, repetición completa sin cambios, migración con sesión conservada, caché/timeout, remoto tardío, callbacks duplicados/cerrar-iniciar sesión y reapertura de navegador con almacenamiento conservado. La finalización/repetición también se verificó con los avisos habilitados como en un navegador normal.
 - Sin errores JavaScript en la batería final de navegador. `git diff --check` y comprobación de skills OK. Bundle regenerado desde fuentes.

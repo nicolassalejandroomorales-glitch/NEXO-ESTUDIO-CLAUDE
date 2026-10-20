@@ -1,7 +1,7 @@
 # Tutorial: corrección P0 de persistencia
 - modelo: GPT-6 · alto
 - fase: terminado
-- estado: corrección verificada (44/44 pruebas y 14 escenarios en Edge); solo NEXO-ESTUDIO-CLAUDE, sin publicación del Artifact
+- estado: corrección verificada (48/48 pruebas y 14 escenarios en Edge); integración en master autorizada por Niquito; solo NEXO-ESTUDIO-CLAUDE, sin publicación del Artifact
 - prioridad: 0
 - spec: docs/tutorial-persistencia/SPEC.md
 

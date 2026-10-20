@@ -8,6 +8,7 @@
      Más peso = más difícil para ti (errores abiertos, repaso atrasado, poca evidencia) y más XP en el juego. */
   function list(state, { now = new Date(), limit = 20 } = {}) {
     const academic = state?.academicIntelligence || {};
+    const evidence = window.NexoAcademicBridge?.evidenceFor(state) || academic.evidence || [];
     const items = new Map();
     const get = id => {
       if (!items.has(id)) items.set(id, { conceptId: id, reasons: [], dueAt: null, overdueDays: 0, openErrors: 0, errorIds: [], misconceptionIds: [] });
@@ -30,7 +31,7 @@
       if (misconception && !item.misconceptionIds.includes(misconception)) item.misconceptionIds.push(misconception);
     }
     const out = [...items.values()].map(item => {
-      const known = window.NexoKnowledge?.derive((academic.evidence || []).filter(e => e.conceptId === item.conceptId));
+      const known = window.NexoKnowledge?.derive(evidence.filter(e => e.conceptId === item.conceptId));
       const stage = known?.stage ?? 0;
       const score = item.openErrors * 2 + Math.min(item.overdueDays, 7) / 7 * 2 + (stage <= 1 ? 2 : stage === 2 ? 1 : 0);
       return { ...item, state: known?.state || 'unseen', score, weight: score >= 4 ? 3 : score >= 2 ? 2 : 1 };

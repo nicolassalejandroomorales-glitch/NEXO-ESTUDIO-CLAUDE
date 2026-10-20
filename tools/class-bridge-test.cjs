@@ -40,11 +40,13 @@ const rec = (extra = {}) => ({ id: `x:${Math.random()}`, conceptId: 'am.pka', co
   await bridge.record(api, cls, item('m4-p3'), wrong);
   assert.equal(state.academicIntelligence.attempts.filter(a => a.id === 'dup').length, 1);
   assert.equal(state.academicIntelligence.structuredErrors[0].misconceptionId, `org-01.${key}`);
-  // 6) Un generado comparte ejercicio por generador y nivel; transferir es otro ejercicio.
+  // 6) Variantes reproducibles distintas comparten familia, no la identidad del ejercicio.
   const gen = { id: 'gen:pka:2:abc', type: 'choice', source: 'catedra-aminas', concept: 'am.pka', gen: { id: 'pka', level: 2 } };
   await bridge.record(api, cls, gen, rec());
   await bridge.record(api, cls, { ...gen, id: 'gen:pka:2:zzz' }, rec());
-  assert.equal(model.exercises.filter(e => e.id === 'org-01:gen:pka:2').length, 1);
+  const variants = model.exercises.filter(e => ['org-01:gen:pka:2:abc', 'org-01:gen:pka:2:zzz'].includes(e.id));
+  assert.equal(variants.length, 2);
+  assert.equal(variants[0].familyId, variants[1].familyId);
   await bridge.record(api, cls, item('m4-p1'), rec({ transfer: true }));
   assert.ok(model.byId(model.exercises, 'org-01:m4-p1#t').transfer);
   // 6b) Familias por habilidad (docs/motor-rangos/SPEC.md): elegir y calcular son familias distintas del mismo concepto;

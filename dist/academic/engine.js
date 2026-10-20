@@ -20,8 +20,9 @@
   }
   function subscribe(listener) {listeners.add(listener);return ()=>listeners.delete(listener);}
   model.validate();current();
+  const evidenceFor=state=>window.NexoAcademicBridge?.evidenceFor(state)||state.academicIntelligence?.evidence||[];
   function knowledgeFor(state,conceptId) {
-    return window.NexoKnowledge.derive((state.academicIntelligence?.evidence||[])
+    return window.NexoKnowledge.derive(evidenceFor(state)
       .filter(item=>item.conceptId===conceptId));
   }
   function diagnoses(state) {
@@ -29,14 +30,37 @@
     return window.NexoAcademicDiagnosis.diagnose(academic.attempts||[],model,graph)
       .map(item=>window.NexoAcademicDiagnosis.resolve(item,academic.attempts||[]));
   }
-  async function ensureReview(api,academic,attempt,conceptId,now) {
+  const reviewQueues=new WeakMap();
+  function ensureReview(api,academic,attempt,conceptId,now) {
     const reviewId=`concept:${conceptId}`;
-    const index=academic.reviewSchedules.findIndex(item=>item.id===reviewId);
-    if(academic.reviewSchedules[index]?.lastAttemptId===attempt.id)return;
-    const scheduled=await window.NexoAcademicReviews.schedule(academic.reviewSchedules[index],
-      conceptId,'concept',attempt,{now});
-    if(index<0)academic.reviewSchedules.push(scheduled);else academic.reviewSchedules[index]=scheduled;
-    api.saveState();api.track?.('review_scheduled',{concept_id:conceptId});
+    let queues=reviewQueues.get(academic);
+    if(!queues){queues=new Map();reviewQueues.set(academic,queues);}
+    const run=async()=>{
+      if(api.getState().academicIntelligence!==academic)return;
+      // También normaliza duplicados de guardados anteriores, conservando la tarjeta más reciente.
+      const matches=academic.reviewSchedules.filter(item=>item.id===reviewId);
+      const prior=matches.reduce((latest,item)=>!latest||new Date(item.updatedAt)>new Date(latest.updatedAt)||
+        (item.updatedAt===latest.updatedAt&&Number(item.card?.reps)>Number(latest.card?.reps))?item:latest,null);
+      if(matches.length>1){
+        prior.attemptIdsAtUpdatedAt=[...new Set(matches.filter(item=>item.updatedAt===prior.updatedAt)
+          .flatMap(item=>[...(item.attemptIdsAtUpdatedAt||[]),item.lastAttemptId]).filter(Boolean))];
+        const keep=academic.reviewSchedules.indexOf(prior);
+        academic.reviewSchedules=academic.reviewSchedules.filter((item,index)=>item.id!==reviewId||index===keep);
+        api.saveState();
+      }
+      if(prior?.lastAttemptId===attempt.id||new Date(prior?.updatedAt)>now||
+        (new Date(prior?.updatedAt).getTime()===now.getTime()&&prior?.attemptIdsAtUpdatedAt?.includes(attempt.id)))return;
+      const scheduled=await window.NexoAcademicReviews.schedule(prior,conceptId,'concept',attempt,{now});
+      if(api.getState().academicIntelligence!==academic)return;
+      scheduled.attemptIdsAtUpdatedAt=new Date(prior?.updatedAt).getTime()===now.getTime()
+        ? [...new Set([...(prior.attemptIdsAtUpdatedAt||[prior.lastAttemptId]),attempt.id])]:[attempt.id];
+      const index=academic.reviewSchedules.findIndex(item=>item.id===reviewId);
+      if(index<0)academic.reviewSchedules.push(scheduled);else academic.reviewSchedules[index]=scheduled;
+      api.saveState();api.track?.('review_scheduled',{concept_id:conceptId});
+    };
+    const pending=(queues.get(reviewId)||Promise.resolve()).catch(()=>{}).then(run);
+    queues.set(reviewId,pending);
+    return pending.finally(()=>{if(queues.get(reviewId)===pending)queues.delete(reviewId);});
   }
   async function recordAttempt(api,input) {
     const exercise=model.byId(model.exercises,input.exerciseId);
@@ -58,8 +82,9 @@
     const diagnosticTarget=input.diagnostic&&input.diagnosticConceptId&&
       graph.ancestors(exercise.conceptIds[0],'required').includes(input.diagnosticConceptId)
       ? input.diagnosticConceptId:null;
-    const earliestIndependent=(academic.evidence||[]).find(item=>item.conceptId===exercise.conceptIds[0]
-      &&item.outcome==='correct'&&!item.assistanceUsed);
+    const earliestIndependent=evidenceFor(state).filter(item=>item.conceptId===exercise.conceptIds[0]
+      &&item.outcome==='correct'&&!item.assistanceUsed&&window.NexoKnowledge.isVerified(item))
+      .sort((a,b)=>new Date(a.at)-new Date(b.at))[0];
     const delayHours=earliestIndependent?Math.max(0,(now-new Date(earliestIndependent.at))/3600000):0;
     const attempt={id:input.id,exerciseId:exercise.id,familyId:exercise.familyId,
       conceptIds:[...exercise.conceptIds,...(diagnosticTarget?[diagnosticTarget]:[])],
