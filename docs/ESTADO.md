@@ -2,6 +2,9 @@
 
 Historial de lo hecho por tema. Lo lee Claude solo cuando necesita contexto de otro tema; el cierre de cada chat agrega aquí una línea con fecha (skill nexo-cierre).
 
+## 20 oct 2026 — Tutorial P0
+- Corrección de repetición automática, registro durable antes de abrir, repetición explícita sin efectos académicos y base independiente de cinemáticas. 44/44 pruebas y 14 escenarios en Edge OK. Solo repositorio NEXO-ESTUDIO-CLAUDE; estado y límites en `docs/tutorial-persistencia/SPEC.md`. Artifact pendiente de publicación.
+
 ## Al 3–5 oct 2026
 
 - Base: UPDATE 01.2 (Sites v23) + Checkpoint 1. En Git desde el commit `f728d1e`.

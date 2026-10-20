@@ -114,6 +114,7 @@ Los chats **no se acuerdan entre sí**: la única memoria compartida es este arc
 
 ## Límites (no hacer sin permiso explícito)
 
+- Tutorial (P0, 20 oct): marcar `shown` persistentemente antes de abrir; nunca reanudar por ruta/recarga. Solo Ajustes permite repetir, sin premio ni cambios históricos. Cinemáticas con IDs e historial aparte: `docs/tutorial-persistencia/SPEC.md`.
 - No tocar Supabase, SQL, migraciones, OAuth ni nada de cloud. No publicar en el Site.
 - Excepción autorizada (3 oct 2026): **clima real con Open-Meteo** (sin clave, ubicación fija Santiago, máx. cada 30 min, sin red = despejado). Ver `docs/mascota/SPEC.md`. Ningún otro servicio externo sin permiso.
 - **No generar imágenes con Canva** (ni otra IA de imágenes) sin que Niquito lo pida en ese momento (4 oct 2026). Conceptos de mascotas en `docs/mascota/conceptos/`.

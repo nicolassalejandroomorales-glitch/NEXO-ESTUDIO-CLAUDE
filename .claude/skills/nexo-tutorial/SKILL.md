@@ -6,13 +6,13 @@ description: Tutorial guiado de Nexo (Grimorio que explica la app, elección y n
 # Tutorial
 
 ## Leer primero
-`docs/tutorial/SPEC.md` (decisiones y estado), `docs/tutorial/GUION.md` (29 pasos) y `docs/tutorial/FRASES.md` (frases y reglas del nombre de las mascotas). El tema es **solo** el tutorial.
+`docs/tutorial/SPEC.md` (decisiones y estado), `docs/tutorial-persistencia/SPEC.md` (P0: prevalece sobre reanudación/recompensas antiguas), `docs/tutorial/GUION.md` (29 pasos) y `docs/tutorial/FRASES.md` (frases y reglas del nombre de las mascotas). El tema es **solo** el tutorial.
 
 ## Código
-- `dist/tutorial/tutorial.js` + `tutorial.css`: se cargan perezosamente al abrir la ruta **`#/tutorial`** (app.js tiene una entrada en `renderers`). Nada va al bundle.
+- `dist/tutorial/tutorial.js` + `tutorial.css`: carga perezosa con permiso de app.js; la ruta `#/tutorial` sola no reproduce. `dist/core/experiences.js` sí va al bundle: historial durable por identidad y `meta.experiences` sincronizado. Marcar `shown` antes de montar; repetir solo desde Ajustes, sin premio ni cambios de historial/mascota. Pruebas: `tools/tutorial-persistence-test.cjs` y `tools/tutorial-e2e.cjs`.
 - `dist/tutorial/avisos.js` + `avisos.css`: globo del Grimorio. Primera vez por sección (solo si `state.tutorial.status==='skipped'`) y novedades (`NEWS`, id sube de 1 en 1). app.js lo carga en `checkAvisos`. Prueba: `tools/avisos-test.cjs`.
 - Exporta `window.NexoTutorial.render(app, { sound, exit })`. Los pasos son el arreglo `STEPS` (cada uno: `pose`, `text` o función de `s`, `scene`, `needs`, `next/back`, `noBack`).
-- Estado de **prueba** en `localStorage['nexo.tutorial.test.v1']` = `{i, kind, draft, name}`. **No toca** `state.mascot` ni las monedas todavía. Para repetir: `localStorage.removeItem('nexo.tutorial.test.v1')`.
+- Cursores visuales separados: primera vez `nexo.tutorial.v1`, repetición `nexo.tutorial.replay.v1`, prueba interna `nexo.tutorial.test.v1`. El cursor no concede reproducción automática. La API de prueba interna del reproductor sigue disponible; no hay ruta pública para saltarse Ajustes.
 - La mascota que nace se dibuja con `window.PixelMascotas.render` (mismo código que `home-pet.js`), no con las hojas de huevos.
 - Bips de 8 bits con WebAudio; respetan `state.settings.sound`.
 

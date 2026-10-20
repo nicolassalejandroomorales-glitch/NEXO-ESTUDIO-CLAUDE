@@ -1,4 +1,7 @@
 /* Tutorial de Nexo (dist/tutorial/tutorial.js). Pixel art a x4 (x2 en móvil) con las piezas de dist/assets/tutorial/. */
+/* La navegación fija no debe cubrir los controles de saltar/salir del tutorial. */
+body[data-nexo-route="tutorial"] :is(.top-bar, .mobile-nav) { display: none; }
+body[data-nexo-route="tutorial"] #app { margin-left: 0; padding-top: 0; }
 .tut { --s: 4; --e: 3; --m: 6; position: relative; display: grid; grid-template-rows: auto 1fr auto auto; gap: 12px; min-height: calc(100vh - 96px); padding: 14px 16px 18px; color: #fff0c4;
   background: radial-gradient(110% 85% at 50% 38%, #3a2433 0%, #1f1722 48%, #0d1411 100%); border-radius: 14px; overflow: hidden; isolation: isolate; }
 .tut-top { display: flex; align-items: center; gap: 14px; }

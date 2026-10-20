@@ -1,5 +1,7 @@
 # Tutorial de Nexo (SPEC en diseño, 11 oct 2026)
 
+**P0, 20 oct 2026:** [Persistencia del tutorial](../tutorial-persistencia/SPEC.md) reemplaza las decisiones anteriores de reanudar automáticamente y dar monedas en una repetición. `shown` se guarda antes de abrir; `skipped/done` conservan la primera visualización; solo Ajustes → Repetir tutorial concede repetición, sin premio ni cambios de progreso. Las decisiones antiguas que siguen se conservan como historial de diseño.
+
 Estado: diseño completo (SPEC, GUION, FRASES) y **Grimorio v3 en pixel art aprobado** (`tools/tutorial-pixel/build_grimorio.py`). Código del tutorial: sin empezar.
 
 ## Qué

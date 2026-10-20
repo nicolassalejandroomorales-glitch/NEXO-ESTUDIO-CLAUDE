@@ -1,6 +1,5 @@
-/* Tutorial de Nexo (docs/tutorial/SPEC.md y GUION.md). Tramo 1: despertar del Grimorio, elegir huevo, nacimiento, nombre y presentación.
-   Se carga solo cuando se abre la ruta #/tutorial (app.js lo pide perezosamente). Ruta de PRUEBA: no toca state.mascot ni las monedas;
-   su avance vive en localStorage 'nexo.tutorial.test.v1'. Más adelante se conecta a cuentas nuevas y a Ajustes → Tutoriales. */
+/* Tutorial de Nexo. El permiso y el historial pertenecen a app.js/core/experiences.js.
+   Los cursores solo guardan el paso visual; primera vez, repetición y prueba están separados. */
 (() => {
   'use strict';
   const HERE = document.currentScript?.src || new URL('tutorial/tutorial.js', document.baseURI).href;
@@ -85,7 +84,7 @@
 
   function ensureCss() {
     if (cssLoaded) return; cssLoaded = true;
-    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = new URL('./tutorial.css?v=16', HERE).href; document.head.append(l);
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = new URL('./tutorial.css?v=17', HERE).href; document.head.append(l);
   }
   function ensurePixel() {
     if (window.PixelMascotas) return Promise.resolve(window.PixelMascotas);
@@ -143,7 +142,7 @@
   function render(app, opts = {}) {
     ensureCss();
     const mode = opts.mode || 'test', api = opts.api || null;
-    STORE = mode === 'test' ? STORE_TEST : STORE_REAL;
+    STORE = mode === 'test' ? STORE_TEST : mode === 'replay' ? 'nexo.tutorial.replay.v1' : STORE_REAL;
     const sound = opts.sound || (() => false);
     const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
     const PRE = new Set(['g1', 'g1b', 'g2', 'g3', 'huevos', 'seguro', 'nace', 'nombre', 'graba', 'hola']);
@@ -156,7 +155,7 @@
     const root = el('section', 'tut');
     root.innerHTML = `
       <div class="tut-top"><div class="tut-bar" role="progressbar" aria-label="Avance del tutorial" aria-valuemin="0" aria-valuemax="100"><i></i></div>
-        <button class="tut-mute secondary-btn" type="button" aria-label="Silenciar voces" title="Voces">♪</button><button class="tut-skip secondary-btn" type="button">Salir</button></div>
+        <button class="tut-mute secondary-btn" type="button" aria-label="Silenciar voces" title="Voces">♪</button><button class="tut-skip secondary-btn" type="button">${mode === 'first' ? 'Saltar' : 'Salir'}</button></div>
       <div class="tut-scene"></div>
       <div class="tut-talk">
         <div class="tut-grim" aria-hidden="true"></div>
@@ -448,7 +447,7 @@
       nextBtn.disabled = busy || !needOk;
       nextBtn.textContent = step.next || (s.i === steps.length - 1 ? (mode === 'test' ? 'Reiniciar prueba' : 'Terminar') : 'Siguiente');
       if (step.needs === 'seen') { const left = objetosVisibles().filter(id => !s.seen.includes(id)).length; nextBtn.textContent = left ? `Seguir (faltan ${left})` : 'Listo, seguir'; }
-      $('.tut-skip').hidden = mode !== 'replay' && !s.name;   // la mascota es obligatoria: sin ella no hay salida
+      $('.tut-skip').hidden = false;
       backBtn.disabled = busy || s.i === 0 || !!step.noBack;
       backBtn.textContent = step.back || 'Atrás';
       barEl.firstElementChild.style.width = Math.round(s.i / (steps.length - 1) * 100) + '%';

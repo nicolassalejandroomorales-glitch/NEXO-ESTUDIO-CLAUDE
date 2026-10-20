@@ -139,7 +139,7 @@
       weeklyGoal: 300,
       inventory: [],
       mascot: { name: 'Nexo' },
-      tutorial: { status: 'pending', rewarded: false, sections: {}, news: 0 },
+      tutorial: window.NexoExperiences.fresh(),
       boosts: { streakShields: 0, protectedDates: [] },
       settings: { background: 'studio', sound: false, volume: 0.4, sfxVolume: 0.4,
         music: true, musicVolume: 0.8, ambient: false, ambientVolume: 0.12,
@@ -150,9 +150,11 @@
     };
   }
 
-  function normalizeState(input) {
+  function normalizeState(input, owner = experienceOwner()) {
     const base = defaultState();
     const raw = input && typeof input === 'object' ? input : {};
+    // Evaluar la fuente antes de que el normalizador añada objetos/calendarios de fábrica.
+    const experienceHistory = window.NexoExperiences.normalize(raw);
     const next = { ...base, ...raw };
     const subjectIds = new Set(SUBJECTS.map(subject => subject.id));
     const dateOrToday = value => /^\d{4}-\d{2}-\d{2}$/.test(String(value || '')) ? value : todayKey();
@@ -339,15 +341,9 @@
     }
     // Tienda y cofres (docs/economia/SPEC.md): accesorios que tienes, polvo y cofres sin abrir.
     { next.shop = raw.shop; const s = window.NexoTienda.shopOf(next); s.owned = s.owned.filter(id => id in window.NexoTienda.RARITY_OF); }
-    // Tutorial (docs/tutorial/SPEC.md): pending = lo verá solo; skipped/done = solo desde Ajustes. Datos viejos con progreso cuentan como ya vistos.
-    {
-      const tu = raw.tutorial && typeof raw.tutorial === 'object' ? raw.tutorial : null;
-      // Una cuenta que ya eligió mascota (viaja en la nube) no repite el tutorial en otro dispositivo.
-      const hasProgress = (next.sessions?.length || 0) + (next.completedLessons?.length || 0) + Object.keys(next.practice || {}).length > 0 || !!raw.mascot?.kind;
-      const sections = {}; ['clases', 'juegos', 'organizacion', 'perfil'].forEach(k => { if (tu?.sections?.[k]) sections[k] = true; });
-      next.tutorial = tu && ['pending', 'skipped', 'done'].includes(tu.status) ? { status: tu.status, rewarded: !!tu.rewarded, sections, news: Math.max(0, Math.floor(Number(tu.news)) || 0) }
-        : hasProgress ? { status: 'done', rewarded: true, sections: {}, news: 0 } : { status: 'pending', rewarded: false, sections: {}, news: 0 };
-    }
+    // Historial de primera visualización: también viaja dentro del documento meta.
+    next.tutorial = experienceHistory.tutorial;
+    next.meta = { ...next.meta, experiences: experienceHistory };
     if (!DATA.backgrounds.some(item => item.id === next.settings.background)) next.settings.background = base.settings.background;
     next.lessonSession = null; // las clases se están rehaciendo: no hay avance de clase que conservar
     next.meta = { ...base.meta, ...next.meta };
@@ -356,7 +352,7 @@
     next.completedLessons.forEach(id => {
       if (LESSONS[id] && !next.mastery[id]) next.mastery[id] = { status: 'inestable', bestScore: 0, attempts: 0, understoodAt: todayKey(), dueAt: todayKey(addDays(new Date(), 2)) };
     });
-    return next;
+    return window.NexoExperiences.hydrate(next, owner);
   }
 
   function isValidImport(value) {
@@ -375,14 +371,15 @@
         if ((Number(parsed.version)||0)<18) storage.preserveBeforeV13(raw);
         storage.preserveBeforeV14(raw);
       }
-      const normalized = normalizeState(window.NexoMigrations.migrate(parsed, SCHEMA_VERSION));
-      if (needsMigration) { storage.schedule(normalized, { backup: false }); storage.flush(); }
+      const normalized = normalizeState(window.NexoMigrations.migrate(parsed, SCHEMA_VERSION), 'guest');
+      const historyChanged = JSON.stringify(parsed.meta?.experiences || null) !== JSON.stringify(normalized.meta.experiences);
+      if (needsMigration || historyChanged) { storage.schedule(normalized, { backup: false }); storage.flush(); }
       return normalized;
     }
     catch (error) {
       const backup = storage.getItem(BACKUP_KEY);
       if (backup) {
-        try { recoveryNotice = 'El guardado principal estaba dañado; recuperé la copia automática anterior.'; return normalizeState(JSON.parse(backup)); }
+        try { recoveryNotice = 'El guardado principal estaba dañado; recuperé la copia automática anterior.'; return normalizeState(JSON.parse(backup), 'guest'); }
         catch (_) { /* continúa con estado limpio */ }
       }
       recoveryNotice = 'No pude leer el guardado. Inicié una copia limpia sin borrar el archivo dañado; puedes importar un respaldo desde Ajustes.';
@@ -390,10 +387,35 @@
     }
   }
 
+  function experienceOwner() { return cloud.user?.id ? `user:${cloud.user.id}` : 'guest'; }
   let state = loadState();
+  window.NexoExperiences.hydrate(state, experienceOwner(), { legacyCursor: !cloud.authenticated && !!storage.getItem('nexo.tutorial.v1') });
+  if (state.tutorial.status !== 'pending') {
+    try { window.NexoExperiences.persist(state, experienceOwner()); }
+    catch (_) { recoveryNotice = 'No pude guardar el historial del tutorial en este dispositivo.'; }
+  }
+  let tutorialRun = null;
+  let tutorialEntryChecked = false;
+  let tutorialIdentityReady = !cloud.enabled;
+  function persistExperiences() {
+    try { window.NexoExperiences.persist(state, experienceOwner()); saveState({ backup: false }); return cloud.authenticated || storage.flush(); }
+    catch (_) { showToast('No se pudo guardar el tutorial. Revisa el almacenamiento y vuelve a intentarlo desde Ajustes.'); return false; }
+  }
+  function beginTutorial(mode) {
+    if (tutorialRun || (mode === 'first' && !tutorialIdentityReady)) return;
+    if (mode === 'first') {
+      if (!window.NexoExperiences.startTutorial(state, experienceOwner()) || !persistExperiences()) return;
+    }
+    if (mode === 'replay') { try { localStorage.removeItem('nexo.tutorial.replay.v1'); } catch (_) {} }
+    tutorialRun = { mode, owner: experienceOwner(), mounted: null };
+    routeTo('tutorial');
+  }
+  window.NexoCinematics = window.NexoExperiences.createCinematics({ getState: () => state,
+    owner: experienceOwner, save: persistExperiences });
 
   function saveState({ backup = true } = {}) {
     try {
+      window.NexoExperiences.mirror(state);
       state.meta.updatedAt = new Date().toISOString();
       if (cloud.authenticated) {
         state.coins = cloud.balance;
@@ -537,8 +559,6 @@
     const parts = raw.split('/').filter(Boolean).map(decodeURIComponent);
     return parts.length ? parts : ['home'];
   }
-  // La primera vez (cuenta nueva) el Inicio lleva al tutorial. Navegadores automatizados (pruebas) no lo ven.
-  const tutorialDue = () => state.tutorial?.status === 'pending' && !navigator.webdriver && !window.NexoRecorrido?.active;
   // Pantalla de entrada (docs/cuentas/SPEC.md): con la nube activa y sin sesión, la primera vez ofrece Google o invitado antes del tutorial.
   // Se espera a saber si hay sesión (cloudListo) para no mostrarla a quien ya entró.
   const ENTRADA_KEY = 'nexo-entrada-vista';
@@ -554,7 +574,7 @@
     const sc = document.createElement('script'); sc.src = 'tutorial/avisos.js?v=4'; sc.onload = () => fn(window.NexoAvisos); document.head.append(sc);
   };
   const checkAvisos = route => {
-    if (navigator.webdriver || !state.tutorial || state.tutorial.status === 'pending' || route[0] === 'lesson') return;
+    if (tutorialRun || navigator.webdriver || !state.tutorial || state.tutorial.status === 'pending' || route[0] === 'lesson') return;
     withAvisos(a => { if (parseRoute().join('/') === route.join('/')) a.check(route, state.tutorial, () => saveState({ backup: false })); });
   };
   function routeTo(...parts) {
@@ -580,6 +600,14 @@
     window.NexoPixelUI.transition(() => paintRoute(moveFocus));
   }
   function paintRoute(moveFocus) {
+    if (tutorialRun && tutorialRun.owner !== experienceOwner()) tutorialRun = null;
+    if (tutorialRun?.mounted?.isConnected && parseRoute()[0] === 'tutorial') return;
+    if (tutorialRun && !['tutorial'].includes(parseRoute()[0]) && !window.NexoRecorrido?.active) tutorialRun = null;
+    // Solo se decide en la primera entrada resuelta, nunca en efectos de navegación.
+    if (!tutorialEntryChecked && tutorialIdentityReady && cloudListo && !entradaDue() && parseRoute()[0] !== 'entrada') {
+      tutorialEntryChecked = true;
+      if (state.tutorial.status === 'pending') { beginTutorial('first'); if (tutorialRun) return; }
+    }
     const previousRoute=app.dataset.renderedRoute;
     window.NexoAnimation?.prepare(app);
     if (document.body.classList.contains('in-classroom')) window.NexoAmbientTime?.stopPreview?.(); // la ventana de la torre puede haber cambiado la hora
@@ -606,7 +634,7 @@
     closeMore();
     const renderers = {
       home: () => (!cloudListo ? (app.innerHTML = '<section class="page"><p class="eyebrow">Abriendo la torre…</p></section>')
-        : entradaDue() ? routeTo('entrada') : tutorialDue() ? routeTo('tutorial') : renderHome()),
+        : entradaDue() ? routeTo('entrada') : renderHome()),
       entrada: () => { // docs/cuentas/SPEC.md · se carga solo al abrirla
         if (!cloudListo || !entradaDue()) return routeTo('home');
         const go = () => { if (parseRoute()[0] === 'entrada') window.NexoEntrada.render(app, {
@@ -648,19 +676,34 @@
       mascot: renderMascot,
       torre: () => renderTower(route[1] || 'organica'),
       settings: renderSettings,
-      tutorial: () => { // docs/tutorial/SPEC.md · #/tutorial/test = prueba sin guardar nada; se carga solo al abrirla
-        const mode = route[1] === 'test' ? 'test' : state.tutorial.status === 'pending' ? 'first' : 'replay';
-        const REWARD = 150, api = {
-          pet: () => ({ kind: state.mascot.kind, name: state.mascot.name }),
-          setPet: (kind, name) => { Object.assign(state.mascot, { kind, name, owned: [...new Set([kind, ...(state.mascot.owned || [])])] }); saveState({ backup: false }); window.NexoPet?.renderDock?.(document.getElementById('companionPresence')); },
-          canReward: () => !cloud.authenticated && !state.tutorial.rewarded,
-          reward: () => { if (cloud.authenticated || state.tutorial.rewarded) return 0; state.coins += REWARD; state.tutorial.rewarded = true; saveState(); updateChrome(); return REWARD; },
-          reward_amount: REWARD,
-          skip: () => { if (state.tutorial.status === 'pending') { state.tutorial.status = 'skipped'; saveState({ backup: false }); withAvisos(a => { state.tutorial.news = a.VERSION; saveState({ backup: false }); }); } },
-          finish: () => { state.tutorial.status = 'done'; saveState({ backup: false }); withAvisos(a => { state.tutorial.news = Math.max(state.tutorial.news || 0, a.VERSION); saveState({ backup: false }); }); }
+      tutorial: () => {
+        // Una URL guardada/recargada no concede reproducción. Los retornos del
+        // recorrido conservan el permiso en memoria, solo durante esta ejecución.
+        if (!tutorialRun) return routeTo('home');
+        const run = tutorialRun, mode = run.mode, REWARD = 150;
+        const current = () => tutorialRun === run && experienceOwner() === run.owner;
+        const recordEnd = status => {
+          if (!current() || mode !== 'first') return;
+          try { window.NexoExperiences.finishTutorial(state, run.owner, status); }
+          catch (_) { showToast('No se pudo guardar el cierre del tutorial. Exporta un respaldo desde Ajustes.'); }
+          persistExperiences();
+          withAvisos(a => { if (experienceOwner() !== run.owner) return; state.tutorial.news = Math.max(state.tutorial.news || 0, a.VERSION); persistExperiences(); });
         };
-        const go = () => { if (parseRoute()[0] === 'tutorial') window.NexoTutorial.render(app, { mode, api: mode === 'test' ? null : api, sound: () => !!state.settings?.sound, exit: () => routeTo('home') }); };
-        if (window.NexoTutorial) go(); else { const sc = document.createElement('script'); sc.src = 'tutorial/tutorial.js?v=18'; sc.onload = go; document.head.append(sc); }
+        const api = {
+          pet: () => ({ kind: state.mascot.kind || 'matraz', name: state.mascot.name || 'Nexo' }),
+          setPet: (kind, name) => { if (!current() || mode !== 'first') return; Object.assign(state.mascot, { kind, name, owned: [...new Set([kind, ...(state.mascot.owned || [])])] }); saveState({ backup: false }); window.NexoPet?.renderDock?.(document.getElementById('companionPresence')); },
+          canReward: () => current() && mode === 'first' && !cloud.authenticated && !state.tutorial.rewarded,
+          reward: () => { if (!api.canReward()) return 0; state.coins += REWARD; state.tutorial.rewarded = true; persistExperiences(); updateChrome(); return REWARD; },
+          reward_amount: REWARD, skip: () => recordEnd('skipped'), finish: () => recordEnd('done')
+        };
+        const go = () => { if (current() && parseRoute()[0] === 'tutorial' && !run.mounted?.isConnected) {
+          window.NexoTutorial.render(app, { mode, api, sound: () => !!state.settings?.sound,
+            exit: () => { if (!current()) return; tutorialRun = null; routeTo('home'); } });
+          run.mounted = app.querySelector('.tut');
+        } };
+        if (window.NexoTutorial) go(); else if (!run.loading) { run.loading = true; const sc = document.createElement('script'); sc.src = './tutorial/tutorial.js?v=e4f3b247'; sc.onload = go;
+          sc.onerror = () => { if (!current()) return; tutorialRun = null; routeTo('home'); showToast('No se pudo abrir el tutorial. Puedes repetirlo desde Ajustes.'); }; document.head.append(sc); }
+
       }
     };
     try { (renderers[route[0]] || renderHome)(); app.dataset.renderedRoute = route.join('/'); }
@@ -876,7 +919,7 @@
   function renderSubjects() {
     if (window.NexoAprender) return window.NexoAprender.render(app, aprenderContext());
     app.innerHTML = '<section class="page"><div class="app-loader" role="status"><span></span><p>Bajando al sótano…</p></div></section>';
-    Promise.all([window.NexoLoader.style('./aprender/sotano.css?v=8f764ac1'), window.NexoLoader.style('./aprender/sotano-luz.css'), Promise.all([window.NexoLoader.script('./aprender/estado.js?v=59f4873c'), window.NexoLoader.script('./aprender/sotano-musica.js?v=23d5d401')]).then(() => window.NexoLoader.script('./aprender/sotano-luz.js')).then(() => window.NexoLoader.script('./aprender/sotano-fx.js')).then(() => window.NexoLoader.script('./aprender/sotano.js?v=0247cb3b'))])
+    Promise.all([window.NexoLoader.style('./aprender/sotano.css?v=8f764ac1'), window.NexoLoader.style('./aprender/sotano-luz.css'), Promise.all([window.NexoLoader.script('./aprender/estado.js?v=59f4873c'), window.NexoLoader.script('./aprender/sotano-musica.js?v=23d5d401')]).then(() => window.NexoLoader.script('./aprender/sotano-luz.js')).then(() => window.NexoLoader.script('./aprender/sotano-fx.js')).then(() => window.NexoLoader.script('./aprender/sotano.js?v=67424821'))])
       .then(() => { if (['learn', 'subjects'].includes(parseRoute()[0])) renderRoute(false); })
       .catch(() => { app.innerHTML = '<section class="page"><div class="panel error-boundary"><h1>No se pudo abrir el sótano</h1><p>Revisa tu conexión y vuelve a intentarlo.</p><button class="primary-btn" data-route="learn">Reintentar</button></div></section>'; });
   }
@@ -1090,7 +1133,7 @@
         // Motor de evidencia y repaso espaciado (FSRS); si no cargan, la clase funciona igual sin agendar repasos.
         window.NexoLoader.script('./classes/evidence.js?v=cbcbf1b1'), window.NexoLoader.script('./classes/molecule.js?v=b3b2e5aa'), window.NexoLoader.script('./classes/editor.js?v=df0be94e'), window.NexoLoader.script('./academic/class-bridge.js?v=2c147b02').catch(() => null), window.NexoLoader.script('./academic/reviews.js?v=0273ea6c').catch(() => null)])
         .then(() => Promise.all([window.NexoLoader.script(`./classes/slides/${id}.js?v=4e68eb0a`).catch(() => null), // diapositivas reales, si ya se convirtieron
-          window.NexoLoader.script(`./classes/${id}-gen.js?v=f4dd51aa`).catch(() => null)])) // generadores de ejercicios (etapa 8), si la clase los tiene
+          window.NexoLoader.script(`./classes/${id}-gen.js?v=a442d032`).catch(() => null)])) // generadores de ejercicios (etapa 8), si la clase los tiene
         .then(() => true);
     });
     promise.catch(() => classroomLoads.delete(id));
@@ -1597,7 +1640,7 @@
         <label class="toggle"><input type="checkbox" data-setting="music" ${state.settings.music ? 'checked' : ''}><span><b>Música</b><small>Pista instrumental opcional; se detiene durante las clases.</small></span></label>
         <label class="field"><span>Volumen de música</span><input type="range" min="0" max="100" step="5" data-setting-volume="musicVolume" value="${Math.round(state.settings.musicVolume * 100)}" aria-label="Volumen de música"></label>
         <label class="toggle"><input type="checkbox" data-setting="motion" ${state.settings.motion ? 'checked' : ''}><span><b>Animaciones suaves</b><small>Desactívalas si prefieres menos movimiento.</small></span></label><label class="toggle"><input type="checkbox" data-setting="focusMode" ${state.settings.focusMode ? 'checked' : ''} ${state.inventory.includes('focus-mode') ? '' : 'disabled'}><span><b>Modo sin distracciones</b><small>${state.inventory.includes('focus-mode') ? 'Oculta paneles secundarios mientras corre el cronómetro.' : 'Se desbloquea en Tienda.'}</small></span></label></section>
-      <section class="panel"><p class="eyebrow">TUTORIALES</p><h2>Vuelve a ver al Grimorio</h2><p>${state.tutorial?.status === 'done' ? 'Ya lo completaste.' : 'Aún no lo completas.'}${cloud.authenticated || state.tutorial?.rewarded ? '' : ' Al completarlo ganas monedas, una sola vez.'}</p><button class="secondary-btn" data-route="tutorial">Ver el tutorial</button></section>
+      <section class="panel"><p class="eyebrow">TUTORIALES</p><h2>Vuelve a ver al Grimorio</h2><p>Repasa el recorrido cuando quieras. Tu progreso y la primera visualización se conservan.</p><button class="secondary-btn" data-action="replay-tutorial">Repetir tutorial</button></section>
       <section class="panel"><p class="eyebrow">PORTABILIDAD</p><h2>Respaldo manual</h2><p>El archivo incluye sesiones, errores, notas, inasistencias, clases, calendario y personalización. No contiene contraseñas.</p><div class="button-stack"><button class="primary-btn" data-action="export-data">Exportar progreso .json</button><button class="secondary-btn" data-action="import-data">Importar progreso</button><button class="secondary-btn" data-action="restore-backup" ${backup ? '' : 'disabled'}>Restaurar copia automática</button></div><small>Última copia automática: ${state.meta.lastBackupAt ? new Intl.DateTimeFormat('es-CL', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(state.meta.lastBackupAt)) : 'todavía no existe'}</small></section>
       <section class="panel danger-zone"><p class="eyebrow">ZONA DE CUIDADO</p><h2>Reiniciar la app</h2><p>${cloud.authenticated ? 'Para eliminar datos sincronizados usa la opción Eliminar mi cuenta.' : 'Antes de borrar todo, exporta un archivo. El reinicio exige una segunda confirmación y conserva una copia recuperable.'}</p><button class="text-btn danger" data-action="reset-app" ${cloud.authenticated ? 'disabled' : ''}>Borrar progreso y comenzar de nuevo</button></section></div>
       <section class="panel performance-settings"><p class="eyebrow">RENDIMIENTO</p><h2>Gráficos y movimiento</h2><div class="performance-settings-grid">
@@ -1811,6 +1854,7 @@
 
   document.addEventListener('click', event => {
     const button = event.target.closest('button, [data-route]'); if (!button) return;
+    if (button.dataset.action === 'replay-tutorial') return beginTutorial('replay');
     if(button.dataset.sceneHotspot&&!button.dataset.route)return window.NexoHomeScene.activate(button.dataset.sceneHotspot,app);
     if (button.closest('.modal-backdrop') && button.classList.contains('modal-backdrop') && event.target !== button) return;
     if (button.dataset.devRoute && new URLSearchParams(location.search).get('nexoDev') === '1') return routeTo(...button.dataset.devRoute.split('/'));
@@ -2151,13 +2195,19 @@
     getDefault: defaultState,
     getCurrent: () => state,
     onState(next,{cached}={}) {
-      state=normalizeState(next); updateChrome(); renderRoute(false);
+      const before = JSON.stringify(next.meta?.experiences || null);
+      state=normalizeState(next);
+      if (!cached) tutorialIdentityReady = true;
+      if (before !== JSON.stringify(state.meta.experiences)) {
+        if (!cached) persistExperiences();
+        else { try { window.NexoExperiences.persist(state, experienceOwner()); } catch (_) {} }
+      }
+      updateChrome(); if (!cached) marcarCloudListo(); renderRoute(false);
       const volver = sessionStorage.getItem('nexo-google-return');
       if (!cached && cloud.authenticated && volver) {
         sessionStorage.removeItem('nexo-google-return');
         routeTo(...volver.split('/'));
       }
-      marcarCloudListo();
       let claim=null;
       try { claim=JSON.parse(localStorage.getItem('nexo-claim-after-auth-v13')||'null'); } catch (_) {}
       if (!cached && cloud.claimMatches(claim)
@@ -2170,7 +2220,7 @@
       }
       cloud.analyticsConsent(Boolean(state.settings.analytics));
     },
-    onGuest() { state=loadState(); cloud.analyticsConsent(Boolean(state.settings.analytics)); updateChrome(); renderRoute(false); marcarCloudListo(); },
+    onGuest() { tutorialIdentityReady = true; state=loadState(); window.NexoExperiences.hydrate(state, experienceOwner(), { legacyCursor: !!storage.getItem('nexo.tutorial.v1') }); cloud.analyticsConsent(Boolean(state.settings.analytics)); updateChrome(); renderRoute(false); marcarCloudListo(); },
     onStatus(info) {
       const node=document.querySelector('#syncStatus');
       if (node) node.textContent=info.status==='synced'?'✓ Sincronizado':
@@ -2179,7 +2229,12 @@
         info.status==='failed'?'⚠ Pendiente de conexión':
         info.status==='pending'?'☁ Guardado localmente · pendiente':'En este dispositivo';
     }
-  }).catch(()=>{}).finally(marcarCloudListo);
+  }).catch(()=>{}).finally(() => {
+    // init también puede resolver sin onGuest cuando no existe una sesión previa.
+    if (!cloud.authenticated && cloud.status === 'guest') tutorialIdentityReady = true;
+    marcarCloudListo();
+    if (tutorialIdentityReady) renderRoute(false);
+  });
   setTimeout(marcarCloudListo, 4000); // sin red o con la nube lenta, no dejar la puerta cerrada
   cloud.track('app_opened');
 })();

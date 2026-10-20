@@ -76,7 +76,7 @@
     window.addEventListener('hashchange', G.onHash);
     el.exit.addEventListener('click', () => { location.hash = '#/home'; });
     // Pantalla completa al entrar (el navegador la permite solo tras un gesto: si la niega, queda el modo fijo a toda la ventana).
-    try { root.requestFullscreen?.({ navigationUI: 'hide' })?.then(() => screen.orientation?.lock?.('landscape')).catch(() => {}); } catch { /* sin pantalla completa */ }
+    try { if (!window.NexoRecorrido?.active) root.requestFullscreen?.({ navigationUI: 'hide' })?.then(() => screen.orientation?.lock?.('landscape')).catch(() => {}); } catch { /* sin pantalla completa */ }
     live = G;
     document.documentElement.classList.add('sotano-inmersivo');
     const M = window.NexoSotanoMusica, paintMusic = () => { const on = !M || M.enabled; el.music.hidden = !M; el.music.setAttribute('aria-pressed', String(on)); el.music.classList.toggle('is-off', !on); };
