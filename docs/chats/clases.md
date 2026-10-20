@@ -68,3 +68,11 @@ Chat: Clases v2 (aula nueva). Lee CLAUDE.md, la skill nexo-clase, docs/clases-v2
 Hecho: aula.js en estilo estación para todas las misiones, prueba final PEP por misión, mezcla de alternativas.
 Hecho también: panel «Camino al 7», mini clase y clase a profundidad. Tarea: glosario, formulario, recetario y bestiario dentro del aula nueva; `demuestra` para FQ II 02 y 03 cuando estén en master. Regla: nunca el aspecto de la pantalla vieja; contraste y animaciones revisados antes de entregar. 1440 y 390. Sonnet 5.5.
 ```
+
+## Analítica PEP 1 con el motor (19 oct 2026)
+- Hecho: `docs/ana-pep1-motor/MAPA.md` (qué cae, auditoría), ana-02 parte «Equivalentes», ana-03 m2 tampones + m3 polipróticos/mezclas, ana-01 `dispensador` y error de la diap. 87. Alcoba Ácido-base del Sótano con 5 frascos. Tests 43/43. Las 3 clases siguen en `borrador`.
+- Falta: revisión de Niquito (química), mirar 1440/390, pauta 2026, confirmar página de Skoog/Harris (α y mezclas), publicar el Artifact.
+```
+Chat: Clases · Analítica. Lee CLAUDE.md, la skill nexo-clase y docs/ana-pep1-motor/MAPA.md.
+Parte desde «Falta» de docs/chats/clases.md (sección Analítica PEP 1) y pregúntame qué reviso primero.
+```

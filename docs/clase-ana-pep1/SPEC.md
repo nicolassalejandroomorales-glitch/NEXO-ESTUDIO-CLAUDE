@@ -25,3 +25,12 @@ Tres clases nuevas para la PEP 1 de Analítica, con la misma estructura que Org�
 ## Pendiente
 - Reemplazar Skoog/Harris por las diapositivas de cátedra cuando estén en el Drive.
 - Ajustar puntajes con la pauta real.
+
+## Actualización 19 oct 2026 · clases con el motor (sesión «ana-pep1»)
+Mapa de qué cae y auditoría completa: `docs/ana-pep1-motor/MAPA.md`.
+- Fuente real: las diapositivas de la Dra. Pizarro (Análisis volumétrico, 35; Volumetría ácido-base, 61). Ya no se dice «sin diapositivas».
+- **ana-02**: nueva parte 3 de m2 «Equivalentes y normalidad» (la cátedra plantea todo en eq: eqp = eqa, PE = PM/n; PEP histórica P3 ácido fólico) + generador `equiv`.
+- **ana-03**: m2 gana tampones (preparar, capacidad, tris/MES) y comparar curvas según Ka (P2 de la PEP histórica); **nueva misión m3** «Bases débiles, dipróticos y mezclas»: base débil + HCl, curva diprótica de 7 puntos, anfolitos, diagramas de distribución α y mezclas (HCl + ácido débil; carbonatos/Warder). α y mezclas vienen de libro, no de PPT. 7 generadores nuevos.
+- **ana-01**: generador `dispensador` (P4 de la PEP histórica) y actividad «Encuentra el error de la diap. 87» (dos respuestas mal: B = 0,64 %, C = 1,1 %).
+- Sótano: la alcoba «Ácido-base» pasa de 4 a 5 frascos (se re-exportaron `ov-ana.c60/cz60` y `manifest.json`; toca `dist/aprender/estado.js` y `export_app.py`).
+- Pruebas: `node tools/run-tests.cjs` 43/43. **Pendiente**: revisión química de Niquito, ver 1440 y 390 en el navegador (el panel estaba oculto: no se pudo), pauta/puntajes 2026, página exacta de Skoog para α y mezclas.

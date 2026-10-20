@@ -293,6 +293,35 @@
     }
   };
 
+  /* ════════ Tres máquinas dispensadoras (PEP histórica, pregunta 4: media, mediana, s, Ea y Er, ¿cuál es mejor?) ════════ */
+  const median = xs => { const s = [...xs].sort((a, b) => a - b), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+  const DISP = [['jarabe para la tos', 296], ['gotas oftálmicas', 5], ['suero fisiológico', 100], ['suspensión antiácida', 250], ['enjuague bucal', 120]];
+  const dispensador = {
+    id: 'dispensador', title: 'Tres dispensadores', mission: 'm2', concepts: ['ana.comparar'],
+    make(rng, level) {
+      const [prod, V0] = pick(rng, DISP), roles = shuffle(rng, ['sesgada', 'imprecisa', 'ideal']), step = V0 >= 100 ? 0.1 : 0.01, dev = [-1.5, -0.6, 0, 0.6, 1.5];
+      const machines = roles.map((role, i) => {
+        const bias = role === 'sesgada' ? V0 * pick(rng, [-1, 1]) * between(rng, 0.03, 0.05, 0.005) : V0 * pick(rng, [-1, 1]) * (role === 'ideal' ? between(rng, 0.0004, 0.001, 0.0001) : between(rng, 0.002, 0.005, 0.0005));
+        const amp = V0 * (role === 'imprecisa' ? between(rng, 0.008, 0.012, 0.001) : between(rng, 0.0008, 0.0015, 0.0001));
+        const xs = shuffle(rng, dev.map(d => Number((Math.round((V0 + bias + d * amp) / step) * step).toFixed(2)))), m = mean(xs);
+        return { role, name: `Máquina ${i + 1}`, xs, m, med: median(xs), s: sdev(xs), Ea: Math.abs(V0 - m), Er: Math.abs(V0 - m) / V0 * 100 };
+      });
+      const k = machines[Math.floor(rng() * 3)], d = V0 >= 100 ? 2 : 3;
+      const head = `${level === 5 ? 'Estilo PEP: ' : ''}Un control de calidad verifica tres máquinas que deben dispensar ${dec(V0, 0)} mL de ${prod}. Llena cinco envases con cada una y mide el volumen real (mL). ${machines.map(x => `${x.name}: ${x.xs.map(v => fix(v, V0 >= 100 ? 1 : 2)).join('; ')}`).join(' · ')}.`;
+      if (level === 1) return number(`${head} ¿Cuál es la mediana de la ${k.name}?`, k.med, 'mL', { concept: 'ana.comparar', slide: 56, label: 'mediana', tol: 0.0003, hint: 'Ordena los 5 datos de menor a mayor: la mediana es el del medio.',
+        traps: [{ value: k.m, note: 'Ese es el promedio, no la mediana.' }], solution: [`Ordenados: ${[...k.xs].sort((a, b) => a - b).map(v => fix(v, V0 >= 100 ? 1 : 2)).join('; ')}`, `Mediana = ${dec(k.med, d)} mL`], explain: `Mediana = ${dec(k.med, d)} mL.` });
+      if (level === 2) return number(`${head} ¿Cuál es el promedio de la ${k.name}?`, k.m, 'mL', { concept: 'ana.comparar', slide: 56, label: 'media', tol: 0.0003, hint: 'Suma las 5 réplicas y divide por 5.',
+        traps: [{ value: k.med, note: 'Esa es la mediana, no el promedio.' }], solution: [`Suma = ${dec(k.xs.reduce((a, b) => a + b, 0), 3)} mL`, `x̄ = ${dec(k.m, d)} mL`], explain: `x̄ = ${dec(k.m, d)} mL.` });
+      if (level === 3) return number(`${head} ¿Cuál es la desviación estándar muestral (s) de la ${k.name}?`, k.s, 'mL', { concept: 'ana.comparar', slide: 56, label: 's', tol: 0.01, hint: 's = √[Σ(xᵢ − x̄)²/(n − 1)], con n = 5.',
+        traps: [{ value: sdev(k.xs, false), note: 'Dividiste por n: la muestral divide por n − 1.', misconception: 's-n' }], solution: [`x̄ = ${dec(k.m, d)} mL`, `Σ(xᵢ − x̄)² = ${dec(k.xs.reduce((a, x) => a + (x - k.m) ** 2, 0), 5)}`, `s = √(Σ/4) = ${dec(k.s, 4)} mL`], explain: `s = ${dec(k.s, 3)} mL.` });
+      if (level === 4) return number(`${head} Con el formulario de la PEP (ε_a = |valor exacto − valor medido|, ε_r = ε_a/valor exacto × 100), ¿cuál es el error relativo (%) de la ${k.name}?`, k.Er, '%', { concept: 'ana.comparar', slide: 56, label: 'ε_r', tol: 0.03, hint: `El valor exacto es ${dec(V0, 0)} mL; el valor medido es el promedio.`,
+        traps: [{ value: k.Ea / k.m * 100, note: 'Dividiste por el promedio: el error relativo se divide por el valor exacto.' }, { value: k.Ea, note: 'Ese es el error absoluto (mL): falta dividir por el valor exacto y × 100.' }].filter(t => Math.abs(t.value - k.Er) > k.Er * 0.05), solution: [`x̄ = ${dec(k.m, d)} mL`, `ε_a = |${dec(V0, 0)} − ${dec(k.m, d)}| = ${dec(k.Ea, d)} mL`, `ε_r = ${dec(k.Ea, d)}/${dec(V0, 0)} × 100 = ${dec(k.Er, 3)} %`], explain: `ε_r = ${dec(k.Er, 3)} %.` });
+      const best = machines.find(x => x.role === 'ideal'), stats = x => `${x.name}: ε_r = ${dec(x.Er, 3)} %, s = ${dec(x.s, 3)} mL`;
+      return choice(rng, `${head} Calcula el error relativo y la desviación estándar de cada máquina. ¿Cuál tiene mayor exactitud Y precisión?`, best.name, machines.filter(x => x !== best).map(x => ({ text: x.name, note: ROLE_NOTE[x.role === 'sesgada' ? 'precisoNoExacto' : 'exactoNoPreciso'], misconception: 'acc-prec' })),
+        { concept: 'ana.comparar', slide: 56, hint: 'La mejor tiene el ε_r más pequeño (exactitud) y la s más pequeña (precisión).', explain: `${machines.map(stats).join(' · ')}. La mejor es ${best.name}.` });
+    }
+  };
+
   /* ════════ Bases ════════ */
   const unidades = {
     id: 'unidades', title: '%, ppm y mg/L', mission: null, concepts: ['base.unidades'],
@@ -325,7 +354,7 @@
     }
   };
 
-  const generators = [conceptos, etapas, humedad, interferentes, calibracion, exactitud, precision, errores, dixon, comparar, unidades, media];
+  const generators = [conceptos, etapas, humedad, interferentes, calibracion, exactitud, precision, errores, dixon, comparar, dispensador, unidades, media];
 
   /* Laboratorio "¿qué hago con esta muestra?": una muestra cruda y operaciones de preparación (etapa 3). */
   const S = (id, name, formula) => ({ id, name, formula });

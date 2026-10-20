@@ -868,7 +868,7 @@
   function renderSubjects() {
     if (window.NexoAprender) return window.NexoAprender.render(app, aprenderContext());
     app.innerHTML = '<section class="page"><div class="app-loader" role="status"><span></span><p>Bajando al sótano…</p></div></section>';
-    Promise.all([window.NexoLoader.style('./aprender/sotano.css?v=45255e3e'), window.NexoLoader.style('./aprender/sotano-luz.css'), Promise.all([window.NexoLoader.script('./aprender/estado.js?v=59f4873c'), window.NexoLoader.script('./aprender/sotano-musica.js?v=23d5d401')]).then(() => window.NexoLoader.script('./aprender/sotano-luz.js')).then(() => window.NexoLoader.script('./aprender/sotano.js?v=a0f5fe2e'))])
+    Promise.all([window.NexoLoader.style('./aprender/sotano.css?v=45255e3e'), window.NexoLoader.style('./aprender/sotano-luz.css'), Promise.all([window.NexoLoader.script('./aprender/estado.js?v=74277574'), window.NexoLoader.script('./aprender/sotano-musica.js?v=23d5d401')]).then(() => window.NexoLoader.script('./aprender/sotano-luz.js')).then(() => window.NexoLoader.script('./aprender/sotano.js?v=a0f5fe2e'))])
       .then(() => { if (['learn', 'subjects'].includes(parseRoute()[0])) renderRoute(false); })
       .catch(() => { app.innerHTML = '<section class="page"><div class="panel error-boundary"><h1>No se pudo abrir el sótano</h1><p>Revisa tu conexión y vuelve a intentarlo.</p><button class="primary-btn" data-route="learn">Reintentar</button></div></section>'; });
   }
@@ -1082,7 +1082,7 @@
         // Motor de evidencia y repaso espaciado (FSRS); si no cargan, la clase funciona igual sin agendar repasos.
         window.NexoLoader.script('./classes/evidence.js?v=cbcbf1b1'), window.NexoLoader.script('./classes/molecule.js?v=b3b2e5aa'), window.NexoLoader.script('./classes/editor.js?v=df0be94e'), window.NexoLoader.script('./academic/class-bridge.js?v=2c147b02').catch(() => null), window.NexoLoader.script('./academic/reviews.js?v=0273ea6c').catch(() => null)])
         .then(() => Promise.all([window.NexoLoader.script(`./classes/slides/${id}.js?v=cca0afe2`).catch(() => null), // diapositivas reales, si ya se convirtieron
-          window.NexoLoader.script(`./classes/${id}-gen.js?v=3f5a3333`).catch(() => null)])) // generadores de ejercicios (etapa 8), si la clase los tiene
+          window.NexoLoader.script(`./classes/${id}-gen.js?v=2b069703`).catch(() => null)])) // generadores de ejercicios (etapa 8), si la clase los tiene
         .then(() => true);
     });
     promise.catch(() => classroomLoads.delete(id));

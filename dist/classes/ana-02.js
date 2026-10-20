@@ -1,9 +1,10 @@
 /* Química Analítica · PEP 1 · Volumetría: de la bureta a la muestra (viernes 13 de noviembre).
-   La cátedra de volumetría aún no está en el Drive: el contenido sale de la bibliografía oficial (Skoog, West, Holler y Crouch, cap. 13; Harris, cap. 7)
-   y del programa del curso. Las "láminas" de esta clase son secciones propias, numeradas como referencia. Números recalculados en Python. */
+   Fuente principal: PPT «Análisis volumétrico» de la Dra. Carmen Pizarro (35 diapositivas, 2026); las citas `slide` son esas diapositivas.
+   La cátedra trabaja con EQUIVALENTES (eqp = eqa, N·V = N·V, masa/PE = N·V): la parte 3 de la misión 2 lo enseña; el resto usa mmol (equivale).
+   Apoyo: Skoog (cap. 13) y Harris (cap. 7). Números recalculados en Python (docs/ana-pep1-motor/MAPA.md). */
 (() => {
   'use strict';
-  const SRC = 'skoog';
+  const SRC = 'pizarro';
   const q = (id, prompt, options, extra = {}) => ({ id, type: 'choice', prompt, options, source: SRC, ...extra });
   const order = (id, prompt, cards, answer, extra = {}) => ({ id, type: 'order', prompt, cards: cards.map(([cid, text]) => ({ id: cid, text })), answer, source: SRC, ...extra });
   const classify = (id, prompt, buckets, cards, extra = {}) => ({ id, type: 'classify', prompt, buckets: buckets.map(([bid, label]) => ({ id: bid, label })), cards: cards.map(([cid, text, bucket]) => ({ id: cid, text, bucket })), source: SRC, ...extra });
@@ -22,11 +23,12 @@
        `gen` = generador(es) de ana-02-gen.js (nivel 5); `pep` = pregunta de `goal.questions` que asegura. */
     demuestra: {
       m1: { gen: ['piezas', 'patron'], pep: 'P3', seconds: 180 },
-      m2: { gen: ['titular', 'volumen', 'alicuota'], pep: 'P4', seconds: 180 }
+      m2: { gen: ['titular', 'volumen', 'equiv', 'alicuota'], pep: 'P4', seconds: 180 }
     },
     status: 'borrador',
     sources: {
-      [SRC]: { title: 'Fundamentos de Química Analítica, cap. 13 (titulaciones)', author: 'Skoog, West, Holler y Crouch', detail: 'Bibliografía oficial del curso (sin diapositivas de cátedra todavía)', authority: 'Libro de texto' },
+      [SRC]: { title: 'Análisis volumétrico (PPT 2026, 35 diapositivas)', author: 'Dra. Carmen Pizarro, Química Analítica USACH', detail: 'Clase de cátedra 2026', authority: 'Material de cátedra' },
+      skoog: { title: 'Fundamentos de Química Analítica, cap. 13 (titulaciones)', author: 'Skoog, West, Holler y Crouch', detail: 'Bibliografía oficial del curso', authority: 'Libro de texto' },
       harris: { title: 'Análisis Químico Cuantitativo, cap. 7 (titulaciones)', author: 'Daniel C. Harris', detail: 'Bibliografía complementaria', authority: 'Libro de texto' }
     },
     misconceptions: {
@@ -56,6 +58,9 @@
       { term: 'Punto final', mission: 'm1', def: 'Punto en que se observa un cambio físico (color del indicador, salto de potencial) asociado a la equivalencia.', simple: 'Cuando VES que terminó.', simpler: 'Cuando ves que el vaso rebalsa.' },
       { term: 'Patrón primario', mission: 'm1', def: 'Compuesto de alta pureza y estabilidad que se pesa directamente para preparar o estandarizar soluciones.', simple: 'Un sólido tan puro que su masa es confiable.', simpler: 'La pesa oficial con la que se calibran las demás.' },
       { term: 'Estandarización', mission: 'm1', def: 'Determinar la concentración exacta de una solución titulándola contra un patrón primario.', simple: 'Averiguar la concentración real del titulante.', simpler: 'Medir tu regla con la regla oficial.' },
+      { term: 'Equivalente (eq)', mission: 'm2', def: 'Cantidad de sustancia que reacciona con (o aporta) un mol de H⁺ (en ácido-base). eq = g / PE; meq = eq × 1000.', simple: 'Un «mol de reactividad»: cuánta cantidad aporta un mol de H⁺.', simpler: 'Una ficha de reacción: cada ficha reacciona con otra ficha.' },
+      { term: 'Normalidad (N)', mission: 'm2', def: 'Equivalentes por litro de solución: N = eq/L = M × (H⁺ por fórmula).', simple: 'Cuántos equivalentes caben en un litro.', simpler: 'La concentración medida en fichas de reacción.' },
+      { term: 'Peso equivalente (PE)', mission: 'm2', def: 'Masa que contiene un equivalente: PE = PM / número de especies intercambiables (H⁺).', simple: 'Los gramos de un equivalente: la masa molar dividida por los H⁺.', simpler: 'Lo que pesa una ficha de reacción.' },
       { term: 'Alícuota', mission: 'm2', def: 'Porción medida con exactitud (con pipeta aforada) de una solución.', simple: 'Un pedazo exacto de la solución.', simpler: 'Una cucharada medida de la sopa.' }
     ],
     concepts: [
@@ -64,6 +69,7 @@
       { id: 'ana.volumetria', mission: 'm1', title: 'Titulante, equivalencia y punto final', needs: ['base.moles'] },
       { id: 'ana.patron', mission: 'm1', title: 'Patrón primario y estandarización', needs: ['ana.volumetria'] },
       { id: 'ana.estequio', mission: 'm2', title: 'Cálculo de la concentración del analito', needs: ['base.estequio', 'ana.volumetria'] },
+      { id: 'ana.equiv', mission: 'm2', title: 'Equivalentes, normalidad y peso equivalente', needs: ['ana.estequio'] },
       { id: 'ana.alicuotas', mission: 'm2', title: 'Alícuotas, diluciones y % en la muestra', needs: ['ana.estequio'] }
     ],
     curiosities: [
@@ -78,7 +84,12 @@
       23: { title: 'Directa, por retroceso y por desplazamiento', bullets: ['Directa: titulante reacciona con el analito', 'Retroceso: exceso conocido de reactivo y se titula lo que sobra'] },
       15: { title: 'Patrón primario', bullets: ['Alta pureza, estable, no higroscópico', 'Masa molar alta (menos error al pesar)', 'Ej.: KHP, Na₂CO₃, bórax; NaOH y HCl NO lo son'] },
       17: { title: 'Estandarización', bullets: ['Se pesa el patrón y se titula con la solución', 'C = n(patrón)·(estequiometría) / V'] },
-      32: { title: 'Cálculos volumétricos', bullets: ['n = C·V (mmol = M × mL)', 'Relación estequiométrica en la equivalencia', 'C_analito = n_analito / V_analito'] },
+      32: { title: 'Cálculos volumétricos: meq = meq', bullets: ['N × V(mL) = meq', 'Situación 1: N_p·V_p = N_a·V_a', 'Situación 2: masa(mg)/PE = N_a·V_a(mL)', 'En mmol: n = C·V y relación estequiométrica'] },
+      29: { title: 'Base teórica: eqp = eqa', bullets: ['La reacción es de equivalente a equivalente', 'Los cálculos se hacen en base al punto de equivalencia'] },
+      30: { title: 'Definiciones de equivalente', bullets: ['Def 1: eq = N × V(L)', 'Def 2: eq = masa(g) / PE', 'Teórico PE vs experimental PF · m = 10⁻³ para pasar a meq'] },
+      31: { title: 'Situaciones 1 y 2 (en equivalentes)', bullets: ['Reactivo patrón y muestra son soluciones: N_p·V_p = N_a·V_a', 'Reactivo patrón sólido y muestra en solución: masa/PE = N_a·V_a'] },
+      33: { title: 'Ejercicio: vinagre y ftalato ácido de potasio', bullets: ['Vinagre comercial 4 % p/v de CH₃COOH', 'NaOH estandarizado 0,0965 eq/L; gasto de 25 mL contra FAK (KHP)', 'Pesos fórmula: FAK = 204,22; CH₃COOH = 60'] },
+      34: { title: 'Ejercicio (b): volumen de NaOH esperado', bullets: ['Alícuota de 20 mL de vinagre diluido 10 veces', '¿Qué volumen de NaOH 0,0965 eq/L se espera gastar?'] },
       19: { title: 'Alícuotas y diluciones', bullets: ['C₁V₁ = C₂V₂', 'Factor = V_total / V_alícuota', 'Del matraz a la muestra original'] }
     },
     missions: [
@@ -194,7 +205,25 @@
               order('m2-p5', 'Ordena el camino de vuelta, de la bureta al %:', [['a', 'mmol de titulante = V × C'], ['b', 'mmol de analito (estequiometría)'], ['c', '× V_total/V_alícuota'], ['d', 'masa = mmol × MM'], ['e', '% = masa analito / masa muestra × 100']], ['a', 'b', 'c', 'd', 'e'],
                 { concept: 'ana.alicuotas', direction: 'Desde la bureta.', explain: 'El mapa de recipientes al revés.', slide: 19, hint: 'Primero los moles de titulante.' })
             ],
-            rule: { title: 'Regla del sabio: el mapa de recipientes', concept: 'ana.alicuotas', steps: ['Dibuja muestra → aforado → alícuota → matraz', 'mmol en la alícuota × V_total/V_alícuota', 'mmol × MM → mg; / masa muestra × 100 → %'] } }
+            rule: { title: 'Regla del sabio: el mapa de recipientes', concept: 'ana.alicuotas', steps: ['Dibuja muestra → aforado → alícuota → matraz', 'mmol en la alícuota × V_total/V_alícuota', 'mmol × MM → mg; / masa muestra × 100 → %'] } },
+          { id: 'r3', intro: 'Parte 3: **equivalentes y normalidad**, la forma en que la cátedra plantea todos los cálculos (diap. 29–34).',
+            pretest: q('m2-pre3', 'Adivina antes: ¿cuál es el peso equivalente de un ácido diprótico de PM 126 g/mol (reacciona con sus 2 H⁺)?', [{ text: '63 g/eq', correct: true }, { text: '126 g/eq', note: 'Ese es el peso molecular: falta dividir por el número de H⁺.', misconception: 'stoich-ratio' }, { text: '252 g/eq', note: 'Dividiste al revés.' }], { concept: 'ana.equiv', explain: 'PE = PM / n.', slide: 32 }),
+            explain: [
+              { id: 'm2b3', concept: 'ana.equiv', title: 'Equivalentes, normalidad y peso equivalente', slide: 32, body: 'En el punto de equivalencia reaccionan **equivalente con equivalente: eq(patrón) = eq(analito)**. **eq = N × V(L)** y **eq = masa/PE**, con **PE = PM / n** (n = número de H⁺ o OH⁻ que intercambia) y **N = M × n**. Trabajando en **mL** sale **meq** (× 10⁻³). **Situación 1** (patrón y muestra en solución): **N_p·V_p = N_a·V_a**. **Situación 2** (patrón sólido): **masa(mg)/PE = N_a·V_a(mL)**. Es lo mismo que el método de mmol, pero **la estequiometría ya viene dentro del PE**: si no divides por n, el error es de factor 2 o 3.',
+                deeper: 'Diap. 33: NaOH 0,0965 eq/L gastó 25 mL contra FAK (KHP, PE = 204,22): masa = 0,0965 × 0,025 × 204,22 = 0,4927 g. Diap. 34: vinagre 4 % p/v = 40 g/L de CH₃COOH (PE = 60) → N = 0,667; diluido 10 veces → 0,0667 N; 20 mL = 1,333 meq → V(NaOH) = 1,333/0,0965 = 13,82 mL. PEP histórica: ácido fólico (PM 441, diprótico) con KOH 0,0100 M, 10,0 mL en 50 mL de extracto → 1,00 × 10⁻⁴ eq → 22,05 mg → 0,441 mg/mL. Quien dividió mal el PE obtuvo 0,882 mg/mL.' }
+            ],
+            practice: [
+              num('m2-p7', 'NaOH 0,0965 eq/L gastó 25,00 mL en estandarizarse con ftalato ácido de potasio (PE = 204,22 g/eq). ¿Cuántos gramos de KHP se pesaron?', 0.4927, 'g',
+                { concept: 'ana.equiv', label: 'masa', slide: 33, tol: 0.005, hint: 'masa = N × V(L) × PE.', traps: [{ value: 492.7, note: 'Esos son mg: V debía ir en L.', misconception: 'ml-l' }, { value: 0.0965 * 25 / 204.22, note: 'Dividiste por el PE en vez de multiplicar.' }], solution: ['eq NaOH = 0,0965 × 0,02500 = 2,4125 × 10⁻³ eq', 'masa = 2,4125 × 10⁻³ × 204,22 = 0,4927 g'], explain: '0,4927 g.' }),
+              num('m2-p8', 'Vinagre comercial 4 % p/v de CH₃COOH (PE = 60 g/eq) diluido 10 veces: se titulan 20,00 mL con NaOH 0,0965 eq/L. ¿Qué volumen de NaOH se espera gastar?', 13.82, 'mL',
+                { concept: 'ana.equiv', label: 'V', slide: 34, tol: 0.01, hint: '4 % p/v = 40 g/L; N = (g/L)/PE; la dilución baja N.', traps: [{ value: 138.2, note: 'Olvidaste la dilución 1:10.' }, { value: 4.15, note: 'Usaste 4 g/L en vez de 40 g/L (el % p/v son g por 100 mL).' }], solution: ['40 g/L / 60 g/eq = 0,6667 eq/L; diluido 10 veces: 0,06667 N', 'meq en 20,00 mL = 0,06667 × 20,00 = 1,333', 'V = 1,333 / 0,0965 = 13,82 mL'], explain: '13,82 mL.' }),
+              q('m2-p9', 'Una solución de H₂SO₄ 0,100 M, usada como ácido diprótico completo, tiene una normalidad de…', [{ text: '0,200 N', correct: true }, { text: '0,100 N', note: 'N = M × n: cada H₂SO₄ aporta 2 H⁺.', misconception: 'stoich-ratio' }, { text: '0,0500 N', note: 'Dividiste al revés: N = M × n.' }],
+                { concept: 'ana.equiv', explain: 'N = M × 2.', slide: 31, hint: '¿Cuántos H⁺ entrega cada molécula?' }),
+              spot('m2-fx2', 'Estilo PEP: 50 mL de extracto con ácido fólico (PM 441, diprótico) reaccionan con 10,0 mL de KOH 0,0100 M. Una alumna calculó los mg/mL así. ¿Dónde se equivocó?', ['n(KOH) = 10,0 × 0,0100 = 0,100 mmol', 'n(ácido fólico) = 0,100 mmol (supone 1:1)', 'm = 0,100 × 441 = 44,1 mg → 44,1/50 = 0,882 mg/mL'], 1,
+                { question: '¿Cómo se corrige?', options: [{ text: 'n(ácido fólico) = 0,100/2 = 0,0500 mmol → 22,05 mg → 0,441 mg/mL', correct: true }, { text: 'n(ácido fólico) = 0,100 × 2 = 0,200 mmol', note: 'Al revés: cada ácido gasta dos KOH, así que hay la mitad de moles.' }] },
+                { concept: 'ana.equiv', slide: 32, stepNotes: { 0: 'Correcto.', 2: 'Viene del error anterior.' }, explain: 'Diprótico: PE = PM/2 = 220,5 g/eq.', hint: '¿Cuántos H⁺ entrega cada molécula?', misconception: 'stoich-ratio' })
+            ],
+            rule: { title: 'Regla del sabio: equivalentes', concept: 'ana.equiv', steps: ['PE = PM / n (H⁺ o OH⁻ que intercambia); N = M × n', 'eq(patrón) = eq(analito): N·V = N·V, o masa/PE = N·V', 'mL × N = meq; recién al final pasa a mg/mL o %'] } }
         ]
       }
     ],
@@ -232,7 +261,11 @@
       { id: 'f-ali', title: 'Alícuotas y diluciones', formula: 'n_total = n_alícuota × V_total/V_alícuota · C₁V₁ = C₂V₂ · % = m_analito/m_muestra × 100', concepts: ['ana.alicuotas'], vars: [['V_total', 'volumen del aforado', 'mL'], ['V_alícuota', 'volumen pipeteado', 'mL'], ['m', 'masa', 'mg']],
         what: 'Volver de lo titulado a la muestra original.', when: 'Cuando se titula solo una parte.', example: 'Aspirina: 0,2775 mmol × 10 × 180,16 = 500 mg (76,9 %).', deeper: 'Si hay varias diluciones, los factores se multiplican.',
         sources: [{ label: 'Skoog, cap. 13; Harris, cap. 7', slide: 19 }],
-        calc: { inputs: [{ id: 'n', label: 'mmol en la alícuota', value: 0.2775, step: 0.0001 }, { id: 'vt', label: 'V total (mL)', value: 100, step: 0.1 }, { id: 'va', label: 'V alícuota (mL)', value: 10, step: 0.01 }, { id: 'mm', label: 'masa molar (g/mol)', value: 180.16, step: 0.01 }, { id: 'ms', label: 'masa muestra (mg)', value: 650, step: 0.1 }], run: v => { const m = v.n * v.vt / v.va * v.mm; return 'masa = **' + m.toFixed(1).replace('.', ',') + ' mg** · **' + (m / v.ms * 100).toFixed(1).replace('.', ',') + ' %**'; } } }
+        calc: { inputs: [{ id: 'n', label: 'mmol en la alícuota', value: 0.2775, step: 0.0001 }, { id: 'vt', label: 'V total (mL)', value: 100, step: 0.1 }, { id: 'va', label: 'V alícuota (mL)', value: 10, step: 0.01 }, { id: 'mm', label: 'masa molar (g/mol)', value: 180.16, step: 0.01 }, { id: 'ms', label: 'masa muestra (mg)', value: 650, step: 0.1 }], run: v => { const m = v.n * v.vt / v.va * v.mm; return 'masa = **' + m.toFixed(1).replace('.', ',') + ' mg** · **' + (m / v.ms * 100).toFixed(1).replace('.', ',') + ' %**'; } } },
+      { id: 'f-equiv', title: 'Equivalentes y normalidad', formula: 'PE = PM/n · N = eq/L = M·n · eq = masa/PE · N_p·V_p = N_a·V_a', concepts: ['ana.equiv'], vars: [['PM', 'masa molar', 'g/mol'], ['n', 'H⁺ u OH⁻ que intercambia', '—'], ['N', 'normalidad', 'eq/L']],
+        what: 'Plantear la titulación con equivalentes, como en la cátedra.', when: 'Siempre que la estequiometría no sea 1:1 (o para usar el formulario de la PEP).', example: 'Ácido fólico (441 g/mol, 2 H⁺): PE = 220,5 g/eq.', deeper: 'Si trabajas en mL, N × V da meq y no necesitas pasar a L hasta calcular masas.',
+        sources: [{ label: 'Pizarro, base teórica (eqp = eqa)', slide: 29 }, { label: 'Pizarro, definiciones', slide: 30 }],
+        calc: { inputs: [{ id: 'pm', label: 'PM (g/mol)', value: 441, step: 0.01 }, { id: 'n', label: 'n (H⁺)', value: 2, step: 1 }], run: v => 'PE = **' + (v.pm / v.n).toFixed(2).replace('.', ',') + ' g/eq**' } }
     ],
     recipes: [],
     mini: {
@@ -241,6 +274,7 @@
       'ana.volumetria': { idea: 'Gota a gota hasta la equivalencia.', steps: ['Titulante en la bureta', 'Equivalencia: teórica', 'Punto final: lo que ves'], check: { prompt: 'El viraje del indicador es…', options: [{ text: 'El punto final', correct: true }, { text: 'La equivalencia', note: 'La equivalencia es teórica.' }], explain: 'Punto final.' } },
       'ana.patron': { idea: 'Una masa confiable para conocer tu titulante.', steps: ['Puro, estable, no higroscópico', 'Pesa y titula', 'C = n/V'], check: { prompt: 'NaOH sólido es patrón primario…', options: [{ text: 'No', correct: true }, { text: 'Sí', note: 'Absorbe agua y CO₂.' }], explain: 'No.' } },
       'ana.estequio': { idea: 'V × C → estequiometría → C o masa.', steps: ['mmol = V × C', '× coef. analito/coef. titulante', '/ V analito o × MM'], check: { prompt: '1,0 mmol NaOH neutraliza … mmol H₂SO₄', options: [{ text: '0,5', correct: true }, { text: '2,0', note: 'Al revés.' }], explain: '1:2.' } },
+      'ana.equiv': { idea: 'Equivalente con equivalente: el PE ya trae la estequiometría.', steps: ['PE = PM / n', 'N·V = N·V o masa/PE = N·V', 'mL × N = meq'], check: { prompt: 'Diprótico PM 100: PE =', options: [{ text: '50 g/eq', correct: true }, { text: '100 g/eq', note: 'Falta dividir por 2.' }], explain: '100/2.' } },
       'ana.alicuotas': { idea: 'Lo titulado es solo un pedazo: multiplica para volver.', steps: ['Dibuja los recipientes', '× V_total/V_alícuota', 'mg y %'], check: { prompt: 'Alícuota 10 de 250 mL: factor =', options: [{ text: '25', correct: true }, { text: '0,04', note: 'Al revés.' }], explain: '250/10.' } }
     },
     deep: {},

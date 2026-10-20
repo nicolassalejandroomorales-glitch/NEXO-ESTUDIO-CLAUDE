@@ -24,7 +24,7 @@
        `gen` = generador(es) de ana-01-gen.js (nivel 5); `pep` = pregunta de `goal.questions` que asegura. */
     demuestra: {
       m1: { gen: ['conceptos', 'etapas', 'humedad', 'interferentes'], pep: 'P1', seconds: 150 },
-      m2: { gen: ['calibracion', 'exactitud', 'precision', 'errores', 'dixon', 'comparar'], pep: 'P2', seconds: 180 }
+      m2: { gen: ['calibracion', 'exactitud', 'precision', 'errores', 'dixon', 'comparar', 'dispensador'], pep: 'P2', seconds: 180 }
     },
     status: 'borrador',
     sources: {
@@ -104,6 +104,7 @@
       57: { title: 'Entrega de resultados: el informe', bullets: ['Resumen, introducción, objetivos, métodos, resultados, discusión, conclusiones, bibliografía'] },
       66: { title: 'Errores en el análisis químico (Skoog, cap. 5)', bullets: ['Sistemáticos (determinados): instrumentales, de método y personales', 'Aleatorios (indeterminados)', 'Gruesos'] },
       83: { title: 'Eliminación de datos dudosos: test Q', bullets: ['1) Ordenar los datos', '2) Q experimental = |dudoso − vecino| / (máx − mín)', '3) Comparar con Q tabulado (n, confianza)', '4) Si Q experimental > Q tabulado: se elimina'] },
+      87: { title: 'Apliquemos lo aprendido: error absoluto y relativo (¡con 2 errores!)', bullets: ['A: 22,62 vs 22,57 g → E 0,05 g; Er 0,22 % ✔', 'B: 45,02 vs 45,31 mL → E 0,29 mL; Er correcto = 0,64 % (la diapositiva dice 0,006 %)', 'C: 2,68 vs 2,71 % → E 0,03 %; Er correcto = 1,1 % (la diapositiva dice 0,71 %)', 'D: 85,6 vs 85 cm → E 0,60 cm; Er 0,71 % ✔'] },
       86: { title: 'Ejemplo resuelto: ¿es rechazable el 6,0?', bullets: ['Datos: 5,0; 5,2; 5,5; 5,6; 6,0 (sulfato en agua de riego)', 'Q = (6,0 − 5,6)/(6,0 − 5,0) = 0,40', 'Qtab (n = 5, 90 %) = 0,64: 0,40 < 0,64, no es rechazable'] }
     },
     missions: [
@@ -222,7 +223,7 @@
               { concept: 'ana.exactitud', explain: 'Er = (19,78 − 20,00)/20,00 × 100 = −1,1 %.', slide: 56 }),
             explain: [
               { id: 'm2b2', concept: 'ana.exactitud', title: 'Exactitud y precisión', slide: 56, body: '**Exactitud**: error absoluto **E = x̄ − x_verdadero**; error relativo **Er = E/x_verdadero × 100**. **Precisión**: desviación estándar **s** (con n − 1), varianza **s²** y **CV = s/x̄ × 100**. **Errores** (Skoog): **sistemáticos** (instrumentales, de método o personales; siempre hacia el mismo lado → exactitud), **aleatorios** (ambos lados → precisión) y **gruesos** (equivocaciones grandes y ocasionales).',
-                deeper: 'Hierro de la clase: E = 19,78 − 20,00 = −0,22 ppm; Er = −1,1 %. Plomo: s = 0,0038 ppm y CV = 0,50 %: muy preciso. Sin un valor verdadero (estándar o material de referencia) no puedes calcular la exactitud, solo la precisión.' }
+                deeper: 'Hierro de la clase: E = 19,78 − 20,00 = −0,22 ppm; Er = −1,1 %. Plomo: s = 0,0038 ppm y CV = 0,50 %: muy preciso. Sin un valor verdadero (estándar o material de referencia) no puedes calcular la exactitud, solo la precisión. Ojo: en la diap. 87 de la cátedra dos respuestas están mal (B: Er = 0,29/45,31 = 0,64 %, no 0,006 %; C: Er = 0,03/2,71 = 1,1 %, no 0,71 %); aquí se usan las correctas. En la PEP el formulario da ε_a = |valor exacto − valor medido| (sin signo).' }
             ],
             practice: [
               num('m2-p4', 'Réplicas: 10,08; 10,11; 10,09; 10,10; 10,12. Valor verdadero: 10,00. Calcula el error relativo del promedio (%).', 1.0, '%',
@@ -231,6 +232,9 @@
               classify('m2-p5', 'Clasifica cada error:', [['sis', 'Sistemático'], ['ale', 'Aleatorio'], ['gru', 'Grueso']],
                 [['a', 'Pipeta mal calibrada que siempre entrega de menos', 'sis'], ['b', 'Pequeñas fluctuaciones al leer la bureta', 'ale'], ['c', 'Anotar 25,3 en vez de 52,3', 'gru'], ['d', 'Indicador que cambia de color antes del punto de equivalencia', 'sis']],
                 { concept: 'ana.errores', explain: 'Con causa y dirección fija: sistemático. Al azar: aleatorio. Equivocación grande: grueso.', slide: 66, source: BOOK, hint: '¿Siempre hacia el mismo lado?', misconception: 'error-type' }),
+              spot('m2-fx3', 'Diapositiva 87 de la cátedra: valor medido 45,02 mL y valor aceptado 45,31 mL. La diapositiva responde E = 0,29 mL y Er = 0,006 %. ¿Dónde está el error?', ['E = |45,02 − 45,31| = 0,29 mL', 'Er = E / valor aceptado × 100', 'Er = 0,29 / 45,31 × 100 = 0,006 %'], 2,
+                { question: '¿Cuál es el resultado correcto?', options: [{ text: 'Er = 0,64 %', correct: true }, { text: 'Er = 0,0064 %', note: 'Ese es el 0,64 % sin el × 100 aplicado bien: 0,29/45,31 = 0,0064 y × 100 = 0,64.' }] },
+                { concept: 'ana.exactitud', slide: 87, stepNotes: { 0: 'Correcto.', 1: 'Correcto: la fórmula está bien.' }, explain: '0,29/45,31 = 0,0064; × 100 = 0,64 %. La diapositiva olvidó el × 100.', hint: 'Recalcula la división y multiplica por 100.' }),
               match('m2-p6', 'Une cada medida con lo que evalúa:', [['Error relativo', 'Exactitud'], ['Desviación estándar', 'Precisión'], ['Coeficiente de variación', 'Precisión relativa (en %)']],
                 { concept: 'ana.precision', explain: 'Error → exactitud; dispersión → precisión.', slide: 56, hint: '¿Compara con el valor verdadero o entre réplicas?', misconception: 'acc-prec' })
             ],

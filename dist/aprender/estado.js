@@ -11,7 +11,7 @@
     c60: { ramo: 'organica', id: 'aromaticos', name: 'Aromáticos', classes: ['org-04', 'org-05'], jars: 6, crystals: 5 },
     'c-60': { ramo: 'organica', id: 'heterociclos', name: 'Heterociclos', classes: [], jars: 0, crystals: 4 },
     'ana.c0': { ramo: 'analitica', id: 'ana_errores', name: 'Errores', classes: ['ana-01'], jars: 2, crystals: 4 },
-    'ana.c60': { ramo: 'analitica', id: 'ana_acidobase', name: 'Ácido-base', classes: ['ana-02', 'ana-03'], jars: 4, crystals: 5 },
+    'ana.c60': { ramo: 'analitica', id: 'ana_acidobase', name: 'Ácido-base', classes: ['ana-02', 'ana-03'], jars: 5, crystals: 5 },
     'ana.c-60': { ramo: 'analitica', id: 'ana_polipro', name: 'Polipróticos', classes: [], jars: 0, crystals: 4 },
     'fq.c0': { ramo: 'fisico', id: 'fq_equilibrio', name: 'Equilibrio', classes: ['fq-01'], jars: 4, crystals: 5 },
     'fq.c60': { ramo: 'fisico', id: 'fq_ionico', name: 'Electrolitos', classes: [], jars: 0, crystals: 4 },

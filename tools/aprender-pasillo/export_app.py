@@ -195,7 +195,7 @@ def orbit(deg):
 CAMARAS = {
     'organica': dict(p='', door='d-org', alc=[('aminas', 0, 8, 6), ('aromaticos', 60, 6, 5), ('heterociclos', 300, 0, 4)],
                      names={'c0': 'Aminas', 'c60': 'Aromáticos', 'c-60': 'Heterociclos'}),
-    'analitica': dict(p='ana.', door='d-ana', alc=[('ana_errores', 0, 2, 4), ('ana_acidobase', 60, 4, 5), ('ana_polipro', 300, 0, 4)],
+    'analitica': dict(p='ana.', door='d-ana', alc=[('ana_errores', 0, 2, 4), ('ana_acidobase', 60, 5, 5), ('ana_polipro', 300, 0, 4)],
                       names={'c0': 'Errores', 'c60': 'Ácido-base', 'c-60': 'Polipróticos'}),
     'fisico': dict(p='fq.', door='d-fis', alc=[('fq_equilibrio', 0, 4, 5), ('fq_ionico', 60, 0, 4), ('fq_pila', 300, 0, 4)],
                    names={'c0': 'Equilibrio', 'c60': 'Electrolitos', 'c-60': 'Electroquímica'}),

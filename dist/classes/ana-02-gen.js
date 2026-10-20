@@ -2,7 +2,7 @@
    Los resultados se CALCULAN (nunca se escriben a mano). Datos: Skoog cap. 13 y Harris cap. 7. */
 (() => {
   'use strict';
-  const SRC = 'skoog';
+  const SRC = 'pizarro';
   const LEVELS = ['Fácil', 'Media', 'Intermedia', 'Avanzada', 'Nivel PEP'];
   const pick = (rng, list) => list[Math.floor(rng() * list.length)];
   const shuffle = (rng, list) => { const a = [...list]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -119,6 +119,38 @@
     }
   };
 
+  const sci1 = x => { const e = Math.floor(Math.log10(x)); return `${fix(x / 10 ** e, 2)} × 10^${e}`.replace('^-', '^−'); };
+  /* ════════ Equivalentes y normalidad (la forma de la cátedra: eq(patrón) = eq(analito)) ════════ */
+  const ACIDS = [{ name: 'ácido fólico', mm: 441, n: 2 }, { name: 'ácido oxálico', mm: 90.03, n: 2 }, { name: 'ácido succínico', mm: 118.09, n: 2 }, { name: 'ácido tartárico', mm: 150.09, n: 2 }, { name: 'ácido cítrico', mm: 192.12, n: 3 }, { name: 'ácido acetilsalicílico', mm: 180.16, n: 1 }, { name: 'ácido benzoico', mm: 122.12, n: 1 }, { name: 'ftalato ácido de potasio (KHP)', mm: 204.22, n: 1 }];
+  const equiv = {
+    id: 'equiv', title: 'Equivalentes y normalidad', mission: 'm2', concepts: ['ana.equiv'],
+    make(rng, level) {
+      const a = pick(rng, level <= 2 ? ACIDS.slice(0, 5) : ACIDS), pe = a.mm / a.n, base = pick(rng, ['NaOH', 'KOH']), N = pick(rng, [0.0965, 0.1, 0.0100, 0.0500, 0.1050]);
+      const nTxt = a.n === 1 ? 'monoprótico' : a.n === 2 ? 'diprótico' : 'triprótico';
+      if (level === 1) return number(`¿Cuál es el peso equivalente del ${a.name} (${dec(a.mm, 2)} g/mol; ${nTxt}, reacciona con todos sus H⁺)?`, pe, 'g/eq', { concept: 'ana.equiv', slide: 32, label: 'PE', tol: 0.005, hint: 'PE = PM / número de especies intercambiables (H⁺).',
+        traps: [{ value: a.mm, note: 'Ese es el peso molecular: falta dividir por el número de H⁺.', misconception: 'stoich-ratio' }, { value: a.mm * a.n, note: 'Dividiste al revés: PE = PM / n.' }].filter(t => a.n > 1 || t.value !== a.mm), solution: [`PE = ${dec(a.mm, 2)} / ${a.n} = ${dec(pe, 2)} g/eq`], explain: `PE = ${dec(pe, 2)} g/eq.` });
+      if (level === 2) { const V = between(rng, 10, 40, 0.01), meq = N * V;
+        return number(`${fix(V, 2)} mL de ${base} ${fix(N, 4)} N (= ${fix(N, 4)} eq/L) reaccionan completamente con un ácido. ¿Cuántos miliequivalentes (meq) de ${base} se gastaron?`, meq, 'meq', { concept: 'ana.equiv', slide: 31, label: 'meq', tol: 0.005, hint: 'meq = N × V(mL); N × V siempre da meq si V está en mL.',
+          traps: [{ value: meq / 1000, note: 'Eso son eq (V en litros).', misconception: 'ml-l' }], solution: [`meq = ${fix(N, 4)} × ${fix(V, 2)} = ${dec(meq, 4)}`], explain: `${dec(meq, 3)} meq.` }); }
+      if (level === 3) { const V = between(rng, 15, 35, 0.01), g = N * V / 1000 * pe;
+        return number(`Para estandarizar ${base} se pesó ${a.name} (PE = ${dec(pe, 2)} g/eq) y se gastaron ${fix(V, 2)} mL de ${base} ${fix(N, 4)} eq/L. ¿Cuántos gramos de ${a.name} se pesaron? (eq patrón = eq base)`, g, 'g', { concept: 'ana.equiv', slide: 33, label: 'masa', tol: 0.01, hint: 'masa/PE = N × V(L). Despeja la masa.',
+          traps: [{ value: g * 1000, note: 'Eso son mg: revisa si V estaba en L o mL.', misconception: 'ml-l' }, { value: N * V / 1000 * a.mm, note: 'Usaste el peso molecular en vez del peso equivalente.', misconception: 'stoich-ratio' }], solution: [`eq base = ${fix(N, 4)} × ${fix(V, 2)}/1000 = ${dec(N * V / 1000, 6)} eq`, `masa = eq × PE = ${dec(N * V / 1000, 6)} × ${dec(pe, 2)} = ${dec(g, 4)} g`], explain: `${dec(g, 4)} g.` }); }
+      if (level === 4) { const pv = pick(rng, [4, 5, 2, 1]), f = pick(rng, [10, 5, 20]), Va = pick(rng, [10, 20, 25]), N0 = pv * 10 / pe, Nd = N0 / f, V = Nd * Va / N;
+        return number(`Una solución comercial de ${a.name} dice ${pv} % p/v. Se diluye ${f} veces y se titula una alícuota de ${Va},00 mL con ${base} ${fix(N, 4)} eq/L (PE = ${dec(pe, 2)} g/eq). ¿Qué volumen de ${base} (mL) esperas gastar?`, V, 'mL', { concept: 'ana.equiv', slide: 34, label: 'V', tol: 0.01, hint: 'N = (g/L)/PE; la dilución baja N; N_ácido·V_ácido = N_base·V_base.',
+          traps: [{ value: V * f, note: 'Olvidaste la dilución: la solución que titulas es f veces más débil.' }, { value: pv * 10 / a.mm / f * Va / N, note: 'Usaste el peso molecular en vez del peso equivalente.', misconception: 'stoich-ratio' }], solution: [`${pv} % p/v = ${pv * 10} g/L → N = ${pv * 10}/${dec(pe, 2)} = ${dec(N0, 4)} eq/L`, `Diluida ${f} veces: N = ${dec(Nd, 5)} eq/L`, `V = ${dec(Nd, 5)} × ${Va} / ${fix(N, 4)} = ${dec(V, 2)} mL`], explain: `${dec(V, 2)} mL.` }); }
+      // nivel PEP (PEP histórica, pregunta 3: ácido fólico en brócoli)
+      const C = pick(rng, [0.0100, 0.0200, 0.0500]), V = between(rng, 5, 20, 0.1), Vx = pick(rng, [25, 50, 100]), eq = C * V / 1000, mg = eq / a.n * a.mm * 1000, ask = pick(rng, ['mgml', 'eq', 'dosis']), dose = pick(rng, [200, 400]);
+      const head = `Estilo PEP: se hizo reaccionar un extracto de ${Vx} mL con ${base} ${fix(C, 4)} M completamente (todos los H⁺ del ${a.name}, PM ${dec(a.mm, 2)} g/mol, ${nTxt}); se gastaron ${fix(V, 1)} mL de ${base}.`;
+      if (ask === 'eq') return number(`${head} ¿Cuántos equivalentes de ácido hay en los ${Vx} mL?`, eq, 'eq', { concept: 'ana.equiv', slide: 32, label: 'eq', tol: 0.01, hint: 'eq de ácido = eq de base = N × V(L); con M y n H⁺: N = M (base de 1 OH⁻).',
+        traps: [{ value: eq * 1000, note: 'Eso son meq.', misconception: 'ml-l' }, { value: eq / a.n, note: 'Dividiste por n: eso es mol, no equivalentes.', misconception: 'stoich-ratio' }].filter(t => a.n > 1 || t.value !== eq), solution: [`eq base = ${fix(C, 4)} × ${fix(V, 1)}/1000 = ${sci1(eq)} eq`, 'eq ácido = eq base'], explain: `${sci1(eq)} eq.` });
+      if (ask === 'dosis') { const mlmg = mg / Vx, mL = dose / 1000 / mlmg;
+        return number(`${head} Si la dosis diaria es ${dose} µg del ácido, ¿cuántos mL de extracto hay que consumir?`, mL, 'mL', { concept: 'ana.equiv', slide: 32, label: 'V', tol: 0.02, hint: 'Primero mg/mL en el extracto; luego dosis (mg) / concentración.',
+          traps: [{ value: dose / 1000 / (mg * a.n / Vx), note: 'Olvidaste dividir los eq por el número de H⁺ para llegar a mol.', misconception: 'stoich-ratio' }, { value: dose / mlmg, note: 'La dosis está en µg: pásala a mg.', misconception: 'ml-l' }].filter(t => a.n > 1 || t.value !== mL), solution: [`mol de ácido = eq / ${a.n} = ${sci1(eq / a.n)}; masa = ${dec(mg, 3)} mg`, `concentración = ${dec(mg, 3)} / ${Vx} = ${dec(mlmg, 4)} mg/mL`, `V = ${dose} µg = ${dec(dose / 1000, 3)} mg → ${dec(dose / 1000, 3)} / ${dec(mlmg, 4)} = ${dec(mL, 3)} mL`], explain: `${dec(mL, 3)} mL.` }); }
+      return number(`${head} ¿Qué concentración de ácido (mg/mL) tiene el extracto?`, mg / Vx, 'mg/mL', { concept: 'ana.equiv', slide: 32, label: 'C', tol: 0.01, hint: 'eq ácido = eq base; masa = eq × PE (PE = PM/n); divide por el volumen del extracto.',
+        traps: [{ value: mg / Vx * a.n, note: 'Olvidaste que el ácido tiene varios H⁺: cada mol gasta n de base (PE = PM/n).', misconception: 'stoich-ratio' }, { value: mg / Vx / 1000, note: 'Eso son g/mL: revisa las unidades.', misconception: 'ml-l' }].filter(t => a.n > 1 || t.value !== mg / Vx), solution: [`eq base = ${fix(C, 4)} × ${fix(V, 1)}/1000 = ${sci1(eq)} eq`, `masa = eq × PE = ${sci1(eq)} × ${dec(pe, 2)} g/eq = ${dec(mg, 3)} mg`, `C = ${dec(mg, 3)} mg / ${Vx} mL = ${dec(mg / Vx, 4)} mg/mL`], explain: `${dec(mg / Vx, 4)} mg/mL.` });
+    }
+  };
+
   /* ════════ Alícuotas y % en la muestra ════════ */
   const DRUGS = [{ name: 'ácido acetilsalicílico', mm: 180.16, label: 500 }, { name: 'ácido ascórbico (monoprótico en esta titulación)', mm: 176.12, label: 500 }, { name: 'ibuprofeno', mm: 206.28, label: 400 }];
   const alicuota = {
@@ -161,7 +193,7 @@
     }
   };
 
-  const generators = [piezas, patron, titular, volumen, alicuota, moles, estequio];
+  const generators = [piezas, patron, titular, volumen, equiv, alicuota, moles, estequio];
 
   /* Laboratorio: de la muestra a la titulación (elige el paso correcto). */
   const S = (id, name, formula) => ({ id, name, formula });
@@ -187,7 +219,7 @@
 
   const creatures = {
     'base.moles': ['Escriba', '#a07a4a'], 'base.estequio': ['Búho', '#5d6f9e'],
-    'ana.volumetria': ['Trasgo', '#7f9a3c'], 'ana.patron': ['Gólem', '#8a6fd1'], 'ana.estequio': ['Serpiente', '#5f9e5a'], 'ana.alicuotas': ['Hidra', '#c0574a']
+    'ana.volumetria': ['Trasgo', '#7f9a3c'], 'ana.patron': ['Gólem', '#8a6fd1'], 'ana.estequio': ['Serpiente', '#5f9e5a'], 'ana.equiv': ['Duende', '#6a9e8f'], 'ana.alicuotas': ['Hidra', '#c0574a']
   };
 
   window.NexoClassGen = window.NexoClassGen || {};
