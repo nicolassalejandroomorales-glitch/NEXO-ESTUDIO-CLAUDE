@@ -136,7 +136,94 @@ async function answer(page, id, right) {
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
       assert.deepEqual(errors, []);
       console.log(`OK ${width}px: aula de Orgánica/Analítica, fallo/recuperación del motor, recarga y Demuestra con fuente y variante.`);
+      // Segunda entrega: módulos reales del navegador, estado sintético separado y posterior arranque desde JSON.
+      const fixture = await page.evaluate(async () => {
+        const s = JSON.parse(localStorage.getItem('nexo-study-beta'));
+        s.classEvidence = {}; s.classSessions = {};
+        s.academicIntelligence = { ...s.academicIntelligence, attempts: [], evidence: [], reviewSchedules: [], structuredErrors: [], activeTimeSegments: [] };
+        const api = { getState: () => s, saveState() {}, flushState() {} }, cls = window.NexoClasses['org-01'];
+        const E = window.NexoClassEvidence, NX = window.NexoClassroom, bridge = window.NexoAcademicBridge;
+        const send = async (item, extra = {}) => {
+          E.submit(api, cls, item, { itemId: item.id, conceptId: item.concept, correct: true,
+            step: E.stepOf(item), at: '2026-10-20T10:00:00Z', ...extra });
+          await E.reconcile(api, cls);
+        };
+        const order = NX.genItem(cls, 'gen:basicidad:5:browser-order:am.orden');
+        const resonance = NX.genItem(cls, 'gen:basicidad:5:browser-resonance:am.resonancia');
+        await send(order); await send(resonance, { at: '2026-10-21T10:00:00Z' });
+        if (!s.academicIntelligence.attempts.some(a => a.conceptIds.includes('org.resonance'))) throw new Error('wrong_concept');
+        const written = NX.findItem(cls, 'm4-w1');
+        for (const [i, at] of ['2026-10-20T10:00:00Z', '2026-10-22T10:00:00Z'].entries()) {
+          const item = { ...written, id: `${written.id}@s${i}` };
+          await send(item, { at, transfer: true, correct: NX.isCorrect(item, { paper: true, checks: item.rubric.map(() => true) }) });
+        }
+        const concept = bridge.conceptOf(cls, written.concept);
+        if (window.NexoAcademicEngine.knowledgeFor(s, concept).state !== 'unseen') throw new Error('self_rubric_mastery');
+        await send({ ...resonance, id: resonance.id + '@hint' }, { hint: true, at: '2026-10-23T10:00:00Z' });
+        await send({ ...resonance, id: resonance.id + '@retry' }, { retry: true, at: '2026-10-23T10:00:00Z' });
+        if (s.academicIntelligence.attempts.filter(a => a.assistanceUsed).length !== 2) throw new Error('lost_assistance');
+        let release, started, count = 0;
+        const gate = new Promise(resolve => { release = resolve; }), didStart = new Promise(resolve => { started = resolve; });
+        const scheduler = window.NexoAcademicReviews.schedule;
+        window.NexoAcademicReviews.schedule = async (...args) => { if (++count === 1) { started(); await gate; } return scheduler(...args); };
+        try {
+          const ev = (id, at) => ({ id, at, conceptId: order.concept, correct: true });
+          const first = bridge.record(api, cls, order, ev('browser-parallel-1', '2026-10-23T10:00:00Z'));
+          await didStart;
+          const second = bridge.record(api, cls, order, ev('browser-parallel-2', '2026-10-24T10:00:00Z'));
+          await new Promise(resolve => setTimeout(resolve, 0)); release(); await Promise.all([first, second]);
+          await Promise.all([bridge.record(api, cls, order, ev('browser-parallel-1', '2026-10-23T10:00:00Z')),
+            bridge.record(api, cls, order, ev('browser-parallel-2', '2026-10-24T10:00:00Z'))]);
+        } finally { window.NexoAcademicReviews.schedule = scheduler; }
+        const cards = s.academicIntelligence.reviewSchedules;
+        if (cards.length !== new Set(cards.map(r => r.id)).size) throw new Error('duplicate_review');
+        if (cards.find(r => r.targetId === 'org-01:am.orden').lastAttemptId !== 'browser-parallel-2') throw new Error('stale_review');
+        // Mantener también una referencia histórica agregada al restaurar el catálogo.
+        const original = s.academicIntelligence.attempts.find(a => a.id.includes('browser-order'));
+        original.exerciseId = 'org-01:gen:basicidad:5';
+        for (const evidence of s.academicIntelligence.evidence) if (evidence.attemptId === original.id) evidence.exerciseId = original.exerciseId;
+        return JSON.parse(JSON.stringify(s)); // mismo contrato de serialización que localStorage
+      });
       await context.close();
+
+      const restored = await browser.newContext({ viewport: { width, height: 900 }, reducedMotion: 'reduce' });
+      await restored.addInitScript(s => {
+        document.startViewTransition = undefined;
+        if (!sessionStorage.getItem('nexo-reliability-seeded')) {
+          localStorage.setItem('nexo-study-beta', JSON.stringify(s)); sessionStorage.setItem('nexo-reliability-seeded', 'yes');
+        }
+      }, fixture);
+      const restoredPage = await restored.newPage(), restoredErrors = [];
+      restoredPage.on('pageerror', error => restoredErrors.push(error.message));
+      await restoredPage.route('https://**', route => route.abort());
+      await restoredPage.goto(url + '#/knowledge');
+      for (let reload = 0; reload < 2; reload++) {
+        await restoredPage.locator('.academic-map').waitFor();
+        await restoredPage.locator('[data-academic-select="org-01:am.equilibrio"]').click();
+        const detail = restoredPage.locator('.academic-concept-detail');
+        assert.match(await detail.innerText(), /Autoevaluado · sin verificación/);
+        assert.match(await detail.innerText(), /0 aciertos independientes · 0 transferencias/);
+        assert.match(await detail.innerText(), /2 autoevaluaciones/);
+        const result = await restoredPage.evaluate(() => {
+          const state = JSON.parse(localStorage.getItem('nexo-study-beta')), model = window.NexoAcademicModel;
+          return { attempts: state.academicIntelligence.attempts, evidence: state.academicIntelligence.evidence,
+            cards: state.academicIntelligence.reviewSchedules,
+            complete: state.academicIntelligence.attempts.every(a => {
+              const ex = model.byId(model.exercises, a.exerciseId);
+              return ex && model.byId(model.families, a.familyId) && ex.sourceIds.length && ex.sourceIds.every(id => model.byId(model.sources, id));
+            }), valid: model.validate(), preserved: state.meta.preservedByTest };
+        });
+        assert.ok(result.complete && result.valid, 'catálogo completo también con IDs históricos');
+        assert.deepEqual(result.attempts, fixture.academicIntelligence.attempts);
+        assert.deepEqual(result.evidence, fixture.academicIntelligence.evidence);
+        assert.deepEqual(result.cards, fixture.academicIntelligence.reviewSchedules);
+        assert.equal(result.preserved, 'previo');
+        assert.ok(await restoredPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+        if (!reload) await restoredPage.reload();
+      }
+      assert.deepEqual(restoredErrors, []);
+      console.log(`OK ${width}px: conceptos, autorúbrica sin dominio visible, ayudas/reintentos, concurrencia y catálogo histórico tras dos arranques.`);
+      await restored.close();
     }
   } finally { await browser?.close(); server.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

@@ -368,7 +368,8 @@ for (const [id, file] of Object.entries(catalog)) {
     const w1 = NX.willowOf(cls, api, { answers: some }), allIn = {}; for (const { item } of cls.missions.flatMap(m => NX.itemsOf(m))) allIn[item.id] = { correct: true };
     const w2 = NX.willowOf(cls, api, { answers: allIn });
     assert.ok(w1.stage > 1 && w1.stage < 5, 'Con avance, el sauce sube de piso');
-    assert.equal(w2.stage, 6, 'Con todos los puntos demostrados, el sauce rompe el techo');
+    const hasSelfRubric = cls.missions.some(m => (m.stages.transfer || []).some(item => item.type === 'write'));
+    assert.equal(w2.stage, hasSelfRubric ? 5 : 6, 'La autorúbrica no completa puntos verificados; todos los casos objetivos sí');
   }
   // Meta de la clase: cada pregunta de la prueba apunta a misiones que tienen caso estilo prueba.
   if (cls.goal) {

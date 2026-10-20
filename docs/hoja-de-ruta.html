@@ -33,7 +33,7 @@ ul{margin:0;padding-left:18px;font-size:14px}li{margin-bottom:4px}.vacio{color:v
 <h1>Tablero de Nexo</h1>
 <p class="sub">Actualizado el 2026-10-20 desde docs/chats/. Un chat = un tema = un modelo. Toca una tarjeta para ver el detalle.</p>
 <div class="resumen">
-  <div class="grande"><b>49%</b><span>de la app avanzada · 74 cosas hechas, 78 por hacer, 37 ideas guardadas</span></div>
+  <div class="grande"><b>49%</b><span>de la app avanzada · 75 cosas hechas, 79 por hacer, 37 ideas guardadas</span></div>
   <div class="barra" role="img" aria-label="49% avanzado"><i style="width:49%"></i></div>
   <p>Lo urgente en marcha: <b>Aprender (Sótano de los Cristales)</b> (75%) · <b>Beta para compañeros</b> (38%) · <b>Clases (contenido y aula)</b> (57%) · <b>Estudio Orgánica II (PEP 1)</b> (40%) · <b>Organización — continuidad del organizador semanal</b> (70%) · <b>Pulido para el lanzamiento</b> (33%).</p>
 </div>
@@ -243,26 +243,27 @@ Parte desde &quot;Falta&quot; y pregúntame qué grupo de restos sigue.">Copiar 
   <summary>
     <span class="tag prio">Pronto</span>
     <h3>Motor académico (diseño)</h3>
-    <div class="barra" role="img" aria-label="70% avanzado"><i style="width:70%"></i></div>
-    <p class="meta"><b>70%</b> · 7 hechas, 3 faltan<br>piloto en Aminas; clases y juegos ya alimentan evidencia y rangos</p>
+    <div class="barra" role="img" aria-label="67% avanzado"><i style="width:67%"></i></div>
+    <p class="meta"><b>67%</b> · 8 hechas, 4 faltan<br>piloto en Aminas; clases y juegos ya alimentan evidencia y rangos</p>
   </summary>
   <div class="cols">
-    <section><h4>Hecho (7)</h4><ul><li>20 oct, Fase I: registro local recuperable del aula y Demuestra; respuesta guardada antes de cargar motor/FSRS, reenvío idempotente, fuente y variante conservadas. Reconciliación al reabrir y protección al importar otro estado. Pruebas rápidas 44/44; navegador 1440/390 en Orgánica y Analítica. Ver `docs/fase-i-motor/SPEC.md`.</li><li>Conceptos, evidencia, estados de conocimiento y FSRS en `dist/academic/*`. Piloto org-01 / Aminas.</li><li>Etapas 4 a 10 (diagnóstico, intuitivo, grimorio, prueba, entrenar, replicar, arte) con su SPEC.</li><li>Ejercicios con regla de calidad (`docs/calidad-ejercicios/SPEC.md`).</li><li>18 oct: puente clase → motor (`class-bridge.js`). Las 11 clases y los juegos escriben evidencia.</li><li>19 oct: las clases ya pueden dar rangos (`docs/motor-rangos/SPEC.md`): minutos por concepto en el aula y la estación, `class_item` verificada, familias por habilidad, la escrita correcta cuenta como justificada y la carta del perfil usa todos los conceptos.</li><li>19 oct: hoja verde rehecha (`docs/motor-verde/SPEC.md`): 2 ejercicios distintos de escalón 4 o más sin ayuda; `auditGreen` y prueba con tope por clase.</li></ul></section>
-    <section><h4>Falta (3)</h4><ul><li>Corrección real de respuestas abiertas: la escrita sigue siendo autorúbrica. Auditoría 19 oct: mostrar la respuesta modelo antes de marcar y exigir palabras clave.</li><li>Clases: 86 conceptos aún no pueden llegar a hoja verde (30 son `base.*` sin ejercicios). Hay que agregarles ejercicios de calcular o dibujar y bajar el tope en `tools/class-evidence-test.cjs`.</li><li>Decidir si `study_bank` (motor de estudio piloto) también cuenta como verificado.</li></ul></section>
+    <section><h4>Hecho (8)</h4><ul><li>20 oct, segunda entrega local: cuatro regresiones de `88937b5` reproducidas antes de corregir. Variantes con identidad propia; autoevaluación conservada sin acreditar dominio/rango; FSRS serializado con reenvíos idempotentes; catálogo restaurado con IDs históricos. Evidencia contradictoria no se usa para acreditar progreso; no se reescribe historial. Regresiones 4/4, batería 45/45 con cinco exclusiones previas y navegador 1440/390. Ver `docs/confiabilidad-motor/SPEC.md`.</li><li>20 oct, Fase I: registro local recuperable del aula y Demuestra; respuesta guardada antes de cargar motor/FSRS, reenvío idempotente, fuente y variante conservadas. Reconciliación al reabrir y protección al importar otro estado. Pruebas rápidas 44/44; navegador 1440/390 en Orgánica y Analítica. Ver `docs/fase-i-motor/SPEC.md`.</li><li>Conceptos, evidencia, estados de conocimiento y FSRS en `dist/academic/*`. Piloto org-01 / Aminas.</li><li>Etapas 4 a 10 (diagnóstico, intuitivo, grimorio, prueba, entrenar, replicar, arte) con su SPEC.</li><li>Ejercicios con regla de calidad (`docs/calidad-ejercicios/SPEC.md`).</li><li>18 oct: puente clase → motor (`class-bridge.js`). Las 11 clases y los juegos escriben evidencia.</li><li>19 oct: las clases ya pueden dar rangos (`docs/motor-rangos/SPEC.md`): minutos por concepto en el aula y la estación, `class_item` verificada, familias por habilidad, la escrita correcta cuenta como justificada y la carta del perfil usa todos los conceptos.</li><li>19 oct: hoja verde rehecha (`docs/motor-verde/SPEC.md`): 2 ejercicios distintos de escalón 4 o más sin ayuda; `auditGreen` y prueba con tope por clase.</li></ul></section>
+    <section><h4>Falta (4)</h4><ul><li>Auditoría independiente de la segunda entrega y decisión de integración/publicación.</li><li>Corrección real de respuestas abiertas: la escrita sigue siendo autorúbrica; palabras clave por sí solas no son verificación semántica.</li><li>Clases: el auditor ahora cuenta 88 conceptos sin dos actividades objetivas de producción (antes 86, incluyendo autorúbricas). Incorporar comprobaciones objetivas suficientes y bajar el inventario en `tools/class-evidence-test.cjs`.</li><li>Decidir si `study_bank` (motor de estudio piloto) también cuenta como verificado.</li></ul></section>
     <section><h4>Ideas (3)</h4><ul><li>Repaso espaciado diario de 10 min que mezcle ramos según cercanía de evaluaciones.</li><li>Panel de &quot;qué tan listo estoy&quot; por evaluación, con evidencia y no con porcentaje inventado.</li><li>Auditoría 19 oct, para el tema clases: ejemplos resueltos y casos de corrección en FQ y Analítica, y actividades interactivas (predice y observa, recetas) fuera de Orgánica.</li></ul></section>
   </div>
   <div class="prompts">
     <span class="tag">Opus · esfuerzo medio (diseño); Sonnet para implementar</span>
     <button data-copy="Chat: Motor académico (Opus). Lee CLAUDE.md, la skill nexo-motor y docs/chats/motor.md.
 Parte desde &quot;Falta&quot;. Siguiente decisión de diseño: la corrección de escritas (autorúbrica vs corrección real). Pregúntame con selección múltiple.">Copiar prompt de inicio</button>
-    <button data-copy="Continúa NEXO desde la rama/PR de Fase I del motor académico. Lee CLAUDE.md, la skill nexo-motor,
-docs/chats/motor.md y docs/fase-i-motor/SPEC.md. El aula y Demuestra ya guardan una evidencia local
-única y recuperable antes de entregar al motor/FSRS. Respeta estos registros y sus datos previos.
-Comprueba primero qué se integró en master: el diseño sigue en otro chat. Siguiente entrega a definir:
-corrección objetiva y semántica honesta de autorúbrica/progreso, o retomar una prueba sin terminar.
+    <button data-copy="Revisa independientemente la segunda entrega local de confiabilidad, basada en 88937b5 y contrastada
+con 5503511. Lee CLAUDE.md, la skill nexo-motor y docs/confiabilidad-motor/SPEC.md. Ejecuta primero
+tools/academic-reliability-test.cjs, la batería rápida y tools/academic-loop-e2e.cjs. Contrasta los logs
+antes/después con el código. Verifica atribución, autorúbrica, FSRS concurrente y restauración del catálogo,
+sin borrar ni reescribir intentos históricos. Distingue código local de lo integrado/publicado.
+Esta implementación no se ha autorizado para publicación. El diseño sigue en otro chat.
 No cambies arte ni Grimorio ni mascota, no agregues avatar jugable ni servicios obligatorios de pago.
 Mantén entregas pequeñas; no generes Biblia definitiva ni skill NEXO Arquitecto.">Copiar prompt de continuación</button>
-    <span class="spec">docs/fase-i-motor/SPEC.md</span>
+    <span class="spec">docs/confiabilidad-motor/SPEC.md</span>
   </div>
 </details>
 <details class="card p2">

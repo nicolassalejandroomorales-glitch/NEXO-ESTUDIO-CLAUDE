@@ -13,10 +13,12 @@
   function derive({conceptId,concept={},evidence=[],attempts=[],activeTime=[],errors=[],prerequisiteStates={}}) {
     const byAttempt=new Map(attempts.map(item=>[item.id,item]));
     const relevant=uniqueBy(evidence.filter(item=>item.conceptId===conceptId),item=>item.attemptId||item.id);
-    const correct=relevant.filter(item=>item.outcome==='correct');
+    const reported=relevant.filter(item=>item.outcome==='correct');
+    const correct=reported.filter(item=>item.validationStatus==='verified'&&
+      ['structured_validator','instructor_review','class_item','study_bank'].includes(item.source));
     const independent=correct.filter(item=>!item.assistanceUsed);
     const verified=independent.filter(item=>item.validationStatus==='verified'&&
-      ['structured_validator','instructor_review','class_item'].includes(item.source)); // class_item: clase o juego corregido por la app
+      ['structured_validator','instructor_review','class_item'].includes(item.source));
     const verifiedFamilies=new Set(verified.map(item=>item.familyId).filter(Boolean));
     const exercises=new Set(independent.map(item=>item.exerciseId||byAttempt.get(item.attemptId)?.exerciseId).filter(Boolean));
     const families=new Set(independent.map(item=>item.familyId).filter(Boolean));
@@ -45,15 +47,16 @@
       exercises:exercises.size,families:families.size,days:days.size,sessions:sessions.size,
       delayed,transfer,justified,examStyle,criticalOpen,prerequisitesReady,
       next:level<5?{name:next.name,minMinutes:min(level+1)}:null,
-      evidenceBasis:correct.some(item=>item.source==='self_rubric')?'Incluye autoevaluación; los rangos altos requieren además respuestas verificadas.':'Evidencia registrada.'};
+      evidenceBasis:reported.some(item=>item.source==='self_rubric')?'Incluye autoevaluación; solo las respuestas verificadas acreditan rango.':'Evidencia registrada.'};
   }
   function forState(state,conceptId,model) {
     const academic=state.academicIntelligence||{};
+    const evidence=window.NexoAcademicBridge?.evidenceFor(state)||academic.evidence||[];
     const concept=model.concepts.find(item=>item.id===conceptId)||{};
     const required=model.prerequisites.filter(item=>item.to===conceptId&&item.strength==='required');
     const prerequisiteStates=Object.fromEntries(required.map(item=>[item.from,
-      window.NexoKnowledge.derive((academic.evidence||[]).filter(e=>e.conceptId===item.from)).state]));
-    return derive({conceptId,concept,evidence:academic.evidence||[],attempts:academic.attempts||[],
+      window.NexoKnowledge.derive(evidence.filter(e=>e.conceptId===item.from)).state]));
+    return derive({conceptId,concept,evidence,attempts:academic.attempts||[],
       activeTime:academic.activeTimeSegments||[],errors:academic.structuredErrors||[],prerequisiteStates});
   }
   function flame(level) {

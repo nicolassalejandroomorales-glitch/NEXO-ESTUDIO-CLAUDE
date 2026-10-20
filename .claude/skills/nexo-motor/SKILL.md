@@ -13,6 +13,7 @@ description: Motor académico de Nexo (conceptos, familias de problemas, intento
 Pruebas: `academic-test`, `structured-test`, `training-test`, `rescue-test`, `rank-test`, `class-bridge-test` (en `tools/`).
 Clases y juegos → motor: `class-bridge.js`. Familia = concepto + habilidad. `class_item` cuenta como verificada; `write` = autorúbrica + `reasoningSupported`. Minutos: `onBeat` de `playLesson` en `app.js` (`docs/motor-rangos/SPEC.md`).
 Registro del aula/Demuestra: `NexoClassEvidence.submit` guarda antes de entregar; `reconcile` recupera pendientes al reabrir. Pruebas `academic-loop-test.cjs` y `academic-loop-e2e.cjs`; contrato en `docs/fase-i-motor/SPEC.md`.
+Confiabilidad local: `tools/academic-reliability-test.cjs` contiene las cuatro regresiones; `docs/confiabilidad-motor/SPEC.md` documenta variantes únicas, autorúbrica sin dominio/rango, cola FSRS y reconstrucción histórica. `class-bridge.evidenceFor` conserva el historial y descarta procedencia contradictoria al acreditar progreso.
 
 ## Reglas (no negociables)
 - Estados: `unseen → guided → independent → transferable → retained`. `independent` exige éxito **sin ayuda**; `transferable`, transferencia sin ayuda; `retained`, recuperación sin ayuda ≥ 24 h después + transferencia.

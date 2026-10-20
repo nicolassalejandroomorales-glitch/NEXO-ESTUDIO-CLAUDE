@@ -38,6 +38,8 @@ El diagnóstico requiere errores independientes en al menos dos familias distint
 
 El motor de conocimiento exige éxito sin ayuda para `independent`, éxito de transferencia sin ayuda para `transferable` y recuperación sin ayuda al menos 24 h después junto a transferencia para `retained`. FSRS 5.4.2 calcula la siguiente fecha y **no decide dominio**. Reintentar un mismo ID no duplica evidencia y puede reintentar una tarjeta que falló por indisponibilidad del módulo.
 
+Segunda entrega local (20 oct 2026, `docs/confiabilidad-motor/SPEC.md`): esos estados requieren corrección verificada. La autorúbrica permanece en el historial como `self_reported` y se muestra «Autoevaluado · sin verificación»; no concede dominio, hojas verdes, puntos PEP demostrados ni rangos. Tampoco inicia el intervalo de recuerdo objetivo. Los generados conservan su ID completo con semilla; las familias agrupan habilidades. `ensureFromEvidence` reconstruye catálogo y referencias históricas sin reenviar respuestas. `evidenceFor` excluye de la acreditación los registros antiguos con atribución contradictoria o variantes agregadas irrecuperables, sin reescribir el JSON original. FSRS serializa por estado/concepto y conserva idempotencia incluso con fechas empatadas. Alcance local: no cambia autoridad ni reglas del servidor.
+
 ## Validadores y fuentes
 
 `classifiers.js` ofrece MCQ con distractor etiquetado, numérico con tolerancias/patrones y comparación estructural de dimensiones explícitas (conectividad, carga, enlace, grupo, regio/estereo y sitio). El adaptador de RDKit puede alimentar esas dimensiones, pero V14 **no implementa una nueva corrección estructural RDKit completa**. Texto libre usa criterios de rúbrica y autoevaluación; no infiere misconceptions por keywords débiles.

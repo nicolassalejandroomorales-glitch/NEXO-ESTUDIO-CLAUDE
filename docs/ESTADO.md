@@ -2,6 +2,8 @@
 
 Historial de lo hecho por tema. Lo lee Claude solo cuando necesita contexto de otro tema; el cierre de cada chat agrega aquí una línea con fecha (skill nexo-cierre).
 
+- **20 oct 2026 · Confiabilidad del motor / segunda entrega local**: cuatro regresiones reproducidas antes de corregir; variantes con ID propio, autorúbrica sin dominio verificado, cola FSRS y reconstrucción histórica del catálogo. Sin modificar progreso personal ni publicar. Ver `docs/confiabilidad-motor/SPEC.md`; pendiente auditoría de la entrega.
+
 - **20 oct 2026 · Motor académico / Fase I**: aula y Demuestra guardan evidencia local antes de entregar al motor/FSRS y recuperan pendientes al reabrir, sin duplicados; generados con variante/fuente/diapositiva. 44/44 pruebas rápidas y navegador 1440/390 en dos ramos. Entrega separada para revisión; ver `docs/fase-i-motor/SPEC.md`.
 
 ## Al 3–5 oct 2026

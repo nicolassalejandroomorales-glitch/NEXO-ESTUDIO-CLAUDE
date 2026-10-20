@@ -44,6 +44,7 @@
   function storeFor(state, classId) {
     if (!state.classEvidence || typeof state.classEvidence !== 'object') state.classEvidence = {};
     const store = state.classEvidence[classId] ||= {};
+    store.classId = classId;
     if (!Array.isArray(store.records)) store.records = [];
     if (!store.reviews || typeof store.reviews !== 'object') store.reviews = {};
     if (!store.delivery || typeof store.delivery !== 'object') store.delivery = {};
@@ -53,8 +54,14 @@
   /* Producir solo: escalón 4 o más (dibujar, escribir, calcular), sin pista, sin reintento y sin acierto frágil.
      Para la hoja verde hacen falta SOLO_NEEDED ejercicios distintos: un acierto suelto puede ser suerte (docs/motor-verde/SPEC.md). */
   const SOLO_MIN_STEP = 4, SOLO_NEEDED = 2;
-  const solo = r => r.correct && !r.hint && !r.retry && r.step >= SOLO_MIN_STEP && r.kind !== 'fragil';
-  const hasGreen = recs => new Set(recs.filter(solo).map(r => r.itemId)).size >= SOLO_NEEDED;
+  const objective = (r, classId) => {
+    if (r.validationStatus === 'self_reported' || r.academicItem?.type === 'write') return false;
+    if (r.validationStatus === 'verified') return true;
+    const cls = window.NexoClasses?.[classId], item = r.academicItem || (cls && window.NexoClassroom?.findItem(cls, r.itemId));
+    return Boolean(item) && item.type !== 'write';
+  };
+  const solo = (r, classId) => objective(r, classId) && r.correct && !r.hint && !r.retry && r.step >= SOLO_MIN_STEP && r.kind !== 'fragil';
+  const hasGreen = (recs, classId) => new Set(recs.filter(r => solo(r, classId)).map(r => r.itemId)).size >= SOLO_NEEDED;
 
   /* Guarda una respuesta. "delayed" marca un acierto sin ayuda 24 h o más después del primero: eso es retener. */
   function record(state, classId, entry) {
@@ -72,9 +79,11 @@
       transfer: Boolean(entry.transfer), confidence: entry.confidence ?? null, why: entry.why || null, kind,
       at: at.toISOString()
     };
-    const firstSolo = store.records.find(r => r.conceptId === rec.conceptId && solo(r));
-    rec.delayed = Boolean(firstSolo) && at - new Date(firstSolo.at) >= DAY_MS;
     if (entry.academicItem) rec.academicItem = entry.academicItem;
+    if (entry.validationStatus) rec.validationStatus = entry.validationStatus;
+    const firstSolo = store.records.filter(r => r.conceptId === rec.conceptId && solo(r, classId))
+      .sort((a, b) => new Date(a.at) - new Date(b.at))[0];
+    rec.delayed = Boolean(firstSolo) && at - new Date(firstSolo.at) >= DAY_MS;
     store.records.push(rec);
     return rec;
   }
@@ -85,7 +94,8 @@
     const academicItem = { id: item.id, type: item.type || 'choice', concept: entry.conceptId,
       source: item.source || null, slide: item.slide ?? null,
       ...(item.gen ? { gen: { id: item.gen.id, level: item.gen.level } } : {}) };
-    const rec = record(api.getState(), cls.id, { ...entry, academicItem });
+    const rec = record(api.getState(), cls.id, { ...entry, academicItem,
+      validationStatus: academicItem.type === 'write' ? 'self_reported' : 'verified' });
     api.saveState();
     api.flushState?.();
     reconcile(api, cls).catch(() => { /* La entrega pendiente se recupera al reabrir la clase. */ });
@@ -99,6 +109,11 @@
     const run = async () => {
       const store = storeFor(state, cls.id);
       const records = store.records.filter(r => r.academicItem).slice().sort((a, b) => new Date(a.at) - new Date(b.at));
+      try {
+        await window.NexoAcademicLoad?.();
+        if (api.getState() !== state) return;
+        window.NexoAcademicBridge?.ensureFromEvidence(state);
+      } catch (_) { /* la evidencia local sigue disponible sin catálogo académico */ }
       for (const rec of records) {
         if (api.getState() !== state) return; // una importación cambió el estado durante la carga
         const status = store.delivery[rec.id] ||= {};
@@ -133,11 +148,11 @@
     const recs = (store?.records || []).filter(r => r.conceptId === conceptId);
     let key = 'semilla';
     if (recs.length) key = 'brote';
-    if (recs.some(r => r.correct && !r.retry && r.step >= 4)) key = 'clara';
-    if (hasGreen(recs)) {
+    if (recs.some(r => objective(r, store?.classId) && r.correct && !r.retry && r.step >= 4)) key = 'clara';
+    if (hasGreen(recs, store?.classId)) {
       key = 'verde';
-      if (recs.some(r => solo(r) && r.transfer)) key = 'intensa';
-      if (recs.some(r => solo(r) && r.delayed)) key = 'flor';
+      if (recs.some(r => solo(r, store?.classId) && r.transfer)) key = 'intensa';
+      if (key === 'intensa' && recs.some(r => solo(r, store?.classId) && r.delayed)) key = 'flor';
     }
     let overlay = null;
     const due = store?.reviews?.[conceptId]?.dueAt;
@@ -147,7 +162,11 @@
       if (lastRight?.kind === 'fragil') overlay = 'amarilla';
     }
     const shown = overlay || key;
-    return { key, overlay, shown, label: LEAVES[shown].label, knowledge: KNOWLEDGE[key], count: recs.length };
+    const verified = recs.some(r => objective(r, store?.classId));
+    const selfReportedCount = recs.filter(r => r.validationStatus === 'self_reported' || r.academicItem?.type === 'write').length;
+    return { key, overlay, shown,
+      label: !verified && recs.length ? selfReportedCount ? 'Brote · autoevaluado' : 'Brote · sin verificación' : LEAVES[shown].label,
+      knowledge: verified ? KNOWLEDGE[key] : 'unseen', selfReportedCount, count: recs.length };
   }
 
   /* Concepto de una actividad: el suyo, o el de su misión si no declara uno. */
@@ -167,7 +186,7 @@
       const walk = (o, mission, seen = new Set()) => {
         if (!o || typeof o !== 'object' || seen.has(o)) return;
         seen.add(o);
-        if (typeof o.type === 'string' && DEFAULT_STEP[o.type] && o.id && stepOf(o) >= SOLO_MIN_STEP) (ids[conceptOf(o, mission)] ||= new Set()).add(o.id);
+        if (typeof o.type === 'string' && DEFAULT_STEP[o.type] && o.type !== 'write' && o.id && stepOf(o) >= SOLO_MIN_STEP) (ids[conceptOf(o, mission)] ||= new Set()).add(o.id);
         for (const k in o) walk(o[k], mission, seen);
       };
       (cls.missions || []).forEach(m => {

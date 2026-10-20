@@ -24,7 +24,8 @@ assert.deepEqual(JSON.parse(JSON.stringify(C.classifyStructure({charge:1,protona
 const evidence=[{id:'g',outcome:'correct',assistanceUsed:true},
  {id:'i',outcome:'correct',assistanceUsed:false},
  {id:'t',outcome:'correct',assistanceUsed:false,transfer:true},
- {id:'d',outcome:'correct',assistanceUsed:false,transfer:true,delayed:true,delayHours:26}];
+ {id:'d',outcome:'correct',assistanceUsed:false,transfer:true,delayed:true,delayHours:26}]
+ .map(item=>({...item,source:'class_item',validationStatus:'verified'}));
 assert.equal(K.derive([]).state,'unseen');
 for(const [n,state] of [[1,'guided'],[2,'independent'],[3,'transferable'],[4,'retained']])
  assert.equal(K.derive(evidence.slice(0,n)).state,state);

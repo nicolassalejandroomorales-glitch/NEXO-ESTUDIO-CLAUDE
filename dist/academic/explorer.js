@@ -22,11 +22,13 @@
     const reserved=(api.getReservations?.()||[]).filter(item=>item.concept_id===selected)
       .sort((a,b)=>a.rank-b.rank);
     const related=relations(engine.graph,model,selected);
-    const evidence=(state.academicIntelligence?.evidence||[]).filter(item=>item.conceptId===selected);
+    const evidence=(window.NexoAcademicBridge?.evidenceFor(state)||state.academicIntelligence?.evidence||[]).filter(item=>item.conceptId===selected);
+    const uncertain=evidence.filter(item=>item.provenanceIssue).length;
     const review=(state.academicIntelligence?.reviewSchedules||[]).find(item=>item.id===`concept:${selected}`);
     const sources=window.NexoSources.sourcesFor(model,state.academicIntelligence?.userSources||[],selected);
     const errors=(state.academicIntelligence?.structuredErrors||[]).filter(item=>item.conceptId===selected).slice(0,8);
-    const successes=evidence.filter(item=>item.outcome==='correct'&&!item.assistanceUsed);
+    const successes=evidence.filter(item=>item.outcome==='correct'&&!item.assistanceUsed&&window.NexoKnowledge.isVerified(item));
+    const selfReported=evidence.filter(item=>item.validationStatus==='self_reported').length;
     const transfers=successes.filter(item=>item.transfer);
     host.innerHTML=`<section class="page academic-map"><button data-route="subject" data-route-sub="organica" class="back-btn">← Orgánica</button>
       <div class="section-head"><div><p class="eyebrow">PILOTO ORG-01</p><h1>Mapa de conocimiento</h1>
@@ -49,7 +51,8 @@
         <h3>Relaciones</h3><p>Depende de: ${related.prerequisites.map(esc).join(', ')||'Sin prerequisitos mapeados.'}</p>
         <p>Desbloquea: ${related.dependents.map(esc).join(', ')||'Sin dependientes mapeados.'}</p>
         <h3>Evidencia</h3><p>${successes.length} aciertos independientes · ${transfers.length} transferencias ·
-          ${evidence.filter(item=>item.outcome==='incorrect').length} intentos fallidos.</p>
+          ${evidence.filter(item=>item.outcome==='incorrect').length} intentos fallidos · ${selfReported} autoevaluaciones (sin acreditar dominio).</p>
+        ${uncertain?`<p>${uncertain} registros históricos requieren revisión de procedencia y no acreditan dominio.</p>`:''}
         <p>Próxima revisión: ${review?.dueAt?esc(date(review.dueAt)):'Todavía no programada.'}</p>
         <h3>Fuentes</h3>${sources.length?`<ul>${sources.map(item=>`<li>${item.url?
           `<a href="${esc(item.url)}" target="_blank" rel="noopener noreferrer" data-academic-source="${esc(item.id)}">${esc(item.title)}</a>`:
