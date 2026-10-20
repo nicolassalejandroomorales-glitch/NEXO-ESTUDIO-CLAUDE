@@ -11,6 +11,8 @@
 - 47/47 pruebas rápidas y recorridos de navegador en 1440/390 px.
 - Basicidad conserva fases, respuestas, variantes, borradores y reloj; resultado recuperable e idempotente. Pruebas finales de otras misiones también conservan su intento pendiente.
 
+- Feedback visual corregido: el panel real de 250×268 usa encabezado compacto, contenido desplazable y compañero desplegable; comprobado en cuatro tamaños y con la continuidad de Basicidad.
+
 ## Falta
 - Modo Inmersivo: montar el mismo controlador en la futura cámara (constelaciones, atril, prácticas y materiales).
 - Que el usuario estudie Basicidad durante 10–15 minutos en PC/celular y revise explicaciones, corrección y fuentes antes de integrar la rama.

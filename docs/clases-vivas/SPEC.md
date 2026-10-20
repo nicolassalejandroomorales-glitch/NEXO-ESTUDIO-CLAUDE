@@ -68,3 +68,16 @@ Verificación ejecutada:
 - 47/47 pruebas rápidas OK; las mismas cinco exclusiones preexistentes. Capturas revisadas en ambos tamaños.
 
 Límites: no es una prueba en teléfono físico, auditoría de toda la química ni una prueba de sincronización cloud. Se conserva el diseño y contenido. Faltan la sesión de estudio real del usuario y el Modo Inmersivo. La continuación permanece en la rama de revisión, sin integrar master ni publicar el Artifact.
+
+## Ajuste al espacio real de pantalla
+Feedback del usuario: la clase se siente demasiado grande. El navegador lateral real mide 250 × 268 px; el encabezado ocupaba 159 px y la burbuja otros 100 px. Las pruebas anteriores comprobaban anchos 390/1440 y continuidad, pero no este espacio reducido.
+
+Decisiones: reducir encabezado, márgenes y escala tipográfica; mantener lectura y controles utilizables. Encabezado fijo y una sola región de desplazamiento para el contenido. Compañero desplegable en ventanas muy pequeñas/bajas, sin eliminar sus mensajes. Tarjetas de moléculas ajustadas al ancho, sin escalar toda la página ni tocar contenido, respuestas, reloj o evidencia.
+
+Criterios: probar 250×268, 390×720, 1024×600 y 1440×900; sin desborde horizontal; salida accesible al desplazar; encabezado compacto ≤70 px en el panel pequeño; desplegar compañero conserva el mensaje. Mantener el recorrido de Basicidad y su persistencia.
+
+Implementado y verificado: encabezado de 58 px frente a los 159 px observados inicialmente, dejando 210 de los 268 px para el contenido. Salida fija, compañero desplegable en ventanas pequeñas/bajas, tipografía y tarjetas adaptadas, una región de scroll. El mensaje sigue accesible al desplegar al compañero.
+
+`study-layout-e2e.cjs` pasó en 250×268, 390×720, 1024×600 y 1440×900; incluye título largo de Analítica y salida accesible al desplazar. `station-progress-e2e.cjs` pasó de nuevo en 1440/390 px con continuidad, reloj y entrega idempotente. Los ocho contratos de Clases Vivas/estaciones también pasan. Verificado visualmente en el navegador real de 250×268 sin responder ni cambiar la pregunta actual del usuario.
+
+Límite físico: en 250×268 sigue siendo necesario desplazar contenido largo; el ajuste prioriza lectura y controles utilizables sobre encoger toda la página. No se modificaron contenido académico, respuestas, progreso, reloj ni evidencia.

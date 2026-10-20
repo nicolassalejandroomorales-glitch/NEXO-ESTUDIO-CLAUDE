@@ -970,10 +970,10 @@
     if (!window.NexoLivingClasses || !window.NexoAula || !window.NexoStation) {
       app.innerHTML = '<section class="page"><p role="status">Abriendo Clase Viva…</p></section>';
       Promise.all([window.NexoLoader.style('./classes/estacion.css?v=d5650d83'), window.NexoLoader.style('./classes/aula.css?v=6b282336'),
-        window.NexoLoader.style('./classes/vivas.css?v=64cb60f7'), window.NexoLoader.script('./mascot/pixelmascotas.js')])
+        window.NexoLoader.style('./classes/vivas.css?v=ac53ba70'), window.NexoLoader.script('./mascot/pixelmascotas.js')])
         .then(() => window.NexoLoader.script('./classes/estacion.js?v=eb967602'))
         .then(() => window.NexoLoader.script('./classes/aula.js?v=e1d39f08'))
-        .then(() => window.NexoLoader.script('./classes/vivas.js?v=63c507f4'))
+        .then(() => window.NexoLoader.script('./classes/vivas.js?v=e06ceb27'))
         .then(() => { if (parseRoute().join('/') === requested) renderRoute(false); }).catch(failed);
       return;
     }

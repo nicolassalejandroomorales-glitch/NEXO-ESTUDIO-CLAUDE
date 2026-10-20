@@ -44,12 +44,23 @@
       <h1>${esc(cls.title)}</h1><span>Modo Estudio</span></div><button type="button" class="au-mini" data-cv-exit>Guardar y salir</button></header>
       <div class="cv-content"></div>`;
     const content = host.querySelector('.cv-content');
+    const compact = window.matchMedia('(max-height: 540px), (max-width: 340px)');
+    const syncCompanion = () => { const box = content.querySelector('.cv-companion'); if (box) box.open = !compact.matches; };
+    const fitCompanion = () => {
+      const root = content.firstElementChild, pet = root?.querySelector('.st-pet'), bubble = root?.querySelector('.st-bubble');
+      if (!pet || !bubble || root.querySelector('.cv-companion')) return;
+      const box = document.createElement('details'), summary = document.createElement('summary'), body = document.createElement('div');
+      box.className = 'cv-companion'; body.className = 'cv-companion-body'; summary.textContent = 'Tu compañero';
+      root.insertBefore(box, pet); box.append(summary, body); body.append(pet, bubble); syncCompanion();
+    };
+    compact.addEventListener('change', syncCompanion);
     const leave = () => { controller.checkpoint(); opts.onExit?.(); };
     host.querySelector('[data-cv-exit]').addEventListener('click', leave);
     const station = extra => {
       view?.destroy();
       view = window.NexoStation.mount(content, { cls, mission, api, pet: opts.pet, onExit: leave,
         onResult: controller.submitResult, ...extra });
+      fitCompanion();
     };
     if (cls.stations?.includes(mission)) {
       controller.session.path = 'misiones'; controller.session.mission = mission;
@@ -72,6 +83,7 @@
           station({ mission: current, only: 'demuestra', demuestra: config });
         } });
     }
+    fitCompanion();
     const onPageHide = () => controller.checkpoint();
     window.addEventListener('pagehide', onPageHide);
     controller.checkpoint();
@@ -79,6 +91,7 @@
       destroy() {
         if (destroyed) return;
         destroyed = true;
+        compact.removeEventListener('change', syncCompanion);
         window.removeEventListener('pagehide', onPageHide);
         view?.destroy(); controller.destroy(); host.replaceChildren(); host.classList.remove('cv-study');
       } };
