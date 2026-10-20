@@ -20,3 +20,6 @@ description: Crear o editar una clase de Nexo (contenido y lógica; la pantalla 
 
 ## La pantalla de la clase (19 oct 2026)
 `dist/classes/aula.js` (+ `aula.css`) dibuja cada misión en el estilo de la estación y usa la lógica de `player.js`; la prueba final por misión sale de `cls.demuestra` (estación en modo `only: 'demuestra'`, `estacion.js`). Se prueba con `node tools/demuestra-test.cjs`. Detalle: `docs/clases-v2/SPEC.md`.
+
+## Clases Vivas (20 oct 2026)
+Las clases pertenecen al Sótano; `dist/classes/vivas.js` desacopla controlador y presentación Estudio. `aula.js` y `estacion.js` siguen como componentes de contenido, sin una sala independiente. Contrato, pruebas y límites: `docs/clases-vivas/SPEC.md`, `tools/clases-vivas-test.cjs`, `tools/clases-vivas-e2e.cjs`. Inmersivo pendiente.

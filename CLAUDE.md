@@ -122,6 +122,9 @@ Los chats **no se acuerdan entre sí**: la única memoria compartida es este arc
 - Mascotas y arte: nada de diseños "planos"; siempre volumen, material y detalle. Estilo actual: **pixel art** con las rampas de `tools/home-pixel/pixel.py`.
 - Toda pantalla nueva o rehecha va en **pixel art y con la ambientación de la torre** (hora y clima reales, alquimista excéntrico + naturaleza que invade, sin runas nuevas). Nada de pantallas "de formulario" sueltas (Niquito, 11 oct 2026).
 
+## Clases Vivas (aclaración arquitectónica, 20 oct 2026)
+Las Clases Vivas pertenecen al Sótano de Cristales, con cámara por asignatura; no se construye un Aula independiente. El módulo académico es reutilizable y desacoplado del escenario: Modo Estudio primero, Modo Inmersivo después. Controlador y contrato: `dist/classes/vivas.js`, `docs/clases-vivas/SPEC.md`. Conservar contenidos, IDs e historial; sin Sótano 3D completo en esta fase.
+
 ## Estado
 
 Historial completo en **`docs/ESTADO.md`**. Lo más importante pendiente: **una clase completa que se sienta increíble**

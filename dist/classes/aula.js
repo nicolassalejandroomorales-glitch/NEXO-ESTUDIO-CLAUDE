@@ -464,9 +464,10 @@
 
     // La misión pedida: retoma donde quedaste (si no la terminaste).
     if (opts.mission && NXc.beats) {
+      const resume = s.path === 'misiones' && s.mission === opts.mission && Number.isInteger(s.beat);
       s.path = 'misiones'; s.mission = opts.mission;
       const far = s.far[s.mission] || 0, n = NXc.beats(cls, s).length;
-      s.beat = far > 1 && far < n - 1 ? far : 1;
+      s.beat = resume && s.beat >= 0 && s.beat < n ? s.beat : (far > 1 && far < n - 1 ? far : 1);
     }
 
     host.innerHTML = `<section class="st au"><canvas class="st-pet" width="40" height="44" aria-hidden="true"></canvas><div class="st-bubble" role="status"></div>
@@ -516,6 +517,7 @@
       const mw = b.kind === 'lesson' && b.block.frames ? s.work[`mech:${b.block.id}`] : null;
       if (mw?.playing) timer = setTimeout(() => { mw.i += 1; if (mw.i >= b.block.frames.length - 1) { mw.i = b.block.frames.length - 1; mw.playing = false; } rerender(); }, 3800);
       opts.onBeat?.(b, s);
+      api.saveState();
       (body.querySelector('.au-opt:not(:disabled)') || actions.querySelector('.st-next'))?.focus({ preventScroll: true });
     }
 
@@ -628,12 +630,13 @@
         w.sim = v; w.moved = true; box.classList.toggle('above', above);
         box.querySelector('[data-sim-val]').textContent = `${v} ${it.sim.unit}`; box.querySelector('[data-sim-text]').innerHTML = md(above ? it.sim.above : it.sim.below);
         const doneBtn = box.parentElement.querySelector('[data-au="act-poe-done"]'); if (doneBtn) doneBtn.disabled = false;
-        return;
+        api.saveState(); return;
       }
       const t = event.target.closest('[data-au-text]');
       if (t) { const it = NXc.findItem(cls, t.dataset.auText); if (it) NXc.workOf(s, it, t.dataset.retry === '1').text = t.value; }
       const u = event.target.closest('[data-au-unit]');
       if (u) { const it = NXc.findItem(cls, u.dataset.auUnit); if (it) NXc.workOf(s, it, u.dataset.retry === '1').unit = u.value; }
+      api.saveState();
     });
     root.addEventListener('keydown', event => {
       if (event.key === 'Escape') { if (slideOpen !== null) { slideOpen = null; draw(); } else if (panel !== null) { panel = null; draw(); } else { api.saveState(); opts.onExit?.(s); } }

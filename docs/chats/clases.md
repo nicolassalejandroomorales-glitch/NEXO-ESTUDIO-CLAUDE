@@ -85,3 +85,6 @@ Chat: Clases FQ II (PEP 1 el miércoles 28 oct). Lee CLAUDE.md, la skill nexo-cl
 Hecho: mapa de qué cae, generadores eqmoles/gibbsvh/mezcla, simulacro en documento.
 Tarea: lee las Guías 2 y 3 de 2026 que Niquito deje en la carpeta del chat, ajusta los generadores de fq-02 y fq-03 a lo que piden, y construye el simulacro mezclado dentro de la app. Después, revisión con Niquito clase por clase para sacarlas de borrador. Sonnet 5.5.
 ```
+
+## Aclaración arquitectónica · 20 oct 2026
+Las Clases Vivas son un módulo del Sótano con dos presentaciones del mismo contenido. Modo Estudio implementado; Inmersivo futuro. Estado y continuación actualizados en `docs/chats/clases-vivas.md` y `docs/clases-vivas/SPEC.md`; no construir un Aula independiente.

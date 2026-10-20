@@ -90,9 +90,9 @@
     host.innerHTML = `<section class="st">      <canvas class="st-pet" width="40" height="44" aria-hidden="true"></canvas><div class="st-bubble" role="status"></div>
       <div class="st-panel"><ol class="st-steps"></ol><div class="st-body"></div></div><div class="st-fx"></div>${opts.onExit ? '<button class="st-exit" aria-label="Salir de la estación">← Salir</button>' : ''}</section>`;
     const root = host.firstElementChild, bubble = root.querySelector('.st-bubble');
+    const onEsc = e => { if (e.key === 'Escape') opts.onExit?.(); };
     if (opts.onExit) {
       root.querySelector('.st-exit').addEventListener('click', opts.onExit);
-      const onEsc = e => { if (!root.isConnected) document.removeEventListener('keydown', onEsc); else if (e.key === 'Escape') opts.onExit(); };
       document.addEventListener('keydown', onEsc);
     }
     const stepsEl = root.querySelector('.st-steps'), body = root.querySelector('.st-body'), fx = root.querySelector('.st-fx');
@@ -295,7 +295,7 @@
       step = n; setSteps(); [stepAdivina, stepClase, stepPractica, stepDemuestra][n]();
       if (!reduced()) body.animate([{ opacity: 0, transform: 'translateY(12px)', filter: 'blur(4px)' }, { opacity: 1, transform: 'none', filter: 'blur(0)' }], { duration: 480, easing: 'cubic-bezier(.2,.8,.2,1)' });
     }
-    function destroy() { destroyed = true; cancelAnimationFrame(raf); clearTimeout(resetMood); stopPet(); body._cleanup?.(); host.innerHTML = ''; }
+    function destroy() { document.removeEventListener('keydown', onEsc); destroyed = true; cancelAnimationFrame(raf); clearTimeout(resetMood); stopPet(); body._cleanup?.(); host.innerHTML = ''; }
     if (only) { root.classList.add('is-only'); go(3); } else go(0);
     return { destroy, go };
   }

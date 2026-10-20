@@ -11,7 +11,7 @@ description: Motor académico de Nexo (conceptos, familias de problemas, intento
 ## Archivos (`dist/academic/`)
 `model.js` (catálogo local) · `graph.js` (prerrequisitos, sin ciclos) · `engine.js` (`recordAttempt`) · `knowledge.js` (estados) · `reviews.js` (FSRS, `ts-fsrs` 5.4.2) · `diagnosis.js` · `classifiers.js` / `structured.js` (validadores) · `sources.js` / `library.js` · `ranks.js` · `inspector.js` (`?nexoDev=1#/inspector`).
 Pruebas: `academic-test`, `structured-test`, `training-test`, `rescue-test`, `rank-test`, `class-bridge-test` (en `tools/`).
-Clases y juegos → motor: `class-bridge.js`. Familia = concepto + habilidad. `class_item` cuenta como verificada; `write` = autorúbrica + `reasoningSupported`. Minutos: `onBeat` de `playLesson` en `app.js` (`docs/motor-rangos/SPEC.md`).
+Clases y juegos → motor: `class-bridge.js`. Familia = concepto + habilidad. `class_item` cuenta como verificada; `write` = autorúbrica + `reasoningSupported`. Minutos: `onBeat` del controlador `dist/classes/vivas.js` (adaptador `playLesson` en `app.js`) (`docs/motor-rangos/SPEC.md`).
 Registro del aula/Demuestra: `NexoClassEvidence.submit` guarda antes de entregar; `reconcile` recupera pendientes al reabrir. Pruebas `academic-loop-test.cjs` y `academic-loop-e2e.cjs`; contrato en `docs/fase-i-motor/SPEC.md`.
 Confiabilidad local: `tools/academic-reliability-test.cjs` contiene las cuatro regresiones; `docs/confiabilidad-motor/SPEC.md` documenta variantes únicas, autorúbrica sin dominio/rango, cola FSRS y reconstrucción histórica. `class-bridge.evidenceFor` conserva el historial y descarta procedencia contradictoria al acreditar progreso.
 

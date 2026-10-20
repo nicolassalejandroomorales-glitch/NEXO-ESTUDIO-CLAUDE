@@ -106,3 +106,5 @@ Historial de lo hecho por tema. Lo lee Claude solo cuando necesita contexto de o
 - 19 oct 2026 · Clases Orgánica II PEP 1: mapa de la PEP 2025 y cobertura por diapositiva (`docs/org-pep1-motor/MAPA.md`), diapositivas reales en org-04 y org-05, receta de heterociclos en org-01 y ejercicios en formato PEP y de guías 2021. Siguen en borrador.
 - 19 oct 2026 · FQ II (PEP 1 movida al 28 de oct): mapa de qué cae desde pruebas pasadas, generadores en formato de prueba (`eqmoles`, `gibbsvh`, `mezcla`), actividad de postulados de Debye–Hückel y simulacro completo con pauta (100 min). Clases en borrador. SPEC: docs/fq-pep1-motor/SPEC.md.
 - 19 oct 2026 · Pulido para el lanzamiento (rehecho; el commit original se perdió): intro del umbral, diálogos chilenos, contador 7 obligatorio, Grimorio con rebote, reloj móvil ocultable, música alta por defecto y Sótano inmersivo con capa viva. SPEC: docs/pulido/SPEC.md.
+
+- 20 oct 2026 · Clases Vivas: módulo reutilizable del Sótano con Modo Estudio, enlaces directos y apertura desde cámara al mismo historial; motor local recuperable y pruebas PC/celular. Inmersivo futuro. SPEC: `docs/clases-vivas/SPEC.md`.

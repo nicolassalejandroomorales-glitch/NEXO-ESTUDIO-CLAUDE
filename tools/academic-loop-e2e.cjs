@@ -79,7 +79,7 @@ async function answer(page, id, right) {
       assert.ok(await page.evaluate(() => window.NexoClassEvidence.leaf(JSON.parse(localStorage.getItem('nexo-study-beta')).classEvidence['org-01'],
         JSON.parse(localStorage.getItem('nexo-study-beta')).classEvidence['org-01'].records[1].conceptId).count > 0));
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
-      assert.ok(await page.locator('.st-exit').isVisible());
+      assert.ok(await page.locator('[data-cv-exit]').isVisible());
       if (process.env.NEXO_SCREENSHOTS) {
         fs.mkdirSync(process.env.NEXO_SCREENSHOTS, { recursive: true });
         await page.screenshot({ path: path.join(process.env.NEXO_SCREENSHOTS, `academico-${width}.png`) });
@@ -99,12 +99,7 @@ async function answer(page, id, right) {
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
 
       // Demuestra usa el corrector de la estación y conserva variante, fuente y diapositiva.
-      await page.evaluate(() => {
-        const s = JSON.parse(localStorage.getItem('nexo-study-beta'));
-        s.classSessions['org-01'].path = 'misiones'; s.classSessions['org-01'].mission = 'm4';
-        localStorage.setItem('nexo-study-beta', JSON.stringify(s));
-      });
-      await page.goto(url + '?qa=station#/lesson/org-01');
+      await page.goto(url + '?qa=station#/lesson/org-01/m4');
       await page.locator('#auHost .st-opt').first().waitFor();
       await page.evaluate(() => {
         const original = window.NexoClassroom.genItem;
