@@ -67,7 +67,7 @@ Verificación ejecutada:
 - Regresión `academic-loop-e2e.cjs`: OK en 1440/390 px, incluyendo evidencia, fuentes, autorúbricas e historial.
 - 47/47 pruebas rápidas OK; las mismas cinco exclusiones preexistentes. Capturas revisadas en ambos tamaños.
 
-Límites: no es una prueba en teléfono físico, auditoría de toda la química ni una prueba de sincronización cloud. Se conserva el diseño y contenido. Faltan la sesión de estudio real del usuario y el Modo Inmersivo. La continuación permanece en la rama de revisión, sin integrar master ni publicar el Artifact.
+Límites: no es una prueba en teléfono físico, auditoría de toda la química ni una prueba de sincronización cloud. Se conserva el diseño y contenido. Faltan la sesión de estudio real del usuario y el Modo Inmersivo. El usuario autorizó incorporar la entrega a master de NEXO-ESTUDIO-CLAUDE el 20 oct 2026. La publicación del Artifact sigue pendiente.
 
 ## Ajuste al espacio real de pantalla
 Feedback del usuario: la clase se siente demasiado grande. El navegador lateral real mide 250 × 268 px; el encabezado ocupaba 159 px y la burbuja otros 100 px. Las pruebas anteriores comprobaban anchos 390/1440 y continuidad, pero no este espacio reducido.
@@ -81,3 +81,6 @@ Implementado y verificado: encabezado de 58 px frente a los 159 px observados in
 `study-layout-e2e.cjs` pasó en 250×268, 390×720, 1024×600 y 1440×900; incluye título largo de Analítica y salida accesible al desplazar. `station-progress-e2e.cjs` pasó de nuevo en 1440/390 px con continuidad, reloj y entrega idempotente. Los ocho contratos de Clases Vivas/estaciones también pasan. Verificado visualmente en el navegador real de 250×268 sin responder ni cambiar la pregunta actual del usuario.
 
 Límite físico: en 250×268 sigue siendo necesario desplazar contenido largo; el ajuste prioriza lectura y controles utilizables sobre encoger toda la página. No se modificaron contenido académico, respuestas, progreso, reloj ni evidencia.
+
+## Integración en GitHub Claude
+El usuario solicitó integrar la entrega en Git el 20 oct 2026. Destino: `master` de NEXO-ESTUDIO-CLAUDE. Incluye el módulo de Clases Vivas, continuidad de Basicidad, ajuste responsive del commit `6e50b5b` y los dos prerrequisitos del motor. La rama principal remota estaba en `5503511`, era antecesora directa de la entrega y no tenía cambios divergentes. Integración prevista por avance directo, sin reescribir historial. Se conservan las validaciones ya ejecutadas; este cierre solo actualiza documentación. La revisión académica del contenido y la publicación del Artifact siguen pendientes.
