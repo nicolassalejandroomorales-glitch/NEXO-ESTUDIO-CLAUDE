@@ -1,0 +1,17 @@
+.study-dock{position:fixed;bottom:max(8px,env(safe-area-inset-bottom));z-index:11000;display:flex;align-items:center;gap:4px;max-width:calc(100vw - 16px);box-sizing:border-box;padding:4px;border:1px solid #ae8d50;background:#21182b;color:#f3e6c9;box-shadow:0 5px 22px #0006;border-radius:8px;font:14px Georgia,serif}
+.study-dock[hidden]{display:none}
+.study-dock button{min-width:38px;min-height:44px;border:0;background:transparent;color:inherit;font:inherit;border-radius:4px}
+.study-dock button:focus-visible{outline:2px solid #d5b96d;outline-offset:1px}
+.study-dock button:hover{background:#ffffff0d}
+.study-dock .study-open{display:grid;text-align:left;min-width:110px;padding:3px 6px}
+.study-dock time{font-variant-numeric:tabular-nums;font-size:19px;line-height:1.2}
+.study-status{font:11px system-ui,sans-serif;color:#d7c8ae}
+.study-dock[data-status="paused"] time{color:#c9b5dd}
+.study-drag{touch-action:none;cursor:ew-resize}
+.study-dock.is-folded .study-status,.study-dock.is-folded .study-drag{display:none}
+.study-dock.is-folded .study-open{min-width:82px}
+body.has-study-dock .app-shell{margin-bottom:64px}
+body.has-study-dock .mobile-nav{bottom:64px}
+body.has-study-dock .au-host,body.has-study-dock .sotano{bottom:64px}
+body.has-study-dock .sotano:fullscreen{padding-bottom:64px;box-sizing:border-box}
+@media(max-width:420px){.study-dock{gap:0}.study-dock .study-open{min-width:105px}.study-dock button{padding:4px}.study-dock time{font-size:18px}}

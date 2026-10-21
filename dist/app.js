@@ -28,6 +28,9 @@
   const importFile = document.querySelector('#importFile');
   let toastTimer = null;
   let timerTicker = null;
+  let studyDock = null;
+  let timerFinishing = false;
+  let timerRequest = null;
   let lastFocus = null;
   let recoveryNotice = '';
   let undoAction = null;
@@ -192,7 +195,7 @@
     next.timer.subject = subjectIds.has(next.timer.subject) ? next.timer.subject : 'organica';
     next.timer.elapsedBeforeMs = Math.max(0, Number(next.timer.elapsedBeforeMs) || 0);
     if (!['idle', 'paused', 'running'].includes(next.timer.status)) next.timer.status = 'idle';
-    if (next.timer.status === 'running' && !Number.isFinite(Number(next.timer.startedAt))) next.timer = deepClone(base.timer);
+    if (next.timer.status === 'running' && (!Number.isFinite(Number(next.timer.startedAt)) || Number(next.timer.startedAt) <= 0)) { next.timer.status = 'paused'; next.timer.startedAt = null; }
     next.routeMode = { ...base.routeMode, ...next.routeMode };
     SUBJECTS.forEach(subject => { if (!['progression', 'urgent'].includes(next.routeMode[subject.id])) next.routeMode[subject.id] = 'progression'; });
     next.grades = { ...base.grades, ...next.grades };
@@ -456,11 +459,11 @@
     window.NexoPerformance?.apply(state.settings);
     window.NexoAudio?.configure(state.settings);
     document.body.classList.toggle('focus-mode', Boolean(state.settings.focusMode && state.timer.status === 'running'));
+    studyDock?.refresh();
   }
 
   function timerElapsedMs() {
-    const running = state.timer.status === 'running' && state.timer.startedAt ? Date.now() - Number(state.timer.startedAt) : 0;
-    return Math.max(0, Number(state.timer.elapsedBeforeMs || 0) + running);
+    return window.NexoStudyTimer.elapsed(state.timer);
   }
 
   const { sessionReward, sessionXp } = window.NexoEconomy;
@@ -913,7 +916,7 @@
   function renderSubjects() {
     if (window.NexoAprender) return window.NexoAprender.render(app, aprenderContext());
     app.innerHTML = '<section class="page"><div class="app-loader" role="status"><span></span><p>Bajando al sótano…</p></div></section>';
-    Promise.all([window.NexoLoader.style('./aprender/sotano.css?v=8f764ac1'), window.NexoLoader.style('./aprender/sotano-luz.css'), Promise.all([window.NexoLoader.script('./aprender/estado.js?v=59f4873c'), window.NexoLoader.script('./aprender/sotano-musica.js?v=23d5d401')]).then(() => window.NexoLoader.script('./aprender/sotano-luz.js')).then(() => window.NexoLoader.script('./aprender/sotano-fx.js')).then(() => window.NexoLoader.script('./aprender/sotano.js?v=67424821'))])
+    Promise.all([window.NexoLoader.style('./aprender/sotano.css?v=c31f5368'), window.NexoLoader.style('./aprender/sotano-luz.css'), Promise.all([window.NexoLoader.script('./aprender/estado.js?v=59f4873c'), window.NexoLoader.script('./aprender/sotano-musica.js?v=23d5d401')]).then(() => window.NexoLoader.script('./aprender/sotano-luz.js')).then(() => window.NexoLoader.script('./aprender/sotano-fx.js?v=45fcc31b')).then(() => window.NexoLoader.script('./aprender/sotano.js?v=ce3fd019'))])
       .then(() => { if (['learn', 'subjects'].includes(parseRoute()[0])) renderRoute(false); })
       .catch(() => { app.innerHTML = '<section class="page"><div class="panel error-boundary"><h1>No se pudo abrir el sótano</h1><p>Revisa tu conexión y vuelve a intentarlo.</p><button class="primary-btn" data-route="learn">Reintentar</button></div></section>'; });
   }
@@ -1013,10 +1016,10 @@
     if (!window.NexoLivingClasses || !window.NexoAula || !window.NexoStation) {
       app.innerHTML = '<section class="page"><p role="status">Abriendo Clase Viva…</p></section>';
       Promise.all([window.NexoLoader.style('./classes/estacion.css?v=eb92ae4b'), window.NexoLoader.style('./classes/aula.css?v=6b282336'),
-        window.NexoLoader.style('./classes/vivas.css?v=648a9939'), window.NexoLoader.script('./mascot/pixelmascotas.js')])
-        .then(() => window.NexoLoader.script('./classes/estacion.js?v=a0cc3949'))
-        .then(() => window.NexoLoader.script('./classes/aula.js?v=e1d39f08'))
-        .then(() => window.NexoLoader.script('./classes/vivas.js?v=c11c5550'))
+        window.NexoLoader.style('./classes/vivas.css?v=303977dd'), window.NexoLoader.script('./mascot/pixelmascotas.js')])
+        .then(() => window.NexoLoader.script('./classes/estacion.js?v=538cf023'))
+        .then(() => window.NexoLoader.script('./classes/aula.js?v=285ae781'))
+        .then(() => window.NexoLoader.script('./classes/vivas.js?v=ac7b4757'))
         .then(() => { if (parseRoute().join('/') === requested) renderRoute(false); }).catch(failed);
       return;
     }
@@ -1108,7 +1111,7 @@
       if (!file) return false;
       return Promise.all([window.NexoLoader.script('./classes/player.js?v=5bf92291'),
         window.NexoLoader.script('./classes/willow-tower.js?v=09c21b87').catch(() => null), // Torre del Sauce (etapa 10); sin ella, quedan las hojas en lista
-        window.NexoLoader.script(`./classes/${file}?v=361269f1`),
+        window.NexoLoader.script(`./classes/${file}?v=3802a4d0`),
         // Motor de evidencia y repaso espaciado (FSRS); si no cargan, la clase funciona igual sin agendar repasos.
         window.NexoLoader.script('./classes/evidence.js?v=4c110524'), window.NexoLoader.script('./classes/molecule.js?v=b3b2e5aa'), window.NexoLoader.script('./classes/editor.js?v=df0be94e'), window.NexoLoader.script('./academic/class-bridge.js?v=e05158a5').catch(() => null), window.NexoLoader.script('./academic/reviews.js?v=0273ea6c').catch(() => null)])
         .then(() => Promise.all([window.NexoLoader.script(`./classes/slides/${id}.js?v=4e68eb0a`).catch(() => null), // diapositivas reales, si ya se convirtieron
@@ -1670,18 +1673,22 @@
 
 
   function timerStart() {
+    if (state.timer.status === 'running' || timerFinishing) return;
     if (state.timer.status === 'idle') { state.timer.subject = document.querySelector('#timerSubject')?.value || state.timer.subject; state.timer.elapsedBeforeMs = 0; }
-    if (cloud.authenticated) {
-      const promise = state.timer.serverId
+    if (cloud.authenticated && !timerRequest) {
+      timerRequest = state.timer.serverId
         ? cloud.resumeTimer(state.timer.serverId).then(() => state.timer.serverId)
         : cloud.startTimer(state.timer.subject);
-      promise.then(id => {
+      timerRequest.then(id => {
         if (state.timer.status==='idle') return cloud.cancelTimer(id).catch(()=>{});
-        state.timer.serverId=id; saveState({backup:false});
+        state.timer.serverId=id;
+        if (state.timer.status === 'paused') cloud.pauseTimer(id).catch(()=>{});
+        saveState({backup:false});
       })
-        .catch(() => showToast('El cronómetro sigue local; esta sesión no dará átomos si no se conecta.'));
+        .catch(() => showToast('El cronómetro sigue local; esta sesión no dará átomos si no se conecta.')).finally(() => { timerRequest = null; });
     }
-    state.timer.status = 'running'; state.timer.startedAt = Date.now(); saveState({ backup: false }); renderRoute(false);
+    state.timer.status = 'running'; state.timer.startedAt = Date.now(); saveState({ backup: false }); storage.flush();
+    if (parseRoute()[0] === 'home') renderHome();
     if (parseRoute()[0] === 'home') window.NexoPet?.celebrate(0);
     cloud.track('study_session_started',{subject_id:state.timer.subject});
   }
@@ -1689,11 +1696,15 @@
     if (parseRoute()[0] === 'home') window.NexoPet?.celebrate(0);
     if (state.timer.status !== 'running') return;
     if (cloud.authenticated && state.timer.serverId) cloud.pauseTimer(state.timer.serverId).catch(() => showToast('Pausa guardada aquí; revisa la conexión.'));
-    state.timer.elapsedBeforeMs = timerElapsedMs(); state.timer.startedAt = null; state.timer.status = 'paused'; saveState({ backup: false }); renderRoute(false);
+    state.timer.elapsedBeforeMs = timerElapsedMs(); state.timer.startedAt = null; state.timer.status = 'paused'; saveState({ backup: false }); storage.flush();
+    if (parseRoute()[0] === 'home') renderHome();
   }
   function timerFinish() {
+    if (timerFinishing) return;
     const secondsRaw = Math.floor(timerElapsedMs() / 1000); if (secondsRaw < 1) return;
     const commit = async seconds => {
+      if (timerFinishing) return;
+      timerFinishing = true;
       let rewardValue = cloud.authenticated ? 0 : sessionReward(seconds);
       let sessionId = uid('session'), confirmedSeconds=seconds, serverConfirmed=false;
       if (cloud.authenticated && state.timer.serverId) {
@@ -1715,6 +1726,7 @@
       saveState(); playSuccess(); renderRoute(false); window.NexoPet?.celebrate(rewardValue);
       showToast(`Sesión guardada · ${formatClock(confirmedSeconds * 1000)}${rewardValue ? ` · +${rewardValue} átomos` : ' · sin átomos pendientes'}`);
       cloud.track('study_session_completed',{subject_id:state.timer.subject,seconds:confirmedSeconds});
+      timerFinishing = false;
     };
     if (secondsRaw > 14400) return confirmAction('Sesión muy larga', 'El cronómetro supera 4 horas. Para evitar un registro accidental, se guardará un máximo de 4 horas. Puedes cancelar y corregirlo.', 'Guardar 4 horas', () => { closeModal(); commit(14400); });
     commit(secondsRaw);
@@ -2171,6 +2183,12 @@
   window.NexoAmbientTime.start();
   window.NexoAmbientEvents.start();
   window.NexoPerformance.start();
+  studyDock = window.NexoStudyTimer.mount({
+    getState: () => state, subject: id => subjectFor(id).short, format: formatClock,
+    pause: timerPause, resume: timerStart, open: () => { try { localStorage.setItem('nexo.clockHidden', '0'); } catch {} routeTo('home'); },
+    local: () => !cloud.authenticated, flush: () => storage.flush(),
+    adopt: timer => { state.timer = timer; updateChrome(); if (parseRoute()[0] === 'home') renderHome(); }
+  });
   window.NexoActiveStudy.configure({getState:()=>state,saveState,
     startCloudFocus:id=>cloud.startAcademicFocus(id),
     pingCloudFocus:id=>cloud.pingAcademicFocus(id),

@@ -14,7 +14,7 @@
   const sleep = ms => new Promise(done => setTimeout(done, ms));
   const MEMORY = 'nexo-sotano-parada';
   const ICON = { fwd: '▲', back: '▼', turn: '↻', left: '◀', right: '▶', enter: '✦' };
-  const KEYS = { ArrowUp: 'fwd', w: 'fwd', ArrowDown: 'turn', s: 'turn', ArrowLeft: 'left', a: 'left', ArrowRight: 'right', d: 'right', Enter: 'enter', ' ': 'enter' };
+  const KEYS = { ArrowUp: 'fwd', w: 'fwd', ArrowDown: 'back', s: 'back', ArrowLeft: 'left', a: 'left', ArrowRight: 'right', d: 'right', Enter: 'enter', ' ': 'enter' };
   let manifestPromise = null;
   let live = null;
 
@@ -26,6 +26,7 @@
     live.alive = false;
     window.NexoSotanoMusica?.stop();
     cancelAnimationFrame(live.raf);
+    live.finishClip?.();
     document.removeEventListener('keydown', live.onKey);
     window.removeEventListener('resize', live.onResize);
     window.removeEventListener('hashchange', live.onHash);
@@ -51,7 +52,6 @@
         <div class="sotano-flash" data-s="flash" aria-hidden="true"></div>
         <div class="sotano-load" data-s="load" role="status"><span></span><p>Bajando al sótano…</p></div>
       </div>
-      <div class="sotano-turn" data-s="turn" hidden><i aria-hidden="true">⟳</i><p>Gira el celular para bajar al sótano</p></div>
       <p class="sotano-live" data-s="live" role="status" aria-live="polite"></p>
       <nav class="sotano-pad" data-s="pad" aria-label="Moverse por el sótano"></nav>
       <aside class="sotano-card" data-s="card" hidden></aside>
@@ -64,25 +64,31 @@
     G.octx.imageSmoothingEnabled = false;
     G.onKey = ev => {
       const dir = KEYS[ev.key];
-      if (!dir || ev.ctrlKey || ev.metaKey || ev.altKey || /INPUT|TEXTAREA|SELECT/.test(ev.target.tagName)) return;
+      if (!dir || ev.repeat || ev.ctrlKey || ev.metaKey || ev.altKey || /INPUT|TEXTAREA|SELECT/.test(ev.target.tagName) || ev.target.isContentEditable || ev.target.closest('.study-dock')) return;
       if (dir === 'enter' && document.activeElement?.matches('button, a, input, select, textarea')) return; // con un botón enfocado, Enter ya lo activa
       ev.preventDefault();
       act(G, dir);
     };
     G.onResize = () => fit(G);
-    G.onHash = () => { if (!/^#\/learn(\/|$)/.test(location.hash)) destroy(); };
+    G.onHash = () => { if (!/^#\/(learn|subjects)\/?$/.test(location.hash)) destroy(); };
     document.addEventListener('keydown', G.onKey);
     window.addEventListener('resize', G.onResize);
     window.addEventListener('hashchange', G.onHash);
     el.exit.addEventListener('click', () => { location.hash = '#/home'; });
     // Pantalla completa al entrar (el navegador la permite solo tras un gesto: si la niega, queda el modo fijo a toda la ventana).
-    try { if (!window.NexoRecorrido?.active) root.requestFullscreen?.({ navigationUI: 'hide' })?.then(() => screen.orientation?.lock?.('landscape')).catch(() => {}); } catch { /* sin pantalla completa */ }
+    try { if (!window.NexoRecorrido?.active) root.requestFullscreen?.({ navigationUI: 'hide' })?.catch(() => {}); } catch { /* sin pantalla completa */ }
     live = G;
     document.documentElement.classList.add('sotano-inmersivo');
     const M = window.NexoSotanoMusica, paintMusic = () => { const on = !M || M.enabled; el.music.hidden = !M; el.music.setAttribute('aria-pressed', String(on)); el.music.classList.toggle('is-off', !on); };
     paintMusic();
     el.music.addEventListener('click', () => { M?.toggle(); paintMusic(); });
-    el.stage.addEventListener('pointerup', ev => onStage(G, ev));
+    let pointer = null;
+    el.stage.addEventListener('pointerdown', ev => { pointer = { x: ev.clientX, y: ev.clientY, id: ev.pointerId }; });
+    el.stage.addEventListener('pointercancel', () => { pointer = null; });
+    el.stage.addEventListener('pointerup', ev => {
+      const start = pointer; pointer = null;
+      if (start && start.id === ev.pointerId && Math.hypot(ev.clientX - start.x, ev.clientY - start.y) < 12) onStage(G, ev);
+    });
     el.pad.addEventListener('click', ev => { const b = ev.target.closest('[data-move]'); if (b) act(G, b.dataset.move); });
     el.card.addEventListener('click', ev => onCard(G, ev));
     fit(G);
@@ -109,16 +115,15 @@
   }
 
   // El cuadro mantiene 16:10 y ocupa casi todo el alto libre (deja a la vista la fila de botones).
-  // Los lienzos se agrandan a un múltiplo entero de 320×200 (píxeles parejos) y el navegador los ajusta al tamaño exacto.
+  // Los lienzos conservan 320×200; el navegador los amplía con píxeles nítidos.
   function fit(G) {
-    const availW = innerWidth, availH = innerHeight;
-    G.el.turn.hidden = !(innerHeight > innerWidth && innerWidth < 700);   // vertical en celular: pide girar
+    const availW = G.root.clientWidth || innerWidth, availH = (G.root.clientHeight || innerHeight) - (document.body.classList.contains('has-study-dock') && document.fullscreenElement ? 64 : 0);
     let w = Math.floor(Math.min(availW, availH * 1.6));
     const up = Math.ceil(w / 320) * 320;
     if (w >= 640 && up <= availW && w >= up * 0.88) w = up;   // casi un múltiplo entero: se usa justo ese (píxeles perfectos)
     G.el.stage.style.width = `${w}px`;
     G.el.stage.style.height = `${Math.floor(w / 1.6)}px`;
-    const k = Math.max(1, Math.ceil(w / 320));
+    const k = 1; // dibujar a resolución nativa; CSS conserva los píxeles al ampliar
     if (k === G.k) return;
     G.k = k;
     for (const [canvas, ctx] of [[G.el.view, G.vctx], [G.el.over, G.octx]]) {
@@ -137,7 +142,7 @@
     let s = G.sheets.get(name);
     if (s) { G.sheets.delete(name); G.sheets.set(name, s); return s.promise; }
     const img = new Image();
-    const promise = new Promise((ok, bad) => { img.onload = () => ok(img); img.onerror = () => { G.sheets.delete(name); bad(new Error(name)); }; });
+    const promise = new Promise((ok, bad) => { img.onload = async () => { try { await img.decode?.(); ok(img); } catch { G.sheets.delete(name); bad(new Error(name)); } }; img.onerror = () => { G.sheets.delete(name); bad(new Error(name)); }; });
     img.src = `${BASE}img/${name}.webp?v=${G.M.v}`;
     G.sheets.set(name, { img, promise });
     while (G.sheets.size > 14) G.sheets.delete(G.sheets.keys().next().value); // las hojas descomprimidas pesan: solo se guardan las recientes
@@ -163,14 +168,20 @@
 
   async function playClip(G, name, reverse) {
     const info = G.M.clips[name], n = info.n, img = await sheet(G, name), ms = info.ms || n * 130; // sin tiempos en el manifiesto: ritmo por defecto
+    if (!G.alive) return;
     if (reduced()) { draw(G, img, reverse ? 0 : n - 1); return; }
     await new Promise(done => {
-      const t0 = performance.now();
+      let last = performance.now(), elapsed = 0, painted = 0;
+      G.finishClip = done;
       const tick = now => {
         if (!G.alive) return done();
-        const p = Math.min(1, (now - t0) / ms);
-        drawAt(G, img, (info.ease ? smooth(p) : p) * (n - 1), n, reverse);
-        if (p >= 1) done(); else G.raf = requestAnimationFrame(tick);
+        if (!document.hidden) elapsed += Math.min(50, now - last);
+        last = now;
+        const p = Math.min(1, elapsed / ms);
+        if (!document.hidden && (now - painted >= 1000 / 60 || p >= 1)) {
+          drawAt(G, img, (info.ease ? smooth(p) : p) * (n - 1), n, reverse); painted = now;
+        }
+        if (p >= 1) { G.finishClip = null; done(); } else G.raf = requestAnimationFrame(tick);
       };
       G.raf = requestAnimationFrame(tick);
     });
@@ -182,10 +193,11 @@
     if (reduced()) return;
     const info = G.M.clips[G.M.nodes[G.node].idle], off = info.off || 0;
     sheet(G, info.file || G.M.nodes[G.node].idle).then(img => {
-      const n = G.M.idleN || 6, t0 = performance.now();
+      const n = G.M.idleN || 6, t0 = performance.now(); let painted = 0;
       const tick = now => {
         if (!G.alive || G.idleToken !== token) return;
-        if (!document.hidden) {
+        if (!document.hidden && now - painted >= 1000 / 30) {
+          painted = now;
           const cycle = (now - t0) / (G.M.idleMs || 280) % (2 * (n - 1)), pos = cycle <= n - 1 ? cycle : 2 * (n - 1) - cycle;
           drawAt(G, img, off + pos, off + n, false);
         }
@@ -204,6 +216,8 @@
 
   // ---------- paradas ----------
   async function arrive(G, node, first) {
+    if (!G.alive) return;
+    cancelAnimationFrame(G.raf);
     G.idleToken++;
     G.pick = null;
     G.node = node;
@@ -220,6 +234,10 @@
       const edge = m.to && G.M.edges.find(e => (e.a === node && e.b === m.to) || (e.b === node && e.a === m.to));
       const name = edge?.clip || m.clip;
       if (name) sheet(G, name).catch(() => {});
+      if (m.cam?.clip) sheet(G, m.cam.clip).catch(() => {});
+      const target = m.cam?.node || m.to;
+      const resting = target && G.M.clips[G.M.nodes[target]?.idle];
+      if (resting) sheet(G, resting.file || G.M.nodes[target].idle).catch(() => {});
     }
     if (first) G.el.load.hidden = true;
   }
@@ -231,6 +249,7 @@
     const move = find(G, dir) || (dir === 'back' ? find(G, 'turn') : dir === 'turn' ? find(G, 'back') : null);
     if (!move) return;
     G.busy = true;
+    cancelAnimationFrame(G.raf);
     G.idleToken++;
     clearOverlay(G);
     G.el.card.hidden = true;

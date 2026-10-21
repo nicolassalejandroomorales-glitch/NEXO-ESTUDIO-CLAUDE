@@ -5,6 +5,8 @@ description: Crear o editar una clase de Nexo (contenido y lógica; la pantalla 
 
 # Clases de Nexo
 
+Roles (21 oct): aula/estación presentan explicaciones y pistas como Grimorio; la mascota solo reacciona y se oculta en pruebas. `dist/core/study-timer.js` presenta el reloj global de `state.timer`, sin depender de la clase. Ver `docs/experiencia-academica/SPEC.md`.
+
 0. **Clases nuevas = v2** (18 oct 2026): estaciones mixtas (clase, mini juego, reto PEP). Lee primero `docs/clases-estructura/DISENO-V2.md`; lo de abajo describe la v1 que se reemplaza.
 1. Lee `docs/clases-estructura/COMO_CREAR_UNA_CLASE.md` (la guía completa). Ejemplo de referencia: `dist/classes/org-01.js` (Aminas, PEP 1).
 2. Una clase es **un archivo de datos**; `player.js` es solo la lógica (caminos, pasos, puntos al 7, corrección, evidencia) y no se toca para agregar contenido. La pantalla vieja (torre del alquimista) se borró (18 oct 2026): el aula nueva vive en la Cámara del ramo (`docs/aprender-pasillo/SPEC.md`, `docs/clases-v2/SPEC.md`).

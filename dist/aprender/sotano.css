@@ -6,11 +6,6 @@
 .sotano-top > * { pointer-events: auto; }
 .sotano-exit { width: 40px; height: 36px; padding: 0; border: 2px solid #b58a3c; background: #1a0f13d9; color: #fbe08a; font: 700 1.2rem/1 Georgia, serif; cursor: pointer; box-shadow: 0 0 12px #fbe08a44; }
 .sotano-exit:hover, .sotano-exit:focus-visible { background: #3a2410; box-shadow: 0 0 18px #fbe08a99; }
-.sotano-turn { position: absolute; z-index: 6; inset: 0; display: grid; place-content: center; justify-items: center; gap: 10px; background: #04060bd9; color: #fbe08a; font: 1.05rem Georgia, serif; text-align: center; padding: 20px; }
-.sotano-turn[hidden] { display: none; }
-.sotano-turn i { font-style: normal; font-size: 3rem; animation: sotanoTurn 2.4s ease-in-out infinite; }
-.sotano-turn p { margin: 0; }
-@keyframes sotanoTurn { 0%, 30% { transform: rotate(0); } 70%, 100% { transform: rotate(-90deg); } }
 .sotano-title { margin: 0; font: 700 1.05rem/1.2 Georgia, 'Palatino Linotype', serif; letter-spacing: .06em; text-transform: uppercase; color: var(--pu-brass, #fbe08a); text-shadow: 0 2px 0 #0008; }
 .sotano-music { margin-left: auto; width: 34px; height: 30px; padding: 0; border: 2px solid #b58a3c; background: #1a0f13cc; color: #fbe08a; font: 700 1.05rem/1 Georgia, serif; cursor: pointer; }
 .sotano-music.is-off { color: #7d6a45; text-decoration: line-through; }
@@ -55,6 +50,16 @@
   .sotano { padding: 6px 8px 24px; }
   .sotano-title { font-size: .95rem; }
   .sotano-jar { width: 44px; height: 44px; }
+}
+@media (orientation:portrait) and (max-width:700px){
+  .sotano{padding:64px 8px 110px;box-sizing:border-box}
+  .sotano-top{align-items:flex-start}
+  .sotano-title{font-size:.82rem;max-width:65%;line-height:1.4}
+  .sotano-chip{display:none}
+  .sotano-pad{gap:6px;padding:0 8px;box-sizing:border-box}
+  .sotano-move{min-height:44px;min-width:44px}
+  .sotano-live{bottom:110px;font-size:.85rem}
+  .sotano-card{bottom:110px;max-height:45%;font-size:.9rem}
 }
 @media (prefers-reduced-motion: reduce) {
   .sotano-over, .sotano-flash { transition: none; }

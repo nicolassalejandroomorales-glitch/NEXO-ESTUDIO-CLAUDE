@@ -395,11 +395,11 @@
     if (b.kind === 'question') {
       const item = b.item, record = s.answers[item.id], hint = s.hints[item.id];
       const pre = b.stage === 'pretest', noConf = pre;
-      const label = item.teach ? 'Enséñale a tu compañero' : { diagnostic: 'Reto', pretest: 'Antes de enseñarte · adivina', practice: 'Práctica', challenge: 'Desafío', transfer: 'Encargo final', fix: 'Para corregir esa idea', detour: 'Repaso de la base' }[b.stage] || 'Pregunta';
+      const label = item.teach ? 'Explícalo con tus palabras' : { diagnostic: 'Reto', pretest: 'Antes de enseñarte · adivina', practice: 'Práctica', challenge: 'Desafío', transfer: 'Encargo final', fix: 'Para corregir esa idea', detour: 'Repaso de la base' }[b.stage] || 'Pregunta';
       const lvTag = item.gen ? ` · ${esc(NXc.LEVELS[item.gen.level - 1])}` : '';
       if (!record) {
-        say.text = item.teach ? 'Tu compañero se enredó con algo. ¿Se lo explicas tú? Explicar es la mejor forma de aprender.'
-          : { diagnostic: 'Responde con lo que sabes.', pretest: 'Adivina sin miedo: esto no cuenta. Solo despierta la curiosidad.', practice: 'Tu turno. Si te trabas, tócame y te doy una pista.', challenge: 'Este es más difícil. Confío en ti.',
+        say.text = item.teach ? 'Un estudiante se enredó con algo. ¿Se lo explicas tú? Explicar es la mejor forma de aprender.'
+          : { diagnostic: 'Responde con lo que sabes.', pretest: 'Adivina sin miedo: esto no cuenta. Solo despierta la curiosidad.', practice: 'Tu turno. Si te trabas, pide una pista al Grimorio.', challenge: 'Este es más difícil. Confío en ti.',
             transfer: 'Un caso nuevo. Piensa como en la prueba.', fix: 'Un caso corto para corregir esa idea ahora mismo.', detour: 'Un ejercicio fácil de la base. Sin apuro.' }[b.stage] || 'Tu turno.';
       } else if (pre) {
         say.text = record.correct ? `¡Buena intuición! ${item.explain} Ahora verás por qué.` : 'No era esa, y está perfecto: ahora lo vas a descubrir. Fíjate bien en la explicación.';
@@ -414,7 +414,7 @@
       const gated = !noConf && !record && s.conf[item.id] === undefined;
       out.body = `<article class="au-card ${record ? (record.correct ? 'right' : 'wrong') : ''}">
         <p class="au-eyebrow">${esc(label)}${lvTag} · ${b.n} de ${b.of}</p><p class="au-q">${md(item.prompt)}</p>
-        ${hint && !record ? `<p class="au-hint"><b>Pista de tu compañero:</b> ${md(item.hint)}</p>` : ''}
+        ${hint && !record ? `<p class="au-hint"><b>Pista del Grimorio:</b> ${md(item.hint)}</p>` : ''}
         ${item.paper && !record ? '<p class="au-help">✎ Si prefieres, resuélvelo en papel como en la prueba y después escribe aquí lo esencial para autocorregirte con la pauta.</p>' : ''}
         ${record || noConf ? '' : confidenceMarkup(item, s)}
         <fieldset class="au-gate" ${gated ? 'disabled' : ''}>${gated ? '<p class="au-gate-note">Primero marca tu confianza en la barra.</p>' : ''}${activityMarkup(cls, s, item)}</fieldset>
@@ -459,8 +459,7 @@
     const s = NXc.sessionFor(api, id);
     let destroyed = false, stopPet = () => {}, timer = 0, lastBeat = -1, slideOpen = null, panel = null;   // panel: 'goal' | 'mini' | 'deep'
     const mood = { expr: 'neutral', arm: 'rest', hopUntil: 0, hopFrom: 0, look: 0 };
-    const petInfo = opts.pet || {}, P = window.PixelMascotas;
-    const petName = petInfo.name && petInfo.name !== 'Nexo' ? petInfo.name : (P?.list.find(([k]) => k === petInfo.kind)?.[1] || 'Matraz');
+    const petInfo = opts.pet || {};
 
     // La misión pedida: retoma donde quedaste (si no la terminaste).
     if (opts.mission && NXc.beats) {
@@ -490,9 +489,15 @@
       lastBeat = s.beat;
       // Sin tarjeta propia (narración, oferta…): el texto va en el panel y la mascota solo reacciona.
       const lonely = !m.body;
-      if (lonely) m.body = `<div class="au-card au-say"><p>${md(m.say.text)}</p></div>`;
-      bubble.hidden = lonely && !s.mascotSay;
-      bubble.innerHTML = `<b>${esc(petName)}</b>${mdBubble(s.mascotSay || (lonely ? '' : m.say.text))}`;
+
+      const canHint = b.kind === 'question' && ['practice', 'challenge'].includes(b.stage) && !s.answers[b.item.id] && b.item.hint && !s.hints[b.item.id];
+      const inTest = b.kind === 'question' && ['diagnostic', 'pretest', 'transfer', 'simulacro'].includes(b.stage);
+      root.classList.toggle('is-assessment', inTest);
+      root.querySelector('.st-pet').hidden = inTest;
+      bubble.setAttribute('aria-label', 'Grimorio');
+      bubble.hidden = lonely && !s.grimorioSay;
+      bubble.innerHTML = `<b>Grimorio</b>${mdBubble(s.grimorioSay || (lonely ? '' : m.say.text))}${canHint ? '<button type="button" class="au-mini" data-grimorio-hint>Pedir pista al Grimorio</button>' : ''}`;
+      if (lonely) m.body = `<div class="au-card au-say"><b>Grimorio</b><p>${md(m.say.text)}</p></div>`;
       if (!reduced() && fresh) bubble.animate([{ transform: 'scale(.92)', opacity: 0 }, { transform: 'scale(1.03)', opacity: 1, offset: .6 }, { transform: 'scale(1)', opacity: 1 }], { duration: 320, easing: 'ease-out' });
       setMood(s.mascotMood || m.say.mood);
       const mission = cls.missions.find(x => x.id === s.mission);
@@ -511,7 +516,7 @@
         if (!pan) panel = null; else lightbox.innerHTML = `<div class="au-lightbox-in au-panelbox" role="dialog" aria-modal="true" aria-label="${esc(pan.title)}"><header><b>${esc(pan.title)}</b><button class="au-mini" data-au="panel-close">Cerrar ✕</button></header><div>${pan.body}</div></div>`;
         lightbox.hidden = panel === null;
       }
-      s.mascotSay = ''; s.mascotMood = null; s.burst = null;
+      s.grimorioSay = ''; s.mascotMood = null; s.burst = null;
       window.NexoMolEditor?.mount(body, { work: (itemId, retry) => NXc.workOf(s, NXc.findItem(cls, itemId), retry), item: itemId => NXc.findItem(cls, itemId), commit: () => rerender() });
       clearTimeout(timer);
       const mw = b.kind === 'lesson' && b.block.frames ? s.work[`mech:${b.block.id}`] : null;
@@ -580,7 +585,7 @@
         if (button.dataset.dir === 'play') { mw.playing = !mw.playing; if (mw.playing && mw.i >= blk.frames.length - 1) mw.i = 0; } else { mw.playing = false; mw.i = Math.max(0, Math.min(blk.frames.length - 1, mw.i + Number(button.dataset.dir))); }
         return rerender();
       }
-      if (action === 'mission') { panel = null; slideOpen = null; s.mission = button.dataset.mission; const far = s.far[s.mission] || 0, n = NXc.beats(cls, s).length; s.beat = far > 1 && far < n - 1 ? far : 1; if (s.beat > 1) s.mascotSay = 'Retomamos donde quedaste la última vez.'; return rerender(); }
+      if (action === 'mission') { panel = null; slideOpen = null; s.mission = button.dataset.mission; const far = s.far[s.mission] || 0, n = NXc.beats(cls, s).length; s.beat = far > 1 && far < n - 1 ? far : 1; if (s.beat > 1) s.grimorioSay = 'Retomamos donde quedaste la última vez.'; return rerender(); }
       if (action.startsWith('act-')) return onActivity(action, button, b);
       if (action === 'next') { if (NXc.beatDone(s, b)) { s.beat += 1; } return rerender(); }
       if (action === 'offer') { s.skipExplain[b.m.id] = button.dataset.skip === '1'; s.beat += 1; s.mascotMood = 'happy'; return rerender(); }
@@ -597,13 +602,13 @@
         return rerender();
       }
     }
-    // La mascota: pista en la práctica (cuenta como «con pista»); en las pruebas solo anima.
-    root.querySelector('.st-pet').addEventListener('click', () => {
+    // El Grimorio ofrece pistas voluntarias. La mascota no modifica ayudas ni respuestas.
+    bubble.addEventListener('click', event => {
+      if (!event.target.closest('[data-grimorio-hint]')) return;
       const b = NXc.beats(cls, s)[s.beat];
       if (b?.kind === 'question' && ['practice', 'challenge'].includes(b.stage) && !s.answers[b.item.id] && b.item.hint && !s.hints[b.item.id]) {
-        s.hints[b.item.id] = true; s.mascotMood = 'think'; s.mascotSay = 'Te dejé una pista en la tarjeta. Esta respuesta contará como «con pista».';
-      } else if (b?.kind === 'question' && ['diagnostic', 'transfer'].includes(b.stage) && !s.answers[b.item.id]) { s.mascotMood = 'think'; s.mascotSay = 'Aquí no puedo ayudarte, ¡pero sé que puedes!'; }
-      else { s.mascotMood = 'happy'; s.mascotSay = ['¡Vamos bien!', 'Me encanta esta misión.', '¿Viste ese frasco burbujear?'][s.beat % 3]; }
+        s.hints[b.item.id] = true; s.mascotMood = 'think'; s.grimorioSay = 'Te dejé una pista en la tarjeta. Esta respuesta contará como «con pista».';
+      }
       rerender();
     });
     root.addEventListener('click', onClick);

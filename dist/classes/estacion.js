@@ -102,6 +102,7 @@
     let raf = 0;
     const tick = now => {
       if (!canvas.isConnected) return;
+      if (canvas.hidden || document.hidden) { raf = requestAnimationFrame(tick); return; }
       const t = reduced() ? 0 : now / 1000, hopping = now < mood.hopUntil, blink = (t % 3.4) < .13;
       const sad = mood.expr === 'triste';
       const st = { t, sx: 1, sy: 1 + .02 * Math.sin(t * 2), bodyTilt: sad ? -.04 : 0, rootTilt: 0, hop: hopping ? Math.abs(Math.sin((now - mood.hopFrom) / 110)) * 5 : 0,
@@ -127,8 +128,8 @@
       return window.NexoClassroom?.genItem(cls, id) || { source: opts.gen?.source || window.NexoClassGen[cls.id]?.source,
         ...g.make(rng, level, profile || undefined), id, gen: { id: g.id, level } };
     } };   // variante reproducible, con su generador y fuente, igual que el aula
-    const P = window.PixelMascotas, petInfo = opts.pet || {};
-    const pet = petInfo.name && petInfo.name !== 'Nexo' ? petInfo.name : (P?.list.find(([k]) => k === petInfo.kind)?.[1] || 'Matraz');
+    const petInfo = opts.pet || {};
+
     let step = 0, raf = 0, destroyed = false, resetMood = 0;
     const stageTimers = new Set();
     const later = (fn, delay) => { const id = setTimeout(() => { stageTimers.delete(id); if (!destroyed && root.isConnected) fn(); }, delay); stageTimers.add(id); };
@@ -138,6 +139,7 @@
     host.innerHTML = `<section class="st">      <canvas class="st-pet" width="40" height="44" aria-hidden="true"></canvas><div class="st-bubble" role="status"></div>
       <div class="st-panel"><ol class="st-steps"></ol><div class="st-body"></div></div><div class="st-fx"></div>${opts.onExit ? '<button class="st-exit" aria-label="Salir de la estación">← Salir</button>' : ''}</section>`;
     const root = host.firstElementChild, bubble = root.querySelector('.st-bubble');
+    bubble.setAttribute('aria-label', 'Grimorio');
     const onEsc = e => { if (e.key === 'Escape') opts.onExit?.(); };
     if (opts.onExit) {
       root.querySelector('.st-exit').addEventListener('click', opts.onExit);
@@ -146,9 +148,9 @@
     const stepsEl = root.querySelector('.st-steps'), body = root.querySelector('.st-body'), fx = root.querySelector('.st-fx');
     const stopPet = startPet(root.querySelector('.st-pet'), petInfo, mood);
 
-    /* La mascota habla y reacciona: expresión, brazos y un saltito si está feliz; vuelve a neutral sola. */
+    /* El Grimorio presenta el contenido; la mascota solo reacciona visualmente. */
     function react(text, kind = 'n') {
-      bubble.innerHTML = `<b>${esc(pet)}</b>${md(text)}`;
+      bubble.innerHTML = `<b>Grimorio</b>${md(text)}`;
       if (!reduced()) bubble.animate([{ transform: 'scale(.92)', opacity: 0 }, { transform: 'scale(1.03)', opacity: 1, offset: .6 }, { transform: 'scale(1)', opacity: 1 }], { duration: 320, easing: 'ease-out' });
       const now = performance.now();
       Object.assign(mood, kind === 'h' ? { expr: 'feliz', arm: 'wave', hopUntil: now + 700, hopFrom: now }
@@ -439,6 +441,8 @@
     function go(n) {
       clearStageTimers(); cancelAnimationFrame(raf); body._cleanup?.(); body._cleanup = null;
       step = n; saved.step = n; progress.save(); setSteps(); [stepAdivina, stepClase, stepPractica, stepDemuestra][n]();
+      root.classList.toggle('is-assessment', n === 0 || n === 3);
+      root.querySelector('.st-pet').hidden = n === 0 || n === 3;
       if (!reduced()) body.animate([{ opacity: 0, transform: 'translateY(12px)', filter: 'blur(4px)' }, { opacity: 1, transform: 'none', filter: 'blur(0)' }], { duration: 480, easing: 'cubic-bezier(.2,.8,.2,1)' });
     }
     function destroy() { clearStageTimers(); progress.save(); document.removeEventListener('keydown', onEsc); destroyed = true; cancelAnimationFrame(raf); clearTimeout(resetMood); stopPet(); body._cleanup?.(); host.innerHTML = ''; }

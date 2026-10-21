@@ -34,8 +34,8 @@ const server = http.createServer((request, response) => {
       assert.ok(geometry.content >= height * .65, 'al menos 65% de la altura queda para el contenido');
       if (compact) {
         assert.ok(geometry.header <= 70, JSON.stringify(geometry));
-        await page.getByText('Tu compañero', { exact: true }).click(); assert.ok(await page.locator('.st-bubble').isVisible());
-        await page.getByText('Tu compañero', { exact: true }).click(); assert.equal(await page.locator('.st-bubble').isVisible(), false);
+        await page.getByText('Grimorio', { exact: true }).first().click(); assert.ok(await page.locator('.st-bubble').isVisible());
+        await page.getByText('Grimorio', { exact: true }).first().click(); assert.equal(await page.locator('.st-bubble').isVisible(), false);
       }
       await page.locator('.cv-content').evaluate(el => { el.scrollTop = el.scrollHeight; });
       const exit = await page.locator('[data-cv-exit]').boundingBox();

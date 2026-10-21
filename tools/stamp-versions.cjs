@@ -27,7 +27,12 @@ function stamp(rel) {
     if (next !== match) changed++;
     return next;
   });
-  const after = withClasses.replace(/\.\/([\w./${}-]+?\.(?:js|css))\?v=[\w.-]+/g, (match, target) => {
+  const withExperience = withClasses.replace(/\.\/(aprender\/sotano-fx\.js|core\/study-timer\.css)(?:\?v=[\w.-]+)?/g, (match, target) => {
+    const next = `./${target}?v=${fileHash(target)}`;
+    if (next !== match) changed++;
+    return next;
+  });
+  const after = withExperience.replace(/\.\/([\w./${}-]+?\.(?:js|css))\?v=[\w.-]+/g, (match, target) => {
     let v;
     if (target.includes('${')) {
       const dir = path.dirname(target);

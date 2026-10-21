@@ -5,6 +5,11 @@
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const ACTIVITY = { diagnostic: 'assessment', pretest: 'lesson', train: 'practice', practice: 'practice', placement: 'practice',
     challenge: 'practice', review: 'review', simulacro: 'assessment', transfer: 'assessment', rescue: 'rescue', detour: 'rescue', fix: 'rescue' };
+  let grimorioPromise;
+  const loadGrimorio = () => window.NexoGrimorioVivo ? Promise.resolve(window.NexoGrimorioVivo) : (grimorioPromise ||= new Promise((resolve, reject) => {
+    const script = document.createElement('script'); script.src = './tutorial/grimorio-vivo.js?v=3';
+    script.onload = () => resolve(window.NexoGrimorioVivo); script.onerror = () => { grimorioPromise = null; reject(new Error('grimorio')); }; document.head.append(script);
+  }));
 
   function create({ cls, api, mission }) {
     if (!cls?.missions?.length) throw new Error('La clase no tiene misiones.');
@@ -38,7 +43,7 @@
   function mount(host, opts) {
     if (opts.mode && opts.mode !== 'study') throw new Error('El Modo Inmersivo está pendiente.');
     const controller = create(opts), { cls, mission, api } = controller;
-    let view = null, destroyed = false, finished = false, testing = false;
+    let view = null, guideView = null, destroyed = false, finished = false, testing = false;
     host.classList.add('cv-study');
     host.innerHTML = `<header class="cv-header"><div><p>Sótano de Cristales · ${esc(opts.subject?.name || cls.subject)}</p>
       <h1>${esc(cls.title)}</h1><span>Modo Estudio</span></div><button type="button" class="au-mini" data-cv-exit>Guardar y salir</button></header>
@@ -50,13 +55,18 @@
       const root = content.firstElementChild, pet = root?.querySelector('.st-pet'), bubble = root?.querySelector('.st-bubble');
       if (!pet || !bubble || root.querySelector('.cv-companion')) return;
       const box = document.createElement('details'), summary = document.createElement('summary'), body = document.createElement('div');
-      box.className = 'cv-companion'; body.className = 'cv-companion-body'; summary.textContent = 'Tu compañero';
-      root.insertBefore(box, pet); box.append(summary, body); body.append(pet, bubble); syncCompanion();
+      box.className = 'cv-companion'; body.className = 'cv-companion-body'; summary.textContent = 'Grimorio';
+      const guide = document.createElement('div'), companion = document.createElement('div');
+      guide.className = 'cv-guide'; guide.setAttribute('aria-hidden', 'true');
+      companion.className = 'cv-pet-companion'; companion.setAttribute('aria-label', 'Mascota acompañante');
+      root.insertBefore(box, pet); box.append(summary, body); body.append(guide, bubble, companion); companion.append(pet); syncCompanion();
+      loadGrimorio().then(G => { if (!destroyed && guide.isConnected) { guideView?.destroy(); guideView=G.mount(guide); } }).catch(() => {});
     };
     compact.addEventListener('change', syncCompanion);
     const leave = () => { controller.checkpoint(); opts.onExit?.(); };
     host.querySelector('[data-cv-exit]').addEventListener('click', leave);
     const station = extra => {
+      guideView?.destroy(); guideView = null;
       view?.destroy();
       view = window.NexoStation.mount(content, { cls, mission, api, pet: opts.pet, onExit: leave,
         onResult: controller.submitResult, ...extra });
@@ -93,7 +103,7 @@
         destroyed = true;
         compact.removeEventListener('change', syncCompanion);
         window.removeEventListener('pagehide', onPageHide);
-        view?.destroy(); controller.destroy(); host.replaceChildren(); host.classList.remove('cv-study');
+        guideView?.destroy(); view?.destroy(); controller.destroy(); host.replaceChildren(); host.classList.remove('cv-study');
       } };
   }
   window.NexoLivingClasses = Object.freeze({ create, mount, modes: Object.freeze({ study: 'implemented', immersive: 'planned' }) });

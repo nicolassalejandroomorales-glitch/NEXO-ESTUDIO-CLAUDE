@@ -1,5 +1,7 @@
 # Estado de Nexo
 
+- **21 oct 2026 · Experiencia académica (rama de revisión)**: cronómetro global reutiliza `state.timer`, Grimorio explica y ofrece pistas, mascota acompaña/oculta en pruebas; Sótano con menos trabajo de dibujo y vertical habilitado. 51/51 rápidas y recorridos locales PC/móvil. Atril solo como propuesta, pendiente de aprobación; master/Pages sin actualizar. Ver `docs/experiencia-academica/SPEC.md`.
+
 Historial de lo hecho por tema. Lo lee Claude solo cuando necesita contexto de otro tema; el cierre de cada chat agrega aquí una línea con fecha (skill nexo-cierre).
 
 - **20 oct 2026 · Basicidad guiada**: feedback real incorporado: explicación gradual, cadenas explícitas, práctica sin tabla y comprobaciones causales; ayuda/adivinación sin dominio y relectura sin perder progreso. Ver `docs/basicidad-guiada/SPEC.md`. Revisión del usuario/PPT y publicación pendientes.

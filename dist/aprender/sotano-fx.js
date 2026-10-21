@@ -17,17 +17,18 @@
     const glints = Array.from({ length: 9 }, () => ({ x: rnd(.08, .92), y: rnd(.15, .8), ph: rnd(0, 6.3), r: rnd(.012, .03), hue: [190, 170, 280, 50][Math.floor(rnd(0, 4))] }));
 
     function size() {
-      const r = stage.getBoundingClientRect(), d = Math.min(devicePixelRatio || 1, 2);
+      const r = stage.getBoundingClientRect(), d = Math.min(1, 640 / Math.max(1, r.width));
       W = cv.width = Math.max(1, Math.round(r.width * d)); H = cv.height = Math.max(1, Math.round(r.height * d));
     }
     function frame(now) {
       if (!viva) return;
       raf = requestAnimationFrame(frame);
       if (document.hidden || !stage.offsetWidth) return;
+      if (now - last < 1000 / 30) return;
       const dt = Math.min(.1, (now - last) / 1000 || 0); last = now;
       if (dt > .04) { if (++lentos > 25 && cuota > .3) { cuota -= .2; lentos = 0; } } else if (lentos > 0) lentos--;   // celular lento: menos partículas
       t += dt;
-      if (W !== Math.round(stage.clientWidth * Math.min(devicePixelRatio || 1, 2))) size();
+      if (W !== Math.max(1, Math.round(Math.min(stage.clientWidth, 640)))) size();
       g.clearRect(0, 0, W, H);
       const u = W / 320;
       dust.slice(0, Math.ceil(dust.length * cuota)).forEach(p => {
