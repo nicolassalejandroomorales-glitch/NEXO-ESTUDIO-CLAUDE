@@ -167,7 +167,10 @@
   const smooth = p => 0.5 - 0.5 * Math.cos(Math.PI * p); // arranque y frenada suaves
 
   async function playClip(G, name, reverse) {
-    const info = G.M.clips[name], n = info.n, img = await sheet(G, name), ms = info.ms || n * 130; // sin tiempos en el manifiesto: ritmo por defecto
+    const info = G.M.clips[name], n = info.n, img = await sheet(G, name);
+    const portal = /(?:^|\.)(?:e-|c-emerge)/.test(name);
+    const ms = Math.max(280, Math.min(portal ? 900 : 700, Math.round((info.ms || n * 130) * .4)));
+    const ease = info.ease || /(?:^|\.)(?:t-|u-|o-|z-)/.test(name);
     if (!G.alive) return;
     if (reduced()) { draw(G, img, reverse ? 0 : n - 1); return; }
     await new Promise(done => {
@@ -179,7 +182,7 @@
         last = now;
         const p = Math.min(1, elapsed / ms);
         if (!document.hidden && (now - painted >= 1000 / 60 || p >= 1)) {
-          drawAt(G, img, (info.ease ? smooth(p) : p) * (n - 1), n, reverse); painted = now;
+          drawAt(G, img, (ease ? smooth(p) : p) * (n - 1), n, reverse); painted = now;
         }
         if (p >= 1) { G.finishClip = null; done(); } else G.raf = requestAnimationFrame(tick);
       };
@@ -238,6 +241,12 @@
       const target = m.cam?.node || m.to;
       const resting = target && G.M.clips[G.M.nodes[target]?.idle];
       if (resting) sheet(G, resting.file || G.M.nodes[target].idle).catch(() => {});
+      // Preparar la entrada visible antes de girar hacia ella; no esperar al clic en Entrar.
+      const entrance = target && G.M.nodes[target]?.moves.find(next => next.cam);
+      if (entrance) {
+        sheet(G, entrance.clip).catch(() => {});
+        sheet(G, entrance.cam.clip).catch(() => {});
+      }
     }
     if (first) G.el.load.hidden = true;
   }

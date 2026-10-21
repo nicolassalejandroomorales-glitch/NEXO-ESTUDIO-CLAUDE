@@ -1,5 +1,7 @@
 # Estado de Nexo
 
+- **21 oct 2026 · Preferencias de experiencia confirmadas**: las 16 respuestas quedan incorporadas al SPEC. Navegación ágil con animación normal comprobada en 1440/390; propuesta del Atril con lectura clara/oscura y retrato móvil del Grimorio, todavía pendiente de aprobación. Se confirma el límite previo de cuatro horas al guardar. Sin publicar Pages.
+
 - **21 oct 2026 · Experiencia académica (rama de revisión)**: cronómetro global reutiliza `state.timer`, Grimorio explica y ofrece pistas, mascota acompaña/oculta en pruebas; Sótano con menos trabajo de dibujo y vertical habilitado. 51/51 rápidas y recorridos locales PC/móvil. Atril solo como propuesta, pendiente de aprobación; master/Pages sin actualizar. Ver `docs/experiencia-academica/SPEC.md`.
 
 Historial de lo hecho por tema. Lo lee Claude solo cuando necesita contexto de otro tema; el cierre de cada chat agrega aquí una línea con fecha (skill nexo-cierre).
