@@ -1,5 +1,6 @@
-/* Sonidos de la apertura de cofres, sintetizados con WebAudio (sin archivos). Respetan el silencio y el volumen de Ajustes.
-   NexoCofreSonidos.play('tick' | 'rumble' | 'whoosh' | 'pop' | 'land' | 'reveal', rareza?) */
+/* Sonidos de efectos, sintetizados con WebAudio (sin archivos). Respetan el silencio y el volumen de Ajustes.
+   NexoCofreSonidos.play('tick' | 'rumble' | 'whoosh' | 'pop' | 'land' | 'launch' | 'sparkle' | 'bubble' | 'reveal', rareza?)
+   Se usan por evento desde NexoMovimiento.sonido (core/movimiento.js, skill nexo-animacion). */
 (() => {
   'use strict';
   let ctx = null, noiseBuf = null;
@@ -44,7 +45,13 @@
     pop: c => { hiss(c, { dur: .22, gain: .5, from: 1500, to: 400, q: 2 }); tone(c, { f: 320, fEnd: 70, type: 'square', dur: .18, gain: .3 });
       tone(c, { f: NOTE(84), type: 'sine', dur: .5, gain: .18, at: .04 }); tone(c, { f: NOTE(91), type: 'sine', dur: .5, gain: .12, at: .06 }); },
     // la ruleta se asienta en el premio
-    land: c => { tone(c, { f: 180, fEnd: 60, type: 'sine', dur: .25, gain: .45 }); hiss(c, { dur: .12, gain: .2, from: 2500, to: 800 }); }
+    land: c => { tone(c, { f: 180, fEnd: 60, type: 'sine', dur: .25, gain: .45 }); hiss(c, { dur: .12, gain: .2, from: 2500, to: 800 }); },
+    // salto: barrido corto hacia arriba
+    launch: c => tone(c, { f: 300, fEnd: 720, type: 'square', dur: .14, gain: .12 }),
+    // destello: cuatro notas altas seguidas
+    sparkle: c => [784, 988, 1175, 1568].forEach((f, i) => tone(c, { f, fEnd: f * 1.01, type: 'triangle', at: i * .06, dur: .12, gain: .12 })),
+    // burbuja que sube
+    bubble: c => tone(c, { f: 600 + Math.random() * 300, fEnd: 1200, type: 'sine', dur: .05, gain: .07 })
   };
 
   // Fanfarria según rareza: cuantas más notas y más brillo, más raro el premio.
@@ -59,5 +66,5 @@
     const c = ready(); if (!c) return;
     if (name === 'reveal') reveal(c, rarity); else SOUNDS[name]?.(c);
   }
-  window.NexoCofreSonidos = Object.freeze({ play });
+  window.NexoCofreSonidos = Object.freeze({ play, nombres: Object.freeze([...Object.keys(SOUNDS), 'reveal']) });
 })();

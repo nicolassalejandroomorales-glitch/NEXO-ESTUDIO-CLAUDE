@@ -41,6 +41,7 @@ node tools/limpieza.cjs             # LIMPIEZA: revisa restos sin usar (solo lee
 | `dist/app.js` | Router (`routeTo`, `renderRoute`) y la mayoría de las pantallas. Grande (184 KB): **nunca leerlo entero**; para ubicar algo usa el agente `nexo-explorador`. |
 | `dist/design-system/home-scene.js`, `update01.css`, `dist/ambient/time.js` | Inicio y luz. Antes de tocarlos: skill **`nexo-inicio`**. |
 | `dist/platform/animation.js`, `dist/platform/audio.js` | Grimorio: intro, cambio de página, sonidos. Skill **`nexo-grimorio`**. |
+| `dist/core/movimiento.js` | Estilo de movimiento de toda la app (resortes, pausa de impacto, sonido por evento). Antes de animar cualquier cosa: skill **`nexo-animacion`**. |
 | `dist/classes/` | Clases: datos (`org-01.js`…) y `player.js` = solo lógica (`NexoClassroom`). La pantalla vieja "torre del alquimista" se borró el 18 oct 2026; la nueva vive en la Cámara del ramo. Antes de tocarlas: skill **`nexo-clase`**. |
 | `dist/academic/*` | Motor académico: conceptos, evidencia, estados de conocimiento y FSRS. Piloto: **org-01 / Aminas**. Skill **`nexo-motor`**. |
 | `dist/mascot/pixelmascotas.js`, `dist/mascot/` | Mascotas en pixel art. Skill **`nexo-mascota`**. Cualquier arte en pixel: skill **`nexo-pixel-art`**. |

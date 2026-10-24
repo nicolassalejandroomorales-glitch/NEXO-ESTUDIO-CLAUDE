@@ -118,3 +118,5 @@ Historial de lo hecho por tema. Lo lee Claude solo cuando necesita contexto de o
 - 20 oct 2026 · Clases Vivas: adaptación al panel real de 250×268, encabezado 159→58 px, compañero desplegable y tamaños de texto/tarjetas ajustados. Verificados cuatro tamaños y continuidad. SPEC: `docs/clases-vivas/SPEC.md`.
 
 - 20 oct 2026 · Usuario autoriza integrar Clases Vivas, continuidad de Basicidad y adaptación de pantalla en master de NEXO-ESTUDIO-CLAUDE. Base remota 5503511, avance directo sin divergencia; Artifact pendiente. SPEC: `docs/clases-vivas/SPEC.md`.
+
+- 24 oct 2026 · Estándar de animación: skill `nexo-animacion` (6 reglas), módulo `dist/core/movimiento.js` con prueba, y estilo aplicado a la apertura del cofre (1440 y 390 verificados, movimiento reducido y silencio respetados). Espera aprobación visual. SPEC: `docs/animacion/SPEC.md`.

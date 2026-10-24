@@ -899,6 +899,134 @@
 
 ;
 
+/* core/movimiento.js */
+/* Estilo de movimiento de Nexo (skill nexo-animacion, docs/animacion/SPEC.md).
+   Resortes, escena (pausa de impacto + temblor entero), alineación a píxel y sonido por evento.
+   No dibuja nada: cada pantalla pinta lo que este módulo calcula.
+   Sonido: no hay sistema propio. Reparte entre NexoAudio (interfaz) y NexoCofreSonidos (efectos); el silencio y el
+   volumen salen siempre de NexoAudio.settings (Ajustes). */
+(() => {
+  'use strict';
+  const PASO = 1 / 120;   // paso fijo de integración: el mismo movimiento a 60 o a 144 cuadros por segundo
+  const DT_MAX = .05;     // un cuadro larguísimo (pestaña dormida) no hace explotar el resorte
+  const PRESETS = Object.freeze({
+    aplastar: Object.freeze({ rigidez: 260, amortiguacion: 14 }),   // cuerpo que se aplasta y rebota
+    liquido: Object.freeze({ rigidez: 120, amortiguacion: 5 }),     // se agita y tarda en calmarse
+    corcho: Object.freeze({ rigidez: 380, amortiguacion: 12 }),     // rápido y nervioso
+    tapa: Object.freeze({ rigidez: 170, amortiguacion: 9 }),        // sube, se pasa y se asienta
+    brillo: Object.freeze({ rigidez: 90, amortiguacion: 8 }),       // luz que late
+    camara: Object.freeze({ rigidez: 220, amortiguacion: 18 })      // casi sin rebote
+  });
+  // Vocabulario de eventos -> nombre del sonido. Los de interfaz viven en NexoAudio; el resto, en el sintetizador de efectos.
+  const EVENTOS = Object.freeze({
+    preparar: 'rumble', lanzar: 'launch', estallar: 'pop', girar: 'whoosh', paso: 'tick', golpe: 'land', premio: 'reveal',
+    brillo: 'sparkle', burbuja: 'bubble',
+    clic: 'click', confirmar: 'confirm', comprar: 'purchase', equipar: 'equip', error: 'error'
+  });
+  const INTERFAZ = new Set(['click', 'confirm', 'purchase', 'equip', 'error']);
+  const ESCALA_CALIDAD = { low: .35, balanced: .7, high: 1 };
+  const num = (valor, porDefecto) => Number.isFinite(Number(valor)) ? Number(valor) : porDefecto;
+
+  function reducido() {
+    try {
+      if (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches) return true;
+      const cuerpo = typeof document !== 'undefined' ? document.body : null;
+      return Boolean(cuerpo && (cuerpo.classList.contains('reduce-motion') || cuerpo.dataset.nexoAmbientMotion === 'reduced'));
+    } catch (_) { return false; }
+  }
+
+  // Resorte amortiguado: se mueve cambiando `meta`, se golpea con `empujar` y se avanza con `avanzar(dt)`.
+  function resorte(opciones = {}) {
+    const base = typeof opciones === 'string' ? { preset: opciones } : opciones;
+    const o = { ...(PRESETS[base.preset] || {}), ...base };
+    const instantaneo = base.reducido ?? reducido();
+    const r = {
+      rigidez: num(o.rigidez, 200), amortiguacion: num(o.amortiguacion, 12),
+      valor: num(o.valor, 0), velocidad: num(o.velocidad, 0), meta: num(o.meta, num(o.valor, 0)),
+      empujar(v) { if (!instantaneo) r.velocidad += num(v, 0); return r; },
+      fijar(valor) { r.valor = r.meta = num(valor, r.valor); r.velocidad = 0; return r; },
+      reposo() { return Math.abs(r.valor - r.meta) < .001 && Math.abs(r.velocidad) < .001; },
+      avanzar(dt) {
+        if (instantaneo) { r.valor = r.meta; r.velocidad = 0; return r.valor; }
+        let resto = Math.min(Math.max(num(dt, 0), 0), DT_MAX);
+        while (resto > 1e-9) {
+          const h = Math.min(PASO, resto);
+          r.velocidad += (-r.rigidez * (r.valor - r.meta) - r.amortiguacion * r.velocidad) * h;
+          r.valor += r.velocidad * h;
+          resto -= h;
+        }
+        if (r.reposo()) { r.valor = r.meta; r.velocidad = 0; }
+        return r.valor;
+      }
+    };
+    return r;
+  }
+
+  // Escena: resortes que comparten reloj, pausa de impacto (todo se congela un instante) y temblor de cámara en píxeles enteros.
+  // En cada cuadro: dt = escena.paso(dtReal). Durante la pausa devuelve 0: úsalo también para partículas.
+  function escena({ reducido: forzado } = {}) {
+    const quieto = forzado ?? reducido();
+    const resortes = [];
+    let espera = 0, restante = 0, duracion = 0, amplitud = 0, fase = 0;
+    return {
+      reducido: quieto,
+      resorte(opciones) {
+        const r = resorte({ ...(typeof opciones === 'string' ? { preset: opciones } : opciones), reducido: quieto });
+        resortes.push(r);
+        return r;
+      },
+      golpe({ pausa = .07, temblor = 0, duracion: dur = .5 } = {}) {
+        if (quieto) return false;
+        espera = Math.max(espera, num(pausa, 0));
+        const actual = duracion > 0 ? amplitud * (restante / duracion) ** 2 : 0;
+        if (num(temblor, 0) > 0 && temblor >= actual) { amplitud = temblor; duracion = Math.max(.05, num(dur, .5)); restante = duracion; }
+        return true;
+      },
+      paso(dt) {
+        const d = Math.min(Math.max(num(dt, 0), 0), DT_MAX);
+        if (espera > 0) { espera = Math.max(0, espera - d); return 0; }
+        for (const r of resortes) r.avanzar(d);
+        if (restante > 0) { restante = Math.max(0, restante - d); fase += d; }
+        return d;
+      },
+      pausado: () => espera > 0,
+      temblor() {
+        if (restante <= 0 || amplitud <= 0) return { x: 0, y: 0 };
+        const fuerza = amplitud * (restante / duracion) ** 2;
+        return { x: Math.round(fuerza * Math.sin(fase * 90)) || 0, y: Math.round(fuerza * .6 * Math.cos(fase * 71)) || 0 };
+      }
+    };
+  }
+
+  const alinear = (valor, paso = 1) => Math.round(num(valor, 0) / paso) * paso;
+
+  // Cuántas partículas dibujar según la calidad gráfica de Ajustes (platform/performance.js). Con movimiento reducido, ninguna.
+  function cantidad(n) {
+    const total = Math.max(0, Math.floor(num(n, 0)));
+    if (!total || reducido()) return 0;
+    const calidad = typeof document !== 'undefined' ? document.body?.dataset?.nexoQuality : '';
+    return Math.max(1, Math.round(total * (ESCALA_CALIDAD[calidad] ?? 1)));
+  }
+
+  // Devuelve true si el evento existe (no si sonó: el silencio lo decide Ajustes).
+  function sonido(evento, rareza) {
+    const nombre = EVENTOS[evento] || evento;
+    if (INTERFAZ.has(nombre)) {
+      if (!window.NexoAudio) return false;
+      window.NexoAudio.play(nombre);
+      return true;
+    }
+    const sintetizador = window.NexoCofreSonidos;
+    if (!sintetizador || !sintetizador.nombres.includes(nombre)) return false;
+    sintetizador.play(nombre, rareza);
+    return true;
+  }
+
+  window.NexoMovimiento = Object.freeze({ PRESETS, EVENTOS, resorte, escena, alinear, reducido, cantidad, sonido });
+})();
+
+;
+
 /* design-system/pixel-text.js */
 /* Letras pixel art de Nexo: una fuente propia de 5×7 (mayúsculas, números y signos) dibujada como SVG de cuadritos.
    Sirve para carteles, títulos y etiquetas cortas. El texto largo sigue en la fuente normal para que se lea bien.
@@ -5332,8 +5460,9 @@
 ;
 
 /* economy/cofre-sonidos.js */
-/* Sonidos de la apertura de cofres, sintetizados con WebAudio (sin archivos). Respetan el silencio y el volumen de Ajustes.
-   NexoCofreSonidos.play('tick' | 'rumble' | 'whoosh' | 'pop' | 'land' | 'reveal', rareza?) */
+/* Sonidos de efectos, sintetizados con WebAudio (sin archivos). Respetan el silencio y el volumen de Ajustes.
+   NexoCofreSonidos.play('tick' | 'rumble' | 'whoosh' | 'pop' | 'land' | 'launch' | 'sparkle' | 'bubble' | 'reveal', rareza?)
+   Se usan por evento desde NexoMovimiento.sonido (core/movimiento.js, skill nexo-animacion). */
 (() => {
   'use strict';
   let ctx = null, noiseBuf = null;
@@ -5378,7 +5507,13 @@
     pop: c => { hiss(c, { dur: .22, gain: .5, from: 1500, to: 400, q: 2 }); tone(c, { f: 320, fEnd: 70, type: 'square', dur: .18, gain: .3 });
       tone(c, { f: NOTE(84), type: 'sine', dur: .5, gain: .18, at: .04 }); tone(c, { f: NOTE(91), type: 'sine', dur: .5, gain: .12, at: .06 }); },
     // la ruleta se asienta en el premio
-    land: c => { tone(c, { f: 180, fEnd: 60, type: 'sine', dur: .25, gain: .45 }); hiss(c, { dur: .12, gain: .2, from: 2500, to: 800 }); }
+    land: c => { tone(c, { f: 180, fEnd: 60, type: 'sine', dur: .25, gain: .45 }); hiss(c, { dur: .12, gain: .2, from: 2500, to: 800 }); },
+    // salto: barrido corto hacia arriba
+    launch: c => tone(c, { f: 300, fEnd: 720, type: 'square', dur: .14, gain: .12 }),
+    // destello: cuatro notas altas seguidas
+    sparkle: c => [784, 988, 1175, 1568].forEach((f, i) => tone(c, { f, fEnd: f * 1.01, type: 'triangle', at: i * .06, dur: .12, gain: .12 })),
+    // burbuja que sube
+    bubble: c => tone(c, { f: 600 + Math.random() * 300, fEnd: 1200, type: 'sine', dur: .05, gain: .07 })
   };
 
   // Fanfarria según rareza: cuantas más notas y más brillo, más raro el premio.
@@ -5393,18 +5528,23 @@
     const c = ready(); if (!c) return;
     if (name === 'reveal') reveal(c, rarity); else SOUNDS[name]?.(c);
   }
-  window.NexoCofreSonidos = Object.freeze({ play });
+  window.NexoCofreSonidos = Object.freeze({ play, nombres: Object.freeze([...Object.keys(SOUNDS), 'reveal']) });
 })();
 
 ;
 
 /* economy/cofre-fx.js */
 /* Apertura épica del cofre (docs/economia/SPEC.md). Solo pinta y anima; la lógica está en tienda.js.
-   Guion: el cofre se carga de energía (chispas que entran) y tiembla -> explota la tapa (destello, onda, rayos, hojas) -> ruleta que gira
-   rapidísimo, se acerca y frena con tensión -> golpe seco: onda de choque, cartel de rareza y fuente de chispas. Cuanto más raro, más grande.
+   Estilo de movimiento: skill nexo-animacion (core/movimiento.js). El cofre son piezas (cuerpo, tapa, brillo) con resorte propio,
+   se dibuja en su tamaño real de píxel y se amplía entero; hay pausa de impacto, temblor de cámara en píxeles enteros y cada evento
+   suena por NexoMovimiento.sonido.
+   Guion: el cofre se carga de energía (chispas que entran) y tiembla -> se agacha y explota la tapa (destello, onda, rayos, hojas)
+   -> ruleta que gira rapidísimo, se acerca y frena con tensión -> golpe seco: onda de choque, cartel de rareza y fuente de chispas.
+   Cuanto más raro, más grande.
    NexoCofre.play({ winner, ids, tile, reduced, title, note, again }) -> Promise<'again' | 'close'> */
 (() => {
   'use strict';
+  const Mov = window.NexoMovimiento;
   const ART = './assets/tienda/';
   const LOOK = {   // cols: colores de chispas; amp: sacudida; sparks: chispas al caer el premio; rings: ondas; label: cartel
     comun:      { cols: ['#fff4d8', '#e6d6b2', '#b9a98a'], amp: 3,  sparks: 30,  rings: 1, flash: 0,  label: 'COMÚN' },
@@ -5417,15 +5557,23 @@
   const rnd = (a, b) => a + Math.random() * (b - a);
   const ease = x => 1 - Math.pow(1 - x, 4.2);
 
+  // Cofre en píxeles reales: 80×66 de arte, partido en cuerpo y tapa por la fila SPLIT, más márgenes para que la tapa vuele.
+  // Se dibuja en un lienzo de BW×BH y el CSS (.cfx-px) lo amplía entero con image-rendering: pixelated.
+  const CW = 80, CH = 66, SPLIT = 35, MX = 16, MT = 44, MB = 12, BW = CW + MX * 2, BH = CH + MT + MB;
+  const art = new Image(); art.src = ART + 'cofre-cerrado.png';
+  const CARGA_S = 1.25;   // segundos de carga antes de explotar
+
   // ——— capa de efectos: chispas, hojas, ondas y rayos en un canvas a pantalla completa ———
-  function makeFx(canvas) {
+  // Es también el único bucle de cuadros de la escena: avanza los resortes del cofre y descuenta la pausa de impacto.
+  function makeFx(canvas, esc, onFrame) {
     const ctx = canvas.getContext('2d'); let W = 0, H = 0, last = performance.now(); const things = [];
     const size = () => { W = canvas.width = innerWidth; H = canvas.height = innerHeight; };
     size();
     const add = o => things.push({ age: 0, ...o });
     (function loop(now) {
       if (!canvas.isConnected) return;
-      const dt = Math.min(.25, (now - last) / 1000); last = now;
+      const dt = esc.paso((now - last) / 1000); last = now;   // 0 durante la pausa de impacto: todo se congela un instante
+      onFrame(dt);
       ctx.clearRect(0, 0, W, H);
       for (let i = things.length - 1; i >= 0; i--) {
         const p = things[i]; p.age += dt;
@@ -5464,26 +5612,68 @@
 
   /* winner: {id, rarity}; ids: [{id, rarity}] para rellenar la ruleta; tile(id) -> <canvas> del accesorio. */
   async function play({ winner, ids, tile, reduced = false, title = '', note = '', again = false }) {
+    const quieto = reduced || Mov.reducido();   // respeta el ajuste de la mascota, el del sistema y el ambiental
     const rarity = winner.rarity, L = LOOK[rarity] || LOOK.comun, big = rarity === 'raro' || rarity === 'legendario', legend = rarity === 'legendario';
-    const snd = (n, r) => window.NexoCofreSonidos?.play(n, r);
+    const snd = Mov.sonido, n = Mov.cantidad;
     const el = document.createElement('div');
     el.className = 'cofre-fx'; el.dataset.rarity = rarity;
     el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Abriendo cofre');
     el.innerHTML = `<div class="cofre-fx-rays"></div><div class="cofre-fx-vignette"></div>
       <div class="cfx-world">
-        <div class="cofre-fx-stage"><div class="cofre-fx-chest"><div class="cfx-glow"></div><i class="cfx-body"></i><i class="cfx-lid"></i></div></div>
+        <div class="cofre-fx-stage"><div class="cofre-fx-chest"><div class="cfx-glow"></div><canvas class="cfx-px" width="${BW}" height="${BH}"></canvas></div></div>
         <div class="cofre-fx-roulette pu-panel" hidden><div class="cfx-window"><div class="cfx-strip"></div><i class="cfx-marker"></i></div></div>
         <div class="cfx-banner" hidden></div>
         <div class="cofre-fx-card pu-paper" hidden><p class="cfx-title"></p><p class="cfx-note"></p><div class="cfx-actions"></div></div>
       </div><canvas class="cofre-fx-parts"></canvas><div class="cofre-fx-flash"></div>`;
     document.body.append(el);
     const $ = s => el.querySelector(s), world = $('.cfx-world'), chest = $('.cofre-fx-chest'), stage = $('.cofre-fx-stage'), roulette = $('.cofre-fx-roulette'),
-      strip = $('.cfx-strip'), card = $('.cofre-fx-card'), banner = $('.cfx-banner'), marker = $('.cfx-marker'), fx = makeFx($('.cofre-fx-parts'));
+      strip = $('.cfx-strip'), card = $('.cofre-fx-card'), banner = $('.cfx-banner'), marker = $('.cfx-marker'), glowEl = $('.cfx-glow'), px = $('.cfx-px').getContext('2d');
+    px.imageSmoothingEnabled = false;
+
+    // Piezas del cofre, cada una con su resorte. sq = aplastar (+) / estirar (−), dx y giro = temblor, tapa = altura y giro, brillo = luz.
+    const esc = Mov.escena({ reducido: quieto });
+    const sq = esc.resorte('aplastar'), dx = esc.resorte('corcho'), giro = esc.resorte('aplastar'),
+      tapaY = esc.resorte('tapa'), tapaGiro = esc.resorte('tapa'), brillo = esc.resorte('brillo');
+    const carga = { on: false, t: 0, prox: 0, dir: 1 };
+    function drawChest() {
+      if (!art.complete || !art.naturalWidth) return;
+      const al = Mov.alinear, alto = -tapaY.valor;
+      px.clearRect(0, 0, BW, BH);
+      px.save();
+      px.translate(MX + CW / 2 + al(dx.valor), MT + CH);                       // pivote: la base del cofre
+      px.rotate(al(giro.valor, .02)); px.scale(1 + .18 * sq.valor, 1 - .2 * sq.valor); px.translate(-CW / 2, -CH);
+      px.drawImage(art, 0, SPLIT, CW, CH - SPLIT, 0, SPLIT, CW, CH - SPLIT);   // cuerpo
+      if (alto > 1) {                                                          // la boca: oscuridad con luz en el borde
+        px.globalAlpha = Math.min(1, alto / 8); px.fillStyle = '#1a0b12'; px.fillRect(4, SPLIT - 4, CW - 8, 4);
+        px.fillStyle = '#ffd860'; px.fillRect(5, SPLIT - 1, CW - 10, 1); px.globalAlpha = 1;
+      }
+      px.translate(CW / 2, SPLIT + al(tapaY.valor)); px.rotate(al(tapaGiro.valor, .02)); px.translate(-CW / 2, -SPLIT);
+      px.drawImage(art, 0, 0, CW, SPLIT, 0, 0, CW, SPLIT);                     // tapa
+      px.restore();
+      glowEl.style.opacity = Math.max(0, Math.min(1, brillo.valor)).toFixed(3);
+      glowEl.style.transform = `scale(${(.3 + .75 * brillo.valor).toFixed(3)},${(.3 + .9 * brillo.valor).toFixed(3)})`;
+    }
+    // Se llama en cada cuadro con el tiempo ya descontado por la pausa de impacto.
+    function drive(dt) {
+      if (quieto) return;
+      if (carga.on && dt > 0) {            // golpecitos que alternan de lado, se aceleran y se hacen más fuertes
+        carga.t += dt; const p = Math.min(1, carga.t / CARGA_S);
+        brillo.meta = .15 + .75 * p;
+        carga.prox -= dt;
+        if (carga.prox <= 0) {
+          carga.prox = .11 - .065 * p; carga.dir *= -1;
+          dx.empujar(carga.dir * (10 + 32 * p)); giro.empujar(-carga.dir * (.3 + .9 * p)); sq.empujar(1 + 4 * p);
+        }
+      }
+      drawChest();
+      const t = esc.temblor(); world.style.translate = t.x || t.y ? `${t.x}px ${t.y}px` : '';   // 'translate' no pelea con el zoom de cámara
+    }
+    const fx = makeFx($('.cofre-fx-parts'), esc, drive);
+
     const mk = (item, win) => { const d = document.createElement('div'); d.className = 'cfx-tile'; d.dataset.r = item.rarity; if (win) d.dataset.win = '1'; d.append(tile(item.id)); return d; };
-    const quake = (amp, ms = 600) => { el.style.setProperty('--amp', amp + 'px'); el.classList.remove('cfx-quake'); void el.offsetWidth; el.classList.add('cfx-quake'); setTimeout(() => el.classList.remove('cfx-quake'), ms); };
     const flash = () => { const f = $('.cofre-fx-flash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go'); };
     let done; const result = new Promise(r => { done = r; });
-    const close = v => { el.classList.add('cfx-out'); setTimeout(() => { el.remove(); done(v); }, reduced ? 0 : 260); };
+    const close = v => { el.classList.add('cfx-out'); setTimeout(() => { el.remove(); done(v); }, quieto ? 0 : 260); };
     const showCard = () => {
       card.hidden = false; $('.cfx-title').textContent = title; $('.cfx-note').textContent = note;
       $('.cfx-actions').innerHTML = `${again ? '<button type="button" class="pu-btn" data-r="again">Abrir otro</button>' : ''}<button type="button" class="pu-btn" data-r="close">Listo</button>`;
@@ -5492,37 +5682,40 @@
     el.addEventListener('click', e => { const b = e.target.closest('button[data-r]'); if (b) close(b.dataset.r); });
     el.addEventListener('keydown', e => { if (e.key === 'Escape' && !card.hidden) close('close'); });
     addEventListener('resize', fx.size);
-    const cx = () => innerWidth / 2, cy = () => innerHeight / 2;
 
-    if (reduced) {
+    if (quieto) {
       stage.hidden = true; roulette.hidden = false; strip.append(mk(winner, true)); strip.style.margin = '0 auto';
-      el.classList.add('cfx-won'); banner.hidden = false; banner.textContent = L.label; snd('reveal', rarity); showCard(); return result;
+      el.classList.add('cfx-won'); banner.hidden = false; banner.textContent = L.label; snd('premio', rarity); showCard(); return result;
     }
     strip.append(...Array.from({ length: TILES }, (_, i) => i === WIN_AT ? mk(winner, true) : mk(ids[Math.floor(Math.random() * ids.length)], false)));
 
     // 1. CARGA: la cámara se acerca, entran chispas al cofre y tiembla cada vez más fuerte
-    await wait(60); el.classList.add('cfx-charge'); chest.classList.add('cfx-shake'); snd('rumble');
+    await wait(60); el.classList.add('cfx-charge'); carga.on = true; snd('preparar');
     const chestBox = () => { const r = chest.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height * .55 }; };
     const ccx = chestBox();
-    for (let i = 0; i < 70; i++) setTimeout(() => {
+    for (let i = 0, total = n(70); i < total; i++) setTimeout(() => {
       const a = rnd(0, 6.283), d = rnd(220, 420), c = chestBox();
       fx.add({ kind: 'charge', x0: c.x + Math.cos(a) * d, y0: c.y + Math.sin(a) * d * .7, tx: c.x, ty: c.y, life: rnd(.5, .9), s: 4, color: L.cols[i % 3] });
     }, i * 17);
-    for (let i = 0; i < 14; i++) setTimeout(() => fx.add({ kind: 'ember', x: ccx.x + rnd(-110, 110), y: ccx.y + 70, vx: rnd(-10, 10), vy: rnd(-90, -40), life: rnd(.8, 1.4), s: 4, color: L.cols[1] }), i * 80);
-    await wait(1250);
+    for (let i = 0, total = n(14); i < total; i++) setTimeout(() => fx.add({ kind: 'ember', x: ccx.x + rnd(-110, 110), y: ccx.y + 70, vx: rnd(-10, 10), vy: rnd(-90, -40), life: rnd(.8, 1.4), s: 4, color: L.cols[1] }), i * 80);
+    await wait(CARGA_S * 1000);
 
-    // 2. EXPLOSIÓN: salta la tapa, destello, onda, rayos de luz y hojas volando
-    chest.classList.remove('cfx-shake'); chest.classList.add('cfx-opening'); el.classList.add('cfx-lit'); flash(); quake(10, 500); snd('pop');
+    // 2. EXPLOSIÓN: se agacha (anticipación), salta estirado y revienta; pausa de impacto, tapa con resorte, destello, onda, rayos y hojas
+    carga.on = false; sq.meta = 1; snd('lanzar');
+    await wait(150);
+    sq.meta = 0; sq.empujar(-16);
+    tapaY.meta = -26; tapaY.empujar(-420); tapaGiro.meta = -.3; tapaGiro.empujar(-4); brillo.meta = .9; brillo.empujar(30);
+    esc.golpe({ pausa: .07, temblor: 10, duracion: .5 }); el.classList.add('cfx-lit'); flash(); snd('estallar');
     const c = chestBox();
     fx.add({ kind: 'ring', x: c.x, y: c.y, r0: 10, r1: 360, life: .7, color: '#ffe9a0', width: 8 });
     fx.add({ kind: 'ring', x: c.x, y: c.y, r0: 6, r1: 220, life: .5, color: L.cols[2], width: 5 });
     for (let i = -2; i <= 2; i++) fx.add({ kind: 'beam', x: c.x + i * 46, y: c.y, w: 22 + (2 - Math.abs(i)) * 14, h: 520 - Math.abs(i) * 90, life: 1.3, color: i % 2 ? L.cols[1] : '#ffe9a0' });
-    for (let i = 0; i < 70; i++) fx.add({ kind: 'spark', x: c.x + rnd(-60, 60), y: c.y - 10, vx: rnd(-330, 330), vy: rnd(-620, -120), g: 760, drag: .3, life: rnd(.8, 1.6), s: rnd(3, 7) | 0, color: i % 2 ? L.cols[0] : L.cols[1] });
-    for (let i = 0; i < 28; i++) fx.add({ kind: 'leaf', x: c.x + rnd(-80, 80), y: c.y, vx: rnd(-260, 260), vy: rnd(-520, -160), g: 380, drag: 1.1, life: rnd(1.4, 2.4), s: rnd(3, 5) | 0, rot: rnd(0, 6), spin: rnd(-8, 8), color: LEAVES[i % 4] });
+    for (let i = 0, total = n(70); i < total; i++) fx.add({ kind: 'spark', x: c.x + rnd(-60, 60), y: c.y - 10, vx: rnd(-330, 330), vy: rnd(-620, -120), g: 760, drag: .3, life: rnd(.8, 1.6), s: rnd(3, 7) | 0, color: i % 2 ? L.cols[0] : L.cols[1] });
+    for (let i = 0, total = n(28); i < total; i++) fx.add({ kind: 'leaf', x: c.x + rnd(-80, 80), y: c.y, vx: rnd(-260, 260), vy: rnd(-520, -160), g: 380, drag: 1.1, life: rnd(1.4, 2.4), s: rnd(3, 5) | 0, rot: rnd(0, 6), spin: rnd(-8, 8), color: LEAVES[i % 4] });
     await wait(900);
 
     // 3. RULETA: baja, gira a toda velocidad, se acerca a la cámara y frena con tensión
-    stage.classList.add('cfx-away'); roulette.hidden = false; roulette.classList.add('cfx-drop'); snd('whoosh');
+    stage.classList.add('cfx-away'); roulette.hidden = false; roulette.classList.add('cfx-drop'); snd('girar');
     await wait(520);
     const tw = strip.children[1].getBoundingClientRect().left - strip.children[0].getBoundingClientRect().left, view = strip.parentElement.clientWidth;
     const end = WIN_AT * tw + tw / 2 - view / 2 + (Math.random() - .5) * tw * .6, dur = big ? 8200 : 6600, t0 = performance.now();
@@ -5542,18 +5735,20 @@
         tiles[i].style.filter = `blur(${(speed * 3 * Math.min(1, d + .2)).toFixed(2)}px) brightness(${1 + .25 * near})`;
       }
       const idx = Math.floor(centre / tw);
-      if (idx !== last) { last = idx; if (k < .985) snd('tick'); marker.classList.remove('cfx-tick'); void marker.offsetWidth; marker.classList.add('cfx-tick'); }
+      if (idx !== last) { last = idx; if (k < .985) snd('paso'); marker.classList.remove('cfx-tick'); void marker.offsetWidth; marker.classList.add('cfx-tick'); }
       k < 1 && el.isConnected ? requestAnimationFrame(frame) : res();
     })());
     tiles.forEach(tl => { if (!tl.dataset.win) tl.style.transform = ''; tl.style.filter = ''; });
 
-    // 4. GOLPE: se detiene, onda de choque, cartel de rareza y fuente de chispas
-    el.classList.remove('cfx-spin'); el.classList.add('cfx-won'); snd('land'); setTimeout(() => snd('reveal', rarity), 160);
-    quake(L.amp, 700); if (L.flash) flash();
+    // 4. GOLPE: se detiene, pausa de impacto, onda de choque, cartel de rareza y fuente de chispas
+    el.classList.remove('cfx-spin'); snd('golpe');
+    esc.golpe({ pausa: big ? .1 : .06, temblor: L.amp, duracion: .7 });
+    await wait(big ? 100 : 60);
+    el.classList.add('cfx-won'); setTimeout(() => snd('premio', rarity), 60); if (L.flash) flash();
     const wt = strip.querySelector('[data-win]').getBoundingClientRect(), wx = wt.left + wt.width / 2, wy = wt.top + wt.height / 2;
     for (let i = 0; i < L.rings; i++) setTimeout(() => fx.add({ kind: 'ring', x: wx, y: wy, r0: 20, r1: 260 + i * 110, life: .8 + i * .1, color: L.cols[i % 3], width: 8 - i }), i * 120);
-    for (let i = 0; i < L.sparks; i++) fx.add({ kind: 'spark', x: wx + rnd(-30, 30), y: wy, vx: rnd(-520, 520), vy: rnd(-760, -160), g: 900, drag: .4, life: rnd(.9, 1.9), s: rnd(3, 8) | 0, color: L.cols[i % 3] });
-    if (big) for (let i = 0; i < (legend ? 50 : 24); i++) fx.add({ kind: 'leaf', x: wx + rnd(-200, 200), y: -20, vx: rnd(-60, 60), vy: rnd(60, 200), g: 120, drag: .5, life: rnd(2, 3.4), s: rnd(3, 5) | 0, rot: rnd(0, 6), spin: rnd(-6, 6), color: LEAVES[i % 4] });
+    for (let i = 0, total = n(L.sparks); i < total; i++) fx.add({ kind: 'spark', x: wx + rnd(-30, 30), y: wy, vx: rnd(-520, 520), vy: rnd(-760, -160), g: 900, drag: .4, life: rnd(.9, 1.9), s: rnd(3, 8) | 0, color: L.cols[i % 3] });
+    if (big) for (let i = 0, total = n(legend ? 50 : 24); i < total; i++) fx.add({ kind: 'leaf', x: wx + rnd(-200, 200), y: -20, vx: rnd(-60, 60), vy: rnd(60, 200), g: 120, drag: .5, life: rnd(2, 3.4), s: rnd(3, 5) | 0, rot: rnd(0, 6), spin: rnd(-6, 6), color: LEAVES[i % 4] });
     banner.hidden = false; banner.textContent = L.label; banner.classList.add('go');
     await wait(big ? 1100 : 650); showCard();
     return result;

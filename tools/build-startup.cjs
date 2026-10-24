@@ -5,7 +5,7 @@ const root = path.join(__dirname, '..');
 // Conservar fuentes modulares y reducir viajes de red en el arranque. Estos módulos
 // ya son IIFE/registro global y deben ejecutarse en el mismo orden que index.html.
 const startupModules = [
-  'cloud/foundation.js', 'core/storage.js', 'core/migrations.js', 'core/experiences.js',
+  'cloud/foundation.js', 'core/storage.js', 'core/migrations.js', 'core/experiences.js', 'core/movimiento.js',
   'design-system/pixel-text.js', 'design-system/pixel-ui.js', 'design-system/home-scene.js', 'design-system/rooms.js', 'design-system/preparation.js', 'ambient/time.js', 'ambient/weather.js', 'ambient/refugio-vida.js', 'ambient/events.js',
   'planner/priority.js', 'planner/labs.js', 'planner/grades.js', 'planner/grade-rules.js', 'planner/calendar-model.js', 'planner/schedule.js', 'planner/event-editor.js', 'planner/today-plan.js', 'planner/avisos.js', 'planner/notas.js', 'planner/calendario.js', 'planner/estudio-audio.js', 'planner/estudio.js',
   'study/economy.js', 'academic/amine-mastery.js', 'academic/active-time.js',

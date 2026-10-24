@@ -19,3 +19,6 @@ Ideas o decisiones que aparecieron en un chat pero pertenecen a otro tema. Cada 
 - `dist/world/torre-mundo.js` → `labProgress` cuenta como casos del piloto todo `exerciseId` que empiece con `org-01:`.
   Desde el puente de clases (18 oct) la clase org-01 usa el mismo prefijo, así que el laboratorio puede avanzar de más.
   Arreglo sugerido: filtrar también `r.source === 'structured_validator'`.
+
+## Pruebas rotas desde antes (24 oct 2026, chat de animación)
+- `academic-loop`, `academic-reliability`, `academic`, `clases-vivas` y `database` fallan en `master` limpio (sin cambios de animación). Van al chat de mantenimiento.
