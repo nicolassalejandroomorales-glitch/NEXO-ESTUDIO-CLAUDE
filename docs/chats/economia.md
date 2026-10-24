@@ -1,37 +1,40 @@
 # Economía, tienda y perfil
-- modelo: Sonnet 5.5 · alto (solo conversar y diseñar)
-- estado: Tienda de la beta implementada (17 oct 2026), esperando aprobación de Niquito. SPEC: docs/economia/SPEC.md
+- modelo: Sonnet 5.5 · alto para diseñar; para implementar, Sonnet 5.5 · medio
+- estado: diseño v3 escrito el 24 oct 2026 en docs/economia/SPEC.md, pendiente de aprobación de Niquito. Tienda de la beta (17 oct) ya implementada.
 - fase: desarrollo
 - prioridad: 3
-- spec: docs/mascota/SPEC.md (precios) y skill nexo-perfil
+- spec: docs/economia/SPEC.md (y docs/mascota/SPEC.md para precios viejos), skill nexo-perfil
 
 ## Hecho
 - Rangos arcanos (`dist/academic/ranks.js`) y Perfil con Mascota, Notas, Inasistencias, Estadísticas y Ajustes.
-- Precios de ejemplo de 14 accesorios (60–260 ⚛) en `PRICES` de `home-pet.js`.
+- Tienda de la beta: `dist/economy/tienda.js`, puesto del alquimista, apertura animada del cofre, cofres por categoría, ⚛ por evidencia con tope.
+- Diseño v3 (24 oct): tabla se gana / se gasta con topes, cofres con probabilidades, tabla de 10 rangos de jugador, rachas con perdón y criterios de aceptación.
 
 ## Falta
-- **Cambio del 18 oct 2026**: ya no hay "jefe vencido" (se borró el juego). Los cofres por hitos pasan a darse **al subir de rango de jugador**, que sube con la XP del juego nuevo de Aprender (`docs/juegos/SPEC.md`). Falta definir la tabla de niveles → cofres y cambiar `awardHitos()` (lee `nexo-pep1-campana`, que ya no existe).
-- (17 oct) Hecho: Tienda del alquimista con kit de UI, apertura animada del cofre, cofres por categoría y ⚛ por evidencia con tope. Falta: pagar transferencia/recuerdo desde el motor académico, cofres por ramo, objetos del refugio y skins, rachas con perdón.
-- Diseñar la economía: cómo se gana y se gasta (átomos, monedas), cuándo se siente justo y cuándo no.
-- Que "Comprar" funcione en la Tienda.
-- Decidir premio del tutorial (propuesta 150 ⚛) y unificar `state.coins` / átomos.
+- Que Niquito apruebe el diseño v3 (decisiones que tomé yo y hay que confirmar: tiempo de sesión paga 0, se quita el cofre por guía completada, premio del tutorial = 1 cofre, precios directos 90/150/300/600 ⚛).
+- Implementar los 9 pasos del SPEC (prompt abajo). Hallazgo: el estante hoy cobra polvo, no ⚛, y por eso "Comprar" parece no funcionar si no tienes polvo.
+- Chat de juegos: tope de 300 XP por día y la tabla de rangos de jugador.
+- Fase 2: cofres temáticos por ramo, objetos del refugio y skins.
 - Unificar Perfil › Notas con la Bitácora (lo hace el chat organizacion).
 
 ## Ideas
-- Ganar por evidencia real (acertar sin ayuda, recordar después) y no por tiempo sentado.
 - Objetos del refugio comprables, no solo accesorios.
-- Rachas con perdón (una semana mala no borra todo).
+- Si la colección se completa muy rápido: cofre del día "chico" (solo común o polvo).
 
-## Prompt de inicio
+## Prompt de implementación
 ```
-Chat: Economía, tienda y perfil (solo diseño). Lee CLAUDE.md, la skill nexo-perfil y el apartado de precios en docs/mascota/SPEC.md.
-Tarea: conversemos, sin código. Dime en una línea qué entendiste y hazme máximo 3 preguntas de selección múltiple sobre cómo se ganan y gastan los átomos/monedas, para que premie aprender de verdad y no solo abrir la app.
-El resultado es un docs/economia/SPEC.md corto y un prompt listo para un chat de implementación.
-Al terminar, usa nexo-cierre y actualiza docs/chats/economia.md.
+Chat: Economía (implementar). Lee CLAUDE.md, docs/economia/SPEC.md (diseño v3; si Niquito no lo ha aprobado, pregúntale antes de programar), docs/chats/economia.md y las skills nexo-motor y nexo-mascota.
+Recomienda modelo y esfuerzo en una línea. Dime en una línea qué entendiste y qué falta.
+Tarea: implementa los pasos del apartado "Cómo" del SPEC en orden, en pasos chicos, editando los archivos existentes (nada de v2 ni parches encima).
+Empieza por 1-2: inventario de lo que escribe `state.coins` y arreglar Comprar (el estante cobra polvo; agregar compra directa con ⚛ y mostrar precio y motivo en cada botón). Muéstrame eso antes de seguir con 3-9.
+Límites: no tocar Supabase ni nube; no generar imágenes; reutilizar el arte de la Tienda; sin cuenta todo es local.
+Pruebas: actualizar `tools/economia-test.cjs`, crear `tools/economia-sim.cjs` y correr `node tools/run-tests.cjs`; después `node tools/build-startup.cjs`. Verificar en 1440 y 390 con una sola captura al final.
+Si el chat se alarga, avísame y corta después del paso 5 para continuar en otro chat.
+Al terminar usa nexo-cierre y actualiza docs/chats/economia.md.
 ```
 
 ## Prompt de continuación
 ```
-Chat: Economía, tienda y perfil. Lee CLAUDE.md, la skill nexo-perfil y docs/chats/economia.md.
+Chat: Economía. Lee CLAUDE.md, docs/economia/SPEC.md y docs/chats/economia.md.
 Parte desde "Falta" y pregúntame qué decisión toca primero.
 ```

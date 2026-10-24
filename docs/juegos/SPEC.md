@@ -52,7 +52,7 @@ Dentro de **Aprender** (las puertas / Sótano de los Cristales) aparecen **bicho
 - Se puede jugar con teclado y en 390 px; movimiento reducido sin animación obligatoria.
 
 ## Pendiente (preguntar a Niquito antes de programar)
-- Tabla de XP por nivel (10 rangos) y qué cofre mejor dan los rangos 5 y 10 (acordar con el chat de economía).
+- Implementar la tabla de XP de los 10 rangos, el cofre de los rangos 5 y 10 y el tope de 300 XP por día: ya definidos en `docs/economia/SPEC.md` (pendiente de aprobación de Niquito).
 - Cómo se ve la vida del duelo y cuántos golpes aguantas.
 - Nombres, caras y música de los primeros bichos por ramo.
 - ¿Cuántos bichos distintos al inicio y cómo se llaman?

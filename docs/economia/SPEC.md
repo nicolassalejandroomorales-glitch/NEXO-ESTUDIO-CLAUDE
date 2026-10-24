@@ -1,75 +1,127 @@
 # Economía y Tienda (SPEC de diseño)
 
-Estado: **diseño aprobado por Niquito (17 oct 2026), sin código todavía.**
+Estado: **diseño v3 del 24 oct 2026, propuesto en el chat de economía, pendiente de aprobación de Niquito.** Reemplaza los números de la beta del 17 oct. Sin código nuevo todavía.
+Decisiones de Niquito (24 oct): un cofre comprado cada 2-3 días · rango de jugador da los cofres por hitos · pago decreciente por concepto · cofre diario con condición · rangos 5 y 10 con raro y legendario seguro · rango 10 en ~12 semanas.
 
 ## Qué
-Una economía donde los átomos (⚛) se ganan aprendiendo de verdad y se gastan en una Tienda cuyo protagonista son los **cofres**.
+Los átomos (⚛) se ganan demostrando que aprendes y se gastan en una Tienda cuyo protagonista es el cofre. Debe sentirse justo y adictivo sin dar falsa sensación de dominio.
 
-## Decisiones
-**Cómo se gana ⚛**
-- Principal: **evidencia real** (acertar sin ayuda, transferir a un problema nuevo, recordar días después). Tiempo sentado o abrir la app no paga.
-- Secundario: **bonus diario pequeño** (entrar y hacer una misión del día).
+## Principios (reglas absolutas de este tema)
+1. Solo paga **evidencia verificada** (acierto sin ayuda, transferir a un problema nuevo, recordar días después). Tiempo, abrir la app, leer o pulsar "completar" = 0 ⚛.
+2. Lo difícil de verdad paga más (transferir y recordar rinden más que repetir). Así lo adictivo coincide con lo que enseña (práctica espaciada y de recuperación: Cepeda 2006; Roediger y Karpicke 2006).
+3. Todo es **cosmético**: nada comprable da pistas, saltos ni ventaja de aprendizaje. ⚛, cofres y rango nunca se muestran como "dominio" ni "progreso de aprendizaje".
+4. Perder o fallar no quita ⚛, objetos ni progreso.
+5. Todo se explica: cada pago dice por qué, y cuando el pago baja dice cómo recuperarlo.
+6. Todo local (invitado, sin cuenta ni nube). Solo ⚛ del juego, nunca dinero real. No se toca Supabase.
 
-**Qué se vende**
-- Cofres (lo principal).
-- Accesorios de mascota (los 14 actuales, 60–260 ⚛ como base).
-- Objetos del refugio.
-- Skins / mascotas extra (átomo, matraz, slime).
+## Se gana ⚛
+| Fuente | Cuánto | Tope / regla |
+|---|---|---|
+| Acierto sin ayuda | 3 ⚛ | Por concepto y día: 1.º 3, 2.º 2, 3.º 1, 4.º en adelante 0 (multiplicadores 1 / 0,5 / 0,25 / 0, redondeo normal) |
+| Acierto con ayuda (pista o reintento) | 1 ⚛ | Solo el 1.º de ese concepto en el día |
+| Transferencia a problema nuevo | 6 ⚛ | Mismo decrecimiento por concepto: 6, 3, 2, 0 |
+| Recuerdo (repaso vencido) | 8 ⚛ si pasaron ≥2 días; 12 ⚛ si ≥7 días | Solo si el repaso estaba vencido (adelantarlo no paga); un pago por repaso |
+| Bonus diario | +5 ⚛ | Con el primer pago >0 del día; va aparte del tope |
+| Tiempo, abrir la app, leer, completar una guía con un clic | 0 ⚛ | Cambia: antes pagaba hasta 10 ⚛ por sesión ≥30 min |
+| Duelos del juego | Pagan por el mismo registro de evidencia (un duelo limpio = acierto sin ayuda) | Nunca hay doble pago; además dan XP de rango |
+| Premio del tutorial | 1 cofre sorpresa, una sola vez | Reemplaza la propuesta de 150 ⚛ |
 
-**Tipos de cofre (los tres, a la vez)**
-- **Sorpresa**: puede salir cualquier cosa, con rarezas (común → legendario).
-- **Por categoría**: cofre de accesorios, de refugio, de skins.
-- **Temático por ramo**: Orgánica II, Fisicoquímica… el contenido sigue lo que estudias.
+**Tope diario de evidencia: 60 ⚛** (+5 de bonus). Con el decrecimiento, repetir un solo concepto fácil todo el día rinde como máximo 6 ⚛ + 5 de bonus.
 
-**Cómo se consiguen los cofres**
-- Comprarlos con ⚛.
-- Premio por hitos (terminar una clase, ganar un jefe, una racha).
-- Un cofre diario gratis.
+## Se gasta
+| Qué | Precio |
+|---|---|
+| Cofre sorpresa | 70 ⚛ |
+| Cofre de categoría (cabeza, cara, cuello, mano) | 90 ⚛ (no se vende si ya tienes toda la categoría) |
+| Accesorio directo | Común 90 ⚛ · Poco común 150 ⚛ · Raro 300 ⚛ · Legendario 600 ⚛ |
+| Accesorio con polvo (repetidos) | 30 / 60 / 120 / 240 polvo |
+| Objetos del refugio, skins, mascotas extra | Fuera de esta fase (precios cuando existan) |
 
-**Justicia (anti mala suerte)**
-- **Garantía**: cada N cofres sale algo raro seguro (N por definir al implementar).
-- **Repetidos dan polvo**: un repetido se convierte en polvo, que sirve para comprar directo lo que falta.
-- Solo ⚛ del juego: nunca dinero real.
+El saldo nunca queda negativo y cada botón muestra su precio **en su moneda** (⚛ o polvo) y, si está bloqueado, por qué.
 
-## Cómo (propuesta de pasos para implementar)
-1. Unificar `state.coins` con átomos y definir un solo saldo.
-2. Ganar ⚛ desde el motor académico (evidencia) + bonus diario.
-3. Catálogo con rareza y un `PRICES` central.
-4. Cofres: tablas de probabilidad, garantía, polvo.
-5. Tienda: comprar, abrir cofre (animación mágica, pixel art, ambientación de la torre), equipar.
-6. Pruebas `tools/economia-test.cjs` (saldo, garantía, polvo).
+## Cofres
+| Tipo | Cómo se consigue | Contenido y probabilidades |
+|---|---|---|
+| Sorpresa | Compra 70 ⚛ · cofre del día · rangos 1-4 y 6-9 · hitos de racha | Común 60 % · Poco común 28 % · Raro 10 % · Legendario 2 % |
+| Categoría | Compra 90 ⚛ | Mismas probabilidades, calculadas solo con las rarezas que existen en esa categoría (cuello no tiene raro+, cabeza no tiene poco común). **Nunca da repetido** mientras te falte algo de la categoría: los 20 ⚛ extra pagan apuntar y no repetir |
+| Rango 5 | Subir al rango 5 | Raro (83 %) o legendario (17 %) seguro |
+| Rango 10 | Subir al rango 10 | Legendario seguro; si ya tienes los dos, 240 polvo |
+| Temático por ramo | Fase 2 | Hoy no hay contenido temático que poner dentro: se diseña cuando existan |
+
+**Cofre del día**: 1 cofre sorpresa gratis por día, **solo si hubo al menos un pago >0 ese día**. La fecha es la local.
+**Garantía**: tras 9 cofres sin raro+, el 10.º lo es. Cuentan solo los cofres que pueden dar raro+ (la categoría cuello no corre la garantía).
+**Repetido → polvo**: 10 / 20 / 40 / 80 según rareza; sirve para comprar directo lo que falta.
+
+## Rangos de jugador (XP del juego de Aprender)
+La XP viene del duelo: 20 × peso (1-3), mitad con pista o errores, combo hasta +30 %, perder no da XP. **Tope de 300 XP por día.** El rango no prueba dominio ni nota.
+
+| Rango | XP acumulada | Cofre |
+|---|---|---|
+| 1 | 150 | sorpresa |
+| 2 | 400 | sorpresa |
+| 3 | 750 | sorpresa |
+| 4 | 1.200 | sorpresa |
+| 5 | 1.800 | **raro+ seguro** |
+| 6 | 2.600 | sorpresa |
+| 7 | 3.700 | sorpresa |
+| 8 | 5.200 | sorpresa |
+| 9 | 7.000 | sorpresa |
+| 10 | 9.000 | **legendario seguro** |
+
+Con ~150 XP por día de estudio (5 días a la semana) el rango 5 llega a las ~2-3 semanas y el 10 a las ~12. El tope hace que nadie lo logre en menos de 6. Subir de varios rangos de golpe da todos sus cofres, una sola vez cada uno.
+
+## Rachas con perdón
+- Un día cuenta si hubo al menos un pago >0 ese día (abrir la app no cuenta).
+- **Perdón**: 1 día de gracia gratis cada 7 días (no se acumula). Si faltas más, la racha baja a la mitad (redondeo abajo), no a cero de golpe.
+- Hitos de 7, 14 y 30 días: 1 cofre sorpresa cada uno, una sola vez.
+
+## Ritmo esperado (estimación gruesa, verificar con simulación)
+- Día normal (12 aciertos en 4 conceptos, 1 transferencia, 1 repaso vencido): ~43 ⚛. Día liviano (6 aciertos, 2 conceptos): ~17 ⚛.
+- Semana de 5 días: ~150 ⚛ = 2 cofres comprados (uno cada 2-3 días) + 5 cofres del día.
+- Accesorio común directo en ~3 días; legendario directo en ~3 semanas. Los cofres siguen siendo el camino barato por intento; el precio directo es la válvula contra la mala suerte.
+- Colección completa de los 14: ~8-11 semanas, parecido al rango 10.
+- **Riesgo conocido**: el cofre del día condicional da ~5 cofres por semana. Si la colección se completa mucho antes, palanca: bajar el cofre del día a "chico" (solo común o polvo) o sumar contenido (temáticos, refugio, skins).
+
+## Justicia y anti-farmeo
+- Pago decreciente por concepto y día; recuerdo solo si estaba vencido; tope de 60 ⚛ y de 300 XP por día.
+- Garantía, polvo y categoría sin repetidos contra la mala suerte.
+- Si el reloj retrocede no se paga ni se da cofre del día. Es todo local: no se detecta nada más, y es aceptable.
+- **Registro del día** en la Tienda: ⚛ ganados hoy, tope, y el motivo de cada pago ("acierto sin ayuda en Aminas: +3"). Cuando el pago baja: "este concepto ya rindió hoy; prueba otro o espera al repaso".
+
+## Cómo (pasos para implementar)
+1. Inventariar todo lo que escribe `state.coins` (tutorial, desafíos verificados, tienda vieja de `rewards`, `streakShields`) y dejar un solo saldo; lo que paga por evidencia pasa por `earn`.
+2. Arreglar Comprar: el estante hoy cobra polvo, no ⚛; agregar compra directa con ⚛ y mostrar precio y motivo en cada botón.
+3. `earn`: decrecimiento por concepto y día, recuerdo solo vencido (8 o 12 ⚛), registro del día con motivos, tope y bonus aparte.
+4. Conectar `earn` al puente del motor académico (`NexoAcademicBridge.record`): sin ayuda, con ayuda, transferencia y recuerdo. Antes leer la skill `nexo-motor`.
+5. Hitos: cofre del día con condición; cofres por rango de jugador (ids `rango:N`, idempotentes) en vez de `jefe:`; quitar el cofre por guía completada; premio del tutorial = 1 cofre.
+6. Cofres: categoría sin repetidos y con probabilidades renormalizadas; garantía solo en cofres que pueden dar raro+; cofres de rango 5 y 10.
+7. Rachas con perdón (revisar que no dupliquen a los `streakShields`).
+8. Tienda: Registro del día, precios por moneda, estantes con compra directa. Correr `node tools/build-startup.cjs`.
+9. Pruebas y cierre.
 
 ## Criterios de aceptación
-- Comprar descuenta el saldo y no deja comprar sin fondos.
-- La garantía y el polvo funcionan y tienen prueba.
-- La ganancia de ⚛ depende de evidencia, no de tiempo.
-- Se ve bien en 1440 y 390.
+- Comprar (cofre con ⚛, accesorio con ⚛, accesorio con polvo) descuenta lo exacto; sin fondos rechaza con motivo claro y el saldo nunca es negativo.
+- Tiempo, abrir la app y pulsar "completar" pagan 0 (prueba).
+- Un mismo concepto repetido 100 veces en un día rinde como máximo 6 ⚛ + 5 de bonus; sin ayuda paga 3, 2, 1, 0.
+- Recuerdo solo paga si estaba vencido (8 ⚛ a ≥2 días, 12 ⚛ a ≥7); el tope diario de 60 ⚛ se respeta.
+- Cofre del día: solo con un pago >0, una vez por fecha local; si la fecha retrocede no se da.
+- Rangos: la tabla de 10 rangos; subir varios de golpe da todos sus cofres una vez; recargar no duplica; el 5 da raro+ y el 10 legendario.
+- Garantía: con rng sembrado, nunca más de 9 cofres seguidos sin raro+ en sorpresa (10.000 aperturas); el raro+ real queda entre 12 % y 15 %.
+- Probabilidades: en 100.000 aperturas sorpresa, cada rareza queda a ±1 punto de su valor base (tolerancia mayor en raro+ por la garantía).
+- Categoría sin repetidos mientras falte algo; no se vende si está completa; la garantía no corre en categorías sin raro+.
+- Racha: 1 perdón cada 7 días; con más faltas baja a la mitad; hitos de 7/14/30 pagan una sola vez.
+- Simulación de 12 semanas (`tools/economia-sim.cjs`) con tres perfiles (constante, irregular, farmeador): el farmeador no gana más de un cuarto que el constante, y el constante llega al rango 5 entre las semanas 2 y 3 y al 10 entre las 10 y 14.
+- Ninguna pantalla presenta ⚛, cofres o rango como dominio o progreso de aprendizaje.
+- Sin red ni cuenta: todo vive en el estado local y no se toca Supabase.
+- Se ve bien en 1440 y 390; respeta `prefers-reduced-motion`; `node tools/run-tests.cjs` en verde.
 
-## Hecho (17 oct 2026, versión mínima)
-- `dist/economy/tienda.js` (lógica) + Tienda en `home-pet.js` (`wireShop`) + prueba `tools/economia-test.cjs`.
-- Números: cofre 70 ⚛; rarezas 60/28/10/2 % (común/poco común/raro/legendario); garantía raro+ cada 10 cofres; repetido da 10/20/40/80 polvo; compra directa 30/60/120/240 polvo; 1 cofre diario gratis.
-- El Vestuario (Perfil › Mascota) solo muestra accesorios que tienes.
-- Cofres por hitos: 1 por jefe vencido (PEP 1), 1 por guía completada y 1 por racha de 7, 14 y 30 días; cada logro paga una sola vez (`claimMilestones`). Se entregan al abrir la Tienda o al completar una guía.
-- Solo accesorios dentro de los cofres; solo invitados (con cuenta en la nube la Tienda queda bloqueada).
+## Hecho (beta del 17 oct 2026, base que ya existe)
+- `dist/economy/tienda.js` (lógica pura), Tienda "puesto del alquimista" en `home-pet.js` (`wireShop`), apertura animada en `dist/economy/cofre-fx.js`, arte en `tools/tienda-pixel/`, prueba `tools/economia-test.cjs`.
+- 14 accesorios: 5 comunes, 4 poco comunes, 3 raros, 2 legendarios; cofre sorpresa y de categoría; garantía cada 10; polvo por repetidos; `earn` con tope diario.
+- Se reutiliza todo lo anterior: se edita, no se rehace.
 
-## Decisiones de la beta (Niquito, 17 oct 2026, 2ª ronda)
-- **Apariencia**: "puesto del alquimista" con el kit de UI (`pu-panel`, `pu-paper`, `pu-btn`, sellos, hiedra): mesón de madera, cofre grande al centro y accesorios en estantes con precios en pergamino.
-- **Apertura**: "cofre vivo con raíces": tiembla, la hiedra/raíces lo sueltan, la tapa salta con luz del color de la rareza, chispas y el objeto sube flotando. Raro y legendario hacen más espectáculo. Respeta `prefers-reduced-motion` (versión corta).
-- **Ganar ⚛** por evidencia con tope diario: acierto sin ayuda 3 ⚛, con ayuda 1, transferencia a problema nuevo 6, recuerdo después de ≥2 días 8; tope de **60 ⚛ por día** de evidencia (+5 de bonus diario con la primera evidencia del día). El tiempo de sesión ya no paga casi nada (máx. 10 ⚛ por sesión ≥30 min y cuenta para el mismo tope).
-- **Cofres por categoría**: además del cofre sorpresa (70 ⚛), cofre de cabeza, rostro, cuello y mano (90 ⚛ cada uno). Comparten la garantía.
-- Fuera de la beta: cofres temáticos por ramo, objetos del refugio y skins.
-
-## Hecho (17 oct 2026, 2ª ronda: Tienda de la beta)
-- Tienda rehecha como "puesto del alquimista" con el kit (`tienda.css`, marcos, pergaminos, botones de latón, letras pixel).
-- Arte nuevo: `tools/tienda-pixel/build_cofre.py` -> `dist/assets/tienda/` (cofre cerrado, abierto, raíces).
-- Apertura animada en `dist/economy/cofre-fx.js`: tiembla, raíces se sueltan, tapa salta con rayos y chispas del color de la rareza, el objeto sube flotando; versión corta con movimiento reducido.
-- Cofres por categoría (cabeza, rostro, cuello, mano; 90 ⚛) además del sorpresa (70 ⚛); `T.earn()` paga por evidencia con tope diario 60 ⚛ + 5 de bonus; el reloj paga máx. 10 ⚛ por sesión.
-- Guía completada ya no da ⚛ sueltos (da cofre por hito).
-
-## Pendiente (por decidir)
-- Cofres temáticos por ramo, objetos del refugio y skins dentro de los cofres (fuera de la beta).
-- Pagar `transferencia` y `recuerdo` desde el motor académico (la tabla `EARN` ya los tiene; falta llamar a `earn` desde `dist/academic/`).
-- Ajustar números tras probar cuánto ⚛ se gana de verdad.
-- Premio del tutorial (propuesta 150 ⚛).
-- Cuánto paga cada tipo de evidencia y el tope diario para que no se pueda "farmear".
-- Rachas con perdón (una semana mala no borra todo).
+## Pendiente
+- Cofres temáticos por ramo, objetos del refugio y skins (necesitan contenido); el polvo sobrante no tiene destino cuando ya lo tienes todo.
+- Con cuenta en la nube la Tienda sigue bloqueada (no se toca Supabase en este tema).
+- Afinar los números tras probar cuánto ⚛ se gana de verdad.
+- El tope de 300 XP por día y la tabla de rangos los implementa el chat de juegos con esta tabla.
