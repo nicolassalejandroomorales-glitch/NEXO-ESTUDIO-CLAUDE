@@ -20,3 +20,6 @@ beta/
 # Animaciones de prueba de Aprender (pesadas; se regeneran con tools/aprender-pasillo/build_sotano.py)
 docs/aprender-pasillo/*.gif
 docs/salas-sotano/*.gif
+
+# Caché de Python de los scripts de arte
+__pycache__/
