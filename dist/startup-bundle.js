@@ -1142,7 +1142,7 @@
     const hotspot=profile.hotspots.find(item=>item.id===id);
     if(hotspot?.action==='continue') {
       // Reutiliza el destino del botón "Abrir mapa de preparación": no se duplica la lógica.
-      root.querySelector('.continue-volume .primary-btn')?.click();
+      root.querySelector('.continue-volume')?.click();
       return true;
     }
     return false;

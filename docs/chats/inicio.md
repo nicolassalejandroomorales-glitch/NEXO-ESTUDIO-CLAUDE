@@ -5,6 +5,7 @@
 - spec: docs/inicio-reloj/SPEC.md (y docs/inicio-pixelart/SPEC.md)
 
 ## Hecho
+- Reloj nuevo, paso 2 (24 oct): hora + selector de ramo + cronómetro grande + Estudiar/Terminar + línea Continuar; Minimizar; tamaño pequeño/normal/grande en Ajustes; estilos en `home-clock.css`. Falta aprobación visual.
 - Distribución nueva del Inicio, paso 1 de `docs/inicio-reloj/SPEC.md` (24 oct): riel de 104 px, refugio 924×520, reloj + calendario + Próximas pruebas a la derecha, Calificaciones/Apuntes debajo, avatar de la mascota abajo a la izquierda; carteles y pie quitados. Falta aprobación visual.
 - Texto del Inicio rehecho (17 oct): letras pixel propias, carteles colgados de la viga en vez de tarjetas, reloj con hora y datos en pixel, título viejo quitado. Falta aprobación visual.
 - Animaciones nuevas (17 oct): nubes grandes y rápidas con sombra en el piso, brillo que recorre la hiedra, hojas y páginas que caen, poción que burbujea, polvo de luz y luciérnagas de noche; reloj con engranaje, orbe, péndulo, matraz y chispas al terminar. Ventana ya no es tocable. Falta aprobación visual.
@@ -37,5 +38,5 @@ No te salgas del tema. Al terminar, usa nexo-cierre y actualiza docs/chats/inici
 ## Prompt de continuación
 ```
 Chat: Inicio (refugio). Lee CLAUDE.md, la skill nexo-inicio y docs/inicio-reloj/SPEC.md.
-Paso 1 hecho (24 oct, falta mi aprobación visual). Implementa el paso 2 (reloj nuevo + selector de ramo + tamaño en Ajustes) y avísame antes de seguir.
+Pasos 1 y 2 hechos (24 oct, falta mi aprobación visual). Implementa el paso 3 (mini calendario y próximas pruebas con datos reales + calificaciones con NexoGradeRules/NexoNotas) y avísame antes de seguir.
 ```

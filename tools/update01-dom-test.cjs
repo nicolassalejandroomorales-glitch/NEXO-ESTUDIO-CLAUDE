@@ -38,11 +38,11 @@ const until=async check=>{for(let attempt=0;attempt<100;attempt++){if(check())re
   assert.ok(d.querySelector('.home-calendar .cal-day.is-today'),'el calendario marca hoy');
   assert.equal(d.querySelectorAll('.home-grades .grade-chip').length,4,'una chapa de calificación por ramo');
   assert.equal(d.querySelectorAll('.refuge-signs,.sign,.refuge-caption').length,0,'sin carteles colgados ni pie');
-  assert.ok(d.querySelector('.continue-volume .continue-where b').textContent.length>0,'Continuar nombra el ramo');
+  assert.ok(d.querySelector('.hc-continue').textContent.length>0,'Continuar nombra el ramo');
   const stored=()=>JSON.parse(w.localStorage.getItem('nexo-study-beta'));
   const immutableKeys=['mastery','organicProgress','completedLessons','events','grades','documents','inventory','mascot'];
   const academicBefore=Object.fromEntries(immutableKeys.map(key=>[key,stored()?.[key]]));
-  d.querySelector('.continue-volume [data-route="learn"]').click();
+  d.querySelector('.rail-nav [data-route="learn"]').click();
   await until(()=>d.querySelector('.sotano'));
   assert.equal(d.querySelector('.sotano-title').textContent,'Sótano de los Cristales');
   assert.equal(d.querySelector('#app').dataset.worldTransition,'book-first');
@@ -74,7 +74,7 @@ const until=async check=>{for(let attempt=0;attempt<100;attempt++){if(check())re
    w.NexoAmbientTime.update(new w.Date(2026,9,1,hour));assert.equal(d.body.dataset.nexoTime,time);
   }
   await route('home');
-  d.querySelector('.continue-volume [data-grimoire-route]').click();
+  d.querySelector('.continue-volume[data-grimoire-route]').click();
   await until(()=>d.querySelector('.preparation-map'));
   assert.ok(d.querySelectorAll('.preparation-node').length>0,'Continuar abre un mapa real');
   const academicAfter=Object.fromEntries(immutableKeys.map(key=>[key,stored()?.[key]]));

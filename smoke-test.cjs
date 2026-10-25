@@ -36,7 +36,7 @@ if (!app.includes('aria-modal="true"') || !index.includes('class="skip-link"') |
 if (!css.includes('@media (max-width: 620px)') || !css.includes('@media (prefers-reduced-motion: reduce)')) throw new Error('Responsive/movimiento reducido incompletos');
 if (/app-v[0-9]|styles-v[0-9]|styles-full|app-full/.test(index)) throw new Error('index.html todavía carga parches antiguos');
 if (!index.includes('./app.js?v=') || !index.includes('./data.js?v=') || !index.includes('./styles.css?v=')) throw new Error('Entradas canónicas incompletas');
-if (!app.includes('function startHomeClock()') || !app.includes('Próximas pruebas') || !app.includes("pixelText('Continuar'") || !app.includes('function renderCalendarInteractive()')) throw new Error('Interfaces principales incompletas');
+if (!app.includes('function startHomeClock()') || !app.includes('Próximas pruebas') || !app.includes('hc-continue') || !app.includes('function renderCalendarInteractive()')) throw new Error('Interfaces principales incompletas');
 if (!app.includes('NEXO_SEMESTER.events') || !app.includes('NEXO_SEMESTER.grades')) throw new Error('Programación oficial no integrada');
 if (!app.includes('function renderHub(') || !app.includes('function renderProfile(')) throw new Error('Navegación incompleta');
 if (/answerHeartChallenge|restoreHeartsFromSession|rpg-duel|heart-hud|pixel-heart/.test(app + css + index)) throw new Error('Corazones o duelo siguen en el runtime');

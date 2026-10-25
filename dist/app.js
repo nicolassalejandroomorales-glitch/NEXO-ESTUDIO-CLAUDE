@@ -767,6 +767,7 @@
     const profile=window.NexoHomeScene.getProfile(),composition=window.NexoHomeScene.render(profile);
     const sceneBackground=new URL(composition.backgroundAsset,document.baseURI).href;
     const zones=Object.values(scene.anchors).map(anchor=>`<span class="home-scene-zone" data-scene-zone="${anchor.zone}" style="left:${anchor.bounds[0]*100}%;top:${anchor.bounds[1]*100}%;width:${anchor.bounds[2]*100}%;height:${anchor.bounds[3]*100}%" aria-hidden="true"></span>`).join('');
+    const continueLine = { text: `Continuar: ${continuingSubject.name} · ${saved ? saved.title : pep?.name || 'elige una evaluación'} →`, attrs: saved ? `data-open-lesson="${state.lessonSession.id}"` : `data-grimoire-route="learn/course/${continuingSubject.id}/evaluation/pep-${pepIndex+1}"` };
     const next = evaluations[0], nextDays = next ? daysBetween(todayKey(), next.event.date) : null;
     const bubble = next ? `${subjectFor(next.event.subject).short}: ${next.event.title} ${nextDays <= 0 ? 'es hoy' : nextDays === 1 ? 'es mañana' : `es en ${nextDays} días`}.` : 'No tienes pruebas a la vista. ¿Repasamos algo?';
     app.innerHTML = `<section class="page rpg-home refuge-page">
@@ -797,19 +798,13 @@
           <p class="home-bubble" role="note">${esc(bubble)}</p>
         </div>
         <div class="home-side">
-          ${homeClockMarkup()}
+          ${homeClockMarkup(continueLine)}
           <section class="home-panel home-calendar pu-panel" aria-labelledby="calTitle">
             ${homeCalendarMarkup()}
           </section>
           <section class="home-panel home-pruebas evaluation-board pu-panel" aria-labelledby="priorityTitle">
             <h2 class="home-panel-title" id="priorityTitle">${pixelText('Próximas pruebas',{shadow:false})}</h2>
             ${evaluations.length ? `<ol class="evaluation-notes">${evaluations.map((item,index) => {const course=subjectFor(item.event.subject);return `<li class="evaluation-note ${index===0?'next-evaluation':''}" style="--course:${course.color}"><div><span>${esc(course.short)}</span><time datetime="${esc(item.event.date)}">${formatDate(item.event.date)}</time></div><h3>${esc(item.event.title)}</h3>${item.event.dateNote||item.event.weekdayUncertain?`<small>${esc(item.event.dateNote||'Fecha por confirmar con cátedra.')}</small>`:''}</li>`;}).join('')}</ol><button class="paper-link" data-route="planner" data-route-sub="calendar">Ver evaluaciones en Bitácora →</button>` : '<p class="paper-empty">Sin pruebas pendientes en tu calendario.</p>'}
-          </section>
-          <section class="home-panel home-continue continue-volume pu-panel" aria-labelledby="continueTitle">
-            <h2 class="home-panel-title" id="continueTitle">${pixelText('Continuar',{shadow:false})}</h2>
-            <p class="continue-where"><b>${esc(continuingSubject.name)}</b><span>${esc(pep?.name||'Selecciona una evaluación')}</span></p>
-            ${saved?`<button class="paper-link saved-lesson" data-open-lesson="${state.lessonSession.id}">Retomar clase guardada: ${esc(saved.title)} →</button>`:''}
-            <div class="volume-actions"><button class="pu-btn pu-btn-wide" data-grimoire-route="learn/course/${continuingSubject.id}/evaluation/pep-${pepIndex+1}">${pixelText('Preparar prueba →',{shadow:false})}</button><button class="pu-btn" data-route="learn">${pixelText('Elegir otro ramo',{shadow:false})}</button></div>
           </section>
         </div>
       </div>
@@ -848,30 +843,56 @@
       <ol class="cal-grid" aria-label="Calendario de ${esc(title)}">${['L','M','M','J','V','S','D'].map(day => `<li class="cal-head" aria-hidden="true">${day}</li>`).join('')}${cells.join('')}</ol>`;
   }
 
-  // Reloj de la torre en el Inicio: hora y momento del día, cronómetro de estudio, minutos de hoy y próxima evaluación.
-  const dayMoment = hour => hour < 6 ? 'madrugada' : hour < 12 ? 'mañana' : hour < 19 ? 'tarde' : 'noche';
-  const GREETINGS = { madrugada: 'Noche larga', mañana: 'Buen día', tarde: 'Buena tarde', noche: 'Buena noche' };
+  // Reloj de la torre en el Inicio (docs/inicio-reloj/SPEC.md): hora, cronómetro, ramo y controles.
   const pixelText = (text, options) => window.NexoPixelText.render(text, options);
-  // Tamaño del reloj a gusto: 1 mini · 2 normal · 3 grande · 4 enorme (píxeles enteros, ver update01.css), se recuerda en este dispositivo (no viaja con la cuenta).
-  const CLOCK_SCALES = [1, 2, 3, 4];
+  // Tamaño (Ajustes › Comodidad): 1 pequeño · 2 normal · 3 grande. Píxeles enteros, nunca scale (deforma el pixel art; ver home-clock.css). Se recuerda en este dispositivo (no viaja con la cuenta).
+  const CLOCK_SCALES = [1, 2, 3];
+  let clockDropped = false; // la caída del reloj ocurre solo la primera vez; al parar/seguir no se repite
   const clockScale = () => { try { const v = Number(localStorage.getItem('nexo.clockSize')); return CLOCK_SCALES.includes(v) ? v : innerWidth < 700 ? 1 : 2; } catch (_) { return 1; } };
-  // En el celular el reloj tapa la escena: un botón lo oculta y se recuerda en este dispositivo.
-  const clockHidden = () => { try { return localStorage.getItem('nexo.clockHidden') === '1'; } catch (_) { return false; } };
+  // Minimizado: queda la hora y ▶. Se recuerda en este dispositivo.
+  const clockMinimized = () => { try { return localStorage.getItem('nexo.clockMin') === '1'; } catch (_) { return false; } };
   function toggleClock() {
-    const hide = !clockHidden();
-    try { localStorage.setItem('nexo.clockHidden', hide ? '1' : '0'); } catch (_) { /* vale solo hasta recargar */ }
-    document.querySelector('.home-clock')?.toggleAttribute('hidden', hide);
-    document.querySelector('.hc-show')?.toggleAttribute('hidden', !hide);
+    const min = !clockMinimized(), clock = document.querySelector('.home-clock'), button = clock?.querySelector('.hc-min');
+    try { localStorage.setItem('nexo.clockMin', min ? '1' : '0'); } catch (_) { /* vale solo hasta recargar */ }
+    if (!clock || !button) return;
+    clock.dataset.min = min ? '1' : '0';
+    button.innerHTML = pixelText(min ? 'Abrir' : 'Minimizar', { shadow: false });
+    button.setAttribute('aria-label', min ? 'Abrir reloj' : 'Minimizar reloj');
+    button.setAttribute('aria-expanded', String(!min));
+    closeSubjectList();
   }
-  function homeClockMarkup() {
-    const timer = state.timer, running = timer.status === 'running', paused = timer.status === 'paused';
+  function closeSubjectList() {
+    const list = document.querySelector('.hc-subject-list');
+    if (!list || list.hidden) return;
+    list.hidden = true; document.querySelector('.hc-chip')?.setAttribute('aria-expanded', 'false');
+  }
+  // El ramo se elige en reposo o en pausa; con el cronómetro corriendo solo se muestra.
+  function setClockSubject(id) {
+    if (state.timer.status === 'running' || !SUBJECTS.some(item => item.id === id)) return;
+    state.timer.subject = id; saveState({ backup: false });
+    const course = subjectFor(id), chip = document.querySelector('.hc-chip');
+    if (chip) { chip.style.setProperty('--course', course.color); chip.querySelector('.hc-name').textContent = course.name; chip.setAttribute('aria-label', `Ramo que estudias: ${course.name}`); }
+    document.querySelectorAll('[data-subject-pick]').forEach(option => option.setAttribute('aria-selected', String(option.dataset.subjectPick === id)));
+    closeSubjectList();
+  }
+  // next = { text, attrs }: la línea "Continuar: ramo · tema →" que lleva al mapa de preparación o retoma la clase guardada.
+  function homeClockMarkup(next) {
+    const timer = state.timer, running = timer.status === 'running', active = running || timer.status === 'paused', min = clockMinimized();
     const pt = (text, shadow = false) => pixelText(text, { shadow });
-    return `<button class="hc-show pu-btn" data-clock-toggle aria-label="Mostrar reloj" ${clockHidden() ? '' : 'hidden'}>${pt('Reloj')}</button><aside class="home-clock ${running ? 'is-running' : ''}" data-cs="${clockScale()}" aria-label="Reloj de estudio" ${clockHidden() ? 'hidden' : ''}>
+    const course = subjectFor(timer.subject), primary = running ? 'Pausar' : active ? 'Seguir' : 'Estudiar';
+    const settled = clockDropped; clockDropped = true;
+    return `<aside class="home-clock ${running ? 'is-running' : ''} ${active ? 'is-active' : ''} ${settled ? 'is-settled' : ''}" data-cs="${clockScale()}" data-min="${min ? '1' : '0'}" aria-label="Reloj de estudio">
       <i class="hc-gear" aria-hidden="true"></i><i class="hc-orb" aria-hidden="true"></i><i class="hc-leaf hc-leaf-l" aria-hidden="true"></i><i class="hc-leaf hc-leaf-r" aria-hidden="true"></i><i class="hc-pendulum" aria-hidden="true"></i><i class="hc-flask" aria-hidden="true"></i>
-      <div class="hc-now"><div class="hc-hour" data-hc-time role="text"></div><div class="hc-greet" data-hc-moment></div></div>
-      <div class="hc-timer"><div class="hc-label">${pt(`${running ? 'Estudiando' : paused ? 'En pausa' : 'Cronómetro'} · ${subjectFor(timer.subject).short}`)}</div><div class="hc-digits" id="homeTimer" role="timer">${pixelDigits(formatClock(timerElapsedMs()))}</div></div>
-      <div class="hc-controls">${running ? `<button class="hc-btn pu-btn" data-action="timer-pause" aria-label="Pausar">${pt('Pausar')}</button>` : `<button class="hc-btn hc-primary pu-btn" data-action="timer-start" aria-label="${paused ? 'Seguir' : 'Estudiar'}">${pt(paused ? 'Seguir' : 'Estudiar')}</button>`}${timerElapsedMs() >= 1000 ? `<button class="hc-btn pu-btn" data-action="timer-finish" aria-label="Terminar">${pt('Terminar')}</button>` : ''}</div>
-      <div class="hc-meta"><button class="hc-hide pu-btn" data-clock-toggle aria-label="Ocultar reloj">${pt('Ocultar')}</button></div>
+      <div class="hc-top"><div class="hc-hour" data-hc-time role="text"></div><button class="hc-min pu-btn" data-clock-toggle aria-expanded="${!min}" aria-label="${min ? 'Abrir reloj' : 'Minimizar reloj'}">${pt(min ? 'Abrir' : 'Minimizar')}</button></div>
+      <div class="hc-subject">
+        <button class="hc-chip" data-subject-toggle aria-haspopup="listbox" aria-expanded="false" aria-label="Ramo que estudias: ${esc(course.name)}" style="--course:${course.color}" ${running ? 'disabled' : ''}><span class="hc-dot" aria-hidden="true"></span><span class="hc-name">${esc(course.name)}</span><span class="hc-caret" aria-hidden="true"></span></button>
+        <ul class="hc-subject-list" role="listbox" aria-label="Ramos del semestre" hidden>${SUBJECTS.map(item => `<li role="presentation"><button class="hc-option" role="option" data-subject-pick="${item.id}" aria-selected="${item.id === timer.subject}" style="--course:${item.color}"><span class="hc-dot" aria-hidden="true"></span>${esc(item.name)}</button></li>`).join('')}</ul>
+      </div>
+      <div class="hc-digits" id="homeTimer" role="timer">${pixelDigits(formatClock(timerElapsedMs()))}</div>
+      <div class="hc-controls">
+        <button class="hc-btn hc-primary pu-btn" data-action="${running ? 'timer-pause' : 'timer-start'}" aria-label="${primary}"><span class="hc-play ${running ? 'is-pause' : ''}" aria-hidden="true"></span><span class="hc-btn-label">${pt(primary)}</span></button>${timerElapsedMs() >= 1000 ? `<button class="hc-btn hc-finish pu-btn" data-action="timer-finish" aria-label="Terminar">${pt('Terminar')}</button>` : ''}
+      </div>
+      <button class="hc-continue continue-volume" ${next.attrs}>${esc(next.text)}</button>
     </aside>`;
   }
   // Chispas de latón, cristal y hoja al terminar una sesión: viven en el body porque el Inicio se vuelve a pintar al guardar.
@@ -892,10 +913,8 @@
     const tick = () => {
       const now = new Date(), time = document.querySelector('[data-hc-time]');
       if (!time) return;
-      const clock = now.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false }), moment = dayMoment(now.getHours());
+      const clock = now.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false });
       if (time.dataset.t !== clock) { time.dataset.t = clock; time.innerHTML = pixelDigits(clock); time.setAttribute('aria-label', clock); }
-      const greet = document.querySelector('[data-hc-moment]');
-      if (greet.dataset.m !== moment) { greet.dataset.m = moment; greet.innerHTML = pixelText(GREETINGS[moment], { shadow: false }); }
       const digits = document.querySelector('#homeTimer');
       const elapsed = formatClock(timerElapsedMs());
       if (digits && state.timer.status === 'running' && digits.dataset.t !== elapsed) { digits.dataset.t = elapsed; digits.innerHTML = pixelDigits(elapsed); digits.setAttribute('aria-label', elapsed); }
@@ -1646,6 +1665,7 @@
         <label class="field"><span>Volumen de ambiente</span><input type="range" min="0" max="100" step="5" data-setting-volume="ambientVolume" value="${Math.round(state.settings.ambientVolume * 100)}" aria-label="Volumen de ambiente"></label>
         <label class="toggle"><input type="checkbox" data-setting="music" ${state.settings.music ? 'checked' : ''}><span><b>Música</b><small>Pista instrumental opcional; se detiene durante las clases.</small></span></label>
         <label class="field"><span>Volumen de música</span><input type="range" min="0" max="100" step="5" data-setting-volume="musicVolume" value="${Math.round(state.settings.musicVolume * 100)}" aria-label="Volumen de música"></label>
+        <label class="field"><span>Tamaño del reloj del Inicio</span><select data-clock-size-setting>${[[1,'Pequeño'],[2,'Normal'],[3,'Grande']].map(([value, name]) => `<option value="${value}" ${clockScale() === value ? 'selected' : ''}>${name}</option>`).join('')}</select></label>
         <label class="toggle"><input type="checkbox" data-setting="motion" ${state.settings.motion ? 'checked' : ''}><span><b>Animaciones suaves</b><small>Desactívalas si prefieres menos movimiento.</small></span></label><label class="toggle"><input type="checkbox" data-setting="focusMode" ${state.settings.focusMode ? 'checked' : ''} ${state.inventory.includes('focus-mode') ? '' : 'disabled'}><span><b>Modo sin distracciones</b><small>${state.inventory.includes('focus-mode') ? 'Oculta paneles secundarios mientras corre el cronómetro.' : 'Se desbloquea en Tienda.'}</small></span></label></section>
       <section class="panel"><p class="eyebrow">TUTORIALES</p><h2>Vuelve a ver al Grimorio</h2><p>Repasa el recorrido cuando quieras. Tu progreso y la primera visualización se conservan.</p><button class="secondary-btn" data-action="replay-tutorial">Repetir tutorial</button></section>
       <section class="panel"><p class="eyebrow">PORTABILIDAD</p><h2>Respaldo manual</h2><p>El archivo incluye sesiones, errores, notas, inasistencias, clases, calendario y personalización. No contiene contraseñas.</p><div class="button-stack"><button class="primary-btn" data-action="export-data">Exportar progreso .json</button><button class="secondary-btn" data-action="import-data">Importar progreso</button><button class="secondary-btn" data-action="restore-backup" ${backup ? '' : 'disabled'}>Restaurar copia automática</button></div><small>Última copia automática: ${state.meta.lastBackupAt ? new Intl.DateTimeFormat('es-CL', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(state.meta.lastBackupAt)) : 'todavía no existe'}</small></section>
@@ -1688,7 +1708,7 @@
 
 
   function timerStart() {
-    if (state.timer.status === 'idle') { state.timer.subject = document.querySelector('#timerSubject')?.value || state.timer.subject; state.timer.elapsedBeforeMs = 0; }
+    if (state.timer.status === 'idle') state.timer.elapsedBeforeMs = 0;
     if (cloud.authenticated) {
       const promise = state.timer.serverId
         ? cloud.resumeTimer(state.timer.serverId).then(() => state.timer.serverId)
@@ -1859,7 +1879,9 @@
     if (form.dataset.exerciseText && submit) submit.disabled = (form.querySelector('textarea')?.value.trim().length || 0) < 60;
   }
 
+  document.addEventListener('keydown', event => { if (event.key === 'Escape') closeSubjectList(); });
   document.addEventListener('click', event => {
+    if (!event.target.closest('.hc-subject')) closeSubjectList();
     const button = event.target.closest('button, [data-route]'); if (!button) return;
     if (button.dataset.action === 'replay-tutorial') return beginTutorial('replay');
     if(button.dataset.sceneHotspot&&!button.dataset.route)return window.NexoHomeScene.activate(button.dataset.sceneHotspot,app);
@@ -1901,6 +1923,8 @@
     if (button.dataset.profileDeleteGrade) return removeGrade(button.dataset.profileDeleteGrade, ui.profileSubject);
     if (button.dataset.deleteAbsence) return removeWithUndo(state.absences, button.dataset.deleteAbsence, 'Inasistencia');
     if (button.dataset.clockToggle !== undefined) return toggleClock();
+    if (button.dataset.subjectToggle !== undefined) { const list = document.querySelector('.hc-subject-list'); if (!list) return; list.hidden = !list.hidden; button.setAttribute('aria-expanded', String(!list.hidden)); return; }
+    if (button.dataset.subjectPick) return setClockSubject(button.dataset.subjectPick);
     if (button.dataset.action === 'timer-start') return timerStart();
     if (button.dataset.action === 'timer-pause') return timerPause();
     if (button.dataset.action === 'timer-finish') { if (button.closest('.home-clock')) sparkBurst(button); return timerFinish(); }
@@ -1996,8 +2020,12 @@
       state.settings.dailyGoalMinutes = clamp(Number(target.value)||120,15,600);
       saveState(); renderRoute(false); return;
     }
-    if (target.id === 'timerSubject') { state.timer.subject = target.value; saveState({ backup: false }); }
     if (target.dataset.setting) { state.settings[target.dataset.setting] = target.checked; saveState(); updateChrome(); if (target.dataset.setting === 'analytics') cloud.analyticsConsent(target.checked); if (['sound','ambient','music'].includes(target.dataset.setting)) { window.NexoAudio.configure(state.settings); window.NexoAudio.activate(); } if (target.dataset.setting === 'motion') renderRoute(false); }
+    if (target.dataset.clockSizeSetting !== undefined) {
+      const next = Number(target.value);
+      if (CLOCK_SCALES.includes(next)) { try { localStorage.setItem('nexo.clockSize', String(next)); } catch (_) { /* vale solo hasta recargar */ } }
+      return;
+    }
     if (target.dataset.performanceSetting) {
       const key=target.dataset.performanceSetting;
       const values={graphicsQuality:['auto','low','balanced','high'],particles:['none','low','high'],ambientMotion:['reduced','normal','rich'],mascotMotion:['reduced','full']};

@@ -10,11 +10,11 @@
     inicio: {
       ruta: 'home',
       pasos: [
-        { sel: '.home-clock', pose: 'senalar', texto: 'El *reloj de la torre*, a la derecha: la hora, tus minutos de hoy y cuánto falta para tu próxima prueba. «Estudiar» enciende el cronómetro.' },
+        { sel: '.home-clock', pose: 'senalar', texto: 'El *reloj de la torre*, a la derecha: la hora, el ramo que estudias y el cronómetro. Elige el ramo y toca «Estudiar».' },
         { sel: '.home-pruebas', pose: 'importante', texto: 'Las *próximas pruebas*, ordenadas por urgencia. Las fechas de este semestre ya las traigo anotadas.' },
         { sel: '.home-calendar', pose: 'dedo', texto: 'El *calendario del mes*: hoy va marcado y cada punto es un evento; en rojo, las evaluaciones.' },
         { sel: '.home-grades', pose: 'importante', texto: 'Tus *calificaciones* por ramo: el promedio de lo que ya rendiste. Las notas se editan en Organización.' },
-        { sel: '.home-continue', pose: 'abrir', texto: '*Continuar*: te dejo justo donde estabas, con el mapa de preparación de tu próxima prueba.' }
+        { sel: '.continue-volume', pose: 'abrir', texto: '*Continuar*: te dejo justo donde estabas, en la última línea del reloj.' }
       ]
     },
     aprender: {

@@ -106,6 +106,21 @@ Reglas: editar el original (sin `-v2`), borrar lo que quede sin uso, `node tools
 - `tools/update01-dom-test.cjs` no corre en este entorno (con jsdom instalado se agota igual sobre el código original): sus aserciones nuevas se comprobaron a mano en un navegador.
 - Móvil (390): no se rompe (sin scroll horizontal), pero el reloj queda bajo el refugio; el orden final y la tira fija son el paso 6.
 
+## Hecho · paso 2 (24 oct 2026)
+- Reloj nuevo (marcado `homeClockMarkup` en `app.js`, estilos en `design-system/home-clock.css`; las reglas viejas se borraron de `update01.css` y `home-layout.css`): hora de 4 px por pixel (29 px de alto), selector de ramo, cronómetro grande (51 px de alto), Estudiar/Pausar/Seguir + Terminar con ícono ▶/❚❚ dibujado en CSS, y la línea "Continuar: ramo · tema →" (`.hc-continue.continue-volume`, mantiene los enganches de `platform/animation.js` y del escritorio del refugio).
+- Selector de ramo: chip con el color del ramo que abre la lista del semestre; guarda en `state.timer.subject`; con el cronómetro corriendo queda bloqueado (solo se muestra). Escape y clic fuera lo cierran.
+- Minimizar (antes Ocultar): queda la hora y ▶; el cronómetro solo aparece si hay sesión en curso o en pausa. Se recuerda en el dispositivo (`nexo.clockMin`).
+- Tamaño en Ajustes: select pequeño / normal / grande (`nexo.clockSize`; por defecto normal en escritorio y pequeño en móvil). Píxeles enteros, nunca `scale`.
+- Quitados: saludo/momento del día, cartel "Estudiando", el panel Continuar aparte, `#timerSubject` y las reglas `.home-continue`.
+- La caída del reloj ocurre solo la primera vez en la sesión (antes se repetía al parar/seguir).
+- Pruebas ajustadas: `smoke-test`, `update01-dom-test`, selectores del tutorial. `run-tests`: 45/50 (las 5 de antes).
+- Medido en 1440×900: columna derecha termina en 884 px (sin scroll). En pantallas bajas (≤ 960 px de alto) Próximas pruebas muestra solo las 2 más cercanas.
+
+### Decisiones tomadas en el paso 2 (confirmar)
+- Tamaños: 3 (pequeño/normal/grande) en vez de 4; el "enorme" viejo se quitó por la altura de la columna.
+- Plan de hoy sigue sin aparecer en el Inicio (decisión del paso 1 pendiente).
+- La línea "Aviso de estudio cada 30 min" llega con el paso 4.
+
 ## Pendiente (otros temas)
 - **Apuntes**: subir fotos de cuadernos y verlas como imágenes. Guardado local en el dispositivo (límite de peso), no en la nube. Tema aparte: crear `docs/apuntes/SPEC.md`.
 - Ajustes del aviso viven en la pantalla de Perfil (skill `nexo-perfil`): conectar con cambio mínimo.
@@ -114,5 +129,5 @@ Reglas: editar el original (sin `-v2`), borrar lo que quede sin uso, `node tools
 ## Prompt de continuación
 ```
 Chat: Inicio (refugio). Lee CLAUDE.md, la skill nexo-inicio y docs/inicio-reloj/SPEC.md.
-Paso 1 hecho (24 oct). Implementa el paso 2 de "Cómo" (reloj nuevo + selector de ramo + tamaño en Ajustes) y avísame antes de seguir. Una sesión = un cambio.
+Pasos 1 y 2 hechos (24 oct). Implementa el paso 3 de "Cómo" (mini calendario/próximas pruebas con datos reales + calificaciones con NexoGradeRules/NexoNotas) y avísame antes de seguir. Una sesión = un cambio.
 ```
