@@ -15,6 +15,7 @@ Detrás de cada puerta ya no está la Cámara circular: hay un **Vestíbulo del 
 Reemplazan del todo a la **Cámara del ramo**, la **Sala de entrenamiento** y la **Sala de Laboratorio** (decisión de Niquito, 24 oct).
 
 ## Decisiones de Niquito
+- 25 oct: **se elimina el sauce** del Vestíbulo. El Vestíbulo sirve de base para **más salas** (ejercitación y otras): sus arcos libres quedan para salas nuevas.
 - 24 oct: las 3 salas reemplazan Cámara, Entrenamiento y Laboratorio; grandes y entretenidas.
 - 24 oct: **Atril de Codex rechazado** (`atril-propuesta.html`, rama `codex/experiencia-academica-atril`): "muy plano", no inmersivo. La lectura pasa **dentro del mundo**, sobre un objeto de la escena, nunca en un panel encima.
 - 24 oct: estilos elegidos: 1 Atril en primera persona, 3 Proyección del Grimorio, 4 Mesa del alquimista.
@@ -27,7 +28,7 @@ Reemplazan del todo a la **Cámara del ramo**, la **Sala de entrenamiento** y la
   entrada ── [Orgánica II] ── [Analítica] ── [Fisicoquímica II] ─┬─ [Fisiopatología] ── TANDA DE HOY (común)
                   │                                              └─ pasillo lateral: semestres futuros (candado)
                   ▼ puerta rediseñada + portal
-          VESTÍBULO DEL RAMO  (sauce de cristal = dominio, "PEP 1 · N días", cristales de repaso)
+          VESTÍBULO DEL RAMO  (sin sauce: pedestal con "PEP 1 · N días", cristales de repaso; 6 arcos)
              ├── arco 1 → AULA     (atril + muro de cristal)      ← brilla primero si hay clase nueva
              ├── arco 2 → TALLER   (mesa del alquimista)          ← brilla después del Aula
              └── arco 3 → ARENA    (juegos del ramo)              ← brilla al final
@@ -46,7 +47,7 @@ Reemplazan del todo a la **Cámara del ramo**, la **Sala de entrenamiento** y la
 
 ## Qué ve y hace el usuario en cada lugar
 - **Pasillo**: las 4 puertas rediseñadas con letrero, murales del ramo y portal; música del Sótano. Hace: caminar, girar, entrar.
-- **Vestíbulo**: el sauce con su dominio real (brote → verde → flor), la cuenta regresiva de la PEP grabada, grietas de error que puede tocar para reintentar y los 3 arcos. Hace: elegir sala, reintentar un error y abrir el formulario.
+- **Vestíbulo**: pedestal central con la cuenta regresiva de la PEP grabada, grietas de error que puede tocar para reintentar y los 3 arcos. Hace: elegir sala, reintentar un error y abrir el formulario.
 - **Aula**: el Grimorio proyecta en el muro la idea animada (p. ej. el H⁺ vuela al par libre). En el tomo lee el capítulo y responde preguntas intercaladas; el feedback aparece en la misma página. La mascota acompaña en lectura y se oculta en pruebas. El Grimorio explica; la mascota no enseña ni evalúa.
 - **Taller**: lee el enunciado en una ficha sobre la mesa y lo resuelve con objetos. Si falla, la escena muestra el porqué (la anilina rechaza el H⁺) y el Grimorio lo dice en una frase. Hay estaciones para guía, simulacro con reloj de arena y prelab.
 - **Arena**: juegos del ramo; se diseña en el chat de juegos.
@@ -89,7 +90,7 @@ Medido el 25 oct en este equipo con el motor actual (`build_sotano.py`) y la car
 1. **Rediseño de puertas**: bocetos de 3 direcciones lado a lado → Niquito elige. Opus · alto solo para elegir; dibujo en Sonnet.
 2. **Prototipo del pasillo en vivo** (un tramo con una puerta, sin estado): medir con los criterios 2 y 3 en el celular y en PC. Decide en vivo o plan B. Opus · alto.
 3. **Pasillo completo en vivo** con las 4 puertas nuevas, entrada directa desde cualquier parada y música; reemplaza los cuadros del pasillo. Sonnet · alto.
-4. **Vestíbulo de Orgánica II** con el sauce y el estado real (dominio, repasos, cuenta regresiva, grietas). Sonnet · alto.
+4. **Vestíbulo de Orgánica II** sin sauce, con el estado real (repasos, cuenta regresiva, grietas) y los arcos. Sonnet · alto.
 5. **Aula de Orgánica II** (Aminas · basicidad): atril, muro con una proyección animada y tomo con el contenido real de `org-01`. Sonnet · alto; la estructura de la clase, con Opus.
 6. **Taller de Orgánica II**: ficha y mesa con un tipo de ejercicio manipulable (llevar el H⁺) conectado al motor. Sonnet · alto.
 7. **Borrar** la Cámara y las salas viejas de Orgánica II y medir el peso.
@@ -98,6 +99,7 @@ Medido el 25 oct en este equipo con el motor actual (`build_sotano.py`) y la car
 10. **Arena**: la diseña y la hace el chat de juegos.
 
 ## Bocetos y medición
+- `python tools/salas-sotano/vestibulo.py cuadros` → `vestibulo-cuadros.png` (Vestíbulo sin sauce con los arcos Aula / Taller / Arena).
 - `python tools/salas-sotano/aula.py [cuadros]` → `aula-muro.png`, `aula-tomo.png`, `aula.gif` (~40 s; el GIF no se sube).
 - `python tools/salas-sotano/mesa.py [cuadros]` → `mesa.png`, `mesa-rebote.png`, `mesa.gif` (~30 s).
 - Ajuste 25 oct: el tomo se ve de pie y en ángulo (se ven la sala y el muro detrás), atril de piedra con canto y pie, sin filetes verdes; molécula del muro corregida.
