@@ -13,7 +13,8 @@
     corcho: Object.freeze({ rigidez: 380, amortiguacion: 12 }),     // rápido y nervioso
     tapa: Object.freeze({ rigidez: 170, amortiguacion: 9 }),        // sube, se pasa y se asienta
     brillo: Object.freeze({ rigidez: 90, amortiguacion: 8 }),       // luz que late
-    camara: Object.freeze({ rigidez: 220, amortiguacion: 18 })      // casi sin rebote
+    camara: Object.freeze({ rigidez: 220, amortiguacion: 18 }),     // casi sin rebote
+    pagina: Object.freeze({ rigidez: 80, amortiguacion: 9 })        // pantalla que cae, aterriza y se asienta
   });
   // Vocabulario de eventos -> nombre del sonido. Los de interfaz viven en NexoAudio; el resto, en el sintetizador de efectos.
   const EVENTOS = Object.freeze({
@@ -43,7 +44,7 @@
       valor: num(o.valor, 0), velocidad: num(o.velocidad, 0), meta: num(o.meta, num(o.valor, 0)),
       empujar(v) { if (!instantaneo) r.velocidad += num(v, 0); return r; },
       fijar(valor) { r.valor = r.meta = num(valor, r.valor); r.velocidad = 0; return r; },
-      reposo() { return Math.abs(r.valor - r.meta) < .001 && Math.abs(r.velocidad) < .001; },
+      reposo(tolerancia = .001) { return Math.abs(r.valor - r.meta) < tolerancia && Math.abs(r.velocidad) < tolerancia; },
       avanzar(dt) {
         if (instantaneo) { r.valor = r.meta; r.velocidad = 0; return r.valor; }
         let resto = Math.min(Math.max(num(dt, 0), 0), DT_MAX);

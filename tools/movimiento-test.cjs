@@ -52,6 +52,8 @@ function entorno({ sonido = true, cuerpo, reducido = false } = {}) {
   assert.equal(r.valor, 1, 'se asienta exactamente en la meta');
   assert.equal(r.velocidad, 0);
   assert.ok(r.reposo());
+  const cerca = M.resorte({ meta: 10, valor: 10.3 });
+  assert.ok(!cerca.reposo() && cerca.reposo(.5), 'reposo acepta una tolerancia (para apagar bucles cuando ya no se nota)');
 
   // Mismo movimiento a 60 y a 144 cuadros por segundo (paso fijo).
   const a = M.resorte({ preset: 'tapa', meta: -24 }).empujar(-380), b = M.resorte({ preset: 'tapa', meta: -24 }).empujar(-380);
@@ -69,7 +71,7 @@ function entorno({ sonido = true, cuerpo, reducido = false } = {}) {
   // fijar y valores por defecto con basura.
   assert.equal(M.resorte({ valor: 'x', rigidez: undefined }).valor, 0);
   assert.equal(M.resorte('brillo').fijar(3).valor, 3);
-  assert.deepEqual(Object.keys(M.PRESETS).sort(), ['aplastar', 'brillo', 'camara', 'corcho', 'liquido', 'tapa']);
+  assert.deepEqual(Object.keys(M.PRESETS).sort(), ['aplastar', 'brillo', 'camara', 'corcho', 'liquido', 'pagina', 'tapa']);
 
   // alinear
   assert.equal(M.alinear(3.4), 3);

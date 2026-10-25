@@ -1,6 +1,6 @@
 # Estándar de animación
 
-Estado: hecho, esperando aprobación de Niquito (24 oct 2026). Skill: `.claude/skills/nexo-animacion/SKILL.md`. Código: `dist/core/movimiento.js`.
+Estado: cofre y botones/transiciones hechos, esperando aprobación de Niquito (24 oct 2026). Skill: `.claude/skills/nexo-animacion/SKILL.md`. Código: `dist/core/movimiento.js`.
 
 ## Qué
 Un estilo de movimiento único para Nexo, escrito y reutilizable, aplicado en **un solo lugar**: la apertura del cofre de la Tienda.
@@ -41,9 +41,22 @@ El temblor usa la propiedad CSS `translate` para no pelear con el `transform: sc
 - Movimiento reducido: el premio aparece a los 0,14 s, sin cofre animado.
 - Pruebas rápidas: 46/51 OK. Fallan `academic-loop`, `academic-reliability`, `academic`, `clases-vivas` y `database`; ya fallaban antes de este cambio (se anotó en `docs/pendientes.md`).
 
+## Segundo lugar: botones y transiciones (24 oct 2026)
+Alcance: el kit de botones de latón (`.pu-btn`, `.nav-btn`, `.hc-btn`) y el portal entre secciones, que viven juntos en `dist/design-system/pixel-ui.js` y `.css`.
+- **Botón**: al apretar la cara se hunde un píxel de arte (2 px, resorte `camara`, anticipación) y al soltar rebota hacia arriba y se asienta (resorte `corcho` + empujón). Posiciones en pasos de 2 px (la grilla del arte ×2). Va por `--pu-y` y la propiedad CSS `translate`, que no choca con el `transform` del rebote de hover. El arte no se escala ni se gira (regla 5).
+- **Portal**: se mantiene el círculo que se abre desde el toque. Suma sonido `girar` al abrir y una caída de la pantalla nueva (10 px, resorte nuevo `pagina`) que aterriza con `golpe` y rebota contra su piso. Nunca baja de su sitio: un rebote hacia abajo hacía crecer el scroll de 900 a 902 px y movía la barra.
+- **Sonido**: el clic pasó de `NexoAudio.play('click')` a `NexoMovimiento.sonido('clic')`; `girar` y `golpe` usan el sintetizador que ya existía. Sin sistema nuevo.
+- **Movimiento reducido** (sistema, clase `reduce-motion` o ajuste): el botón se hunde y vuelve sin rebote, la pantalla cambia sin portal ni caída. El clic sigue sonando (solo lo manda Ajustes). Con calidad baja o sin View Transitions, igual.
+- **Rendimiento**: un solo bucle de cuadros compartido, que se enciende al mover algo y se apaga cuando ya no se nota (`reposo(.5)`); nada permanente.
+- Cambios compartidos: `movimiento.js` suma el preset `pagina` y `reposo(tolerancia)`. `pixel-ui.js` ya no repite los chequeos de movimiento reducido: usa `NexoMovimiento.reducido()`.
+- Prueba: `tools/interfaz-movimiento-test.cjs` (botón, desactivado, cancelar toque, reducido, portal animado y calmado, silencio sin AudioContext, orden de carga).
+- Medido en Chromium sin GPU (que arranca en calidad baja, así que se forzó "alta" para ver el portal), código anterior vs nuevo: 1440 p50 16,7 / p95 66,8 ms vs 16,7 / 66,7 ms; 390 p50 16,7 / p95 33,3 ms vs 16,7 / 33,3 ms. Mismo costo. Pruebas rápidas: 47/52 (las mismas 5 que ya fallaban).
+- Los 2 `AudioContext` que aparecen al entrar a Aprender los crea Howler al cargar (vendor), igual que antes de este cambio; no son de esta animación.
+
 ## Pendiente
-- Aplicar el estilo al nacimiento de la mascota, al Grimorio y a botones/transiciones (un chat por lugar).
-- Falta el archivo de chat `docs/chats/animacion.md` (no se creó: este cambio tenía lista cerrada de archivos nuevos).
+- Aplicar el estilo al nacimiento de la mascota y al Grimorio (un chat por lugar).
+- Botones y transiciones: lo que sigue sin el estilo son los botones de otras pantallas con su propio CSS (`.primary-btn`, `.secondary-btn`) y los cambios de pantalla con transición propia (grimorio, tutorial, clases).
+- Falta que Niquito pruebe con su ojo el peso del botón y de la caída (la fluidez no se juzga con capturas); si le sobra o le falta, se cambia `HUNDIR`, `CAIDA` o los presets.
 - Hay CSS sin uso desde antes en `tienda.css` (`cfxBang`, `cfxFlash`, `.cfx-flash`, `.cfx-bang`): borrarlo en un chat de limpieza.
 - Falta que Niquito vea el cofre con su ojo (la fluidez no se juzga con capturas) y apruebe el estilo.
 - Con GPU real faltan medir los cuadros de escritorio; aquí el Chromium era por software.

@@ -26,6 +26,8 @@
 .pu-btn::after { content:"";position:absolute;right:calc(-10*var(--pu)*1px + 8px);top:calc(-9*var(--pu)*1px);width:calc(10*var(--pu)*1px);height:calc(10*var(--pu)*1px);background:url('../assets/pixel-ui/hojita.png') center / 100% 100% no-repeat;image-rendering:pixelated;transform:scale(0) rotate(-40deg);transform-origin:50% 100%;transition:transform .35s cubic-bezier(.3,1.8,.5,1);pointer-events:none; }
 .pu-btn:hover::after,.pu-btn:focus-visible::after { transform:scale(1) rotate(0); }
 .pu-btn-wide { display:flex;width:100%; }
+/* la cara del botón sigue un resorte (pixel-ui.js): --pu-y llega en pasos de 2 px y no choca con el transform del hover */
+.pu-btn,.nav-btn,.hc-btn { translate:0 calc(var(--pu-y,0)*1px); }
 @keyframes puBounce { 0% { transform:translateY(0); } 40% { transform:translateY(-3px); } 100% { transform:translateY(0); } }
 @keyframes puSpark { 0% { opacity:1;transform:translateY(0); } 100% { opacity:0;transform:translateY(-16px); } }
 

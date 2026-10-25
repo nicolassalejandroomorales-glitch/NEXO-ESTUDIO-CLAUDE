@@ -31,10 +31,10 @@ ul{margin:0;padding-left:18px;font-size:14px}li{margin-bottom:4px}.vacio{color:v
 .guia h2{margin-top:0}table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-top:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
 </style></head><body><main>
 <h1>Tablero de Nexo</h1>
-<p class="sub">Actualizado el 2026-10-20 desde docs/chats/. Un chat = un tema = un modelo. Toca una tarjeta para ver el detalle.</p>
+<p class="sub">Actualizado el 2026-10-25 desde docs/chats/. Un chat = un tema = un modelo. Toca una tarjeta para ver el detalle.</p>
 <div class="resumen">
-  <div class="grande"><b>51%</b><span>de la app avanzada · 86 cosas hechas, 84 por hacer, 38 ideas guardadas</span></div>
-  <div class="barra" role="img" aria-label="51% avanzado"><i style="width:51%"></i></div>
+  <div class="grande"><b>50%</b><span>de la app avanzada · 89 cosas hechas, 88 por hacer, 40 ideas guardadas</span></div>
+  <div class="barra" role="img" aria-label="50% avanzado"><i style="width:50%"></i></div>
   <p>Lo urgente en marcha: <b>Aprender (Sótano de los Cristales)</b> (75%) · <b>Beta para compañeros</b> (38%) · <b>Clases (contenido y aula)</b> (57%) · <b>Clases Vivas · módulo académico del Sótano</b> (70%) · <b>Estudio Orgánica II (PEP 1)</b> (40%) · <b>Organización — continuidad del organizador semanal</b> (70%) · <b>Pulido para el lanzamiento</b> (33%).</p>
 </div>
 <div class="tablero">
@@ -58,7 +58,7 @@ ul{margin:0;padding-left:18px;font-size:14px}li{margin-bottom:4px}.vacio{color:v
     <span class="spec">docs/tutorial-persistencia/SPEC.md</span>
   </div>
 </details></section>
-<section class="col desarrollo"><h2>En desarrollo <span>17</span></h2>
+<section class="col desarrollo"><h2>En desarrollo <span>18</span></h2>
 <details class="card p1">
   <summary>
     <span class="tag prio">Urgente</span>
@@ -229,6 +229,31 @@ Al terminar, usa nexo-cierre y actualiza docs/chats/pixel-ui.md.">Copiar prompt 
     <button data-copy="Chat: Aspecto y navegación de toda la app. Lee CLAUDE.md, la skill nexo-pixel-art y docs/chats/pixel-ui.md.
 Parte desde &quot;Falta&quot; y pregúntame qué decisión toca primero.">Copiar prompt de continuación</button>
     <span class="spec">docs/ux-app/SPEC.md</span>
+  </div>
+</details>
+<details class="card p2">
+  <summary>
+    <span class="tag prio">Pronto</span>
+    <h3>Estándar de animación</h3>
+    <div class="barra" role="img" aria-label="43% avanzado"><i style="width:43%"></i></div>
+    <p class="meta"><b>43%</b> · 3 hechas, 4 faltan<br>cofre y botones/transiciones hechos en la rama claude/animacion-siguiente; esperando que Niquito los pruebe y apruebe</p>
+  </summary>
+  <div class="cols">
+    <section><h4>Hecho (3)</h4><ul><li>24 oct: estilo aprobado (piezas con resortes + efectos y sonido; cuadro a cuadro solo en momentos estrella), skill `nexo-animacion` y módulo `dist/core/movimiento.js`.</li><li>24 oct: aplicado al cofre de la Tienda (`dist/economy/cofre-fx.js`).</li><li>24 oct: aplicado a botones de latón y portal entre secciones (`dist/design-system/pixel-ui.js`). Prueba `tools/interfaz-movimiento-test.cjs`.</li></ul></section>
+    <section><h4>Falta (4)</h4><ul><li>Que Niquito pruebe el cofre, el botón y la caída de pantalla con su ojo y apruebe (o ajuste `HUNDIR`, `CAIDA`, presets).</li><li>Aplicar el estilo al nacimiento de la mascota y a la apertura del Grimorio (un chat por lugar).</li><li>Botones con CSS propio (`.primary-btn`, `.secondary-btn`) y transiciones propias (grimorio, tutorial, clases).</li><li>Medir con GPU real; aquí el Chromium era por software y arranca en calidad baja.</li></ul></section>
+    <section><h4>Ideas (2)</h4><ul><li>Partículas de latón al soltar un botón importante (comprar, confirmar) con `cantidad(n)`.</li><li>Sonido distinto al cambiar de sección según el destino.</li></ul></section>
+  </div>
+  <div class="prompts">
+    <span class="tag">Sonnet 5.5 · medio</span>
+    <button data-copy="Chat: Estándar de animación. Lee CLAUDE.md, la skill nexo-animacion y docs/animacion/SPEC.md.
+Objetivo: aplicar el estilo aprobado en UN solo lugar nuevo: &lt;nacimiento de la mascota | apertura del Grimorio&gt;.
+Reutiliza dist/core/movimiento.js y el sonido existente (NexoMovimiento.sonido); no crees otro sistema de audio. Respeta movimiento reducido y el silencio de Ajustes.
+Listo cuando: se ve en 1440 y 390, pasan las pruebas rápidas y hay una prueba en tools/. Si algo es ambiguo, máximo 3 preguntas antes de programar. Al terminar usa nexo-cierre.">Copiar prompt de inicio</button>
+    <button data-copy="Chat: Estándar de animación, siguiente lugar. Lee CLAUDE.md, la skill nexo-animacion, docs/animacion/SPEC.md y docs/chats/animacion.md.
+Dónde quedamos: cofre y botones/transiciones hechos (rama claude/animacion-siguiente, sin aprobar). Faltan el nacimiento de la mascota y el Grimorio.
+Objetivo: aplicar el estilo en UN solo lugar nuevo: &lt;nacimiento de la mascota | apertura del Grimorio&gt;. Antes pregunta si Niquito ya probó y aprobó el cofre y los botones.
+Reutiliza dist/core/movimiento.js y NexoMovimiento.sonido. Respeta movimiento reducido y el silencio de Ajustes. Máximo 3 preguntas antes de programar. Al terminar usa nexo-cierre.">Copiar prompt de continuación</button>
+    <span class="spec">docs/animacion/SPEC.md</span>
   </div>
 </details>
 <details class="card p2">

@@ -18,11 +18,12 @@ Estilo aprobado por Niquito (24 oct 2026): **piezas que se mueven con resortes +
 
 ## Cómo se usa (`dist/core/movimiento.js`, `window.NexoMovimiento`)
 
-- `resorte('aplastar' | 'liquido' | 'corcho' | 'tapa' | 'brillo' | 'camara')` o `{ rigidez, amortiguacion, valor, meta }`. Se mueve cambiando `.meta`, se da un golpe con `.empujar(v)` y se avanza con `.avanzar(dt)`; `.valor` es lo que se pinta.
+- `resorte('aplastar' | 'liquido' | 'corcho' | 'tapa' | 'brillo' | 'camara' | 'pagina')` o `{ rigidez, amortiguacion, valor, meta }`. Se mueve cambiando `.meta`, se da un golpe con `.empujar(v)` y se avanza con `.avanzar(dt)`; `.valor` es lo que se pinta. `.reposo(tolerancia)` sirve para apagar el bucle de cuadros cuando ya no se nota (en píxeles, ~0,5).
 - `escena()` agrupa resortes: `esc.resorte(...)`, `esc.golpe({ pausa, temblor, duracion })` y, en cada cuadro, `dt = esc.paso(dtReal)` (devuelve 0 durante la pausa de impacto: úsalo también para partículas). `esc.temblor()` da `{x, y}` en píxeles enteros.
 - `alinear(v, paso)`, `cantidad(n)` (partículas según la calidad de Ajustes), `reducido()`.
 - `sonido(evento, rareza)`. Eventos: `preparar`, `lanzar`, `estallar`, `girar`, `paso`, `golpe`, `premio`, `brillo`, `burbuja`, y de interfaz `clic`, `confirmar`, `comprar`, `equipar`, `error`. Los de interfaz van a `NexoAudio`; los de efectos al sintetizador `NexoCofreSonidos` (`dist/economy/cofre-sonidos.js`). Un sonido nuevo se agrega a ese sintetizador y a `EVENTOS`.
-- Ejemplo completo: `dist/economy/cofre-fx.js`. Prueba: `tools/movimiento-test.cjs`.
+- Ejemplos: cofre (`dist/economy/cofre-fx.js`, prueba `tools/movimiento-test.cjs`) y botones de latón + portal entre secciones (`dist/design-system/pixel-ui.js`, prueba `tools/interfaz-movimiento-test.cjs`).
+- Interfaz: un bucle de cuadros compartido que solo corre mientras algo se mueve; la cara del botón va por la variable CSS `--pu-y` y la propiedad `translate` (no choca con `transform`). Si un rebote pasaría del piso y haría crecer el scroll, se pinta `-Math.abs(valor)` (rebota contra el piso).
 
 ## Qué técnica para qué
 

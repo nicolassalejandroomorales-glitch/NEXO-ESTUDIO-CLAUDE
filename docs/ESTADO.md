@@ -120,3 +120,4 @@ Historial de lo hecho por tema. Lo lee Claude solo cuando necesita contexto de o
 - 20 oct 2026 · Usuario autoriza integrar Clases Vivas, continuidad de Basicidad y adaptación de pantalla en master de NEXO-ESTUDIO-CLAUDE. Base remota 5503511, avance directo sin divergencia; Artifact pendiente. SPEC: `docs/clases-vivas/SPEC.md`.
 
 - 24 oct 2026 · Estándar de animación: skill `nexo-animacion` (6 reglas), módulo `dist/core/movimiento.js` con prueba, y estilo aplicado a la apertura del cofre (1440 y 390 verificados, movimiento reducido y silencio respetados). Espera aprobación visual. SPEC: `docs/animacion/SPEC.md`.
+- 24 oct 2026 · Estándar de animación, segundo lugar: botones de latón y portal entre secciones con resortes, sonido por `NexoMovimiento.sonido` y rebote contra el piso (1440 y 390, reducido y silencio verificados). Prueba `tools/interfaz-movimiento-test.cjs`. Espera aprobación. SPEC: `docs/animacion/SPEC.md`.
