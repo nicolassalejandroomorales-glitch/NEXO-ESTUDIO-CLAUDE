@@ -12,14 +12,12 @@
 .wood-link { min-height:44px;background:none;border:0;padding:10px 0;color:#f6deb0;font:600 .8rem/1.5 var(--font-ui);text-align:left;cursor:pointer; }
 .wood-link:hover { text-decoration:underline; }
 
-.refuge-caption { text-align:center;color:#d8c597;font:.8rem/1.5 var(--font-title);padding:23px 0 0; }
 /* Time affects scenery and its lighting, never the reading surfaces. */
 body[data-nexo-time="day"] .refuge-light,body[data-nexo-time="morning"] .refuge-light { background:linear-gradient(125deg,#fff4bc44,transparent 55%); }
 body[data-nexo-time="dusk"] .refuge::after { background:linear-gradient(120deg,#d991443b,#572e212b); }
 body[data-nexo-time="dusk"] .refuge-light { background:radial-gradient(ellipse at 18% 20%,#ffbe5755,transparent 65%); }
 body[data-nexo-time="night"] .refuge::after { background:linear-gradient(115deg,#0d172bb0,#13182299 48%,#1c182277); }
 body[data-nexo-time="night"] .refuge-light { z-index:0;background:radial-gradient(ellipse at 33% 32%,#ffd38533,transparent 28%),radial-gradient(ellipse at 93% 35%,#ffb44d33,transparent 28%); }
-.refuge-caption { position:relative;z-index:1; }
 
 @media(max-width:700px) {
   .refuge-page { width:calc(100% - 16px); }
@@ -149,7 +147,6 @@ body[data-nexo-time="day"] .refuge-light { background:linear-gradient(125deg,#f3
 .refuge .stage-companion .avatar-shadow-v10 { opacity:.65; }
 .refuge .stage-companion { position:relative; }
 
-.refuge-caption { text-shadow:0 2px 6px #080b08;font-size:.875rem;color:#fff0ce; }
 .refuge .eyebrow { font-size:.75rem; }
 .refuge :is(.paper-link,.wood-link,.evaluation-note>div,.evaluation-note small,.day-agenda small,.streak-hud) { font-size:.875rem; }
 
@@ -248,7 +245,6 @@ body[data-nexo-ambient-motion="reduced"] :is(.refuge-light,.refuge-foliage),body
   .page-turn-leaf.grimoire-folio { inset:14px 17px 100px; }
 }
 @container(max-width:650px) {
-  .refuge .evaluation-board { grid-column:1;grid-row:2; }.refuge .day-paper { grid-column:1;grid-row:3; }.refuge .continue-volume { grid-column:1;grid-row:4; }
   .refuge .evaluation-note>div { flex-wrap:wrap; }
 }
 @media(max-width:1100px) { .grimoire-frontispiece,.grimoire-folio { padding:28px 25px; } }
@@ -289,23 +285,18 @@ body[data-nexo-room="home"] #app { padding-top:0;background:#28332a; }
 .refuge .home-room-hud .streak-hud { background:#27372dba;border:1px solid #ceb97988;box-shadow:none;font-size:.875rem; }
 /* Tamaño del reloj (data-cs): 1 mini (hora, cronómetro y botones) · 2 normal · 3 grande · 4 enorme. Píxeles ENTEROS, nunca scale (deforma el pixel art).
    fr = tamaño de píxel del marco y los sprites, ts = letras, dg = dígitos. Grande y enorme quedan bajo los botones de la esquina. */
-.home-clock { --fr:2;--ts:2;--dg:4;--px:var(--fr);--pu:var(--fr);--frame:calc(12*var(--fr)*1px);will-change:transform;position:absolute;z-index:9;left:50%;top:12px;width:min(94%,calc(290px*var(--fr)));box-sizing:border-box;display:grid;grid-template-columns:auto 1fr auto;gap:calc(var(--ts)*2px) calc(var(--ts)*8px);align-items:center;padding:calc(var(--ts)*1px) calc(var(--ts)*5px) calc(var(--ts)*3px);border:var(--frame) solid transparent;border-image:url('../assets/pixel-ui/marco.png') 12 fill / var(--frame) round;image-rendering:pixelated;color:#f1e6c8;filter:drop-shadow(0 6px 10px #0007);transform-origin:50% 0;transform:translateX(-50%);animation:hcDrop 1.1s cubic-bezier(.3,1.4,.5,1) both,hcSway 7s ease-in-out 1.1s infinite alternate; }
+.home-clock { --fr:2;--ts:2;--dg:4;--px:var(--fr);--pu:var(--fr);--frame:calc(12*var(--fr)*1px);will-change:transform;position:relative;z-index:1;width:100%;box-sizing:border-box;display:grid;grid-template-columns:auto 1fr auto;gap:calc(var(--ts)*2px) calc(var(--ts)*8px);align-items:center;padding:calc(var(--ts)*1px) calc(var(--ts)*5px) calc(var(--ts)*3px);border:var(--frame) solid transparent;border-image:url('../assets/pixel-ui/marco.png') 12 fill / var(--frame) round;image-rendering:pixelated;color:#f1e6c8;filter:drop-shadow(0 6px 10px #0007);transform-origin:50% 0;animation:hcDrop 1.1s cubic-bezier(.3,1.4,.5,1) both,hcSway 7s ease-in-out 1.1s infinite alternate; }
 .home-clock[data-cs="1"] { width:auto; }
-.home-clock[data-cs="1"] :is(.hc-greet,.hc-label,.hc-plate) { display:none; }
+.home-clock[data-cs="1"] :is(.hc-greet,.hc-label) { display:none; }
 /* Mini: la hora va chica arriba y el cronómetro grande abajo (no dos números iguales lado a lado); los botones a la derecha. */
 .home-clock[data-cs="1"] { grid-template-columns:auto auto;row-gap:calc(var(--ts)*1px); }
 .home-clock[data-cs="1"] .hc-now { grid-column:1;grid-row:1; }
 .home-clock[data-cs="1"] .hc-hour { height:calc(7*var(--ts)*1px);opacity:.8; }
 .home-clock[data-cs="1"] .hc-timer { grid-column:1;grid-row:2;margin-left:var(--frame); }
 .home-clock[data-cs="1"] .hc-controls { grid-column:2;grid-row:1 / span 2;align-self:center; }
-.home-clock[data-cs="3"] { --fr:3;--ts:3;--dg:6;top:72px; }
-.home-clock[data-cs="4"] { --fr:4;--ts:4;--dg:8;top:72px; }
-/* Si la sala es angosta, el reloj baja solo al paso que cabe (cada paso necesita 290 px por punto de marco). */
-@container (max-width:1170px) { .home-clock[data-cs="4"] { --fr:3;--ts:3;--dg:6; } }
-@container (max-width:930px) { .home-clock[data-cs="3"],.home-clock[data-cs="4"] { --fr:2;--ts:2;--dg:4;top:12px; } }
 .home-clock .pixel-text { --s:var(--ts); }
 .home-clock[hidden],.hc-show[hidden] { display:none; }
-.hc-show { position:absolute;z-index:9;left:12px;top:12px;--ts:2;--pu:2; }
+.hc-show { justify-self:start;--ts:2;--pu:2; }
 .home-clock .pu-btn { padding:calc(var(--ts)*1px) calc(var(--ts)*4px) 0; }
 .home-clock .pu-btn:active { padding-top:calc(var(--ts)*1px + 2*var(--pu)*1px); }
 .home-clock .hc-now { display:grid;gap:calc(var(--ts)*2px);justify-items:start;margin-left:var(--frame); }
@@ -320,13 +311,6 @@ body[data-nexo-room="home"] #app { padding-top:0;background:#28332a; }
 .home-clock .hc-controls { display:flex;gap:calc(var(--ts)*4px);margin-right:var(--frame); }
 
 .home-clock .hc-meta { grid-column:1/-1;margin:calc(var(--ts)*1px) var(--frame) 0;display:flex;align-items:center;gap:calc(var(--ts)*5px);flex-wrap:wrap; }
-.home-clock .hc-plate { display:inline-flex;align-items:center;padding:calc(var(--ts)*2px) calc(var(--ts)*5px);border:calc(var(--ts)*1px) solid #1a0f13;border-radius:2px;background:#2b3d33;box-shadow:inset 0 calc(var(--ts)*1px) 0 #ffffff1c; }
-.home-clock .hc-plate .pixel-text {fill:#e9d9a4; }
-.home-clock .hc-plate { max-width:100%;overflow:hidden; }
-.home-clock .hc-plate-exam { background:#5b2a24; }
-.home-clock .hc-plate-exam .pixel-text { fill:#ffd9b0; }
-.home-clock .hc-size { margin-left:auto;display:flex;gap:calc(var(--ts)*2px); }
-.home-clock .hc-size .pu-btn { padding:0 calc(var(--ts)*2px); }
 .home-clock i { position:absolute;display:block;pointer-events:none;image-rendering:pixelated;background-repeat:no-repeat; }
 .hc-gear { left:calc(-11*var(--px)*1px);top:calc(-11*var(--px)*1px);width:calc(20*var(--px)*1px);height:calc(20*var(--px)*1px);background-image:url('../assets/home-scenes/reloj-engranaje.png');background-size:calc(160*var(--px)*1px) 100%;animation:hcSheetGear 14s steps(8) infinite; }
 .hc-orb { right:calc(-11*var(--px)*1px);top:calc(-11*var(--px)*1px);width:calc(20*var(--px)*1px);height:calc(20*var(--px)*1px);background-image:url('../assets/home-scenes/reloj-orbe.png');background-size:calc(120*var(--px)*1px) 100%;animation:hcSheetOrb 3.6s steps(6) infinite; }
@@ -338,13 +322,12 @@ body[data-nexo-room="home"] #app { padding-top:0;background:#28332a; }
 @keyframes hcSheetGear { to { background-position-x:calc(-160*var(--px)*1px); } }
 @keyframes hcSheetOrb { to { background-position-x:calc(-120*var(--px)*1px); } }
 @keyframes hcSheetLeaf { to { background-position-x:calc(-96*var(--px)*1px); } }
-@keyframes hcDrop { 0% { opacity:0;transform:translateX(-50%) translateY(-50px) rotate(-4deg); } 55% { opacity:1;transform:translateX(-50%) translateY(6px) rotate(1.8deg); } 80% { transform:translateX(-50%) translateY(-2px) rotate(-.8deg); } 100% { transform:translateX(-50%); } }
-@keyframes hcSway { from { transform:translateX(-50%) rotate(-.45deg); } to { transform:translateX(-50%) rotate(.45deg); } }
+@keyframes hcDrop { 0% { opacity:0;transform:translateY(-50px) rotate(-4deg); } 55% { opacity:1;transform:translateY(6px) rotate(1.8deg); } 80% { transform:translateY(-2px) rotate(-.8deg); } 100% { transform:none; } }
+@keyframes hcSway { from { transform:rotate(-.45deg); } to { transform:rotate(.45deg); } }
 @keyframes hcGlow { 0%,100% { filter:drop-shadow(0 0 1px #f6e7b055); } 50% { filter:drop-shadow(0 0 6px #f6e7b0cc); } }
 body[data-nexo-ambient-motion="reduced"] .home-clock,body[data-nexo-ambient-motion="reduced"] .home-clock *,body[data-nexo-quality="low"] .home-clock *,body.ambient-paused .home-clock * { animation:none !important; }
 @media (prefers-reduced-motion:reduce) { .home-clock,.home-clock * { animation:none !important; } .hc-spark { display:none; } }
 
-.refuge-caption { padding:27px 25px 90px;font-size:.875rem; }
 body[data-nexo-time="morning"] .home-window-tone { background:linear-gradient(145deg,#fce8b899,#efb66033); }
 body[data-nexo-time="day"] .home-window-tone { background:linear-gradient(120deg,#f8fbdd88,#bdddb23b); }
 body[data-nexo-time="dusk"] .home-window-tone { background:linear-gradient(145deg,#eea55399,#a563714d);mix-blend-mode:color; }
@@ -354,12 +337,6 @@ body[data-nexo-time="night"] .home-art-plane::after { background:linear-gradient
 body[data-nexo-time="night"] .home-window-tone { background:linear-gradient(160deg,#102644aa,#29476788);mix-blend-mode:multiply; }
 body[data-nexo-time="night"] .home-art-plane .refuge-light { background:radial-gradient(ellipse at 15% 35%,#879ec130,transparent 31%),radial-gradient(ellipse at 35% 41%,#fac57540,transparent 13%),radial-gradient(ellipse at 81% 41%,#ffbe4940,transparent 18%); }
 body[data-nexo-time="night"] .refuge-room .stage-companion { filter:brightness(.83) saturate(.84) drop-shadow(0 5px 4px #111a2788); }
-@container(max-width:900px) {
-  .refuge .evaluation-notes { grid-template-columns:1fr; }
-  .refuge .evaluation-board { grid-column:1;grid-row:1; }
-  .refuge .day-paper { grid-column:1;grid-row:2; }
-  .refuge .continue-volume { grid-column:1;grid-row:3; }
-}
 
 @media(max-width:700px) {
   .refuge-page { width:100%;padding-bottom:0; }
@@ -659,8 +636,7 @@ body.reduce-motion #app>.page { animation:none!important; }
 .home-px-tarde { background-image:url('../assets/home-scenes/refugio-pixel-tarde.png');opacity:calc(var(--w-dusk,0) + var(--w-dawn,0) * .7); }
 .home-px-noche { background-image:url('../assets/home-scenes/refugio-pixel-noche.png');opacity:var(--w-night,0); }
 @media (max-width:700px) {
-  .home-clock[data-cs] { --fr:2;--ts:2;--dg:3;top:8px;width:calc(100% - 20px);grid-template-columns:1fr auto;gap:6px 10px;padding:0 4px 4px; }
-  .home-clock .hc-size { display:none; }
+  .home-clock[data-cs] { --fr:2;--ts:2;--dg:3;grid-template-columns:1fr auto;gap:6px 10px;padding:0 4px 4px; }
   .home-clock .hc-timer { grid-column:1/-1;grid-row:2; }
   .home-clock .hc-greet,.home-clock .hc-label { display:none; }
   .home-clock .hc-meta { gap:6px;justify-content:flex-start; }

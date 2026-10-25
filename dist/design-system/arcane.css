@@ -80,13 +80,16 @@ html.nexo-ready .opening-cover>span{animation:nexo-cover-title .22s ease-out bot
 @keyframes nexo-cover-right{to{transform:translateX(102%)}}
 @keyframes nexo-cover-title{to{opacity:0;transform:scale(.94)}}
 
-.top-bar { position:fixed; inset:0 auto 0 0; z-index:70; width:248px; height:100vh; min-height:0; padding:27px 14px 20px 10px; display:flex; flex-direction:column; align-items:stretch; gap:28px; border:0; background:url('../assets/pixel-ui/riel.png') 0 0 / 96px 128px; image-rendering:pixelated; box-shadow:12px 0 32px rgb(4 10 13 / .28); }
+.top-bar { position:fixed; inset:0 auto 0 0; z-index:70; width:104px; height:100vh; min-height:0; padding:16px 10px 16px 6px; display:flex; flex-direction:column; align-items:stretch; gap:14px; border:0; background:url('../assets/pixel-ui/riel.png') 0 0 / 96px 128px; image-rendering:pixelated; box-shadow:12px 0 32px rgb(4 10 13 / .28); }
 .top-bar::after { content:""; position:absolute; top:0; right:0; bottom:0; width:16px; background:url('../assets/pixel-ui/riel-borde.png') 0 0 / 16px 32px repeat-y; image-rendering:pixelated; pointer-events:none; }
-.top-bar .brand { min-height:48px; justify-content:flex-start; gap:9px; padding-left:10px; color:var(--paper-100); font:700 1.35rem/1 var(--font-title); }
-.top-bar .brand-mark { color:var(--amber-500); font:1.5rem/1 var(--font-title); }
-.top-bar .brand .pixel-text { --s:3; fill:#f6d77a; }
+.top-bar .brand { min-height:40px; justify-content:center; gap:5px; padding-left:0; color:var(--paper-100); font:700 1rem/1 var(--font-title); }
+.top-bar .brand-mark { color:var(--amber-500); font:1.1rem/1 var(--font-title); }
+.top-bar .brand .pixel-text { --s:2; fill:#f6d77a; }
 .top-bar .brand .pt-shadow { fill:#1a0f13; }
-.rail-nav { display:flex; flex-direction:column; gap:6px; }
+.rail-nav { display:flex; flex-direction:column; gap:4px; }
+.rail-nav .nav-btn { min-height:60px; padding:4px 0 2px; flex-direction:column; justify-content:center; gap:3px; border-width:8px; }
+.rail-nav .nav-btn:hover,.rail-nav .nav-btn.active,.rail-nav .nav-btn:active { border-image-width:8px; }
+.rail-nav .nav-btn .pixel-text { --s:1; }
 .nav-btn { min-height:48px; padding:6px 4px 4px; gap:6px; justify-content:flex-start; align-items:center; box-sizing:border-box; border:12px solid transparent; border-image:none; background:none; color:#d2dbd2; text-transform:none; font-weight:650; image-rendering:pixelated; transition:filter .2s; }
 .nav-btn b { display:flex; align-items:center; font:650 .92rem/1.1 var(--font-ui); }
 .nav-btn .pixel-text { --s:2; fill:#f1e4c0; }
@@ -104,7 +107,7 @@ html.nexo-ready .opening-cover>span{animation:nexo-cover-title .22s ease-out bot
 .header-wallet .nav-ico { width:16px; height:16px; background-size:96px 32px; background-position:calc(var(--ico,0)*-16px) 0; }
 .header-wallet .pixel-text { --s:2; fill:#2a1a0a; }
 .header-wallet .pt-shadow { fill:#fff1b070; }
-#app { margin-left:248px; padding-top:62px; min-height:100vh; }
+#app { margin-left:104px; padding-top:62px; min-height:100vh; }
 .page { width:min(1140px,calc(100% - 48px)); padding:28px 0 90px; }
 .page-header { margin-bottom:24px; }
 .page-header h1 { font-size:clamp(2rem,4vw,3.6rem); letter-spacing:-.035em; }
@@ -156,9 +159,11 @@ html.nexo-ready .opening-cover>span{animation:nexo-cover-title .22s ease-out bot
 .streak-hud { border:1px solid rgb(239 239 215 / .46); border-radius:8px; background:rgb(17 30 28 / .7); box-shadow:none; font-family:var(--font-ui); }
 .stage-companion .avatar-canvas-v10 { animation:mascotFloat 3.4s ease-in-out infinite; }
 .avatar-canvas-v10[data-engine="rive"] { animation:none!important; }
-.companion-presence { margin-top:auto;padding:10px 6px 0;border-top:1px solid rgb(211 224 208 / .2);min-height:158px;pointer-events:none; }
+/* Escritorio: la mascota sale de la barra y vive como avatar abajo a la izquierda, solo en el Inicio (docs/inicio-reloj/SPEC.md). */
+.companion-presence { position:fixed;z-index:60;left:128px;bottom:14px;width:112px;box-sizing:border-box;padding:4px 4px 2px;border:3px solid #1a0f13;background:#33261b;box-shadow:3px 3px 0 #1a0f13aa;pointer-events:none; }
+@media(min-width:901px) { body:not([data-nexo-room="home"]) .companion-presence { display:none; } }
 .companion-presence[hidden] { display:none!important; }
-.companion-presence .avatar-shell-v10 { width:155px; }
+.companion-presence .avatar-shell-v10 { width:100%; }
 .companion-presence .avatar-shell-v10 figcaption { color:#f8e7c8;text-align:center;font:.76rem/1.15 var(--font-ui); }
 .avatar-shell-v10[data-academic-emote]{position:relative}
 .avatar-shell-v10[data-academic-emote]::after{position:absolute;right:12%;top:12%;display:grid;place-items:center;width:31px;height:31px;border-radius:50%;border:1px solid #e9d29a;background:#26352f;color:#f3d69a;box-shadow:0 0 17px rgb(222 186 113 / .55);font-size:21px;pointer-events:none}

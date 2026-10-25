@@ -48,7 +48,7 @@ const server = http.createServer((request, response) => {
     await page.locator('.rail-nav [data-route="learn"]').click();
     await page.locator('.subject-card').first().waitFor();
     await page.waitForFunction(() => performance.getEntriesByType('resource').some(item => item.name.endsWith('/assets/rooms/learn.webp')));
-    await page.locator('#companionPresence .avatar-canvas-v10[data-engine="rive"][data-pose="Read"]').waitFor({timeout:15000});
+    await page.locator('#companionPresence .avatar-canvas-v10[data-engine="rive"][data-pose="Read"]').waitFor({state:'attached',timeout:15000}); // en escritorio el avatar solo se ve en el Inicio
     await capture('learn-desktop');
     await page.goto(`${url}#/learn/map`);
     await page.locator('.academic-map').waitFor();

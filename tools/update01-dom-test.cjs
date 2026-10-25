@@ -34,8 +34,11 @@ const until=async check=>{for(let attempt=0;attempt<100;attempt++){if(check())re
  try{
   await until(()=>d.querySelector('.refuge'));
   assert.equal(d.querySelectorAll('.refuge .evaluation-board').length,1);
-  assert.ok(d.querySelector('.day-paper').textContent.includes('Tu día'));
-  assert.ok(d.querySelector('.continue-volume').textContent.includes('Continuar estudiando'));
+  assert.ok(d.querySelector('.home-side .home-clock'),'el reloj vive en la columna derecha');
+  assert.ok(d.querySelector('.home-calendar .cal-day.is-today'),'el calendario marca hoy');
+  assert.equal(d.querySelectorAll('.home-grades .grade-chip').length,4,'una chapa de calificación por ramo');
+  assert.equal(d.querySelectorAll('.refuge-signs,.sign,.refuge-caption').length,0,'sin carteles colgados ni pie');
+  assert.ok(d.querySelector('.continue-volume .continue-where b').textContent.length>0,'Continuar nombra el ramo');
   const stored=()=>JSON.parse(w.localStorage.getItem('nexo-study-beta'));
   const immutableKeys=['mastery','organicProgress','completedLessons','events','grades','documents','inventory','mascot'];
   const academicBefore=Object.fromEntries(immutableKeys.map(key=>[key,stored()?.[key]]));

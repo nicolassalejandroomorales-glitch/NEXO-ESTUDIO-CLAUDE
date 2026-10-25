@@ -3,6 +3,9 @@
    Clases: .pu-panel (marco de madera), .pu-paper (pergamino), .pu-btn (botón de latón), .pu-bar (barra de cristal), .pu-seal, .pu-ivy. */
 :root { --pu:2;--pu-ink:#2a1a0a;--pu-cream:#f1e4c0;--pu-dark:#1a0f13;--pu-brass:#fbe08a; }
 
+/* Letras pixel propias (NexoPixelText): alto = 8 px de la fuente × escala entera --s. */
+.pixel-text { display:block;height:calc(var(--u,8)*var(--s,2)*1px);width:auto; }
+
 /* ---- marco de madera con esquinas de latón ---- */
 .pu-panel { position:relative;box-sizing:border-box;border:calc(12*var(--pu)*1px) solid transparent;border-image:url('../assets/pixel-ui/marco.png') 12 fill / calc(12*var(--pu)*1px) round;image-rendering:pixelated;filter:drop-shadow(0 10px 10px #0008); }
 

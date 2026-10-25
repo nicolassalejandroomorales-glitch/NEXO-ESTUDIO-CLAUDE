@@ -759,8 +759,6 @@
     const subject = subjectFor(ui.homeSubject);
     const ranked = rankedCommitments();
     const evaluations = ranked.filter(item => ['exam','Prueba','control'].includes(item.event.type)).slice(0,3);
-    const todayEvents = state.events.filter(event => event.date === todayKey() && event.status !== 'done');
-    const studied = todayStudyMinutes(), goal = state.settings.dailyGoalMinutes;
     const saved = LESSONS[state.lessonSession?.id];
     const continuingSubject = saved ? subjectFor(saved.subject) : subject;
     const pepIndex = Math.max(0, continuingSubject.peps.findIndex(pep => pep.lessons.includes(saved?.id || allLessons(continuingSubject.id).find(id => !understood(id)))));
@@ -769,56 +767,85 @@
     const profile=window.NexoHomeScene.getProfile(),composition=window.NexoHomeScene.render(profile);
     const sceneBackground=new URL(composition.backgroundAsset,document.baseURI).href;
     const zones=Object.values(scene.anchors).map(anchor=>`<span class="home-scene-zone" data-scene-zone="${anchor.zone}" style="left:${anchor.bounds[0]*100}%;top:${anchor.bounds[1]*100}%;width:${anchor.bounds[2]*100}%;height:${anchor.bounds[3]*100}%" aria-hidden="true"></span>`).join('');
+    const next = evaluations[0], nextDays = next ? daysBetween(todayKey(), next.event.date) : null;
+    const bubble = next ? `${subjectFor(next.event.subject).short}: ${next.event.title} ${nextDays <= 0 ? 'es hoy' : nextDays === 1 ? 'es mañana' : `es en ${nextDays} días`}.` : 'No tienes pruebas a la vista. ¿Repasamos algo?';
     app.innerHTML = `<section class="page rpg-home refuge-page">
       ${recoveryNotice ? `<div class="notice warning"><b>Respaldo</b><span>${esc(recoveryNotice)}</span><button data-route="profile" data-route-sub="settings">Revisar</button></div>` : ''}
       <div class="refuge">
-        <div class="refuge-room" aria-label="Habitación con ventana, biblioteca, escritorio y rincón de descanso">
-          <div class="home-pan" data-pan="start">
-          <div class="home-art-plane ${composition.debug?'scene-debug':''}" data-scene-id="${profile.sceneId}" style="--room-art:url('${sceneBackground}');--scene-aspect:${profile.referenceWidth}/${profile.referenceHeight};--mascot-depth:${profile.layers.mascot}">
-            ${composition.markup}
-            ${zones}
+        <div class="home-main">
+          <div class="refuge-room" aria-label="Habitación con ventana, biblioteca, escritorio y rincón de descanso">
+            <div class="home-pan" data-pan="start">
+            <div class="home-art-plane ${composition.debug?'scene-debug':''}" data-scene-id="${profile.sceneId}" style="--room-art:url('${sceneBackground}');--scene-aspect:${profile.referenceWidth}/${profile.referenceHeight};--mascot-depth:${profile.layers.mascot}">
+              ${composition.markup}
+              ${zones}
+            </div>
+            </div>
+            <span class="home-pan-hint" aria-hidden="true">Desliza para explorar ⟷</span>
+            <div class="home-room-hud"><span class="streak-hud">✦ ${streak()} días de racha</span></div>
           </div>
+          <div class="home-lower">
+            <section class="home-panel home-grades pu-panel" aria-labelledby="gradesTitle">
+              <h2 class="home-panel-title" id="gradesTitle">${pixelText('Calificaciones',{shadow:false})}</h2>
+              <ul class="grade-chips">${homeGradesMarkup()}</ul>
+              <button class="paper-link" data-route="planner" data-route-sub="notas">Ver y simular notas →</button>
+            </section>
+            <section class="home-panel home-notes" aria-labelledby="notesTitle">
+              <h2 class="home-panel-title" id="notesTitle">${pixelText('Apuntes',{shadow:false})}</h2>
+              <p>Aquí guardarás fotos de tus cuadernos. Muy pronto.</p>
+            </section>
           </div>
-          <span class="home-pan-hint" aria-hidden="true">Desliza para explorar ⟷</span>
-          ${homeClockMarkup(evaluations[0], studied)}
-          <div class="home-room-hud"><span class="streak-hud">✦ ${streak()} días de racha</span></div>
+          <p class="home-bubble" role="note">${esc(bubble)}</p>
         </div>
-        <div class="refuge-signs">
-          <div class="signs-beam" aria-hidden="true"></div>
-          <section class="sign sign-pruebas evaluation-board pu-panel" aria-labelledby="priorityTitle">
-            <i class="sign-chain sign-chain-l" aria-hidden="true"></i><i class="sign-chain sign-chain-r" aria-hidden="true"></i><i class="pu-ivy sign-ivy-l" aria-hidden="true"></i>
-            <h2 class="sign-title" id="priorityTitle">${pixelText('Próximas pruebas')}</h2>
-            <div class="sign-paper pu-paper"><i class="pu-seal pu-seal-1" aria-hidden="true"></i>
-              ${evaluations.length ? `<ol class="evaluation-notes">${evaluations.map((item,index) => {const course=subjectFor(item.event.subject);return `<li class="evaluation-note ${index===0?'next-evaluation':''}"><div><span>${esc(course.name)}</span><time datetime="${esc(item.event.date)}">${formatDate(item.event.date)}</time></div><h3>${pixelText(esc(item.event.title),{shadow:false})}</h3><p>${item.reasons.map(esc).join(' · ')}</p>${item.event.dateNote||item.event.weekdayUncertain?`<small>${esc(item.event.dateNote||'Fecha por confirmar con cátedra.')}</small>`:''}<button class="paper-link" data-route="planner" data-route-sub="calendar">Ver evaluación en Bitácora →</button></li>`;}).join('')}</ol>` : '<p class="paper-empty">Sin pruebas pendientes en tu calendario.</p>'}
-            </div>
-            <button class="pu-btn sign-link" data-route="planner" data-route-sub="calendar">${pixelText('Abrir mi calendario →',{shadow:false})}</button>
+        <div class="home-side">
+          ${homeClockMarkup()}
+          <section class="home-panel home-calendar pu-panel" aria-labelledby="calTitle">
+            ${homeCalendarMarkup()}
           </section>
-          <section class="sign sign-dia day-paper pu-panel" aria-labelledby="dayTitle">
-            <i class="sign-chain sign-chain-l" aria-hidden="true"></i><i class="sign-chain sign-chain-r" aria-hidden="true"></i><i class="pu-ivy pu-ivy-b sign-ivy-r" aria-hidden="true"></i>
-            <h2 class="sign-title" id="dayTitle">${pixelText('Tu día')}</h2>
-            <div class="sign-paper pu-paper"><i class="pu-seal pu-seal-2" aria-hidden="true"></i>
-              <div class="day-goal"><span>${pixelText('Meta',{shadow:false})}</span><strong>${pixelText(`${studied} / ${goal} min`,{shadow:false})}</strong><div class="goal-bar pu-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${goal}" aria-valuenow="${Math.min(studied,goal)}" aria-label="${studied} de ${goal} minutos estudiados hoy"><i style="width:${Math.min(100,Math.round(100*studied/Math.max(1,goal)))}%"></i></div></div>
-              <ul class="day-agenda">${todayEvents.length ? todayEvents.slice(0,3).map(event=>`<li><span aria-hidden="true">◇</span><div><b>${pixelText(event.title,{shadow:false})}</b><small>${esc(subjectFor(event.subject).name)}${event.time?` · ${esc(event.time)}`:''}</small></div></li>`).join('') : '<li><span aria-hidden="true">☼</span><div><b>Sin compromisos hoy</b><small>Tu calendario está libre para estudiar a tu ritmo.</small></div></li>'}</ul>
-            </div>
-            <button class="pu-btn sign-link" data-route="reviews">${pixelText(`${dueReviews().length} repasos pendientes →`,{shadow:false})}</button>
+          <section class="home-panel home-pruebas evaluation-board pu-panel" aria-labelledby="priorityTitle">
+            <h2 class="home-panel-title" id="priorityTitle">${pixelText('Próximas pruebas',{shadow:false})}</h2>
+            ${evaluations.length ? `<ol class="evaluation-notes">${evaluations.map((item,index) => {const course=subjectFor(item.event.subject);return `<li class="evaluation-note ${index===0?'next-evaluation':''}" style="--course:${course.color}"><div><span>${esc(course.short)}</span><time datetime="${esc(item.event.date)}">${formatDate(item.event.date)}</time></div><h3>${esc(item.event.title)}</h3>${item.event.dateNote||item.event.weekdayUncertain?`<small>${esc(item.event.dateNote||'Fecha por confirmar con cátedra.')}</small>`:''}</li>`;}).join('')}</ol><button class="paper-link" data-route="planner" data-route-sub="calendar">Ver evaluaciones en Bitácora →</button>` : '<p class="paper-empty">Sin pruebas pendientes en tu calendario.</p>'}
           </section>
-          <section class="sign sign-continuar continue-volume pu-panel" aria-labelledby="continueTitle">
-            <i class="sign-chain sign-chain-l" aria-hidden="true"></i><i class="sign-chain sign-chain-r" aria-hidden="true"></i><i class="pu-ivy sign-ivy-l" aria-hidden="true"></i>
-            <h2 class="sign-title" id="continueTitle">${pixelText('Continuar')}</h2>
-            <div class="sign-paper pu-paper"><i class="pu-seal pu-seal-3" aria-hidden="true"></i>
-              <p class="continue-where"><b>${pixelText(continuingSubject.name,{shadow:false})}</b><span>${esc(pep?.name||'Selecciona una evaluación')}</span></p>
-              ${saved?`<button class="paper-link saved-lesson" data-open-lesson="${state.lessonSession.id}">Retomar clase guardada: ${esc(saved.title)} →</button>`:''}
-            </div>
-            <div class="volume-actions"><button class="pu-btn pu-btn-wide" data-grimoire-route="learn/course/${continuingSubject.id}/evaluation/pep-${pepIndex+1}">${pixelText('Preparar prueba →',{shadow:false})}</button><button class="pu-btn sign-link" data-route="learn">${pixelText('Elegir otro ramo',{shadow:false})}</button></div>
+          <section class="home-panel home-continue continue-volume pu-panel" aria-labelledby="continueTitle">
+            <h2 class="home-panel-title" id="continueTitle">${pixelText('Continuar',{shadow:false})}</h2>
+            <p class="continue-where"><b>${esc(continuingSubject.name)}</b><span>${esc(pep?.name||'Selecciona una evaluación')}</span></p>
+            ${saved?`<button class="paper-link saved-lesson" data-open-lesson="${state.lessonSession.id}">Retomar clase guardada: ${esc(saved.title)} →</button>`:''}
+            <div class="volume-actions"><button class="pu-btn pu-btn-wide" data-grimoire-route="learn/course/${continuingSubject.id}/evaluation/pep-${pepIndex+1}">${pixelText('Preparar prueba →',{shadow:false})}</button><button class="pu-btn" data-route="learn">${pixelText('Elegir otro ramo',{shadow:false})}</button></div>
           </section>
         </div>
-        <footer class="refuge-caption">Un lugar donde el conocimiento florece.</footer>
       </div>
     </section>`;
     window.NexoHomeScene.enhancePan?.(app);
     petBind(); window.NexoPet?.mountHome(app.querySelector('.home-art-plane')); window.NexoPet?.checkWeather();
     window.NexoOrgAvisos?.home(app, orgBridge());
     startHomeClock();
+  }
+
+  // Calificaciones del Inicio: una chapa por ramo con el promedio de lo ya rendido (la cuenta es de NexoGrades; las notas se editan en Organización).
+  function homeGradesMarkup() {
+    return SUBJECTS.map(subject => {
+      const calc = window.NexoGrades.calculate(gradeConfig(subject.id), 'theory'), value = calc.courseGrade ?? calc.current;
+      const tone = value === null || value === undefined ? 'vacio' : value < 3.95 ? 'rojo' : value < 5 ? 'ambar' : 'verde';
+      return `<li class="grade-chip" data-tone="${tone}" style="--course:${subject.color}"><span class="grade-name">${esc(subject.name)}</span><b class="grade-value">${tone === 'vacio' ? '—' : value.toFixed(1).replace('.', ',')}</b></li>`;
+    }).join('');
+  }
+  // Mini calendario del mes: hoy marcado y un punto por día con evento (rojo si es evaluación).
+  function homeCalendarMarkup() {
+    const today = todayKey(), base = parseDay(today), year = base.getFullYear(), month = base.getMonth();
+    const first = new Date(year, month, 1), lead = (first.getDay() + 6) % 7, total = new Date(year, month + 1, 0).getDate();
+    const byDay = new Map();
+    for (const event of state.events) {
+      if (event.status === 'done' || !event.date?.startsWith(today.slice(0, 7))) continue;
+      const mark = byDay.get(event.date) || { evaluation: false };
+      mark.evaluation = mark.evaluation || ['exam','Prueba','control'].includes(event.type);
+      byDay.set(event.date, mark);
+    }
+    const cells = Array.from({ length: lead }, () => '<li class="cal-blank" aria-hidden="true"></li>').concat(Array.from({ length: total }, (_, i) => {
+      const key = `${today.slice(0, 8)}${String(i + 1).padStart(2, '0')}`, mark = byDay.get(key);
+      return `<li class="cal-day ${key === today ? 'is-today' : ''} ${mark ? (mark.evaluation ? 'has-eval' : 'has-event') : ''}" ${key === today ? 'aria-current="date"' : ''}>${i + 1}</li>`;
+    }));
+    const title = new Intl.DateTimeFormat('es-CL', { month: 'long', year: 'numeric' }).format(first);
+    return `<h2 class="home-panel-title cal-title" id="calTitle">${pixelText(title.charAt(0).toUpperCase() + title.slice(1), { shadow: false })}</h2>
+      <ol class="cal-grid" aria-label="Calendario de ${esc(title)}">${['L','M','M','J','V','S','D'].map(day => `<li class="cal-head" aria-hidden="true">${day}</li>`).join('')}${cells.join('')}</ol>`;
   }
 
   // Reloj de la torre en el Inicio: hora y momento del día, cronómetro de estudio, minutos de hoy y próxima evaluación.
@@ -836,23 +863,15 @@
     document.querySelector('.home-clock')?.toggleAttribute('hidden', hide);
     document.querySelector('.hc-show')?.toggleAttribute('hidden', !hide);
   }
-  function resizeClock(step) {
-    const next = CLOCK_SCALES[Math.max(0, Math.min(CLOCK_SCALES.length - 1, CLOCK_SCALES.indexOf(clockScale()) + step))];
-    try { localStorage.setItem('nexo.clockSize', String(next)); } catch (_) { /* sin almacenamiento: vale solo hasta recargar */ }
-    if (document.querySelector('.home-clock')) document.querySelector('.home-clock').dataset.cs = next;
-    document.querySelectorAll('[data-clock-size]').forEach(button => { button.disabled = button.dataset.clockSize === '-1' ? next === CLOCK_SCALES[0] : next === CLOCK_SCALES[CLOCK_SCALES.length - 1]; });
-  }
-  function homeClockMarkup(nextEvaluation, studiedMinutes) {
+  function homeClockMarkup() {
     const timer = state.timer, running = timer.status === 'running', paused = timer.status === 'paused';
-    const days = nextEvaluation ? daysBetween(todayKey(), nextEvaluation.event.date) : null;
-    const countdown = days === null ? 'Sin pruebas a la vista' : `${nextEvaluation.event.title} · ${days <= 0 ? 'hoy' : days === 1 ? 'mañana' : `${days} días`}`;
     const pt = (text, shadow = false) => pixelText(text, { shadow });
     return `<button class="hc-show pu-btn" data-clock-toggle aria-label="Mostrar reloj" ${clockHidden() ? '' : 'hidden'}>${pt('Reloj')}</button><aside class="home-clock ${running ? 'is-running' : ''}" data-cs="${clockScale()}" aria-label="Reloj de estudio" ${clockHidden() ? 'hidden' : ''}>
       <i class="hc-gear" aria-hidden="true"></i><i class="hc-orb" aria-hidden="true"></i><i class="hc-leaf hc-leaf-l" aria-hidden="true"></i><i class="hc-leaf hc-leaf-r" aria-hidden="true"></i><i class="hc-pendulum" aria-hidden="true"></i><i class="hc-flask" aria-hidden="true"></i>
       <div class="hc-now"><div class="hc-hour" data-hc-time role="text"></div><div class="hc-greet" data-hc-moment></div></div>
       <div class="hc-timer"><div class="hc-label">${pt(`${running ? 'Estudiando' : paused ? 'En pausa' : 'Cronómetro'} · ${subjectFor(timer.subject).short}`)}</div><div class="hc-digits" id="homeTimer" role="timer">${pixelDigits(formatClock(timerElapsedMs()))}</div></div>
       <div class="hc-controls">${running ? `<button class="hc-btn pu-btn" data-action="timer-pause" aria-label="Pausar">${pt('Pausar')}</button>` : `<button class="hc-btn hc-primary pu-btn" data-action="timer-start" aria-label="${paused ? 'Seguir' : 'Estudiar'}">${pt(paused ? 'Seguir' : 'Estudiar')}</button>`}${timerElapsedMs() >= 1000 ? `<button class="hc-btn pu-btn" data-action="timer-finish" aria-label="Terminar">${pt('Terminar')}</button>` : ''}</div>
-      <div class="hc-meta"><span class="hc-plate">${pt(`Hoy · ${studiedMinutes} min`)}</span><span class="hc-plate hc-plate-exam">${pt(countdown)}</span><button class="hc-hide pu-btn" data-clock-toggle aria-label="Ocultar reloj">${pt('Ocultar')}</button><span class="hc-size" role="group" aria-label="Tamaño del reloj"><button class="pu-btn" data-clock-size="-1" aria-label="Achicar reloj" ${clockScale() === CLOCK_SCALES[0] ? 'disabled' : ''}>${pt('-')}</button><button class="pu-btn" data-clock-size="1" aria-label="Agrandar reloj" ${clockScale() === CLOCK_SCALES[CLOCK_SCALES.length - 1] ? 'disabled' : ''}>${pt('+')}</button></span></div>
+      <div class="hc-meta"><button class="hc-hide pu-btn" data-clock-toggle aria-label="Ocultar reloj">${pt('Ocultar')}</button></div>
     </aside>`;
   }
   // Chispas de latón, cristal y hoja al terminar una sesión: viven en el body porque el Inicio se vuelve a pintar al guardar.
@@ -1882,7 +1901,6 @@
     if (button.dataset.profileDeleteGrade) return removeGrade(button.dataset.profileDeleteGrade, ui.profileSubject);
     if (button.dataset.deleteAbsence) return removeWithUndo(state.absences, button.dataset.deleteAbsence, 'Inasistencia');
     if (button.dataset.clockToggle !== undefined) return toggleClock();
-    if (button.dataset.clockSize) return resizeClock(Number(button.dataset.clockSize));
     if (button.dataset.action === 'timer-start') return timerStart();
     if (button.dataset.action === 'timer-pause') return timerPause();
     if (button.dataset.action === 'timer-finish') { if (button.closest('.home-clock')) sparkBurst(button); return timerFinish(); }

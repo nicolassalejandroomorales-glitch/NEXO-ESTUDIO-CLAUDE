@@ -2,6 +2,7 @@
 
 Historial de lo hecho por tema. Lo lee Claude solo cuando necesita contexto de otro tema; el cierre de cada chat agrega aquí una línea con fecha (skill nexo-cierre).
 
+- **24 oct 2026 · Inicio y reloj / paso 1**: distribución nueva del Inicio (riel 104 px, refugio grande, reloj + calendario + pruebas a la derecha, calificaciones/apuntes, avatar de la mascota); carteles y pie quitados. Pendiente aprobación visual y pasos 2–6. SPEC: `docs/inicio-reloj/SPEC.md`.
 - **20 oct 2026 · Basicidad guiada**: feedback real incorporado: explicación gradual, cadenas explícitas, práctica sin tabla y comprobaciones causales; ayuda/adivinación sin dominio y relectura sin perder progreso. Ver `docs/basicidad-guiada/SPEC.md`. Revisión del usuario/PPT y publicación pendientes.
 
 ## 20 oct 2026 — Tutorial P0
