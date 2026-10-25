@@ -1,9 +1,9 @@
 # Aprender (Sótano de los Cristales)
 - modelo: Opus 5.5 para dirección de arte y motor; Sonnet 5.5 · medio para portar y extender (v1 hecha así)
-- estado: pasillo, las 4 puertas con sus Cámaras, Sala de entrenamiento y Sala de Laboratorio aprobados en bocetos (17 oct); falta llevar todo a la app
+- estado: rediseño 25 oct: Vestíbulo + Aula + Taller + Arena por ramo reemplazan Cámara/Entrenamiento/Lab; pasillo en vivo y en HD; puertas por rediseñar
 - fase: desarrollo
 - prioridad: 1
-- spec: docs/aprender-pasillo/SPEC.md
+- spec: docs/salas-sotano/SPEC.md (antes: docs/aprender-pasillo/SPEC.md)
 
 ## Hecho
 - Diseño cerrado: pasillo de piedra en primera persona (tipo Vampire Crawlers), una puerta por ramo, futuras en un pasillo lateral con candado.
@@ -27,7 +27,11 @@
 
 - **Cámaras de los otros 3 ramos (18 oct)**: Analítica, Fisicoquímica II y Fisiopatología funcionan como la de Orgánica II (alcobas → clases en `estado.js`, `CAMARAS` en `export_app.py`). Ya no hay tarjeta provisional en las puertas.
 
+## Hecho (25 oct)
+- Diseño de salas nuevas cerrado y bocetos aprobados: Aula (atril de piedra + muro de cristal con proyección del Grimorio) y Taller (Mesa del alquimista). Atril de Codex rechazado (plano); se rescata solo lo no visual. Medido: pasillo HD pre-renderizado ≈ 108 MB y ≈ 16 h de render → se pasa a render en vivo con prototipo medido. Ver `docs/salas-sotano/SPEC.md`.
+
 ## Falta
+- Ver el orden de implementación de `docs/salas-sotano/SPEC.md` (paso 0: rescatar cronómetro/Grimorio/rendimiento de Codex; paso 1: rediseño de puertas).
 - Sauce y torre dentro de la Cámara con el estado real (hoy el sauce sale neutro y no se toca): render por capas; reemplaza la pantalla vieja `#/torre`.
 - Grietas de error en la Cámara y grimorio-formulario del pedestal (por aprobar).
 - Sala de entrenamiento y Sala de Laboratorio dentro del flujo (hoy solo hay bocetos).
@@ -48,8 +52,8 @@ Al terminar, usa nexo-cierre y actualiza docs/chats/aprender.md.
 
 ## Prompt de continuación
 ```
-Chat: Aprender — Sótano v2. Lee CLAUDE.md, docs/aprender-pasillo/SPEC.md (sección "Implementación v1") y docs/chats/aprender.md.
-Dónde quedamos: el Sótano funciona en la app con las 4 Cámaras (una por ramo) y el estado real encima (dist/aprender/, tools/aprender-pasillo/export_app.py, tools/aprender-test.cjs).
-Siguiente paso (dime en una línea qué entendiste y haz máximo 3 preguntas de selección múltiple): sauce y torre dentro de la Cámara con el estado real, o la Sala de entrenamiento.
-Trabaja en un worktree limpio desde origin/master. Sonnet 5.5 · medio. No toques Supabase. Al terminar, usa nexo-cierre.
+Chat: Aprender — Salas del Sótano. Lee CLAUDE.md, docs/salas-sotano/SPEC.md y docs/chats/aprender.md.
+Dónde quedamos: diseño cerrado (Vestíbulo + Aula + Taller + Arena por ramo, Tanda de hoy común, pasillo en vivo y en HD). Falta elegir el rediseño de las puertas.
+Siguiente paso: el que diga Niquito del "Orden de implementación" (0 = rescatar lo no visual del Atril de Codex; 1 = puertas: 3 bocetos lado a lado; 2 = prototipo del pasillo en vivo medido en su celular).
+Dime en una línea qué entendiste. Máximo 3 preguntas con opciones. Trabaja desde master actualizado. Al terminar, usa nexo-cierre.
 ```

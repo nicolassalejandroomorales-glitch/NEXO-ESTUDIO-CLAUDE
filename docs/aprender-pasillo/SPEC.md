@@ -154,6 +154,7 @@ Mismas reglas que Orgánica II: cuadros neutros por Cámara y estado real encima
 Sauce y torre dentro de la Cámara (reemplaza la pantalla vieja `#/torre`), sauce con estado real, grietas de error, grimorio-formulario del pedestal, Sala de entrenamiento y Sala de Laboratorio dentro del flujo, mapas de evaluación dentro de la Cámara, sonido por portal.
 
 ## Pendiente
+- **25 oct: rediseño en `docs/salas-sotano/SPEC.md`**: la Cámara, la Sala de entrenamiento y la Sala de Laboratorio se reemplazan por Vestíbulo + Aula + Taller + Arena; el pasillo pasa a render en vivo y en HD.
 - **Sala de Laboratorio** (aprobada): el mural del informe queda chico (el arco del nicho lo limita); la campana se ve poco desde el banco.
 - Aprobar el grimorio-formulario del pedestal y bocetar las grietas en la Cámara.
 - Cámara: el tronco del sauce aún se ve en bloques; la fecha de la PEP 2 de Orgánica no está en `semester-2026.js` (las veladas dicen "EN CAMINO").
