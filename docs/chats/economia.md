@@ -10,7 +10,12 @@
 - Tienda de la beta: `dist/economy/tienda.js`, puesto del alquimista, apertura animada del cofre, cofres por categoría, ⚛ por evidencia con tope.
 - Diseño v3 (24 oct): tabla se gana / se gasta con topes, cofres con probabilidades, tabla de 10 rangos de jugador, rachas con perdón y criterios de aceptación.
 
+## Hecho en implementación (24 oct 2026)
+- Pasos 1-2 del SPEC: inventario de `state.coins`, compra directa con ⚛, motivos y precio por moneda en cada botón, tienda vieja (`buyUtility`) borrada. Prueba: `tools/economia-test.cjs`. Falta aprobación de Niquito antes de seguir con los pasos 3-9.
+
 ## Falta
+- Decidir qué hacer con los desafíos de estudio (ver Pendiente del SPEC) antes del paso 3.
+- Seguir desde el paso 3 del SPEC (`earn` con decrecimiento por concepto, recuerdo solo vencido, tiempo = 0).
 - Que Niquito apruebe el diseño v3 (decisiones que tomé yo y hay que confirmar: tiempo de sesión paga 0, se quita el cofre por guía completada, premio del tutorial = 1 cofre, precios directos 90/150/300/600 ⚛).
 - Implementar los 9 pasos del SPEC (prompt abajo). Hallazgo: el estante hoy cobra polvo, no ⚛, y por eso "Comprar" parece no funcionar si no tienes polvo.
 - Chat de juegos: tope de 300 XP por día y la tabla de rangos de jugador.

@@ -21,4 +21,4 @@ description: Mascotas de Nexo (átomo, matraz y slime en pixel art; poses, expre
 - **Descartado por Niquito, no volver a proponer:** Rive, animales (cerdito/gato/perro), estilo cartoon "rubber hose".
 - No generar imágenes con Canva ni otra IA sin que Niquito lo pida en ese momento.
 - Clima real: solo Open-Meteo como está autorizado (Santiago, máx. cada 30 min, sin red = despejado).
-- Tienda: solo "Probar"; "Comprar" espera a que Niquito defina la economía. No tocar el saldo de átomos en la nube (Supabase).
+- Tienda: "Probar", "Comprar" con ⚛ y "Canjear" con polvo (precios y reglas en `docs/economia/SPEC.md`). No tocar el saldo de átomos en la nube (Supabase).

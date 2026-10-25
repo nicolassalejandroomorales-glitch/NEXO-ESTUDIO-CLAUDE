@@ -113,6 +113,7 @@ body[data-nexo-ambient-motion="reduced"] .cofre-fx *,body[data-nexo-quality="low
 .tienda-odds .to-name { color:var(--c);text-shadow:0 1px 0 #0004; }
 .tienda-odds small { opacity:.8;font-weight:600; }
 .tienda-item .ti-pct { font-size:.72rem;opacity:.75; }
+.tienda-tipo .tt-why,.tienda-item .tt-why { font-size:.72rem;font-weight:700;color:#8a3f1d;opacity:1; }
 
 /* ---- destello al abrir y sacudida al caer un premio raro ---- */
 .cofre-fx-flash { position:absolute;inset:0;background:radial-gradient(circle at 50% 45%,#fffbe0,#ffd86088 40%,#0000 70%);opacity:0;pointer-events:none;z-index:3; }

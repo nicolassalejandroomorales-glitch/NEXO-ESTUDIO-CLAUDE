@@ -120,7 +120,12 @@ Con ~150 XP por día de estudio (5 días a la semana) el rango 5 llega a las ~2-
 - 14 accesorios: 5 comunes, 4 poco comunes, 3 raros, 2 legendarios; cofre sorpresa y de categoría; garantía cada 10; polvo por repetidos; `earn` con tope diario.
 - Se reutiliza todo lo anterior: se edita, no se rehace.
 
+## Avance de implementación (24 oct 2026, pasos 1-2)
+- Inventario de `state.coins`: solo `tienda.js` (`buyChest`, `buyAccessory`, `earn`) debe tocarlo. Falta moverlos: el pago por tiempo (`app.js` cronómetro, ~L1713), el premio del tutorial de 150 ⚛ (~L697) y los desafíos (`claimChallenge`).
+- Hecho: compra directa con ⚛ (`buyAccessory`, precios 90/150/300/600), motivos con la cantidad que falta y botones con su moneda. Borrada la tienda vieja (`buyUtility`, `reward()`): `rewards` estaba vacío, así que era código muerto. Los escudos de racha comprables quedan sin forma de comprarse (el perdón de racha los reemplaza en el paso 7).
+
 ## Pendiente
+- **Decidir (desafíos de estudio):** pagan 15 / 20 / 25 / 30 ⚛ sueltos, fuera del tope diario, y dos de los cuatro pagan por tiempo (enfoque de 25 min y semana equilibrada). Propuesta: que los desafíos de tiempo no paguen ⚛ y los de ejercicios pasen por `earn`.
 - Cofres temáticos por ramo, objetos del refugio y skins (necesitan contenido); el polvo sobrante no tiene destino cuando ya lo tienes todo.
 - Con cuenta en la nube la Tienda sigue bloqueada (no se toca Supabase en este tema).
 - Afinar los números tras probar cuánto ⚛ se gana de verdad.

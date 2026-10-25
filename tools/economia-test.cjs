@@ -8,6 +8,7 @@ const T=window.NexoTienda;
 // Comprar cofre: descuenta y no deja sin fondos.
 let st={coins:T.CHEST_PRICE-1};
 assert.equal(T.buyChest(st).ok,false);
+assert.match(T.buyChest(st).reason,/Te faltan 1 ⚛/);
 assert.equal(st.coins,T.CHEST_PRICE-1);
 st.coins=T.CHEST_PRICE+5;
 assert.equal(T.buyChest(st).ok,true);
@@ -55,6 +56,26 @@ assert.equal(T.buyWithDust(st,'varita').ok,false);
 assert.equal(T.buyWithDust(st,'flor').ok,true);
 assert.equal(st.shop.dust,0);
 assert.equal(T.buyWithDust(st,'flor').ok,false);
+st={coins:0,shop:{owned:[],dust:20}};
+assert.match(T.buyWithDust(st,'flor').reason,/Te faltan 10 polvo/);
+
+// Accesorio directo con ⚛: descuenta lo exacto, dice cuánto falta, no repite y nunca deja saldo negativo.
+assert.deepEqual([...T.RARITIES.map(r=>T.ACC_PRICE[r])],[90,150,300,600]);
+st={coins:T.ACC_PRICE.comun-1,shop:{owned:[],dust:0}};
+let buy=T.buyAccessory(st,'flor');
+assert.equal(buy.ok,false);
+assert.match(buy.reason,/Te faltan 1 ⚛/);
+assert.equal(st.coins,T.ACC_PRICE.comun-1);
+assert.equal(T.shopOf(st).owned.length,0);
+st.coins=T.ACC_PRICE.legendario+7;
+buy=T.buyAccessory(st,'corona');
+assert.equal(buy.ok,true);
+assert.equal(buy.price,T.ACC_PRICE.legendario);
+assert.equal(st.coins,7);
+assert.ok(T.shopOf(st).owned.includes('corona'));
+assert.equal(T.buyAccessory(st,'corona').ok,false,'ya lo tienes');
+assert.equal(T.buyAccessory(st,'nada').ok,false,'no existe');
+assert.equal(st.coins,7);
 
 // Probabilidades suman 100 y los 14 accesorios tienen rareza.
 assert.equal(Object.values(T.ODDS).reduce((x,y)=>x+y,0),100);

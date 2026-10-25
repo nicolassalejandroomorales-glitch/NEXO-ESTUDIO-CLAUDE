@@ -514,7 +514,6 @@
       .sort((a, b) => a[1].dueAt.localeCompare(b[1].dueAt));
   }
 
-  function reward(id) { return DATA.rewards.find(item => item.id === id); }
   // La mascota se está rehaciendo (docs/mascota/SPEC.md): por ahora no se dibuja en ninguna pantalla.
   function avatarMarkup() { return ''; }
   function petBind() {
@@ -702,7 +701,7 @@
             exit: () => { if (!current()) return; tutorialRun = null; routeTo('home'); } });
           run.mounted = app.querySelector('.tut');
         } };
-        if (window.NexoTutorial) go(); else if (!run.loading) { run.loading = true; const sc = document.createElement('script'); sc.src = './tutorial/tutorial.js?v=e4f3b247'; sc.onload = go;
+        if (window.NexoTutorial) go(); else if (!run.loading) { run.loading = true; const sc = document.createElement('script'); sc.src = './tutorial/tutorial.js?v=e9a411c2'; sc.onload = go;
           sc.onerror = () => { if (!current()) return; tutorialRun = null; routeTo('home'); showToast('No se pudo abrir el tutorial. Puedes repetirlo desde Ajustes.'); }; document.head.append(sc); }
 
       }
@@ -913,7 +912,7 @@
   function renderSubjects() {
     if (window.NexoAprender) return window.NexoAprender.render(app, aprenderContext());
     app.innerHTML = '<section class="page"><div class="app-loader" role="status"><span></span><p>Bajando al sótano…</p></div></section>';
-    Promise.all([window.NexoLoader.style('./aprender/sotano.css?v=8f764ac1'), window.NexoLoader.style('./aprender/sotano-luz.css'), Promise.all([window.NexoLoader.script('./aprender/estado.js?v=59f4873c'), window.NexoLoader.script('./aprender/sotano-musica.js?v=23d5d401')]).then(() => window.NexoLoader.script('./aprender/sotano-luz.js')).then(() => window.NexoLoader.script('./aprender/sotano-fx.js')).then(() => window.NexoLoader.script('./aprender/sotano.js?v=67424821'))])
+    Promise.all([window.NexoLoader.style('./aprender/sotano.css?v=66279c7d'), window.NexoLoader.style('./aprender/sotano-luz.css'), Promise.all([window.NexoLoader.script('./aprender/estado.js?v=24f4193f'), window.NexoLoader.script('./aprender/sotano-musica.js?v=759959b1')]).then(() => window.NexoLoader.script('./aprender/sotano-luz.js')).then(() => window.NexoLoader.script('./aprender/sotano-fx.js')).then(() => window.NexoLoader.script('./aprender/sotano.js?v=df044f96'))])
       .then(() => { if (['learn', 'subjects'].includes(parseRoute()[0])) renderRoute(false); })
       .catch(() => { app.innerHTML = '<section class="page"><div class="panel error-boundary"><h1>No se pudo abrir el sótano</h1><p>Revisa tu conexión y vuelve a intentarlo.</p><button class="primary-btn" data-route="learn">Reintentar</button></div></section>'; });
   }
@@ -990,7 +989,7 @@
   let mascotAcademicSubscribed=false;
   function loadAcademicFoundation() {
     if(!academicFoundation)academicFoundation=['model','graph','diagnosis','knowledge','ranks','classifiers','sources','reviews','structured','engine','pending','library','inspector','explorer','rescue']
-      .reduce((promise,name)=>promise.then(()=>window.NexoLoader.script(`./academic/${name}.js?v=06c32167`)),Promise.resolve())
+      .reduce((promise,name)=>promise.then(()=>window.NexoLoader.script(`./academic/${name}.js?v=098b7ae9`)),Promise.resolve())
       .then(()=>{if(!mascotAcademicSubscribed){window.NexoAcademicEngine.subscribe(event=>
         window.NexoMascotController.react(event,app));mascotAcademicSubscribed=true;}})
       .catch(error=>{academicFoundation=null;throw error;});
@@ -1012,11 +1011,11 @@
     };
     if (!window.NexoLivingClasses || !window.NexoAula || !window.NexoStation) {
       app.innerHTML = '<section class="page"><p role="status">Abriendo Clase Viva…</p></section>';
-      Promise.all([window.NexoLoader.style('./classes/estacion.css?v=eb92ae4b'), window.NexoLoader.style('./classes/aula.css?v=6b282336'),
-        window.NexoLoader.style('./classes/vivas.css?v=648a9939'), window.NexoLoader.script('./mascot/pixelmascotas.js')])
-        .then(() => window.NexoLoader.script('./classes/estacion.js?v=a0cc3949'))
-        .then(() => window.NexoLoader.script('./classes/aula.js?v=e1d39f08'))
-        .then(() => window.NexoLoader.script('./classes/vivas.js?v=c11c5550'))
+      Promise.all([window.NexoLoader.style('./classes/estacion.css?v=6806b3d9'), window.NexoLoader.style('./classes/aula.css?v=2eb5c0c7'),
+        window.NexoLoader.style('./classes/vivas.css?v=966335b6'), window.NexoLoader.script('./mascot/pixelmascotas.js')])
+        .then(() => window.NexoLoader.script('./classes/estacion.js?v=d6c0b3e4'))
+        .then(() => window.NexoLoader.script('./classes/aula.js?v=257148c8'))
+        .then(() => window.NexoLoader.script('./classes/vivas.js?v=e06ceb27'))
         .then(() => { if (parseRoute().join('/') === requested) renderRoute(false); }).catch(failed);
       return;
     }
@@ -1084,7 +1083,7 @@
     if (new URLSearchParams(location.search).get('nexoDev') !== '1') return renderHome();
     if(view==='ui-lab'&&!window.NexoArcaneRanks){
       app.innerHTML='<section class="page"><p role="status">Abriendo componentes…</p></section>';
-      Promise.all([loadAcademicFoundation(),window.NexoLoader.script('./dev/workbench.js?v=6bcdb09f')])
+      Promise.all([loadAcademicFoundation(),window.NexoLoader.script('./dev/workbench.js?v=86c64e30')])
         .then(()=>{if(parseRoute()[0]===view)renderRoute(false);})
         .catch(()=>{app.innerHTML='<section class="page"><h1>UI Lab no disponible</h1></section>';});
       return;
@@ -1095,7 +1094,7 @@
       return window.NexoWorkbench.renderReview(app);
     }
     app.innerHTML='<section class="page"><p role="status">Abriendo herramientas de revisión…</p></section>';
-    window.NexoLoader.script('./dev/workbench.js?v=6bcdb09f')
+    window.NexoLoader.script('./dev/workbench.js?v=86c64e30')
       .then(() => { if (parseRoute()[0] === view) renderRoute(false); })
       .catch(() => { if (parseRoute()[0] === view) app.innerHTML='<section class="page"><h1>Revisión no disponible</h1><button data-route="home">Volver al inicio</button></section>'; });
   }
@@ -1103,16 +1102,16 @@
   const classroomLoads = new Map();
   function loadClassroom(id) {
     if (classroomLoads.has(id)) return classroomLoads.get(id);
-    const promise = Promise.resolve(window.NexoClassCatalog || window.NexoLoader.script('./classes/catalog.js?v=6e3ef878')).then(() => {
+    const promise = Promise.resolve(window.NexoClassCatalog || window.NexoLoader.script('./classes/catalog.js?v=b8b1719c')).then(() => {
       const file = window.NexoClassCatalog?.[id];
       if (!file) return false;
-      return Promise.all([window.NexoLoader.script('./classes/player.js?v=5bf92291'),
-        window.NexoLoader.script('./classes/willow-tower.js?v=09c21b87').catch(() => null), // Torre del Sauce (etapa 10); sin ella, quedan las hojas en lista
-        window.NexoLoader.script(`./classes/${file}?v=361269f1`),
+      return Promise.all([window.NexoLoader.script('./classes/player.js?v=cd1ba3b9'),
+        window.NexoLoader.script('./classes/willow-tower.js?v=0c3a9a96').catch(() => null), // Torre del Sauce (etapa 10); sin ella, quedan las hojas en lista
+        window.NexoLoader.script(`./classes/${file}?v=45a803b7`),
         // Motor de evidencia y repaso espaciado (FSRS); si no cargan, la clase funciona igual sin agendar repasos.
-        window.NexoLoader.script('./classes/evidence.js?v=4c110524'), window.NexoLoader.script('./classes/molecule.js?v=b3b2e5aa'), window.NexoLoader.script('./classes/editor.js?v=df0be94e'), window.NexoLoader.script('./academic/class-bridge.js?v=e05158a5').catch(() => null), window.NexoLoader.script('./academic/reviews.js?v=0273ea6c').catch(() => null)])
-        .then(() => Promise.all([window.NexoLoader.script(`./classes/slides/${id}.js?v=4e68eb0a`).catch(() => null), // diapositivas reales, si ya se convirtieron
-          window.NexoLoader.script(`./classes/${id}-gen.js?v=62a3041d`).catch(() => null)])) // generadores de ejercicios (etapa 8), si la clase los tiene
+        window.NexoLoader.script('./classes/evidence.js?v=4af40798'), window.NexoLoader.script('./classes/molecule.js?v=d1c39777'), window.NexoLoader.script('./classes/editor.js?v=b35d66e7'), window.NexoLoader.script('./academic/class-bridge.js?v=b2faf81c').catch(() => null), window.NexoLoader.script('./academic/reviews.js?v=c9a83999').catch(() => null)])
+        .then(() => Promise.all([window.NexoLoader.script(`./classes/slides/${id}.js?v=8e181834`).catch(() => null), // diapositivas reales, si ya se convirtieron
+          window.NexoLoader.script(`./classes/${id}-gen.js?v=032219f0`).catch(() => null)])) // generadores de ejercicios (etapa 8), si la clase los tiene
         .then(() => true);
     });
     promise.catch(() => classroomLoads.delete(id));
@@ -1146,10 +1145,10 @@
     if (!window.NexoWillowView) app.innerHTML = '<section class="page"><div class="app-loader" role="status"><span></span><p>Subiendo a la torre…</p></div></section>';
     // La torre junta las clases de la PEP 1 del ramo que ya existen (Orgánica: Aminas, Aromaticidad y SEA).
     const pepIds = (subject.peps?.[0]?.lessons || lessonIds);
-    Promise.resolve(window.NexoClassCatalog || window.NexoLoader.script('./classes/catalog.js?v=6e3ef878')).then(() => {
+    Promise.resolve(window.NexoClassCatalog || window.NexoLoader.script('./classes/catalog.js?v=b8b1719c')).then(() => {
       const ids = pepIds.filter(l => window.NexoClassCatalog?.[l]);
-      return Promise.all([window.NexoLoader.style('./classes/willow.css?v=5a60c6e7'), window.NexoLoader.script('./classes/willow-tower.js?v=09c21b87'), ...ids.map(loadClassroom)])
-        .then(() => window.NexoLoader.script('./classes/willow-view.js?v=291be729')).then(() => ids);
+      return Promise.all([window.NexoLoader.style('./classes/willow.css?v=418a9917'), window.NexoLoader.script('./classes/willow-tower.js?v=0c3a9a96'), ...ids.map(loadClassroom)])
+        .then(() => window.NexoLoader.script('./classes/willow-view.js?v=96a04d73')).then(() => ids);
     }).then(ids => {
       const id = ids[0];
       const route = parseRoute(); if (route[0] !== 'torre' || (route[1] || 'organica') !== subjectId) return;
@@ -1936,7 +1935,6 @@
     if (button.dataset.action === 'export-ics') return exportIcs();
     if (button.dataset.action === 'enable-notifications') return enableNotifications();
     if (button.dataset.statsRange) { ui.statsRange = button.dataset.statsRange; return renderRoute(false); }
-    if (button.dataset.buyUtility) return buyUtility(button.dataset.buyUtility);
     if (button.dataset.background) { state.settings.background = button.dataset.background; saveState(); return renderRoute(false); }
     if (button.dataset.claimChallenge) return claimChallenge(button.dataset.claimChallenge);
     if (button.dataset.action === 'sync-now') return cloud.pull();
@@ -2104,19 +2102,6 @@
       if (linked) state.events.push(linked);
       saveState(); renderRoute(false);
     });
-  }
-  function buyUtility(id) {
-    const item = reward(id); if (!item || state.coins < item.price) return;
-    if (cloud.authenticated) {
-      if (item.kind !== 'feature') return showToast('Los consumibles requieren validación del servidor y están pausados para cuentas.');
-      return cloud.purchase(id).then(() => {
-        state.coins=cloud.balance; state.inventory=[...cloud.inventory]; saveState(); playSuccess();
-        renderRoute(false); showToast(`${item.name} adquirido.`);
-      }).catch(error=>showToast(window.NexoCloudSafeError(error)));
-    }
-    if (item.kind === 'feature') { if (state.inventory.includes(id)) return; state.coins -= item.price; state.inventory.push(id); }
-    else { if (state.boosts.streakShields >= 2) return; state.coins -= item.price; state.boosts.streakShields += 1; }
-    saveState(); playSuccess(); renderRoute(false); showToast(`${item.name} adquirido.`);
   }
   function claimChallenge(id) {
     if (cloud.authenticated) return showToast('Las recompensas de desafíos requieren validación del servidor y están pausadas para cuentas.');

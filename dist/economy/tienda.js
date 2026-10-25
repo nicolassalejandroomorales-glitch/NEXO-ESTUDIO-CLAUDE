@@ -7,6 +7,7 @@
   const ODDS = { comun: 60, poco: 28, raro: 10, legendario: 2 };            // % por cofre
   const DUST = { comun: 10, poco: 20, raro: 40, legendario: 80 };            // polvo que da un repetido
   const DUST_PRICE = { comun: 30, poco: 60, raro: 120, legendario: 240 };    // polvo para comprar directo
+  const ACC_PRICE = { comun: 90, poco: 150, raro: 300, legendario: 600 };    // ⚛ para comprar un accesorio directo
   const CHEST_PRICE = 70;                                                    // ⚛ por cofre sorpresa
   const SLOT_CHEST_PRICE = 90;                                               // ⚛ por cofre de una categoría (cabeza, cara, cuello, mano)
   const SLOTS = ['cabeza', 'cara', 'cuello', 'mano'];
@@ -44,10 +45,20 @@
   // kind: 'sorpresa' o una categoría de SLOTS.
   function buyChest(state, kind = 'sorpresa') {
     const s = shopOf(state), slot = SLOTS.includes(kind) ? kind : null, price = slot ? SLOT_CHEST_PRICE : CHEST_PRICE;
-    if ((Number(state.coins) || 0) < price) return fail('Te faltan átomos para un cofre.');
-    state.coins -= price;
+    const coins = Number(state.coins) || 0;
+    if (coins < price) return fail(`Te faltan ${Math.ceil(price - coins)} ⚛ para este cofre.`);
+    state.coins = coins - price;
     if (slot) s.slotChests[slot] += 1; else s.chests += 1;
-    return { ok: true };
+    return { ok: true, price };
+  }
+  // Compra directa de un accesorio con ⚛ (el camino con polvo es buyWithDust).
+  function buyAccessory(state, id) {
+    const s = shopOf(state), r = RARITY_OF[id], coins = Number(state.coins) || 0;
+    if (!r) return fail('Ese accesorio no existe.');
+    if (s.owned.includes(id)) return fail('Ya lo tienes.');
+    if (coins < ACC_PRICE[r]) return fail(`Te faltan ${Math.ceil(ACC_PRICE[r] - coins)} ⚛.`);
+    state.coins = coins - ACC_PRICE[r]; s.owned.push(id);
+    return { ok: true, price: ACC_PRICE[r] };
   }
   // Suma átomos por evidencia respetando el tope diario. Devuelve cuántos se dieron.
   function earn(state, kind, today, amount) {
@@ -101,11 +112,11 @@
     const s = shopOf(state), r = RARITY_OF[id];
     if (!r) return fail('Ese accesorio no existe.');
     if (s.owned.includes(id)) return fail('Ya lo tienes.');
-    if (s.dust < DUST_PRICE[r]) return fail('Te falta polvo.');
+    if (s.dust < DUST_PRICE[r]) return fail(`Te faltan ${DUST_PRICE[r] - s.dust} polvo.`);
     s.dust -= DUST_PRICE[r]; s.owned.push(id);
     return { ok: true };
   }
 
-  window.NexoTienda = Object.freeze({ RARITIES, LABELS, ODDS, DUST, DUST_PRICE, CHEST_PRICE, SLOT_CHEST_PRICE, SLOTS, SLOT_OF, EARN, DAILY_CAP, DAILY_BONUS, PITY, RARITY_OF,
-    shopOf, buyChest, earn, claimDaily, grantChest, claimMilestones, openChest, buyWithDust });
+  window.NexoTienda = Object.freeze({ RARITIES, LABELS, ODDS, DUST, DUST_PRICE, ACC_PRICE, CHEST_PRICE, SLOT_CHEST_PRICE, SLOTS, SLOT_OF, EARN, DAILY_CAP, DAILY_BONUS, PITY, RARITY_OF,
+    shopOf, buyChest, buyAccessory, earn, claimDaily, grantChest, claimMilestones, openChest, buyWithDust });
 })();
