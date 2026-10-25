@@ -1,6 +1,6 @@
 # Estándar de animación
 
-Estado: cofre y botones/transiciones hechos, esperando aprobación de Niquito (24 oct 2026). Skill: `.claude/skills/nexo-animacion/SKILL.md`. Código: `dist/core/movimiento.js`.
+Estado: cofre, botones/transiciones y apertura del Grimorio hechos, esperando aprobación de Niquito (24 oct 2026). Skill: `.claude/skills/nexo-animacion/SKILL.md`. Código: `dist/core/movimiento.js`.
 
 ## Qué
 Un estilo de movimiento único para Nexo, escrito y reutilizable, aplicado en **un solo lugar**: la apertura del cofre de la Tienda.
@@ -53,18 +53,35 @@ Alcance: el kit de botones de latón (`.pu-btn`, `.nav-btn`, `.hc-btn`) y el por
 - Medido en Chromium sin GPU (que arranca en calidad baja, así que se forzó "alta" para ver el portal), código anterior vs nuevo: 1440 p50 16,7 / p95 66,8 ms vs 16,7 / 66,7 ms; 390 p50 16,7 / p95 33,3 ms vs 16,7 / 33,3 ms. Mismo costo. Pruebas rápidas: 47/52 (las mismas 5 que ya fallaban).
 - Los 2 `AudioContext` que aparecen al entrar a Aprender los crea Howler al cargar (vendor), igual que antes de este cambio; no son de esta animación.
 
+## Tercer lugar: apertura del Grimorio (24 oct 2026)
+Alcance: la intro de la primera entrada al Grimorio (`grimoireIntro` en `dist/platform/animation.js`, 3,4 s, una vez por sesión). El cambio de página (`pageCurl`) no se tocó.
+- **Se mantiene** la línea de tiempo de luces, círculo mágico, motas, rayos y sello (WAAPI), porque el sonido largo `grimoire-open` está calzado con ella.
+- **Pasa a resortes** (`NexoMovimiento`): subida del libro (resorte propio, aterriza ~0,8 s con pausa de impacto de 70 ms, squash y temblor de 2 px), flote, broche (tira hacia atrás y salta, regla 2), tapa (anticipo, cae y **golpea la mesa a -168°**: pausa 80 ms, temblor de 5 px, rebote al 28 % de la velocidad), tres hojas que salen tarde tras el golpe (60, 150 y 240 ms), corrimiento del libro y cámara que retrocede antes de entrar.
+- **Pausa de impacto real**: en cada golpe se pausan todas las animaciones de la capa y los resortes dejan de avanzar; al terminar se reanudan juntas.
+- **Sonido** por `NexoMovimiento.sonido`: `golpe` al aterrizar, `preparar` al soltar el broche, `golpe` al caer la tapa. Se sumaron a lo que ya suena (`grimoire-open`), que no cambió. Silencio y volumen salen de Ajustes.
+- **Se movieron** (para que la luz espere a la tapa): luz de la página en blanco 2000→2150 ms, sello 2150→2250 ms, chispas del estallido 2050→2300 ms (+ azar).
+- **Reloj real**: los resortes avanzan por tramos de 50 ms hasta alcanzar el reloj, porque la línea de tiempo no espera si el equipo va lento.
+- **Movimiento reducido**: no cambia (ya no hay intro, solo fundido de 200 ms).
+- **Sin código sin uso**: se borró `layer._main` y el `navigationAnimation` de la intro (nadie los leía).
+- Prueba: `tools/grimorio-movimiento-test.cjs` (carga los módulos reales en Chromium, mide el orden y el momento de los 3 sonidos, que la tapa nunca pase de -168°, pausas de impacto, temblor y píxeles enteros, silencio sin `AudioContext`, saltar con un toque, móvil 390 y movimiento reducido).
+- Medido en Chromium sin GPU (cuadros de 50–200 ms, la intro dura ~5 s en vez de 3,4 s y una pausa de 70 ms se ve de ~200 ms; en un equipo normal se espera lo del guion): original 4,2 s vs nuevo 5,0 s en la misma máquina. Pruebas rápidas: 48/53 (las mismas 5 que ya fallaban).
+- Para que Niquito lo vea sin tocar GitHub: Artifact privado "Prueba Grimorio Nexo" con botones ANTES y AHORA (código real de la rama).
+- Pendiente de este lugar: que Niquito lo vea y lo oiga; si la tapa cae muy rápido o muy lento se cambia `rigidez`/`amortiguacion` de `tapa` (hoy 22 / 6,5), o los 70/80 ms de pausa. Claude no puede oír: los 3 sonidos nuevos (`land`, `rumble`) no se han escuchado.
+
 ## Pendiente
-- Aplicar el estilo al nacimiento de la mascota y al Grimorio (un chat por lugar).
+- Aplicar el estilo al nacimiento de la mascota (un chat por lugar).
 - Botones y transiciones: lo que sigue sin el estilo son los botones de otras pantallas con su propio CSS (`.primary-btn`, `.secondary-btn`) y los cambios de pantalla con transición propia (grimorio, tutorial, clases).
 - Falta que Niquito pruebe con su ojo el peso del botón y de la caída (la fluidez no se juzga con capturas); si le sobra o le falta, se cambia `HUNDIR`, `CAIDA` o los presets.
 - Hay CSS sin uso desde antes en `tienda.css` (`cfxBang`, `cfxFlash`, `.cfx-flash`, `.cfx-bang`): borrarlo en un chat de limpieza.
 - Falta que Niquito vea el cofre con su ojo (la fluidez no se juzga con capturas) y apruebe el estilo.
+- Los cambios de pantalla con transición propia que siguen sin el estilo: cambio de página del Grimorio (`pageCurl`), tutorial y clases.
 - Con GPU real faltan medir los cuadros de escritorio; aquí el Chromium era por software.
 
 ## Prompt de continuación
 ```
 Chat: Estándar de animación, siguiente lugar. Lee CLAUDE.md, la skill nexo-animacion y docs/animacion/SPEC.md.
-Objetivo: aplicar el estilo aprobado en UN solo lugar nuevo: <nacimiento de la mascota | apertura del Grimorio | botones y transiciones>.
+Dónde quedamos: cofre, botones/transiciones y apertura del Grimorio hechos (sin aprobar). Falta el nacimiento de la mascota.
+Objetivo: aplicar el estilo aprobado en UN solo lugar nuevo: <nacimiento de la mascota>.
 Reutiliza dist/core/movimiento.js y el sonido existente (NexoMovimiento.sonido); no crees otro sistema de audio. Respeta movimiento reducido y el silencio de Ajustes.
 Listo cuando: se ve en 1440 y 390, pasan las pruebas rápidas y hay una prueba en tools/. Si algo es ambiguo, máximo 3 preguntas antes de programar. Al terminar usa nexo-cierre.
 ```

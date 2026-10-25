@@ -9,7 +9,7 @@ description: Grimorio de Nexo (portada, intro épica, cambio de página, decorac
 El SPEC más reciente del tema: `docs/update-01-7-grimorio-epico/SPEC.md` (antes: `update-01-5-grimorio`, `update-01-6-paginas`).
 
 ## Archivos
-- `dist/platform/animation.js`: intro épica (3,4 s, una vez por pestaña con `sessionStorage`), fundido al entrar/salir, `pageCurl` (0,82 s; móvil 0,56 s), entrada de capítulo.
+- `dist/platform/animation.js`: intro épica (3,4 s, una vez por pestaña con `sessionStorage`), fundido al entrar/salir, `pageCurl` (0,82 s; móvil 0,56 s), entrada de capítulo. En la intro, libro, broche, tapa, hojas y cámara van con resortes (`NexoMovimiento`, skill `nexo-animacion`, función `movimiento` dentro de `grimoireIntro`); luces, círculo y motas siguen en WAAPI. Prueba: `tools/grimorio-movimiento-test.cjs`.
 - `dist/platform/audio.js`: sonidos; solo suenan con "Efectos de sonido" activado. Prueba: `node tools/audio-test.cjs`.
 - Estilos en `dist/design-system/update01.css`.
 - Scripts reproducibles: `tools/grimoire-cover/build_cover.py` (portada), `tools/grimoire-pages/build_decor.py` (SVG por ramo → `dist/assets/grimoire/decor/`), `tools/grimoire-audio/build_sounds.py` (→ `dist/assets/audio/`).

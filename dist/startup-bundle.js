@@ -4919,6 +4919,7 @@
   }
   if(typeof window!=='undefined'&&typeof window.addEventListener==='function')window.addEventListener('load',()=>(window.requestIdleCallback||setTimeout)(preload,{timeout:4000}));
   /* UPDATE 01.7 — intro épica (una sola vez por sesión, 3,4 s):
+       (UPDATE 01.8: libro, broche, tapa, hojas y cámara van con resortes; la tapa golpea la mesa ~2,28 s)
        0–700    oscuridad; aparece un círculo mágico de runas detrás y empiezan a subir motas de luz
        250–1000 el grimorio sube flotando hasta su lugar
        700–1500 las runas de la portada se encienden en círculo; las motas giran hacia el libro
@@ -4974,7 +4975,7 @@
     layer.innerHTML=introMarkup();
     document.body.append(layer);
     const q=sel=>layer.querySelector(sel),wide=innerWidth>760;
-    const shift=wide?(q('.gi-book').offsetWidth/2)+'px':'0px';   // en pantallas anchas el libro abierto queda centrado
+    const shiftPx=wide?Math.round(q('.gi-book').offsetWidth/2):0,shift=shiftPx+'px';   // en pantallas anchas el libro abierto queda centrado
     const hold=animate(book,[{opacity:0},{opacity:0,offset:.86},{opacity:1}],{duration:T,easing:'ease-out'});
     q('.gi-stage').style.opacity='0';q('.gi-backdrop').style.opacity='.9';
     // motas de luz: suben, giran hacia el libro y estallan al abrirse
@@ -4989,49 +4990,94 @@
     }
     const arts=[...layer.querySelectorAll('img.gi-art')].map(img=>img.decode?img.decode().catch(()=>{}):Promise.resolve());
     const ready=Promise.race([Promise.all(arts),new Promise(r=>setTimeout(r,260))]);
-    let started=false,main=null;
+    /* Piezas con peso (skill nexo-animacion, resortes de core/movimiento.js): el libro sube y aterriza con pausa de impacto,
+       el broche tira hacia atrás antes de saltar, la tapa cae sobre la mesa y rebota, las hojas llegan tarde y la cámara
+       retrocede antes de entrar. Luces, círculo y motas siguen en la línea de tiempo de `start`; en cada pausa de impacto
+       se congela todo junto (las animaciones se pausan, los resortes dejan de avanzar). */
+    const movimiento=()=>{
+      const mov=window.NexoMovimiento,esc=mov.escena(),stage=q('.gi-stage'),bookEl=q('.gi-book'),bloom=q('.gi-bloom'),cover=q('.gi-cover'),clasp=q('.gi-clasp');
+      const pages=[...layer.querySelectorAll('.gi-page')],shaken=[stage,...layer.querySelectorAll('.gi-circle,.gi-rays')];
+      const subida=esc.resorte({rigidez:35,amortiguacion:8,valor:90}),flota=esc.resorte('brillo'),aplasta=esc.resorte({preset:'aplastar',valor:1});
+      const broche=esc.resorte('corcho'),tapa=esc.resorte({rigidez:22,amortiguacion:6.5}),corrimiento=esc.resorte('camara');
+      const hojas=pages.map(()=>esc.resorte({rigidez:70,amortiguacion:11})),camara=esc.resorte({rigidez:120,amortiguacion:16,valor:1});
+      const MESA=-168;   // ángulo en que la tapa abierta toca la mesa
+      const impacto=(golpe,efecto)=>{esc.golpe(golpe);mov.sonido(efecto);};
+      let tiempo=0,previo=performance.now(),aterrizo=false,golpeo=false,pausadas=[];
+      const pendientes=[
+        [250,()=>{subida.meta=0;}],
+        [1000,()=>{flota.meta=-7;}],
+        [1500,()=>{broche.meta=24;broche.empujar(-70);mov.sonido('preparar');}],
+        [1750,()=>{flota.meta=0;tapa.meta=-200;tapa.empujar(40);corrimiento.meta=shiftPx;}],
+        [2650,()=>{camara.meta=1.24;camara.empujar(-.35);}]
+      ];
+      const pintar=()=>{
+        const sy=aplasta.valor,sacudida=esc.temblor(),angulo=Math.min(3,Math.max(MESA,tapa.valor));
+        stage.style.transform=`translateY(${mov.alinear(subida.valor)}px) scale(${(1+(1-sy)*.5).toFixed(3)},${sy.toFixed(3)})`;
+        stage.style.scale=camara.valor.toFixed(4);
+        shaken.forEach(el=>{el.style.translate=`${sacudida.x}px ${sacudida.y}px`;});
+        bookEl.style.transform=`translateY(${mov.alinear(flota.valor)}px)`;
+        bookEl.style.translate=bloom.style.translate=`${Math.round(corrimiento.valor)}px 0`;
+        cover.style.transform=`rotateY(${angulo.toFixed(2)}deg) translateZ(${(18*Math.sin(Math.PI*Math.max(0,Math.min(1,angulo/MESA)))).toFixed(1)}px)`;
+        clasp.style.transform=`translateX(${broche.valor.toFixed(1)}%) rotate(${(broche.valor*.36).toFixed(1)}deg)`;
+        pages.forEach((page,i)=>{page.style.transform=`rotateY(${Math.max(-178,hojas[i].valor).toFixed(2)}deg)`;});
+      };
+      const cuadro=ahora=>{
+        if(!layer.isConnected)return;
+        // Se avanza por tramos de 50 ms para seguir el reloj real aunque el equipo vaya lento (la línea de tiempo no espera).
+        for(let resto=Math.min(Math.max((ahora-previo)/1000,0),.3);resto>1e-6;resto-=.05)tiempo+=esc.paso(Math.min(resto,.05))*1000;
+        previo=ahora;
+        for(const evento of pendientes.filter(([t])=>tiempo>=t)){pendientes.splice(pendientes.indexOf(evento),1);evento[1]();}
+        if(!aterrizo&&tiempo>=250&&subida.valor<=0) {aterrizo=true;aplasta.empujar(-2);impacto({pausa:.07,temblor:2,duracion:.3},'golpe');}
+        if(!golpeo&&tiempo>=1750&&tapa.valor<=MESA) {
+          golpeo=true;tapa.valor=tapa.meta=MESA;tapa.velocidad=Math.abs(tapa.velocidad)*.28;aplasta.empujar(-1.4);
+          impacto({pausa:.08,temblor:5,duracion:.5},'golpe');
+          hojas.forEach((hoja,i)=>pendientes.push([tiempo+60+i*90,()=>{hoja.meta=-(150+i*8);}]));
+        }
+        if(esc.pausado()&&!pausadas.length){pausadas=[...running].filter(a=>a.playState==='running');pausadas.forEach(a=>a.pause());}
+        else if(!esc.pausado()&&pausadas.length){pausadas.forEach(a=>{if(a.playState==='paused')a.play();});pausadas=[];}
+        pintar();
+        requestAnimationFrame(cuadro);
+      };
+      stage.style.transformOrigin='50% 88%';
+      pintar();
+      requestAnimationFrame(cuadro);
+    };
+    let started=false;
     const start=()=>{
       if(started||!layer.isConnected)return; started=true;
       q('.gi-stage').style.opacity='';q('.gi-backdrop').style.opacity='';
       try{hold.currentTime=0;}catch{}
       window.NexoAudio?.play?.('grimoire');
-      const E='cubic-bezier(.2,.7,.2,1)';
+      movimiento();
       timeline(q('.gi-backdrop'),[{opacity:.9},{opacity:1}],0,500,T,'ease-out');
       // círculo mágico: aparece, gira (cada anillo hacia un lado), se intensifica y se apaga
       [['.gi-circle-outer',70],['.gi-circle-inner',-110]].forEach(([sel,deg])=>{
         timeline(q(sel),[{opacity:0,transform:`scale(.72) rotate(0deg)`},{opacity:.85,transform:`scale(1) rotate(${deg*.25}deg)`,offset:.22},{opacity:1,transform:`scale(1.02) rotate(${deg*.45}deg)`,offset:.44},{opacity:.55,transform:`scale(1.12) rotate(${deg*.75}deg)`,offset:.76},{opacity:0,transform:`scale(1.35) rotate(${deg}deg)`}],0,T,T,'ease-in-out');
       });
       [...motes.children].forEach(m=>timeline(m,m._spec[0],m._spec[1],m._spec[2],T,'cubic-bezier(.3,.1,.3,1)'));
-      timeline(q('.gi-stage'),[{transform:'translateY(70px) scale(.86)',opacity:0},{transform:'translateY(-6px) scale(1.01)',opacity:1,offset:.75},{transform:'translateY(0) scale(1)',opacity:1}],250,750,T,E);
-      timeline(q('.gi-book'),[{transform:'translateY(0)'},{transform:'translateY(-7px)'},{transform:'translateY(0)'}],1000,750,T,'ease-in-out');   // flota
+      timeline(q('.gi-stage'),[{opacity:0},{opacity:1}],250,560,T,'ease-out');
       timeline(q('.gi-glow'),[{opacity:0,'--sweep':'0deg'},{opacity:.95,'--sweep':'200deg',offset:.55},{opacity:.9,'--sweep':'390deg'}],700,800,T);
       timeline(q('.gi-glow'),[{filter:'brightness(1)'},{filter:'brightness(1.45)'},{filter:'brightness(.6)'}],1500,1100,T);
       timeline(q('.gi-sheen'),[{backgroundPosition:'130% 0',opacity:0},{opacity:1,offset:.2},{backgroundPosition:'-30% 0',opacity:0}],750,800,T);
       timeline(q('.gi-gem'),[{opacity:0,transform:'scale(.6)'},{opacity:1,transform:'scale(1.25)',offset:.5},{opacity:.8,transform:'scale(1)'}],1250,500,T);
       timeline(q('.gi-flare'),[{opacity:0,transform:'translate(-50%,-50%) rotate(0deg) scale(.2)'},{opacity:1,transform:'translate(-50%,-50%) rotate(25deg) scale(1.15)',offset:.4},{opacity:0,transform:'translate(-50%,-50%) rotate(55deg) scale(.5)'}],1330,480,T,'ease-out');
-      timeline(q('.gi-clasp'),[{transform:'translateX(0) rotate(0)',opacity:1},{transform:'translateX(3%) rotate(-3deg)',opacity:1,offset:.35},{transform:'translateX(22%) rotate(8deg)',opacity:0}],1500,250,T,'cubic-bezier(.5,0,.6,1)');
-      main=timeline(q('.gi-cover'),[{transform:'rotateY(0deg) translateZ(0)'},{transform:'rotateY(-18deg) translateZ(18px)',offset:.18},{transform:'rotateY(-168deg) translateZ(0)'}],1750,850,T,'cubic-bezier(.55,.06,.3,1)');
-      timeline(q('.gi-book'),[{translate:'0 0'},{translate:`${shift} 0`}],1750,850,T,'cubic-bezier(.55,.06,.3,1)');
+      timeline(q('.gi-clasp'),[{opacity:1},{opacity:1,offset:.35},{opacity:0}],1500,250,T,'cubic-bezier(.5,0,.6,1)');
       timeline(q('.gi-pagelight'),[{opacity:0},{opacity:1,offset:.45},{opacity:.35}],1850,900,T,'ease-out');
       // de la página en blanco sale luz y se "escribe" un sello mágico
-      timeline(q('.gi-bloom'),[{translate:'0 0'},{translate:`${shift} 0`}],1750,850,T,'cubic-bezier(.55,.06,.3,1)');
-      timeline(q('.gi-bloom-light'),[{opacity:0,transform:'scale(.4)'},{opacity:1,transform:'scale(1)',offset:.4},{opacity:.75,transform:'scale(1.15)'}],2000,1000,T,'ease-out');
-      timeline(q('.gi-sigil'),[{opacity:0,clipPath:'circle(0% at 50% 50%)',transform:'rotate(-40deg) scale(.8)'},{opacity:1,clipPath:'circle(70% at 50% 50%)',transform:'rotate(0deg) scale(1)',offset:.6},{opacity:.9,clipPath:'circle(70% at 50% 50%)',transform:'rotate(12deg) scale(1.05)'}],2150,850,T,'cubic-bezier(.3,.1,.3,1)');
+      timeline(q('.gi-bloom-light'),[{opacity:0,transform:'scale(.4)'},{opacity:1,transform:'scale(1)',offset:.4},{opacity:.75,transform:'scale(1.15)'}],2150,1000,T,'ease-out');
+      timeline(q('.gi-sigil'),[{opacity:0,clipPath:'circle(0% at 50% 50%)',transform:'rotate(-40deg) scale(.8)'},{opacity:1,clipPath:'circle(70% at 50% 50%)',transform:'rotate(0deg) scale(1)',offset:.6},{opacity:.9,clipPath:'circle(70% at 50% 50%)',transform:'rotate(12deg) scale(1.05)'}],2250,850,T,'cubic-bezier(.3,.1,.3,1)');
       timeline(q('.gi-rays'),[{opacity:0,transform:'translate(-50%,-50%) rotate(0deg) scale(.6)'},{opacity:.85,transform:'translate(-50%,-50%) rotate(12deg) scale(1)',offset:.35},{opacity:0,transform:'translate(-50%,-50%) rotate(30deg) scale(1.3)'}],1900,1200,T,'ease-out');
-      layer.querySelectorAll('.gi-page').forEach((page,i)=>timeline(page,[{transform:'rotateY(0deg)'},{transform:`rotateY(${-(150+i*8)}deg)`}],2050+i*110,520,T,'cubic-bezier(.4,.1,.3,1)'));
       layer.querySelectorAll('.gi-spark').forEach((spark,i)=>timeline(spark,[{opacity:0,transform:'translate(0,0) scale(.5)'},{opacity:.9,offset:.35},{opacity:0,transform:`translate(${(i%2?1:-1)*(8+i*3)}px,${-40-i*9}px) scale(1)`}],900+i*110,1100,T,'ease-out'));
       // estallido de chispas al abrirse
       const burst=q('.gi-motes');
       for(let i=0;i<(low?12:44);i++) {
         const s=document.createElement('i');s.className='gi-mote gi-burst';burst.append(s);
         const a=Math.random()*Math.PI*2,d=R*(.2+Math.random()*.45);s.style.setProperty('--s',(.8+Math.random()*1.1).toFixed(2));
-        timeline(s,[{transform:`translate(${shift},0) scale(1.2)`,opacity:0},{opacity:1,offset:.12},{transform:`translate(calc(${shift} + ${(Math.cos(a)*d).toFixed(1)}px),${(Math.sin(a)*d*.8-R*.05).toFixed(1)}px) scale(.2)`,opacity:0}],2050+Math.random()*250,900+Math.random()*500,T,'cubic-bezier(.1,.7,.3,1)');
+        timeline(s,[{transform:`translate(${shift},0) scale(1.2)`,opacity:0},{opacity:1,offset:.12},{transform:`translate(calc(${shift} + ${(Math.cos(a)*d).toFixed(1)}px),${(Math.sin(a)*d*.8-R*.05).toFixed(1)}px) scale(.2)`,opacity:0}],2300+Math.random()*250,900+Math.random()*500,T,'cubic-bezier(.1,.7,.3,1)');
       }
       timeline(q('.gi-hint'),[{opacity:0},{opacity:.7,offset:.2},{opacity:.7,offset:.85},{opacity:0}],300,2300,T);
-      timeline(q('.gi-stage'),[{scale:'1'},{scale:'1.24'}],2650,750,T,'cubic-bezier(.5,0,.7,.4)');   // la cámara entra
       timeline(q('.gi-flash'),[{opacity:0},{opacity:.55,offset:.45},{opacity:0}],2700,700,T,'ease-in-out');
       timeline(layer,[{opacity:1},{opacity:0}],2950,450,T,'ease-in');
-      layer._main=main;
       Promise.all([...running].filter(a=>a.effect?.target&&layer.contains(a.effect.target)||a.effect?.target===layer).map(a=>a.finished)).then(done,done);
     };
     const finish=()=>{start();running.forEach(a=>{try{a.finish();}catch{}});};
@@ -5151,7 +5197,6 @@
     if(reduced()||document.body.dataset.nexoAmbientMotion==='reduced') {navigationAnimation=animate(target,[{opacity:0},{opacity:1}],{duration:200,easing:'ease-out'});return;}
     if(spec.kind==='book-first'&&book) {
       openingLeaf=grimoireIntro(book,spec);
-      navigationAnimation=openingLeaf?._main||null;
     } else if(spec.kind==='page-turn'&&book&&previousPages?.front&&previousPages?.folio&&innerWidth>760) {
       openingLeaf=pageCurl(book,turnDirection(previous,next),spec.duration);
       navigationAnimation=openingLeaf?._main||null;

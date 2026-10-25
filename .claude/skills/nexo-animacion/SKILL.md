@@ -22,7 +22,7 @@ Estilo aprobado por Niquito (24 oct 2026): **piezas que se mueven con resortes +
 - `escena()` agrupa resortes: `esc.resorte(...)`, `esc.golpe({ pausa, temblor, duracion })` y, en cada cuadro, `dt = esc.paso(dtReal)` (devuelve 0 durante la pausa de impacto: úsalo también para partículas). `esc.temblor()` da `{x, y}` en píxeles enteros.
 - `alinear(v, paso)`, `cantidad(n)` (partículas según la calidad de Ajustes), `reducido()`.
 - `sonido(evento, rareza)`. Eventos: `preparar`, `lanzar`, `estallar`, `girar`, `paso`, `golpe`, `premio`, `brillo`, `burbuja`, y de interfaz `clic`, `confirmar`, `comprar`, `equipar`, `error`. Los de interfaz van a `NexoAudio`; los de efectos al sintetizador `NexoCofreSonidos` (`dist/economy/cofre-sonidos.js`). Un sonido nuevo se agrega a ese sintetizador y a `EVENTOS`.
-- Ejemplos: cofre (`dist/economy/cofre-fx.js`, prueba `tools/movimiento-test.cjs`) y botones de latón + portal entre secciones (`dist/design-system/pixel-ui.js`, prueba `tools/interfaz-movimiento-test.cjs`).
+- Ejemplos: cofre (`dist/economy/cofre-fx.js`, prueba `tools/movimiento-test.cjs`), botones de latón + portal entre secciones (`dist/design-system/pixel-ui.js`, prueba `tools/interfaz-movimiento-test.cjs`) y apertura del Grimorio (`dist/platform/animation.js`, prueba `tools/grimorio-movimiento-test.cjs`).
 - Interfaz: un bucle de cuadros compartido que solo corre mientras algo se mueve; la cara del botón va por la variable CSS `--pu-y` y la propiedad `translate` (no choca con `transform`). Si un rebote pasaría del piso y haría crecer el scroll, se pinta `-Math.abs(valor)` (rebota contra el piso).
 
 ## Qué técnica para qué
@@ -37,3 +37,5 @@ Estilo aprobado por Niquito (24 oct 2026): **piezas que se mueven con resortes +
 - **Silencio**: con el sonido apagado en Ajustes no se crea ni un `AudioContext`. Nada suena antes de un gesto del usuario.
 - **Rendimiento**: partículas con `cantidad(n)`, un solo bucle de cuadros por escena, nada de bucles permanentes en segundo plano.
 - **Entrega**: nada sale sin probar en 1440 y 390, una captura por tamaño y un número de tiempo de cuadro. Pruebas rápidas en verde.
+- **Resortes sobre una línea de tiempo existente** (Grimorio): avanza los resortes por tramos de 50 ms hasta alcanzar el reloj real (la línea de tiempo no espera si el equipo va lento). Para la pausa de impacto, pausa también las animaciones de la capa y reanúdalas juntas. Un golpe contra un tope (la tapa en la mesa) se hace con meta más allá del tope y rebote manual: `valor = tope`, `velocidad = |v| · 0,28`.
+- Para que Niquito vea una animación sin tocar GitHub: Artifact privado con botones ANTES/AHORA que carga el módulo original y el nuevo.
