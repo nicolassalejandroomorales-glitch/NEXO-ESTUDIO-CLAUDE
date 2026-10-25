@@ -13,7 +13,10 @@
 ## Hecho en implementación (24 oct 2026)
 - Pasos 1-2 del SPEC: inventario de `state.coins`, compra directa con ⚛, motivos y precio por moneda en cada botón, tienda vieja (`buyUtility`) borrada. Prueba: `tools/economia-test.cjs`. Falta aprobación de Niquito antes de seguir con los pasos 3-9.
 
+- Rediseño de la Tienda diseñado en conversación (25 oct): "La habitación del alquimista" (ver SPEC). El Probador queda en su rama `tienda-probador` sin tocar `master`.
+
 ## Falta
+- Que Niquito diga "hazlo" para la maqueta de la habitación del alquimista (paso 1 del rediseño en el SPEC).
 - Decidir qué hacer con los desafíos de estudio (ver Pendiente del SPEC) antes del paso 3.
 - Seguir desde el paso 3 del SPEC (`earn` con decrecimiento por concepto, recuerdo solo vencido, tiempo = 0).
 - Que Niquito apruebe el diseño v3 (decisiones que tomé yo y hay que confirmar: tiempo de sesión paga 0, se quita el cofre por guía completada, premio del tutorial = 1 cofre, precios directos 90/150/300/600 ⚛).

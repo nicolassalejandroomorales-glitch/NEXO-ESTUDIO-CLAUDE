@@ -124,7 +124,38 @@ Con ~150 XP por día de estudio (5 días a la semana) el rango 5 llega a las ~2-
 - Inventario de `state.coins`: solo `tienda.js` (`buyChest`, `buyAccessory`, `earn`) debe tocarlo. Falta moverlos: el pago por tiempo (`app.js` cronómetro, ~L1713), el premio del tutorial de 150 ⚛ (~L697) y los desafíos (`claimChallenge`).
 - Hecho: compra directa con ⚛ (`buyAccessory`, precios 90/150/300/600), motivos con la cantidad que falta y botones con su moneda. Borrada la tienda vieja (`buyUtility`, `reward()`): `rewards` estaba vacío, así que era código muerto. Los escudos de racha comprables quedan sin forma de comprarse (el perdón de racha los reemplaza en el paso 7).
 
+## Rediseño de la Tienda: "La habitación del alquimista" (diseño del 25 oct 2026, sin código ni arte todavía)
+Niquito: la Tienda actual (y la prueba "Probador", rama `tienda-probador`) se siente menú/formulario; rompe la regla de CLAUDE.md de no hacer pantallas de formulario. Quiere **un lugar con vida**. Cambia solo la pantalla: la lógica de `dist/economy/tienda.js` no se toca.
+
+Decisiones:
+- **Una sola escena de la torre**, con hora y clima reales entrando por la ventana (`ambient/time.js`).
+- **Cofre sorpresa grande al centro, sobre el mesón.** Tocarlo lo abre con la animación que ya existe (`cofre-fx.js`).
+- **Los accesorios son objetos, no tarjetas:** gorros y coronas en ganchos o maniquí, lentes en vitrina, bufandas colgadas, tazas, lupas y varitas en un estante. Lo que no tienes se ve como silueta apagada (reemplaza "3 de 5"). Los cofres de categoría son cajas chicas junto a su estante.
+- **Sin botones a la vista.** Cada objeto lleva una etiqueta de papel con su precio en ⚛. Al tocarlo sale un pergamino con nombre, rareza, probabilidad por cofre y una acción principal (Comprar con ⚛ o Canjear polvo; "Probar" se lo pone a tu compañero, que está en un pedestal o espejo).
+- **El alquimista aparece y habla**: voz excéntrica y breve (una línea), en globo de diálogo. Explica cuánto te falta y por qué bajó un pago, y reemplaza el texto rojo. Ej.: "Faltan 60 ⚛. Un repaso y es tuyo."
+- **Un alambique en el mesón** que se llena con los ⚛ ganados hoy (tope de 60, del registro `earned`). Muestra de dónde viene el ⚛ sin escribir nada.
+- **Layout:** ancho en 1440; en 390 una columna alta que se desplaza (estantes arriba, compañero al medio, mesón con cofre y alambique abajo).
+- **Movimiento:** piezas con resortes; cuadro a cuadro solo en el cofre; respeta `prefers-reduced-motion`.
+
+Criterios de aceptación del rediseño:
+- Ningún botón visible por defecto en los objetos; el precio se ve en su etiqueta.
+- Los 14 accesorios aparecen: a color si los tienes, en silueta si no.
+- Comprar con ⚛, canjear con polvo, probar, abrir cofres y cofre diario funcionan igual que hoy (`tools/economia-test.cjs` sigue en verde).
+- Cada bloqueo lo explica el alquimista con la cantidad exacta que falta.
+- El alambique refleja los ⚛ ganados hoy y se reinicia cada día.
+- Cada objeto es tocable (≥ 44 px en 390), con nombre accesible, foco visible y uso con teclado.
+- Hora y clima cambian la escena; sin errores de consola; se ve bien en 1440 y 390.
+- No se toca Supabase; sin cuenta todo es local.
+
+Cómo (cada paso se hace solo cuando Niquito diga "hazlo"):
+1. Maqueta de la composición (cosa grande: maqueta primero), probar 1440 y 390.
+2. Arte en pixel art con scripts reproducibles en `tools/tienda-pixel/`: fondo, 14 objetos con su silueta, cajas, alambique, alquimista.
+3. Pantalla nueva reemplazando `renderShop` y `wireShop` (se borra la anterior, sin parches encima).
+4. Frases del alquimista y alambique conectado a `earned`.
+5. Pruebas y verificación en 1440 y 390.
+
 ## Pendiente
+- Rediseño de la Tienda: cómo y dónde se ven las probabilidades y la garantía dentro de la habitación; lista de frases del alquimista; si la Tienda con cuenta en la nube sigue bloqueada.
 - **Decidir (desafíos de estudio):** pagan 15 / 20 / 25 / 30 ⚛ sueltos, fuera del tope diario, y dos de los cuatro pagan por tiempo (enfoque de 25 min y semana equilibrada). Propuesta: que los desafíos de tiempo no paguen ⚛ y los de ejercicios pasen por `earn`.
 - Cofres temáticos por ramo, objetos del refugio y skins (necesitan contenido); el polvo sobrante no tiene destino cuando ya lo tienes todo.
 - Con cuenta en la nube la Tienda sigue bloqueada (no se toca Supabase en este tema).
