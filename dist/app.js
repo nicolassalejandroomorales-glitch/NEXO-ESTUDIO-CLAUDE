@@ -836,11 +836,24 @@
     }
     const cells = Array.from({ length: lead }, () => '<li class="cal-blank" aria-hidden="true"></li>').concat(Array.from({ length: total }, (_, i) => {
       const key = `${today.slice(0, 8)}${String(i + 1).padStart(2, '0')}`, mark = byDay.get(key);
-      return `<li class="cal-day ${key === today ? 'is-today' : ''} ${mark ? (mark.evaluation ? 'has-eval' : 'has-event') : ''}" ${key === today ? 'aria-current="date"' : ''}>${i + 1}</li>`;
+      return `<li class="cal-day ${key === today ? 'is-today' : ''} ${mark ? (mark.evaluation ? 'has-eval' : 'has-event') : ''}"><button type="button" class="cal-btn" data-cal-day="${key}" aria-pressed="${key === today}" ${key === today ? 'aria-current="date"' : ''}>${i + 1}</button></li>`;
     }));
     const title = new Intl.DateTimeFormat('es-CL', { month: 'long', year: 'numeric' }).format(first);
     return `<h2 class="home-panel-title cal-title" id="calTitle">${pixelText(title.charAt(0).toUpperCase() + title.slice(1), { shadow: false })}</h2>
-      <ol class="cal-grid" aria-label="Calendario de ${esc(title)}">${['L','M','M','J','V','S','D'].map(day => `<li class="cal-head" aria-hidden="true">${day}</li>`).join('')}${cells.join('')}</ol>`;
+      <ol class="cal-grid" aria-label="Calendario de ${esc(title)}">${['L','M','M','J','V','S','D'].map(day => `<li class="cal-head" aria-hidden="true">${day}</li>`).join('')}${cells.join('')}</ol>
+      <p class="cal-detail" id="calDetail" aria-live="polite">${calendarDetail(today)}</p>`;
+  }
+  // Detalle del día elegido en el mini calendario: hasta 2 eventos y "+N" si hay más.
+  function calendarDetail(key) {
+    const events = state.events.filter(event => event.date === key && event.status !== 'done');
+    const label = new Intl.DateTimeFormat('es-CL', { weekday: 'long', day: 'numeric', month: 'long' }).format(parseDay(key));
+    const first = events[0], more = events.length > 1 ? ` · +${events.length - 1} más` : '';
+    return `<b>${esc(label)}</b><span>${first ? `${esc(subjectFor(first.subject).short)} · ${esc(first.title)}${more}` : 'Nada agendado.'}</span>`;
+  }
+  function selectCalendarDay(button) {
+    document.querySelectorAll('.cal-btn[aria-pressed="true"]').forEach(other => other.setAttribute('aria-pressed', 'false'));
+    button.setAttribute('aria-pressed', 'true');
+    const detail = document.getElementById('calDetail'); if (detail) detail.innerHTML = calendarDetail(button.dataset.calDay);
   }
 
   // Reloj de la torre en el Inicio (docs/inicio-reloj/SPEC.md): hora, cronómetro, ramo y controles.
@@ -1925,6 +1938,7 @@
     if (button.dataset.clockToggle !== undefined) return toggleClock();
     if (button.dataset.subjectToggle !== undefined) { const list = document.querySelector('.hc-subject-list'); if (!list) return; list.hidden = !list.hidden; button.setAttribute('aria-expanded', String(!list.hidden)); return; }
     if (button.dataset.subjectPick) return setClockSubject(button.dataset.subjectPick);
+    if (button.dataset.calDay) return selectCalendarDay(button);
     if (button.dataset.action === 'timer-start') return timerStart();
     if (button.dataset.action === 'timer-pause') return timerPause();
     if (button.dataset.action === 'timer-finish') { if (button.closest('.home-clock')) sparkBurst(button); return timerFinish(); }

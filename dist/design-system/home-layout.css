@@ -3,9 +3,9 @@
    Móvil: todo en una sola columna (la tira fija del reloj y el orden final son el paso 6 del SPEC). */
 
 body[data-nexo-room="home"] #app { background:transparent; }
-.refuge { --home-side:340px;--home-gap:24px;display:grid;grid-template-columns:minmax(0,1fr) var(--home-side);gap:var(--home-gap);align-items:start;padding:16px var(--home-gap) var(--home-gap); }
-.home-main { min-width:0;display:grid;gap:14px;padding-bottom:150px; }
-.home-side { min-width:0;display:grid;gap:10px;padding-top:48px; }
+.refuge { --home-side:340px;--home-gap:24px;display:grid;grid-template-columns:minmax(0,1fr) var(--home-side);gap:var(--home-gap);align-items:start;padding:16px var(--home-gap) 6px; }
+.home-main { min-width:0;display:grid;grid-template-rows:auto 1fr;gap:14px;min-height:calc(100vh - 22px); }
+.home-side { min-width:0;display:grid;gap:6px;padding-top:48px; }
 .home-side > * { min-width:0; }
 .home-main .refuge-room { border-radius:6px;box-shadow:0 14px 34px #080c0c55; }
 
@@ -17,11 +17,11 @@ body[data-nexo-room="home"] #app { background:transparent; }
 .home-panel .paper-link:hover { color:#fff1b0;background:#fff1b012; }
 
 /* Calificaciones + Apuntes, debajo del refugio */
-.home-lower { display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:14px;align-items:stretch; }
-.grade-chips { list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px; }
-.grade-chip { display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 8px;border:2px solid #1a0f13;border-left:6px solid var(--course,#8a6a40);background:#3b2c1e;box-shadow:2px 2px 0 #1a0f13; }
-.grade-name { min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:.78rem/1.2 var(--font-ui);color:#e9d9a4; }
-.grade-value { flex:none;padding:1px 7px;font:800 .95rem/1.3 var(--font-ui);font-variant-numeric:tabular-nums;color:#2a1a0a;background:#cfc7a3; }
+.home-lower { display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:14px;align-items:stretch;padding-left:150px; } /* los 150 px de la izquierda son del avatar de la mascota */
+.grade-chips { list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px; }
+.grade-chip { display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 12px;border:2px solid #1a0f13;border-left:6px solid var(--course,#8a6a40);background:#3b2c1e;box-shadow:2px 2px 0 #1a0f13; }
+.grade-name { min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:.92rem/1.25 var(--font-ui);color:#e9d9a4; }
+.grade-value { flex:none;padding:2px 9px;font:800 1.15rem/1.3 var(--font-ui);font-variant-numeric:tabular-nums;color:#2a1a0a;background:#cfc7a3; }
 .grade-chip[data-tone="verde"] .grade-value { background:#9fcf86; }
 .grade-chip[data-tone="ambar"] .grade-value { background:#f0c765; }
 .grade-chip[data-tone="rojo"] .grade-value { background:#e58b78; }
@@ -30,17 +30,27 @@ body[data-nexo-room="home"] #app { background:transparent; }
 .home-notes p { margin:0;font:.82rem/1.45 var(--font-ui);color:#cdbd90; }
 
 /* Avatar de la mascota (la mascota sigue viviendo en el refugio) + globo */
-.home-bubble { position:fixed;z-index:60;left:calc(104px + var(--home-gap) + 128px);bottom:42px;max-width:min(360px,calc(100vw - 104px - 340px - 220px));margin:0;padding:9px 13px;border:3px solid #1a0f13;border-radius:3px;background:#f6e8c4;color:#3a2c1d;font:700 .84rem/1.4 var(--font-ui);box-shadow:3px 3px 0 #1a0f13aa; }
-.home-bubble::before { content:"";position:absolute;left:-12px;bottom:12px;width:9px;height:9px;background:#f6e8c4;border:3px solid #1a0f13;border-right:0;border-top:0;transform:rotate(45deg) translate(3px,-3px); }
+.home-bubble { position:fixed;z-index:60;left:128px;bottom:162px;width:136px;box-sizing:border-box;margin:0;padding:8px 10px;border:3px solid #1a0f13;border-radius:3px;background:#f6e8c4;color:#3a2c1d;font:700 .8rem/1.35 var(--font-ui);box-shadow:3px 3px 0 #1a0f13aa; }
+.home-bubble::before { content:"";position:absolute;left:24px;bottom:-9px;width:9px;height:9px;background:#f6e8c4;border:3px solid #1a0f13;border-left:0;border-top:0;transform:rotate(45deg) translate(-3px,-3px); }
 
 /* Calendario del mes */
 .cal-title .pixel-text { --s:2; }
 .cal-grid { list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center;font:.76rem/1 var(--font-ui);font-variant-numeric:tabular-nums; }
 .cal-head { color:#cdbd90;font-weight:700;padding-bottom:2px; }
-.cal-day { position:relative;padding:4px 0 8px;color:#f1e4c0;background:#33261b; }
+.cal-day { position:relative;color:#f1e4c0;background:#33261b; }
+.cal-btn { display:block;width:100%;padding:3px 0 7px;border:0;background:none;color:inherit;font:inherit;cursor:pointer; }
+.cal-btn:hover { background:#fff1b01f; }
+.cal-btn:focus-visible { outline:2px dashed #fbe08a;outline-offset:1px; }
+.cal-btn[aria-pressed="true"] { box-shadow:inset 0 0 0 2px #fbe08a; }
+.cal-day.is-today .cal-btn[aria-pressed="true"] { box-shadow:inset 0 0 0 2px #1a0f13; }
 .cal-day.is-today { color:#2a1a0a;font-weight:800;background:#fbe08a;box-shadow:0 0 0 2px #1a0f13; }
-.cal-day.has-event::after,.cal-day.has-eval::after { content:"";position:absolute;left:50%;bottom:3px;width:5px;height:5px;margin-left:-2.5px;background:#7fb26a;box-shadow:0 0 0 1px #1a0f13; }
+.cal-day.has-event::after,.cal-day.has-eval::after { content:"";pointer-events:none;position:absolute;left:50%;bottom:3px;width:5px;height:5px;margin-left:-2.5px;background:#7fb26a;box-shadow:0 0 0 1px #1a0f13; }
 .cal-day.has-eval::after { background:#e5483a; }
+
+.cal-detail { margin:0;min-height:calc(2*1.25em);display:grid;gap:1px;align-content:start;font:.76rem/1.25 var(--font-ui);color:#e9d9a4; }
+.cal-detail b { color:#fbe08a; }
+.cal-detail b::first-letter { text-transform:uppercase; }
+.cal-detail span { overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
 
 /* Próximas pruebas */
 .home-pruebas .evaluation-notes { list-style:none;margin:0;padding:0;display:grid;gap:6px; }
@@ -48,7 +58,7 @@ body[data-nexo-room="home"] #app { background:transparent; }
 .home-pruebas .next-evaluation { background:#fbeecb;border-color:#a8402e;box-shadow:2px 2px 0 #1a0f13,0 0 0 2px #fbe08a; }
 .home-pruebas .evaluation-note>div { display:flex;justify-content:space-between;gap:8px;font-size:.72rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#6a4f30; }
 .home-pruebas .evaluation-note h3 { margin:1px 0 0;font:700 .95rem/1.25 var(--font-ui);color:#34271c; }
-.home-pruebas .evaluation-note small { display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-top:2px;font-size:.74rem;line-height:1.3;color:#7a3a2a; }
+.home-pruebas .evaluation-note small { display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;margin-top:2px;font-size:.74rem;line-height:1.3;color:#7a3a2a; }
 .home-pruebas .paper-empty { margin:0;font-size:.85rem;color:#cdbd90; }
 
 /* Pantallas bajas: solo las 2 pruebas más cercanas, para que la columna entre sin scroll */
@@ -63,5 +73,6 @@ body[data-nexo-room="home"] #app { background:transparent; }
   .home-side { padding:10px 10px 0; }
   .home-side .home-clock { order:-1; }
   .home-lower { grid-template-columns:1fr;padding:0 10px; }
+  .home-main { min-height:0; }
   .home-bubble { display:none; }
 }

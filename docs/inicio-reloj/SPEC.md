@@ -116,6 +116,8 @@ Reglas: editar el original (sin `-v2`), borrar lo que quede sin uso, `node tools
 - Pruebas ajustadas: `smoke-test`, `update01-dom-test`, selectores del tutorial. `run-tests`: 45/50 (las 5 de antes).
 - Medido en 1440×900: columna derecha termina en 884 px (sin scroll). En pantallas bajas (≤ 960 px de alto) Próximas pruebas muestra solo las 2 más cercanas.
 
+- Ajustes tras la prueba de Niquito (25 oct): los días del mini calendario ahora se pueden elegir (botón por día, muestra fecha y evento debajo); Calificaciones y Apuntes estiran hasta el borde de abajo (chapas más grandes) y el avatar de la mascota tiene su columna a la izquierda, con el globo encima. Columna derecha termina en 890 px (sin scroll en 900).
+
 ### Decisiones tomadas en el paso 2 (confirmar)
 - Tamaños: 3 (pequeño/normal/grande) en vez de 4; el "enorme" viejo se quitó por la altura de la columna.
 - Plan de hoy sigue sin aparecer en el Inicio (decisión del paso 1 pendiente).
