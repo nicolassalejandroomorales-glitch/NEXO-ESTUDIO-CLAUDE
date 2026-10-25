@@ -124,6 +124,11 @@ Con ~150 XP por día de estudio (5 días a la semana) el rango 5 llega a las ~2-
 - Inventario de `state.coins`: solo `tienda.js` (`buyChest`, `buyAccessory`, `earn`) debe tocarlo. Falta moverlos: el pago por tiempo (`app.js` cronómetro, ~L1713), el premio del tutorial de 150 ⚛ (~L697) y los desafíos (`claimChallenge`).
 - Hecho: compra directa con ⚛ (`buyAccessory`, precios 90/150/300/600), motivos con la cantidad que falta y botones con su moneda. Borrada la tienda vieja (`buyUtility`, `reward()`): `rewards` estaba vacío, así que era código muerto. Los escudos de racha comprables quedan sin forma de comprarse (el perdón de racha los reemplaza en el paso 7).
 
+## Rediseño de la Tienda: "Probador" (24 oct 2026, en prueba, rama `tienda-probador`)
+- Tu compañero grande al centro con 4 ranuras (cabeza, rostro, cuello, mano): son justo las 4 categorías de cofre. Tocar una ranura abre su panel con sus accesorios, su cofre y "n de m".
+- Cofre sorpresa abajo (diario, abrir, comprar). Probabilidades y garantía plegadas. Lo que compras o ganas se le pone solo a la mascota.
+- Reemplaza la grilla de 14 accesorios y las 5 tarjetas de cofres. Falta que Niquito lo apruebe; si no gusta, se descarta la rama.
+
 ## Pendiente
 - **Decidir (desafíos de estudio):** pagan 15 / 20 / 25 / 30 ⚛ sueltos, fuera del tope diario, y dos de los cuatro pagan por tiempo (enfoque de 25 min y semana equilibrada). Propuesta: que los desafíos de tiempo no paguen ⚛ y los de ejercicios pasen por `earn`.
 - Cofres temáticos por ramo, objetos del refugio y skins (necesitan contenido); el polvo sobrante no tiene destino cuando ya lo tienes todo.

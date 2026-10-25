@@ -13,6 +13,8 @@
 ## Hecho en implementación (24 oct 2026)
 - Pasos 1-2 del SPEC: inventario de `state.coins`, compra directa con ⚛, motivos y precio por moneda en cada botón, tienda vieja (`buyUtility`) borrada. Prueba: `tools/economia-test.cjs`. Falta aprobación de Niquito antes de seguir con los pasos 3-9.
 
+- Rediseño de la Tienda "Probador" probado en la rama `tienda-probador` (ver SPEC). Pendiente de que Niquito diga si lo adopta.
+
 ## Falta
 - Decidir qué hacer con los desafíos de estudio (ver Pendiente del SPEC) antes del paso 3.
 - Seguir desde el paso 3 del SPEC (`earn` con decrecimiento por concepto, recuerdo solo vencido, tiempo = 0).

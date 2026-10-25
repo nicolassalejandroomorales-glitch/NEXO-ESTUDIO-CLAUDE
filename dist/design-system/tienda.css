@@ -6,8 +6,6 @@
 .tienda-wallet .pu-paper { display:flex;align-items:center;gap:6px;padding:2px 8px;font-weight:800;white-space:nowrap; }
 .tienda-wallet small { font-weight:600;opacity:.7; }
 
-.tienda-mesa { display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px;align-items:center; }
-.tienda-mesa .pu-panel { min-width:0; }
 .tienda-cofre { position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;padding:6px 4px;text-align:center;color:#f1e4c0; }
 .tienda-cofre img { width:min(320px,70vw);image-rendering:pixelated;filter:drop-shadow(0 8px 0 #0006);animation:tcBob 3.2s ease-in-out infinite; }
 .tienda-cofre img.tc-lit { animation:tcBob 3.2s ease-in-out infinite,tcPulse 1.6s ease-in-out infinite; }
@@ -16,16 +14,11 @@
 .tienda-cofre .tc-hint { margin:0;font-size:.8rem;opacity:.85;max-width:34ch; }
 .tienda-acciones { display:flex;gap:8px;flex-wrap:wrap;justify-content:center; }
 .tienda-pet { display:flex;flex-direction:column;align-items:center;gap:6px;color:#3a2c1d;text-align:center; }
-.tienda-pet canvas { width:140px;height:154px;image-rendering:pixelated; }
+.tienda-pet canvas { width:min(100%,260px);height:auto;aspect-ratio:40/44;image-rendering:pixelated; }
 
-.tienda-tipos { display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:16px 0 8px; }
-.tienda-tipo { display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center;min-width:0; }
-.tienda-tipo b { font-size:.95rem; }
-.tienda-tipo small { opacity:.75; }
-.tienda-tipo .tt-row { display:flex;gap:6px;flex-wrap:wrap;justify-content:center; }
 .tienda-nota { margin:8px 0;padding:6px 12px;border-radius:8px;background:#241a12;color:#f1e4c0;font-weight:600; }
 
-.tienda-estantes { display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:10px; }
+.tienda-estantes { display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-top:10px;align-items:start; }
 .tienda-item { --rc:var(--rar-comun);display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;min-width:0; }
 .tienda-item[data-r=poco] { --rc:var(--rar-poco); } .tienda-item[data-r=raro] { --rc:var(--rar-raro); } .tienda-item[data-r=legendario] { --rc:var(--rar-legendario); }
 .tienda-item .ti-icon { display:flex;align-items:center;justify-content:center;height:72px;width:100%;border-bottom:3px solid var(--rc);margin-bottom:2px; }
@@ -34,11 +27,9 @@
 .tienda-item[data-r=legendario] .ti-icon { animation:tiShine 2.6s ease-in-out infinite; }
 @keyframes tiShine { 50% { box-shadow:0 6px 10px -6px var(--rc); } }
 .tienda-item .ti-own { color:#2f7a4a;font-weight:800;font-size:.8rem; }
-.tienda-item .pu-btn { width:100%;font-size:.8rem; }
+.tienda-item .pu-btn { width:100%;font-size:.76rem;white-space:nowrap; }
 
 @media(max-width:700px) {
-  .tienda-mesa { grid-template-columns:1fr; }
-  .tienda-pet canvas { width:112px;height:123px; }
   .tienda-estantes { grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px; }
 }
 
@@ -113,7 +104,43 @@ body[data-nexo-ambient-motion="reduced"] .cofre-fx *,body[data-nexo-quality="low
 .tienda-odds .to-name { color:var(--c);text-shadow:0 1px 0 #0004; }
 .tienda-odds small { opacity:.8;font-weight:600; }
 .tienda-item .ti-pct { font-size:.72rem;opacity:.75; }
-.tienda-tipo .tt-why,.tienda-item .tt-why { font-size:.72rem;font-weight:700;color:#8a3f1d;opacity:1; }
+.tt-why { display:block;font-size:.72rem;font-weight:700;color:#8a3f1d; }
+#shopSlotHead .tt-why,.tienda-cofre .tt-why { color:#ffb98a; }
+
+/* ---- Probador: tu compañero al centro con 4 ranuras, el cofre de la ranura elegida y el cofre sorpresa abajo ---- */
+.probador { display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,300px) minmax(0,1fr);gap:12px 16px;align-items:stretch; }
+.probador-pet { grid-column:2;grid-row:1 / span 2;min-width:0;display:flex; }
+.probador-pet .tienda-pet { flex:1;justify-content:center; }
+.probador-slots { display:contents; }
+.slot-tile { width:100%;max-width:230px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0;padding:8px 6px;border:0;font:inherit;color:#3a2c1d;text-align:center;cursor:pointer; }
+.slot-tile b { font-size:.95rem; }
+.slot-tile small { opacity:.75; }
+.slot-tile .st-ico { display:flex;align-items:center;justify-content:center;width:100%;height:72px;font-size:2rem;font-weight:800;color:#a8977a; }
+.slot-tile .st-ico canvas { image-rendering:pixelated; }
+.slot-tile .st-cofre { font-size:.72rem;font-weight:800;color:#8a5a10; }
+.slot-tile[aria-pressed=true] { outline:3px solid #f2b84b;outline-offset:-3px;box-shadow:0 0 14px #f2b84b99; }
+.slot-tile:focus-visible { outline:3px solid #fff;outline-offset:-3px; }
+.slot-cabeza { grid-column:1;grid-row:1;justify-self:end; } .slot-cara { grid-column:1;grid-row:2;justify-self:end; } .slot-cuello { grid-column:3;grid-row:1;justify-self:start; } .slot-mano { grid-column:3;grid-row:2;justify-self:start; }
+.probador-panel,.probador-sorpresa { grid-column:1 / -1;min-width:0;color:#f1e4c0; }
+.probador-panel .sp-head { display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px; }
+.probador-panel .sp-head h3 { margin:0; }
+.probador-panel .sp-head small { opacity:.8; }
+.probador-panel .tienda-acciones { justify-content:flex-start; }
+.tienda-cofre .tc-title { font-size:1.05rem; }
+.probador-sorpresa .tienda-cofre { flex-direction:row;flex-wrap:wrap;justify-content:center;gap:10px 28px; }
+.probador-sorpresa .tienda-cofre img { width:min(210px,50vw); }
+.probador-sorpresa #shopTop { display:flex;flex-direction:column;align-items:center;gap:8px;max-width:420px; }
+.tienda-odds { margin-top:14px; }
+.tienda-odds summary { cursor:pointer;font-weight:800; }
+@media(max-width:700px) {
+  .probador { grid-template-columns:repeat(4,minmax(0,1fr));gap:8px; }
+  .probador-pet { grid-column:1 / -1;grid-row:1; }
+  .tienda-pet canvas { width:min(100%,190px); }
+  .slot-cabeza { grid-column:1;grid-row:2; } .slot-cara { grid-column:2;grid-row:2; } .slot-cuello { grid-column:3;grid-row:2; } .slot-mano { grid-column:4;grid-row:2; }
+  .slot-tile { max-width:none;padding:8px 2px; } .slot-tile b { font-size:.8rem; } .slot-tile .st-ico { height:48px; }
+  .slot-cabeza,.slot-cara,.slot-cuello,.slot-mano { justify-self:stretch; }
+  .tienda-item .pu-btn { white-space:normal;font-size:.72rem; }
+}
 
 /* ---- destello al abrir y sacudida al caer un premio raro ---- */
 .cofre-fx-flash { position:absolute;inset:0;background:radial-gradient(circle at 50% 45%,#fffbe0,#ffd86088 40%,#0000 70%);opacity:0;pointer-events:none;z-index:3; }

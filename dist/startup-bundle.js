@@ -5725,35 +5725,44 @@
     wardrobe.onchange = e => { const o = { ...pet().outfit, [e.target.dataset.slot]: e.target.value }; api.set({ outfit: o }); home?.life.setOutfit(o); };
   }
 
-  // ——— Tienda del alquimista: cofres, polvo y accesorios (lógica en economy/tienda.js, apertura en economy/cofre-fx.js, docs/economia/SPEC.md) ———
-  const CHEST_KINDS = [['sorpresa', 'Sorpresa', 'Cualquier accesorio'], ['cabeza', 'De cabeza', 'Gorros y coronas'], ['cara', 'De rostro', 'Lentes y monóculos'], ['cuello', 'De cuello', 'Bufandas y collares'], ['mano', 'De mano', 'Tazas, lupas y varitas']];
+  // ——— Tienda del alquimista, estilo "Probador": tu compañero con 4 ranuras, cofres, polvo y accesorios (lógica en economy/tienda.js, apertura en economy/cofre-fx.js, docs/economia/SPEC.md) ———
+  const SLOT_INFO = { cabeza: ['Cabeza', 'Gorros y coronas'], cara: ['Rostro', 'Lentes y monóculos'], cuello: ['Cuello', 'Bufandas y collares'], mano: ['Mano', 'Tazas, lupas y varitas'] };
   async function wireShop(root) {
     const P = await engine().catch(() => null); if (!P || !root.isConnected) return;
-    const T = window.NexoTienda, S = api.shop, shop = root.querySelector('#petShop'), prev = root.querySelector('#petShopPreview'), top = root.querySelector('#shopTop'),
-      wallet = root.querySelector('#shopWallet'), odds = root.querySelector('#shopOdds'), types = root.querySelector('#shopTypes'), chestImg = root.querySelector('#shopChest');
-    let tryOut = { ...pet().outfit }, note = '';
+    const T = window.NexoTienda, S = api.shop, shop = root.querySelector('#petShop'), slotHead = root.querySelector('#shopSlotHead'), slots = root.querySelector('#shopSlots'), prev = root.querySelector('#petShopPreview'), top = root.querySelector('#shopTop'),
+      wallet = root.querySelector('#shopWallet'), odds = root.querySelector('#shopOdds'), chestImg = root.querySelector('#shopChest'), noteEl = root.querySelector('#shopNote');
+    let tryOut = { ...pet().outfit }, sel = T.SLOTS[0], note = '';
     addMini({ canvas: prev, get outfit() { return tryOut; } });
     const sprite = (id, k) => { const c = P.sprite(P.ACCESORIOS[id].rows); c.style.cssText = `width:${c.width * k}px;height:${c.height * k}px;image-rendering:pixelated`; return c; };
     const count = (s, kind) => kind === 'sorpresa' ? s.chests : s.slotChests[kind];
     const btn = (attrs, label, off) => `<button type="button" class="pu-btn" ${attrs}${off ? ' disabled' : ''}>${label}</button>`;
+    const wear = id => { tryOut = { ...tryOut, [T.SLOT_OF[id]]: id }; sel = T.SLOT_OF[id]; };
     const render = () => {
       const st = S.state(), s = T.shopOf(st), locked = S.locked(), daily = s.dailyAt === S.today(), total = s.chests + T.SLOTS.reduce((n, k) => n + s.slotChests[k], 0);
       wallet.innerHTML = `<span class="pu-paper"><b>${Math.floor(st.coins)}</b> ⚛</span><span class="pu-paper"><b>${s.dust}</b> <small>polvo</small></span><span class="pu-paper"><b>${total}</b> <small>cofre${total === 1 ? '' : 's'}</small></span>`;
+      noteEl.hidden = !note; noteEl.textContent = note;
       chestImg.classList.toggle('tc-lit', total > 0);
+      const shortChest = Math.ceil(T.CHEST_PRICE - st.coins);
       top.innerHTML = locked ? '<p class="tc-hint">Con cuenta en la nube la Tienda se activa más adelante; como invitado ya puedes usarla.</p>' :
-        `<div class="tienda-acciones">${btn('data-act="daily"', daily ? 'Cofre diario (ya abierto)' : 'Cofre diario gratis', daily)}${btn('data-open="sorpresa"', `Abrir cofre (${s.chests})`, s.chests < 1)}</div>` +
-        `<p class="tc-hint">Cada ${T.PITY} cofres sin nada raro, el siguiente lo es seguro. Los repetidos se vuelven polvo.</p>` + (note ? `<p class="tienda-nota" role="status">${esc(note)}</p>` : '');
-      types.innerHTML = CHEST_KINDS.map(([kind, label, hint]) => { const price = kind === 'sorpresa' ? T.CHEST_PRICE : T.SLOT_CHEST_PRICE, short = Math.ceil(price - st.coins);
-        return `<div class="pu-paper tienda-tipo"><b>${label}</b><small>${hint}</small><div class="tt-row">${btn(`data-buy="${kind}"`, `Comprar · ${price} ⚛`, locked || short > 0)}${btn(`data-open="${kind}"`, `Abrir (${count(s, kind)})`, locked || count(s, kind) < 1)}</div>${!locked && short > 0 ? `<small class="tt-why">Te faltan ${short} ⚛</small>` : ''}</div>`; }).join('');
+        `<b class="tc-title">Cofre sorpresa</b><div class="tienda-acciones">${btn('data-act="daily"', daily ? 'Cofre diario (ya abierto)' : 'Cofre diario gratis', daily)}${btn('data-open="sorpresa"', `Abrir (${s.chests})`, s.chests < 1)}${btn('data-buy="sorpresa"', `Comprar · ${T.CHEST_PRICE} ⚛`, shortChest > 0)}</div>` +
+        (shortChest > 0 ? `<small class="tt-why">Te faltan ${shortChest} ⚛ para el cofre</small>` : '') + `<p class="tc-hint">Cada ${T.PITY} cofres sin nada raro, el siguiente lo es seguro. Los repetidos se vuelven polvo.</p>`;
+      const idsOf = k => Object.keys(T.SLOT_OF).filter(id => T.SLOT_OF[id] === k);
+      slots.innerHTML = T.SLOTS.map(k => { const ids = idsOf(k), own = ids.filter(id => s.owned.includes(id)).length, n = count(s, k), on = tryOut[k] || '';
+        return `<button type="button" class="pu-paper slot-tile slot-${k}" data-slot="${k}" aria-pressed="${k === sel}"><span class="st-ico" data-id="${on}">${on ? '' : '+'}</span><b>${SLOT_INFO[k][0]}</b><small>${own} de ${ids.length}</small>${n ? `<span class="st-cofre">${n} cofre${n === 1 ? '' : 's'}</span>` : ''}</button>`; }).join('');
+      slots.querySelectorAll('.st-ico').forEach(b => { if (b.dataset.id) b.append(sprite(b.dataset.id, 4)); });
+      const ids = idsOf(sel), shortSlot = Math.ceil(T.SLOT_CHEST_PRICE - st.coins);
+      slotHead.innerHTML = `<div class="sp-head"><h3>${SLOT_INFO[sel][0]}</h3><small>Tienes ${ids.filter(id => s.owned.includes(id)).length} de ${ids.length} · ${SLOT_INFO[sel][1]}</small></div>` +
+        `<div class="tienda-acciones">${btn(`data-buy="${sel}"`, `Cofre de ${SLOT_INFO[sel][0].toLowerCase()} · ${T.SLOT_CHEST_PRICE} ⚛`, locked || shortSlot > 0)}${btn(`data-open="${sel}"`, `Abrir (${count(s, sel)})`, locked || count(s, sel) < 1)}</div>` +
+        (!locked && shortSlot > 0 ? `<small class="tt-why">Te faltan ${shortSlot} ⚛ para este cofre</small>` : '');
       const RC = { comun: '#8a7a5a', poco: '#2f8a52', raro: '#3a6fd0', legendario: '#c98a10' }, NOTE = { comun: 'sale seguido', poco: 'sale a veces', raro: 'es raro', legendario: 'es muy raro' };
       const inRar = r => Object.keys(P.ACCESORIOS).filter(id => T.RARITY_OF[id] === r).length;
       odds.innerHTML = '<h3>Probabilidades de cada cofre</h3>' + T.RARITIES.map(r => `<div class="to-row" style="--c:${RC[r]}"><span class="to-name">${T.LABELS[r]}</span><span class="to-bar"><i style="width:${T.ODDS[r]}%"></i></span><span>${T.ODDS[r]} % <small>${NOTE[r]}</small></span></div>`).join('') +
         `<small>Cada ${T.PITY} cofres sin nada raro, el siguiente es raro o legendario seguro (llevas ${s.sinceRare}). Los cofres de categoría usan las mismas probabilidades dentro de esa categoría. Los repetidos se vuelven polvo.</small>`;
-      shop.innerHTML = Object.entries(P.ACCESORIOS).sort((a, b) => T.RARITIES.indexOf(T.RARITY_OF[a[0]]) - T.RARITIES.indexOf(T.RARITY_OF[b[0]])).map(([id, a]) => {
+      shop.innerHTML = Object.entries(P.ACCESORIOS).filter(([id]) => T.SLOT_OF[id] === sel).sort((a, b) => T.RARITIES.indexOf(T.RARITY_OF[a[0]]) - T.RARITIES.indexOf(T.RARITY_OF[b[0]])).map(([id, a]) => {
         const own = s.owned.includes(id), r = T.RARITY_OF[id], price = T.DUST_PRICE[r], atoms = T.ACC_PRICE[r], noAtoms = st.coins < atoms, noDust = s.dust < price;
-        return `<div class="pu-paper tienda-item" data-r="${r}"><div class="ti-icon" data-id="${id}"></div><b>${esc(P.NOMBRES[id])}</b><small>${a.slot}</small><span class="ti-rar">${T.LABELS[r]}</span><span class="ti-pct">${(T.ODDS[r] / inRar(r)).toFixed(1)} % por cofre</span>` +
+        return `<div class="pu-paper tienda-item" data-r="${r}"><div class="ti-icon" data-id="${id}"></div><b>${esc(P.NOMBRES[id])}</b><span class="ti-rar">${T.LABELS[r]}</span><span class="ti-pct">${(T.ODDS[r] / inRar(r)).toFixed(1)} % por cofre</span>` +
           btn(`data-try="${id}"`, tryOut[a.slot] === id ? 'Quitar' : 'Probar') +
-          (own ? '<span class="ti-own">Tuyo ✓</span>' : btn(`data-acc="${id}"`, `Comprar · ${atoms} ⚛`, locked || noAtoms) + btn(`data-dust="${id}"`, `Canjear · ${price} polvo`, locked || noDust) +
+          (own ? '<span class="ti-own">Tuyo ✓</span>' : btn(`data-acc="${id}"`, `Comprar ${atoms} ⚛`, locked || noAtoms) + btn(`data-dust="${id}"`, `Canjear ${price} polvo`, locked || noDust) +
             (!locked && noAtoms && noDust ? `<small class="tt-why">Te faltan ${Math.ceil(atoms - st.coins)} ⚛ o ${price - s.dust} polvo</small>` : '')) + '</div>';
       }).join('');
       shop.querySelectorAll('.ti-icon').forEach(b => b.append(sprite(b.dataset.id, 4)));
@@ -5767,6 +5776,7 @@
       const ids = Object.keys(P.ACCESORIOS).map(id => ({ id, rarity: T.RARITY_OF[id] }));
       const choice = await window.NexoCofre.play({ winner: { id: r.id, rarity: r.rarity }, ids, tile: id => sprite(id, 5), reduced: reduced(), title: P.NOMBRES[r.id],
         note: `${T.LABELS[r.rarity]} (${T.ODDS[r.rarity]} %) · ${r.dupe ? `repetido: +${r.dust} polvo` : '¡nuevo!'}`, again });
+      if (!r.dupe) wear(r.id);
       cheerUntil = performance.now() + 2500; render();
       if (choice === 'again' && root.isConnected) open(kind);
     };
@@ -5782,8 +5792,9 @@
       if (d.open) open(d.open);
       else if (d.buy) act('buy', d.buy);
       else if (d.act) act(d.act);
-      else if (d.acc) { const r = T.buyAccessory(S.state(), d.acc); note = r.ok ? `¡Conseguiste ${P.NOMBRES[d.acc]}! (−${r.price} ⚛)` : r.reason; if (r.ok) window.NexoAudio?.play('purchase'); S.save(); render(); }
-      else if (d.dust) { const r = T.buyWithDust(S.state(), d.dust); note = r.ok ? `¡Conseguiste ${P.NOMBRES[d.dust]}!` : r.reason; if (r.ok) window.NexoAudio?.play('equip'); S.save(); render(); }
+      else if (d.slot) { sel = d.slot; render(); }
+      else if (d.acc) { const r = T.buyAccessory(S.state(), d.acc); note = r.ok ? `¡Conseguiste ${P.NOMBRES[d.acc]}! (−${r.price} ⚛)` : r.reason; if (r.ok) { window.NexoAudio?.play('purchase'); wear(d.acc); } S.save(); render(); }
+      else if (d.dust) { const r = T.buyWithDust(S.state(), d.dust); note = r.ok ? `¡Conseguiste ${P.NOMBRES[d.dust]}!` : r.reason; if (r.ok) { window.NexoAudio?.play('equip'); wear(d.dust); } S.save(); render(); }
       else if (d.try) { const slot = P.ACCESORIOS[d.try].slot; tryOut = { ...tryOut, [slot]: tryOut[slot] === d.try ? '' : d.try }; render(); }
     };
     render();

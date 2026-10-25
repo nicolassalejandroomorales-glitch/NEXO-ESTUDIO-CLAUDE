@@ -1573,11 +1573,14 @@
   function renderShop() {
     petBind(); awardHitos();
     app.innerHTML=`<section class="page forge-page tienda-page"><div class="tienda-head"><div><p class="eyebrow">MERCADO ARCANO</p><h2 aria-label="Tienda del alquimista">${window.NexoPixelText?window.NexoPixelText.render('Tienda del alquimista'):'Tienda del alquimista'}</h2></div><div class="tienda-wallet" id="shopWallet"></div></div>
-      <div class="tienda-mesa"><div class="pu-panel"><div class="tienda-cofre"><img id="shopChest" src="./assets/tienda/cofre-cerrado.png" alt="Cofre del alquimista"><div id="shopTop"></div></div></div>
-        <div class="pu-panel"><div class="pu-paper tienda-pet"><canvas id="petShopPreview" width="40" height="44" aria-label="Vista previa de tu compañero"></canvas><small>Prueba un accesorio y mira cómo le queda a tu compañero.</small></div></div></div>
-      <div class="tienda-tipos" id="shopTypes"></div>
-      <div class="pu-paper tienda-odds" id="shopOdds"></div>
-      <div class="tienda-estantes" id="petShop"></div></section>`+
+      <p class="tienda-nota" id="shopNote" role="status" hidden></p>
+      <div class="probador">
+        <div class="pu-panel probador-pet"><div class="pu-paper tienda-pet"><canvas id="petShopPreview" width="40" height="44" aria-label="Vista previa de tu compañero"></canvas><small>Toca una ranura para ver y probar sus accesorios.</small></div></div>
+        <div class="probador-slots" id="shopSlots" role="group" aria-label="Ranuras de tu compañero"></div>
+        <div class="pu-panel probador-panel"><div id="shopSlotHead"></div><div class="tienda-estantes" id="petShop"></div></div>
+        <div class="pu-panel probador-sorpresa"><div class="tienda-cofre"><img id="shopChest" src="./assets/tienda/cofre-cerrado.png" alt="Cofre del alquimista"><div id="shopTop"></div></div></div>
+      </div>
+      <details class="pu-paper tienda-odds"><summary>Probabilidades y garantía</summary><div id="shopOdds"></div></details></section>`+
       `<details class="forge-challenges"><summary>Desafíos de estudio</summary>${renderChallenges()}</details>`;
     window.NexoPet?.wireShop(app);
   }
