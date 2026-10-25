@@ -21,7 +21,7 @@ PILLARS = [(a, 4.5) for a in (0.66, -0.66, 1.2, -1.2, 1.85, -1.85)]
 PR = 0.28
 # atril: centro de la tapa, inclinación y medidas (s = a lo ancho, q = a lo largo de la pendiente)
 SLANT = math.radians(25)
-Q = np.array([0.0, 1.13, 0.27], np.float32)
+Q = np.array([0.0, 1.13, 0.40], np.float32)
 EX = np.array([1.0, 0.0, 0.0], np.float32)
 EA = np.array([0.0, math.sin(SLANT), math.cos(SLANT)], np.float32)
 NP = np.array([0.0, math.cos(SLANT), -math.sin(SLANT)], np.float32)
@@ -68,9 +68,8 @@ def proj_tex(p):
     put('N', nx - 3, ny - 4, 2)
     T[ny + 8:ny + 18, nx + 1:nx + 3] = 2
     put('H', nx - 3, ny + 20, 2)
-    for i in range(10):
-        T[ny + 4 - i // 2, nx + 9 + i] = 2
-    put('H', nx + 20, ny - 6, 2)
+    T[ny:ny + 2, nx + 9:nx + 19] = 2
+    put('H', nx + 21, ny - 4, 2)
     bond = ease((p - 0.55) / 0.15)
     if bond < 1:
         for dx in (-3, 3):
@@ -95,12 +94,12 @@ def proj_tex(p):
         T[ny - 4 - n:ny - 4, nx + 1:nx + 3] = 2
         put('+', nx + 9, ny - 14, 5, 1)
     if 0.55 < p < 0.8:
-        r = 4 + (p - 0.55) * 90
+        r = 4 + (p - 0.55) * 40
         yy, xx = np.mgrid[0:TH, 0:TW]
-        d = np.hypot(xx - (nx + 2), yy - (ny - 6))
-        T[(np.abs(d - r) < 1.0) & (T == 0)] = 5
+        d = np.hypot(xx - (nx + 2), yy - (ny - 12))
+        T[(np.abs(d - r) < 0.8) & (T == 0) & ((xx + yy) % 2 == 0)] = 5
     # a la derecha, la anilina: el par se reparte en el anillo (menos disponible)
-    cx, cy, rr = 150, 72, 14
+    cx, cy, rr = 128, 76, 19
     pts = [(cx + rr * math.cos(math.radians(30 + 60 * k)), cy + rr * math.sin(math.radians(30 + 60 * k))) for k in range(6)]
     img = Image.fromarray(T)
     d = ImageDraw.Draw(img)
@@ -256,11 +255,11 @@ def build_frame(cam, t, p, read):
     # --- atril ---
     m = reg == 5
     grain = cm.h2(np.floor(s * 140), np.floor(q * 60))
-    c.mask(m, 'wall', 1.5 + grain * 0.4)
-    c.mask(m & ((np.abs(s) > PLATE[0] - 0.022) | (np.abs(q) > PLATE[1] - 0.022)), 'brass', 3.3)
-    inl = m & (((np.abs(np.abs(s) - (PLATE[0] - 0.04)) < 0.004) & (np.abs(q) < PLATE[1] - 0.036)) |
-               ((np.abs(np.abs(q) - (PLATE[1] - 0.036)) < 0.004) & (np.abs(s) < PLATE[0] - 0.04)))
-    c.mask(inl, 'sprout', 5.4)
+    # tapa de piedra pulida con bisel: el borde de arriba recibe luz, el de abajo queda en sombra
+    c.mask(m, 'stone', 1.3 + grain * 0.5 + cm.h2(np.floor(s * 30), np.floor(q * 22)) * 0.4)
+    rim = m & ((np.abs(s) > PLATE[0] - 0.018) | (np.abs(q) > PLATE[1] - 0.018))
+    c.mask(rim, 'brass', np.where(q > 0, 2.0, np.where(q < -PLATE[1] + 0.009, 1.1, 1.8)))
+    c.mask(rim & (np.abs(s) > PLATE[0] - 0.006), 'brass', 1.2)
     cov = m & (np.abs(s) < COVER[0]) & (np.abs(q) < COVER[1])
     c.mask(cov, 'lav', 2.4 + np.where(np.abs(q) > COVER[1] - 0.006, 1.0, 0))
     pg = m & (np.abs(s) < PAGE[0]) & (np.abs(q) < PAGE[1])
@@ -272,6 +271,28 @@ def build_frame(cam, t, p, read):
     rib_ = m & (s > 0.018) & (s < 0.032) & (q < -0.11) & (q > -PLATE[1] + 0.03)
     c.mask(rib_, 'red', 3.6 - (s - 0.018) * 60)
     N[m] = NP
+    # canto de la tapa y pie del atril (columna de piedra con anillo de latón)
+    edge = [wpt(sx, -PLATE[1]) for sx in (-PLATE[0], PLATE[0])]
+    low = [e - np.array([0, 0.055, 0], np.float32) for e in edge[::-1]]
+    pr = [cam.project(p_) for p_ in edge + low]
+    if min(z_ for *_, z_ in pr) > 0.05:
+        face = cm.poly_mask([(x_, y_) for x_, y_, _ in pr]) & (reg != 5)
+        c.mask(face, 'stone', 0.9 + np.broadcast_to(cm.h2(np.floor(np.arange(W) / 3), 1)[None, :] * 0.3, (H, W)))
+        N[face] = (0, 0, -1)
+        c.mask(face & (np.abs(np.arange(H)[:, None] - min(pr[0][1], pr[1][1])) < 1.2), 'brass', 1.6)
+    yy, xx = np.mgrid[0:H, 0:W]
+    top_c = cam.project(Q - np.array([0, 0.09, 0], np.float32))
+    bot_c = cam.project(np.array([Q[0], 0.0, Q[2] - 0.05], np.float32))
+    if top_c[2] > 0.05 and bot_c[2] > 0.05:
+        sc_t, sc_b = cam.f / top_c[2], cam.f / bot_c[2]
+        k = np.clip((yy - top_c[1]) / max(1.0, bot_c[1] - top_c[1]), 0, 1)
+        half = (0.075 + 0.06 * (k > 0.86)) * (sc_t + (sc_b - sc_t) * k)
+        dx = (xx - top_c[0]) / np.maximum(half, 1)
+        col = (np.abs(dx) < 1) & (yy > top_c[1]) & (yy < bot_c[1]) & (reg != 5)
+        c.mask(col, 'stone', 0.6 + (1 - np.abs(dx + 0.35)) * 1.5)
+        c.mask(col & (np.abs(k - 0.18) < 0.025), 'brass', 2.2 - dx * 0.8)
+        nrm = np.stack([dx, np.zeros_like(dx), -np.sqrt(np.clip(1 - dx ** 2, 0, 1))], -1)
+        N[col] = nrm[col]
     # --- luces ---
     fl = lambda i, f: 1 + 0.09 * math.sin(t * f + i * 2.3) + 0.05 * math.sin(t * f * 2.7 + i)
     lights = [(tp, 2.4 * fl(i, 11), 1.15) for i, tp in enumerate(TORCHES)]
@@ -411,6 +432,10 @@ def render(cam, t, p, read):
                 pixel.glow(arr, x, y, 46 * f, '#ffc850', 0.65, 5)
             elif kind == 'crystal':
                 pixel.glow(arr, x, y, 34, '#3098b8', 0.6, 4)
+        # penumbra en los bordes, por escalones tramados (no un degradado liso)
+        r = np.hypot((xx - W / 2) / (W / 2), (yy - H * 0.55) / (H * 0.6))
+        dark = np.clip((r - 0.75) * 1.6, 0, 0.6)
+        arr *= (1 - np.floor((dark + bay * 0.25) * 4) / 4 * 0.75)[..., None]
     img = c.render(scale=1, post=post)
     rgb = np.array(img, np.float32)
     if gz > 0.3:
@@ -488,7 +513,7 @@ def pages(big, cam, read):
 def cam_at(k):
     """k = 0 mirando el muro, k = 1 leyendo el tomo."""
     e = ease(k)
-    return cm.Cam(EYE, pitch_deg=3 + (-46 - 3) * e, hfov=84 + (70 - 84) * e)
+    return cm.Cam(EYE, pitch_deg=3 + (-27 - 3) * e, hfov=84 + (64 - 84) * e)
 
 
 def main():
